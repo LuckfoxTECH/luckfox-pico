@@ -1,0 +1,71 @@
+From 62e0ca08ab53ab03e014c4851583de8861cd9adb Mon Sep 17 00:00:00 2001
+From: Xing Zheng <zhengxing@rock-chips.com>
+Date: Wed, 7 Jul 2021 15:12:10 +0800
+Subject: [PATCH] alsa-lib: fix the overflow if DCB_FILTER_16BIT is defened
+
+Signed-off-by: Xing Zheng <zhengxing@rock-chips.com>
+---
+ src/pcm/pcm.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/pcm/pcm.c b/src/pcm/pcm.c
+index 7be6cb7..f96c77d 100644
+--- a/src/pcm/pcm.c
++++ b/src/pcm/pcm.c
+@@ -698,7 +698,7 @@ static int16_t   y_prev_r3=0;
+ void dc_filter_left1(int16_t *pcmIn)
+ {
+     int16_t sampleIn, delta_x, sampleOut;
+-    int16_t   a1_y_prev;
++    int32_t   a1_y_prev;
+ 
+     sampleIn = *pcmIn;
+     delta_x = sampleIn-x_prev_l1;
+@@ -713,7 +713,7 @@ void dc_filter_left1(int16_t *pcmIn)
+ void dc_filter_right1(int16_t *pcmIn)
+ {
+     int16_t sampleIn, delta_x, sampleOut;
+-    int16_t a1_y_prev;
++    int32_t a1_y_prev;
+ 
+     sampleIn = *pcmIn;
+     delta_x = sampleIn-x_prev_r1;
+@@ -728,7 +728,7 @@ void dc_filter_right1(int16_t *pcmIn)
+ void dc_filter_left2(int16_t *pcmIn)
+ {
+     int16_t sampleIn, delta_x, sampleOut;
+-    int16_t a1_y_prev;
++    int32_t a1_y_prev;
+ 
+     sampleIn = *pcmIn;
+     delta_x = sampleIn-x_prev_l2;
+@@ -744,7 +744,7 @@ void dc_filter_left2(int16_t *pcmIn)
+ void dc_filter_right2(int16_t *pcmIn)
+ {
+     int16_t sampleIn, delta_x, sampleOut;
+-    int16_t a1_y_prev;
++    int32_t a1_y_prev;
+ 
+     sampleIn = *pcmIn;
+     delta_x = sampleIn-x_prev_r2;
+@@ -759,7 +759,7 @@ void dc_filter_right2(int16_t *pcmIn)
+ void dc_filter_left3(int16_t *pcmIn)
+ {
+     int16_t sampleIn, delta_x, sampleOut;
+-    int16_t a1_y_prev;
++    int32_t a1_y_prev;
+ 
+     sampleIn = *pcmIn;
+     delta_x = sampleIn-x_prev_l3;
+@@ -775,7 +775,7 @@ void dc_filter_left3(int16_t *pcmIn)
+ void dc_filter_right3(int16_t *pcmIn)
+ {
+     int16_t sampleIn, delta_x, sampleOut;
+-    int16_t a1_y_prev;
++    int32_t a1_y_prev;
+ 
+     sampleIn = *pcmIn;
+     delta_x = sampleIn-x_prev_r3;
+-- 
+2.25.1
+

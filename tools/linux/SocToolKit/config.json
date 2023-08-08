@@ -1,0 +1,50 @@
+{
+    "APP_VERSION": "v1.85",
+    "LOG": true,
+    "Download": {
+        "TransferMode": "USB",
+        "Device": "",
+        "Baudrate": "115200",
+        "Reset": true,
+        "ScanIntervalMS": 500,
+        "DefaultJson": ""
+    },
+    "SDcard": {
+        "ScanIntervalMS": 500
+    },
+    "Firmware": {
+        "Storage": [
+            "FLASH",
+            "EMMC",
+            "SD",
+            "SPINAND",
+            "SPINOR",
+            "SATA",
+            "PCIE"
+        ],
+        "Magic": {
+            "RK1808": "180A",
+            "RK1806": "180A",
+            "RK3288": "320A",
+            "RK3368": "330A",
+            "RK3399": "330C",
+            "RK3128": "312A",
+            "RK3126": "312A",
+            "RK3228": "322A",
+            "RK3308": "3308",
+            "RK3326": "3326",
+            "RXPX30": "PX30",
+            "RV1126": "1126",
+            "RV1109": "1126",
+            "RK3566": "3568",
+            "RK3568": "3568",
+            "RK3588": "3588",
+            "RK2108": "210A",
+            "RK2206": "220A",
+            "RV1108": "110A",
+            "RV1106": "1106",
+            "RV1103": "1106"
+        }
+    },
+    "CHIP": ""
+}

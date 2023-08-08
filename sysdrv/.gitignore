@@ -1,0 +1,30 @@
+*.o
+# cfg
+# drv_ko
+eudev-3.2.7
+kmod-29
+out
+# source
+source/busybox
+# source/kernel
+# source/uboot
+tools/board/android-tools/android-tools/
+tools/board/e2fsprogs/e2fsprogs-1.43.9/
+tools/board/e2fsprogs/out
+tools/board/gdb/expat-2.4.1/
+tools/board/gdb/gdb-10.2/
+tools/board/memtester/memtester-4.3.0
+tools/board/mtd-utils/mtd-utils-2.0.1/
+/tools/board/eudev/util-linux-2.37.2/
+
+# tools/board/mtd-utils/mtd-utils-*
+tools/board/mtd-utils/out
+# tools/board/security
+tools/board/stressapptest/stressapptest-master
+tools/board/toolkits/openssl/openssl-1.1.1h/
+tools/board/toolkits/zlib/zlib-1.2.11/
+tools/board/valgrind/valgrind-*
+# util-linux-2.37.2
+# tools/board/idb_bootconfig/
+tools/pc/toolkits/resource_tool
+tools/board/strace/strace-6.0

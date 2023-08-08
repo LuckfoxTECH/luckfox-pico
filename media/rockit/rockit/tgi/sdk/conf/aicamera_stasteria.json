@@ -1,0 +1,331 @@
+{
+    "pipe_0": {
+        "node_0": {
+            "node_opts": {
+                "node_name"       : "rkisp"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 0,
+                "node_buff_count" : 3,
+                "node_buff_size"  : 1382400
+            },
+            "stream_opts": {
+                "stream_output"   : "isp_scale_0",
+                "stream_fmt_out"  : "image:nv12"
+            },
+            "stream_opts_extra": {
+                "opt_entity_name" : "rkispp_scale0",
+                "opt_width"       : 1280,
+                "opt_height"      : 720,
+                "opt_vir_width"   : 1280,
+                "opt_vir_height"  : 720,
+                "opt_buf_type"    : 1,
+                "opt_mem_type"    : 4,
+                "opt_use_libv4l2" : 1,
+                "opt_colorspace"  : 0
+            }
+        },
+        "node_1": {
+            "node_opts": {
+                "node_name"       : "rkisp"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 0,
+                "node_buff_count" : 3,
+                "node_buff_size"  : 5529600
+            },
+            "stream_opts": {
+                "stream_output"   : "isp_bypass",
+                "stream_fmt_out"  : "image:nv12"
+            },
+            "stream_opts_extra": {
+                "opt_entity_name" : "rkispp_m_bypass",
+                "opt_width"       : 2560,
+                "opt_height"      : 1440,
+                "opt_vir_width"   : 2560,
+                "opt_vir_height"  : 1440,
+                "opt_buf_type"    : 1,
+                "opt_mem_type"    : 4,
+                "opt_use_libv4l2" : 1,
+                "opt_colorspace"  : 0
+            }
+        },
+        "node_2": {
+            "node_opts": {
+                "node_name"       : "rkisp"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 0,
+                "node_buff_count" : 3,
+                "node_buff_size"  : 1382400
+            },
+            "stream_opts": {
+                "stream_output"   : "isp_scale_1",
+                "stream_fmt_out"  : "image:nv12"
+            },
+            "stream_opts_extra": {
+                "opt_entity_name" : "rkispp_scale1",
+                "opt_width"       : 1280,
+                "opt_height"      : 720,
+                "opt_vir_width"   : 1280,
+                "opt_vir_height"  : 720,
+                "opt_buf_type"    : 1,
+                "opt_mem_type"    : 4,
+                "opt_use_libv4l2" : 1,
+                "opt_colorspace"  : 0
+            }
+        },
+        "node_3": {
+            "node_opts": {
+                "node_name"       : "rkzoom"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 1,
+                "node_buff_count" : 0
+            },
+            "stream_opts": {
+                "stream_input"    : "zoom_ctl_in",
+                "stream_output"   : "zoom_ctl_out",
+                "stream_fmt_in"   : "image:nv12",
+                "stream_fmt_out"  : "image:nv12"
+            }
+        },
+        "node_4": {
+            "node_opts": {
+                "node_name"       : "st_asteria"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 1,
+                "node_buff_count" : 2
+            },
+            "stream_opts": {
+                "stream_input"    : "eptz_face_detect_in",
+                "stream_output"   : "eptz_face_detect_out",
+                "stream_fmt_in"   : "image:nv12",
+                "stream_fmt_out"  : "image:rect",
+                "stream_mode_in"  : "remain_newest"
+            },
+            "stream_opts_extra": {
+                "opt_stasteria_mode"       : "video",
+                "opt_stasteria_sup_mode"   : "video",
+                "opt_stasteria_scene"      : "scene_eptz",
+                "opt_stasteria_sup_detect" : "face",
+                "opt_stasteria_detect"     : "face",
+                "opt_stasteria_skip_interval" : 2
+            }
+        },
+        "node_5": {
+            "node_opts": {
+                "node_name"       : "rkeptz"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 1,
+                "node_buff_count" : 0
+            },
+            "stream_opts": {
+                "stream_input_0"  : "image:nv12_0",
+                "stream_input_1"  : "image:rect_10",
+                "stream_output"   : "image:nv12_12",
+                "stream_fmt_in_0" : "image:nv12",
+                "stream_fmt_in_1" : "image:rect",
+                "stream_fmt_out"  : "image:nv12"
+            },
+            "stream_opts_extra": {
+                "opt_ai_algorithm": "st_asteria",
+                "opt_width"       : 1920,
+                "opt_height"      : 1080,
+                "opt_clip_width"  : 1280,
+                "opt_clip_height" : 720
+            }
+        },
+        "node_6": {
+            "node_opts": {
+                "node_name"       : "rkrga"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 0,
+                "node_buff_count" : 3,
+                "node_buff_size"  : 614400
+            },
+            "stream_opts": {
+                "stream_input"    : "eptz_clip_in",
+                "stream_output"   : "eptz_clip_out",
+                "stream_fmt_in"   : "image:nv12",
+                "stream_fmt_out"  : "image:nv12",
+                "stream_mode_in"  : "remain_newest"
+            },
+            "stream_opts_extra": {
+                "opt_trans_rect"  : "(0,0,1920,1080)->(0,0,1280,720)",
+                "opt_trans_rotate": 0
+            }
+        },
+        "node_7": {
+            "node_opts": {
+                "node_name"       : "link_output"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 1,
+                "node_buff_count" : 0
+            },
+            "stream_opts": {
+                "stream_input"    : "uvc_link_out_in",
+                "stream_output"   : "uvc_link_out_out",
+                "stream_fmt_in"   : "image:nv12",
+                "stream_fmt_out"  : "image:nv12"
+            }
+        },
+        "node_10": {
+            "node_opts": {
+                "node_name"       : "rkrga"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 0,
+                "node_buff_count" : 3,
+                "node_buff_size"  : 1382400
+            },
+            "stream_opts": {
+                "stream_input"    : "nn_data_in",
+                "stream_output"   : "nn_data_out",
+                "stream_fmt_in"   : "image:nv12",
+                "stream_fmt_out"  : "image:nv12",
+                "stream_mode_in"  : "remain_newest"
+            },
+            "stream_opts_extra": {
+                "opt_trans_rect"  : "(0,0,1280,720)->(0,0,1280,720)",
+                "opt_trans_rotate": 0
+            }
+        },
+        "node_8": {
+            "node_opts": {
+                "node_name"       : "link_output"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 1,
+                "node_buff_count" : 0
+            },
+            "stream_opts": {
+                "stream_input"    : "nn_link_out_in",
+                "stream_output"   : "nn_link_out_out",
+                "stream_fmt_in"   : "image:nv12",
+                "stream_fmt_out"  : "image:nv12"
+            }
+        },
+        "node_11": {
+            "node_opts": {
+                "node_name"       : "st_asteria"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 1,
+                "node_buff_count" : 2
+            },
+            "stream_opts": {
+                "stream_input"    : "st_asteria_in",
+                "stream_output"   : "st_asteria_out",
+                "stream_fmt_in"   : "image:nv12",
+                "stream_fmt_out"  : "nn:stasteria",
+                "stream_mode_in"  : "remain_newest"
+            },
+            "stream_opts_extra": {
+                "opt_stasteria_mode"       : "video",
+                "opt_stasteria_sup_mode"   : "video",
+                "opt_stasteria_scene"      : "scene_nn",
+                "opt_stasteria_sup_detect" : "face,face_distance,face_attribute,face_feature,hand,body"
+            }
+        },
+        "node_1000": {
+            "node_opts": {
+                "node_name"       : "link_output"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 1,
+                "node_buff_count" : 0
+            },
+            "stream_opts": {
+                "stream_input"    : "st_asteria_link_in",
+                "stream_output"   : "st_asteria_link_out",
+                "stream_fmt_in"   : "nn:stasteria",
+                "stream_fmt_out"  : "nn:stasteria"
+            }
+        },
+        "node_64": {
+            "node_opts": {
+                "node_name"       : "ai_matting"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 0,
+                "node_buff_count" : 16,
+                "node_buff_size"  : 102400
+            },
+            "stream_opts": {
+                "stream_input"    : "ai_matting_in",
+                "stream_output"   : "aimatting_out",
+                "stream_fmt_in"   : "nn:stasteria",
+                "stream_fmt_out"  : "image:nv12",
+                "stream_mode_in"  : "remain_newest"
+            },
+            "stream_opts_extra": {
+                "opt_ai_algorithm": "st_asteria"
+            }
+        },
+        "node_1001": {
+            "node_opts": {
+                "node_name"       : "link_output"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 1,
+                "node_buff_count" : 0
+            },
+            "stream_opts": {
+                "stream_input"    : "aimatting_link_in",
+                "stream_output"   : "aimatting_link_out",
+                "stream_fmt_in"   : "image:nv12",
+                "stream_fmt_out"  : "image:nv12"
+            }
+        },
+        "node_21": {
+            "node_opts": {
+                "node_name"       : "rkrga"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 0,
+                "node_buff_count" : 2,
+                "node_buff_size"  : 115200
+            },
+            "stream_opts": {
+                "stream_input"    : "small_rga_in",
+                "stream_output"   : "small_rga_out",
+                "stream_fmt_in"   : "image:nv12",
+                "stream_fmt_out"  : "image:nv12"
+            },
+            "stream_opts_extra": {
+                "opt_trans_rect"  : "(0,0,1280,720)->(0,0,320,240)",
+                "opt_trans_rotate": 0
+            }
+        },
+        "default_mode_link": "none",
+        "link_0": {
+            "link_name"          : "uvc",
+            "link_ship"          : "0,7"
+        },
+        "link_1": {
+            "link_name"          : "nn_isp",
+            "link_ship"          : "2,8,11,1000"
+        },
+        "link_2": {
+            "link_name"          : "nn_linkout",
+            "link_ship"          : "10,8,11,1000"
+        },
+        "link_3": {
+            "link_name"          : "aimatting",
+            "link_ship"          : "11,64,1001"
+        },
+        "link_4": {
+            "link_name"          : "uvc_zoom",
+            "link_ship"          : "1,3,6,7-6,10"
+        },
+        "link_5": {
+            "link_name"          : "eptz",
+            "link_ship"          : "1,5,3,6,7-2,4,5-6,10"
+        }
+    }
+}

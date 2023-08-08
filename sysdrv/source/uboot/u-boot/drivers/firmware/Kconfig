@@ -1,0 +1,8 @@
+config FIRMWARE
+	bool
+
+config ARM_PSCI_FW
+	bool
+	select FIRMWARE
+
+source "drivers/firmware/scmi/Kconfig"

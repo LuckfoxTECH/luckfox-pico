@@ -1,0 +1,49 @@
+From 2821524107efec826c1584226f263127c22b2572 Mon Sep 17 00:00:00 2001
+From: Nyx Zheng <zyh@rock-chips.com>
+Date: Mon, 16 Jul 2018 17:33:30 +0800
+Subject: [PATCH] add gain for audio input
+
+Signed-off-by: Nyx Zheng <zyh@rock-chips.com>
+---
+ src/pcm/pcm.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/src/pcm/pcm.c b/src/pcm/pcm.c
+index 9c90afb..281fbe3 100644
+--- a/src/pcm/pcm.c
++++ b/src/pcm/pcm.c
+@@ -825,6 +825,23 @@ void DCBDoing(void* pIn, int length, int channels)
+     }
+ }
+ #endif
++void add_gain(void* pIn, int length, int channels)
++{
++    int i = 0;
++    int16_t * pInBuf  =  (int16_t *)pIn;
++    char *alsa_gain_level = getenv("ALSA_LIB_ADD_GAIN");
++    if(alsa_gain_level) {
++        int level = atoi(alsa_gain_level);
++        //printf("gain level:%d\n",level);
++        for(i = 0; i < length; i ++ ) {
++            int curChannel = i % channels;
++            if(curChannel < channels - 2 ) {//audio loopback no need to add gain
++                (*pInBuf) <<= level;
++            }
++            pInBuf++;
++        }
++    }
++}
+ /* check whether the PCM is in the unexpected state */
+ static int bad_pcm_state(snd_pcm_t *pcm, unsigned int supported_states)
+ {
+@@ -1675,6 +1692,7 @@ snd_pcm_sframes_t snd_pcm_readi(snd_pcm_t *pcm, void *buffer, snd_pcm_uframes_t
+ #ifdef DCB_FILTER_16BIT
+ 	DCBDoing((void*)buffer, tmp * pcm->frame_bits / 8 / sizeof(int16_t), pcm->channels);
+ #endif
++	add_gain((void*)buffer, tmp * pcm->frame_bits / 8 / sizeof(int16_t), pcm->channels);
+ 	return tmp;
+ }
+ 
+-- 
+2.7.4
+

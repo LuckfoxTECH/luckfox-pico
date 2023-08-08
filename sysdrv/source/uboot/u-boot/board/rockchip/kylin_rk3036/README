@@ -1,0 +1,68 @@
+Get the Source and prebuild binary
+==================================
+
+  > mkdir ~/kylin_rk3036
+  > cd ~/kylin_rk3036
+  > git clone git://git.denx.de/u-boot.git
+  > git clone https://github.com/rockchip-linux/rkbin.git
+  > git clone https://github.com/rockchip-linux/rkdeveloptool.git
+
+Get the OP-TEE
+===============
+
+  Get tee.bin in this step, copy it to U-Boot root dir:
+  > cp rkbin/rk30/rk3036_tee_v1.00.bin ../u-boot/tee.bin
+
+Compile the U-Boot
+==================
+
+  > cd ../u-boot
+  > export CROSS_COMPILE=arm-linux-gnueabihf-
+  > export ARCH=arm
+  > make kylin-rk3036_defconfig
+  > make
+  > make u-boot.itb
+
+  Get tpl/u-boot-tpl.bin, spl/u-boot-spl.bin and u-boot.itb in this step.
+
+Compile the rkdeveloptool
+=======================
+  Follow instructions in latest README
+  > cd ../rkflashtool
+  > autoreconf -i
+  > ./configure
+  > make
+  > sudo make install
+
+  Get rkdeveloptool in you Host in this step.
+
+Both origin binaries and Tool are ready now, choose either option 1 or
+option 2 to deploy U-Boot.
+
+Package the image
+=================
+
+  > cd ../u-boot
+  > tools/mkimage -n rk3036 -T rksd -d tpl/u-boot-tpl.bin idbloader.img
+  > cat spl/u-boot-spl.bin >> idbloader.img
+
+  Get idbloader.img in this step.
+
+Flash the image to eMMC
+=======================
+Power on(or reset with RESET KEY) with MASKROM KEY preesed, and then:
+  > cd ..
+  > rkdeveloptool db rkbin/rk30/rk3036_loader_v1.07.237.bin
+  > rkdeveloptool wl 64 u-boot/idbloader.img
+  > rkdeveloptool wl 0x4000 u-boot/u-boot.itb
+  > rkdeveloptool rd
+
+Flash the image to SD card
+==========================
+  > dd if=u-boot/idbloader.img of=/dev/sdb seek=64
+  > dd if=u-boot/u-boot.itb of=/dev/sdb seek=16384
+
+You should be able to get U-Boot log message with OP-TEE boot info.
+
+For more detail, please reference to:
+http://opensource.rock-chips.com/wiki_Boot_option

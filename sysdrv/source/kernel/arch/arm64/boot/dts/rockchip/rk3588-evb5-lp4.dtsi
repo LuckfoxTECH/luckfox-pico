@@ -1,0 +1,290 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2021 Rockchip Electronics Co., Ltd.
+ *
+ */
+
+#include "rk3588.dtsi"
+#include "rk3588-evb.dtsi"
+#include "rk3588-rk806-dual.dtsi"
+
+/ {
+	dsm_sound: dsm-sound {
+		compatible = "simple-audio-card";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,mclk-fs = <256>;
+		simple-audio-card,name = "rockchip,dsm-sound";
+		simple-audio-card,bitclock-master = <&sndcodec>;
+		simple-audio-card,frame-master = <&sndcodec>;
+		sndcpu: simple-audio-card,cpu {
+			sound-dai = <&i2s3_2ch>;
+		};
+		sndcodec: simple-audio-card,codec {
+			sound-dai = <&acdcdig_dsm>;
+		};
+	};
+
+	fan: pwm-fan {
+		compatible = "pwm-fan";
+		#cooling-cells = <2>;
+		pwms = <&pwm9 0 50000 0>;
+		cooling-levels = <0 50 100 150 200 255>;
+		rockchip,temp-trips = <
+			50000	1
+			55000	2
+			60000	3
+			65000	4
+			70000	5
+		>;
+	};
+
+	hdmiin_dc: hdmiin-dc {
+		compatible = "rockchip,dummy-codec";
+		#sound-dai-cells = <0>;
+	};
+
+	hdmiin-sound {
+		compatible = "simple-audio-card";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,name = "rockchip,hdmiin";
+		simple-audio-card,bitclock-master = <&dailink0_master>;
+		simple-audio-card,frame-master = <&dailink0_master>;
+		status = "okay";
+		simple-audio-card,cpu {
+			sound-dai = <&i2s7_8ch>;
+		};
+		dailink0_master: simple-audio-card,codec {
+			sound-dai = <&hdmiin_dc>;
+		};
+	};
+
+	pcie20_avdd0v85: pcie20-avdd0v85 {
+		compatible = "regulator-fixed";
+		regulator-name = "pcie20_avdd0v85";
+		regulator-boot-on;
+		regulator-always-on;
+		regulator-min-microvolt = <850000>;
+		regulator-max-microvolt = <850000>;
+		vin-supply = <&avdd_0v85_s0>;
+	};
+
+	pcie20_avdd1v8: pcie20-avdd1v8 {
+		compatible = "regulator-fixed";
+		regulator-name = "pcie20_avdd1v8";
+		regulator-boot-on;
+		regulator-always-on;
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		vin-supply = <&avcc_1v8_s0>;
+	};
+
+	pcie30_avdd0v75: pcie30-avdd0v75 {
+		compatible = "regulator-fixed";
+		regulator-name = "pcie30_avdd0v75";
+		regulator-boot-on;
+		regulator-always-on;
+		regulator-min-microvolt = <750000>;
+		regulator-max-microvolt = <750000>;
+		vin-supply = <&avdd_0v75_s0>;
+	};
+
+	pcie30_avdd1v8: pcie30-avdd1v8 {
+		compatible = "regulator-fixed";
+		regulator-name = "pcie30_avdd1v8";
+		regulator-boot-on;
+		regulator-always-on;
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		vin-supply = <&avcc_1v8_s0>;
+	};
+
+	vcc3v3_pcie30: vcc3v3-pcie30 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc3v3_pcie30";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		enable-active-high;
+		gpios = <&gpio3 RK_PC3 GPIO_ACTIVE_HIGH>;
+		startup-delay-us = <5000>;
+		vin-supply = <&vcc12v_dcin>;
+	};
+};
+
+&acdcdig_dsm {
+	status = "okay";
+};
+
+&combphy0_ps {
+	status = "okay";
+};
+
+&combphy1_ps {
+	status = "okay";
+};
+
+&combphy2_psu {
+	status = "okay";
+};
+
+/*
+ * mipi_dcphy0 needs to be enabled
+ * when dsi0 is enabled
+ */
+&dsi0 {
+	status = "disabled";
+};
+
+&dsi0_in_vp2 {
+	status = "disabled";
+};
+
+&dsi0_in_vp3 {
+	status = "okay";
+};
+
+/*
+ * mipi_dcphy1 needs to be enabled
+ * when dsi1 is enabled
+ */
+&dsi1 {
+	status = "disabled";
+};
+
+&dsi1_in_vp2 {
+	status = "disabled";
+};
+
+&dsi1_in_vp3 {
+	status = "disabled";
+};
+
+&hdmi1 {
+	enable-gpios = <&gpio4 RK_PB2 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+};
+
+&hdmi1_in_vp0 {
+	status = "okay";
+};
+
+&hdmi1_sound {
+	status = "okay";
+};
+
+&hdptxphy_hdmi1 {
+	status = "okay";
+};
+
+&i2s3_2ch {
+	status = "okay";
+	/delete-property/ pinctrl-names;
+	/delete-property/ pinctrl-0;
+};
+
+&i2s6_8ch {
+	status = "okay";
+};
+
+&i2s7_8ch {
+	status = "okay";
+};
+
+&mipi_dcphy0 {
+	status = "disabled";
+};
+
+&mipi_dcphy1 {
+	status = "disabled";
+};
+
+&pcie2x1l0 {
+	reset-gpios = <&gpio4 RK_PA5 GPIO_ACTIVE_HIGH>;
+	vpcie3v3-supply = <&vcc3v3_pcie30>;
+	status = "okay";
+};
+
+&pcie2x1l1 {
+	reset-gpios = <&gpio4 RK_PA2 GPIO_ACTIVE_HIGH>;
+	vpcie3v3-supply = <&vcc3v3_pcie30>;
+	status = "okay";
+};
+
+&pcie2x1l2 {
+	reset-gpios = <&gpio4 RK_PC1 GPIO_ACTIVE_HIGH>;
+	vpcie3v3-supply = <&vcc3v3_pcie30>;
+	status = "okay";
+};
+
+&pcie30phy {
+	rockchip,pcie30-phymode = <PHY_MODE_PCIE_NANBNB>;
+	status = "okay";
+};
+
+&pcie3x2 {
+	reset-gpios = <&gpio4 RK_PB0 GPIO_ACTIVE_HIGH>;
+	vpcie3v3-supply = <&vcc3v3_pcie30>;
+	status = "okay";
+};
+
+&pcie3x4 {
+	num-lanes = <2>;
+	reset-gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_HIGH>;
+	vpcie3v3-supply = <&vcc3v3_pcie30>;
+	status = "okay";
+};
+
+&pwm9 {
+	pinctrl-0 = <&pwm9m2_pins>;
+	status = "okay";
+};
+
+&route_dsi0 {
+	status = "okay";
+	connect = <&vp3_out_dsi0>;
+};
+
+&route_dsi1 {
+	status = "disabled";
+	connect = <&vp3_out_dsi1>;
+};
+
+&spdif_tx1 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&spdif1m0_tx>;
+};
+
+&spdif_tx1_dc {
+	status = "okay";
+};
+
+&spdif_tx1_sound {
+	status = "okay";
+};
+
+&usbdp_phy0 {
+	status = "disabled";
+};
+
+&usbdp_phy0_dp {
+	status = "disabled";
+};
+
+&usbdp_phy0_u3 {
+	status = "disabled";
+};
+
+&usbdrd_dwc3_0 {
+	dr_mode = "peripheral";
+	phys = <&u2phy0_otg>;
+	phy-names = "usb2-phy";
+	maximum-speed = "high-speed";
+};
+
+&usbhost3_0 {
+	status = "disabled";
+};
+
+&usbhost_dwc3_0 {
+	status = "disabled";
+};

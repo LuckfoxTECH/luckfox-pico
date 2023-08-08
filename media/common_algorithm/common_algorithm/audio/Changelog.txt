@@ -1,0 +1,23 @@
+# The change logs for Rockchip Audio Processor
+
+## V1.2.0 (2021.04.22)
+- Update new Para.bins and matching for new Para tool
+- Fixed some NLP and CNG bugs
+- Optimize DTD and Echo
+- Optimize ANR and Denoise
+
+## V1.1.1 (2021.02.05)
+- Fixed discontinuous near-end talk
+- Add support Double Talk Detection(DTD)
+
+## V1.1.0 (2021.01.31)
+- Fixed mute when AEC RX be opened
+- Fixed the FS bug for EQ
+- Add NLP plus when need suppress residual echo
+- Fixed ANR/Denoise attenuation problem after 2s
+
+## V1.0.0 (2020.12.17)
+- Release Rockchip Audio Processor official version
+- Supports 8/16kHz 3A (ANR/AEC/AGC) audio process
+- Supports 8~48kHz ANR denoise process
+- Unified use of 'RKAP' as prefix naming

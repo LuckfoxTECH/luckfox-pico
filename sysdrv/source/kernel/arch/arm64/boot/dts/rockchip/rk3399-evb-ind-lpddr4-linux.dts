@@ -1,0 +1,361 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2019-2020 Fuzhou Rockchip Electronics Co., Ltd.
+ */
+
+/dts-v1/;
+
+#include "rk3399-evb-ind.dtsi"
+#include "rk3399-linux.dtsi"
+
+/ {
+	model = "Rockchip RK3399 EVB IND LPDDR4 Board edp (Linux)";
+	compatible = "rockchip,linux", "rockchip,rk3399-evb-ind-lpddr4-linux", "rockchip,rk3399";
+
+	iram: sram@ff8d0000 {
+		compatible = "mmio-sram";
+		reg = <0x0 0xff8d0000 0x0 0x20000>;
+	};
+
+	hub_reset: hub-reset {
+		compatible = "regulator-fixed";
+		enable-active-high;
+		gpio = <&gpio4 18 GPIO_ACTIVE_HIGH>;
+		regulator-name = "hub_reset";
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+	};
+
+	vcc_lcd: vcc-lcd {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc_lcd";
+		startup-delay-us = <20000>;
+		enable-active-high;
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-boot-on;
+		vin-supply = <&vcc5v0_sys>;
+	};
+
+	panel: panel {
+		compatible = "simple-panel";
+		backlight = <&backlight>;
+		power-supply = <&vcc_lcd>;
+		reset-gpios = <&gpio1 23 GPIO_ACTIVE_LOW>;
+		prepare-delay-ms = <20>;
+		enable-delay-ms = <20>;
+
+		display-timings {
+			native-mode = <&timing0>;
+
+			timing0: timing0 {
+				clock-frequency = <200000000>;
+				hactive = <1536>;
+				vactive = <2048>;
+				hfront-porch = <12>;
+				hsync-len = <16>;
+				hback-porch = <48>;
+				vfront-porch = <8>;
+				vsync-len = <4>;
+				vback-porch = <8>;
+				hsync-active = <0>;
+				vsync-active = <0>;
+				de-active = <0>;
+				pixelclk-active = <0>;
+			};
+		};
+
+		ports {
+			panel_in: endpoint {
+				remote-endpoint = <&edp_out>;
+			};
+		};
+	};
+
+	test-power {
+		status = "okay";
+	};
+};
+
+&backlight {
+	enable-gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
+};
+
+&display_subsystem {
+	status = "okay";
+};
+
+&dmac_bus {
+	iram = <&iram>;
+	rockchip,force-iram;
+};
+
+&dp_sound {
+	status = "disabled";
+};
+
+&edp {
+	status = "okay";
+	force-hpd;
+
+	ports {
+		port@1 {
+			reg = <1>;
+
+			edp_out: endpoint {
+				remote-endpoint = <&panel_in>;
+			};
+		};
+	};
+};
+
+&edp_in_vopb {
+	status = "disabled";
+};
+
+&hdmi {
+	pinctrl-names = "default";
+	pinctrl-0 = <&hdmi_i2c_xfer>, <&hdmi_cec>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	#sound-dai-cells = <0>;
+	status = "okay";
+};
+
+&hdmi_in_vopl {
+	status = "disabled";
+};
+
+&hdmi_sound {
+	status = "okay";
+};
+
+&i2c1 {
+	status = "okay";
+
+	vm149c: vm149c@0c {
+		compatible = "silicon touch,vm149c";
+		status = "okay";
+		reg = <0x0c>;
+		rockchip,camera-module-index = <0>;
+		rockchip,camera-module-facing = "back";
+	};
+
+	ov13850: ov13850@10 {
+		compatible = "ovti,ov13850";
+		status = "okay";
+		reg = <0x10>;
+		clocks = <&cru SCLK_CIF_OUT>;
+		clock-names = "xvclk";
+
+		/* conflict with csi-ctl-gpios */
+		reset-gpios = <&gpio1 RK_PA3 GPIO_ACTIVE_HIGH>;
+		pwdn-gpios = <&gpio1 RK_PD0 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "rockchip,camera_default";
+		pinctrl-0 = <&cif_clkout>;
+		rockchip,camera-module-index = <0>;
+		rockchip,camera-module-facing = "back";
+		rockchip,camera-module-name = "CMK-CT0116";
+		rockchip,camera-module-lens-name = "Largan-50013A1";
+
+		lens-focus = <&vm149c>;
+
+		port {
+			ucam_out0: endpoint {
+				remote-endpoint = <&mipi_in_ucam0>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+};
+
+&i2s0 {
+	#sound-dai-cells = <0>;
+	status = "okay";
+};
+
+&i2s1 {
+	#sound-dai-cells = <0>;
+	status = "okay";
+};
+
+&i2s2 {
+	#sound-dai-cells = <0>;
+	status = "okay";
+};
+
+&mipi_dphy_rx0 {
+	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			mipi_in_ucam0: endpoint@1 {
+				reg = <1>;
+				remote-endpoint = <&ucam_out0>;
+				data-lanes = <1 2>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			dphy_rx0_out: endpoint@0 {
+				reg = <0>;
+				remote-endpoint = <&isp0_mipi_in>;
+			};
+		};
+	};
+};
+
+&mipi_dphy_tx1rx1 {
+	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			mipi_in_ucam1: endpoint@1 {
+				reg = <1>;
+				/* Unlinked camera */
+				//remote-endpoint = <&ucam_out1>;
+				data-lanes = <1 2>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			dphy_tx1rx1_out: endpoint@0 {
+				reg = <0>;
+				remote-endpoint = <&isp1_mipi_in>;
+			};
+		};
+	};
+};
+
+&rk809_sound {
+	status = "okay";
+};
+
+&rkisp1_0 {
+	status = "okay";
+
+	port {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		isp0_mipi_in: endpoint@0 {
+			reg = <0>;
+			remote-endpoint = <&dphy_rx0_out>;
+		};
+	};
+};
+
+&rkisp1_1 {
+	status = "okay";
+
+	port {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		isp1_mipi_in: endpoint@0 {
+			reg = <0>;
+			remote-endpoint = <&dphy_tx1rx1_out>;
+		};
+	};
+};
+
+&route_edp {
+	status = "okay";
+};
+
+&route_hdmi {
+	status = "okay";
+	connect = <&vopb_out_hdmi>;
+};
+
+/*
+ * if enable dp_sound, should disable spdif_sound and spdif_out
+ */
+&spdif_out {
+	status = "disabled";
+};
+
+&spdif_sound {
+	status = "disabled";
+};
+
+&tc358749x_sound {
+	status = "disabled";
+};
+
+&vcca_0v9 {
+	regulator-always-on;
+	regulator-boot-on;
+	regulator-min-microvolt = <900000>;
+	regulator-max-microvolt = <900000>;
+	regulator-name = "vcca_0v9";
+	regulator-state-mem {
+		regulator-on-in-suspend;
+		regulator-suspend-microvolt = <900000>;
+	};
+};
+
+&vcc0v9_soc {
+	regulator-always-on;
+	regulator-boot-on;
+	regulator-min-microvolt = <900000>;
+	regulator-max-microvolt = <900000>;
+
+	regulator-name = "vcc0v9_soc";
+	regulator-state-mem {
+		regulator-off-in-suspend;
+	};
+};
+
+&vopb {
+	status = "okay";
+};
+
+&vopb_mmu {
+	status = "okay";
+};
+
+&vopl {
+	status = "okay";
+};
+
+&vopl_mmu {
+	status = "okay";
+};
+
+&pinctrl {
+	lcd-panel {
+		lcd_panel_reset: lcd-panel-reset {
+			rockchip,pins = <1 RK_PC7 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+};
+
+/* DON'T PUT ANYTHING BELOW HERE.  PUT IT ABOVE PINCTRL */
+/* DON'T PUT ANYTHING BELOW HERE.  PUT IT ABOVE PINCTRL */
+/* DON'T PUT ANYTHING BELOW HERE.  PUT IT ABOVE PINCTRL */
+

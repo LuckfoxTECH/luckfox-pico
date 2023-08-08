@@ -1,0 +1,4 @@
+all:
+	$(CC) -o $(TARGET) qqlink.c ../$(LIB_DIR)/$(LIB_NAME) qqlink/qqlink-lib-mipsel/lib/libtxdevicesdk.a -lstdc++ -lm -lpthread -lrt -I../$(LIB_DIR)/
+	$(CC) -static -o $(TARGET) qqlink.c ../$(LIB_DIR)/$(LIB_NAME) qqlink/qqlink-lib-mipsel/lib/libtxdevicesdk.a -lstdc++ -lm -lpthread -lrt -I../$(LIB_DIR)/	
+clean:

@@ -1,0 +1,39 @@
+
+# Enable build eudev
+CONFIG_SYSDRV_ENABLE_EUDEV=y
+$(eval $(call MACRO_CHECK_ENABLE_PKG, RK_ENABLE_EUDEV))
+
+
+# Enable build adbd debug tool
+CONFIG_SYSDRV_ENABLE_ADBD=y
+$(eval $(call MACRO_CHECK_ENABLE_PKG, RK_ENABLE_ADBD))
+
+
+# Enable build gdb and gdbserver debug tool
+CONFIG_SYSDRV_ENABLE_GDB=y
+$(eval $(call MACRO_CHECK_ENABLE_PKG, RK_ENABLE_GDB))
+
+
+# Enable build wifi
+CONFIG_SYSDRV_ENABLE_WIFI=n
+$(eval $(call MACRO_CHECK_ENABLE_PKG, RK_ENABLE_WIFI))
+
+# Enable rockchip test
+CONFIG_SYSDRV_ENABLE_ROCKCHIP_TEST=n
+$(eval $(call MACRO_CHECK_ENABLE_PKG, RK_ENABLE_ROCKCHIP_TEST))
+
+# Enable build motor
+CONFIG_SYSDRV_ENABLE_MOTOR=n
+$(eval $(call MACRO_CHECK_ENABLE_PKG, RK_ENABLE_MOTOR))
+
+# Enable build rndis
+CONFIG_SYSDRV_ENABLE_RNDIS=n
+$(eval $(call MACRO_CHECK_ENABLE_PKG, RK_ENABLE_RNDIS))
+
+# Enable build rk_ota
+CONFIG_SYSDRV_ENABLE_OTA=n
+$(eval $(call MACRO_CHECK_ENABLE_PKG, RK_ENABLE_OTA))
+
+# Enable build strace
+CONFIG_SYSDRV_ENABLE_STRACE=n
+$(eval $(call MACRO_CHECK_ENABLE_PKG, RK_ENABLE_STRACE))

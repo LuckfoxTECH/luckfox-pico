@@ -1,0 +1,79 @@
+// SPDX-License-Identifier:     GPL-2.0+
+/*
+ * (C) Copyright 2018 Rockchip Electronics Co., Ltd
+ *
+ */
+
+/dts-v1/;
+#include "rk1808.dtsi"
+#include "rk1808-u-boot.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+#include <linux/media-bus-format.h>
+
+/ {
+	model = "Rockchip RK1808 EVB";
+	compatible = "rockchip,rk1808-evb", "rockchip,rk1808";
+
+	adc-keys {
+		status = "okay";
+
+		u-boot,dm-spl;
+		compatible = "adc-keys";
+		io-channels = <&saradc 2>;
+		io-channel-names = "buttons";
+		keyup-threshold-microvolt = <1800000>;
+
+		vol-up-key {
+			u-boot,dm-spl;
+			linux,code = <KEY_VOLUMEUP>;
+			label = "volume up";
+			press-threshold-microvolt = <10000>;
+		};
+	};
+
+	vcc_phy: vcc-phy-regulator {
+		u-boot,dm-spl;
+		compatible = "regulator-fixed";
+		regulator-name = "vcc_phy";
+		regulator-always-on;
+		regulator-boot-on;
+	};
+};
+
+&crypto {
+	status = "okay";
+};
+
+&emmc {
+	fifo-mode;
+	bus-width = <8>;
+	cap-mmc-highspeed;
+	mmc-hs200-1_8v;
+	supports-emmc;
+	disable-wp;
+	non-removable;
+	num-slots = <1>;
+
+	status = "okay";
+};
+
+&gmac {
+	phy-supply = <&vcc_phy>;
+	phy-mode = "rgmii";
+	clock_in_out = "input";
+	snps,reset-gpio = <&gpio0 10 GPIO_ACTIVE_LOW>;
+	snps,reset-active-low;
+	/* Reset time is 20ms, 100ms for rtl8211f */
+	snps,reset-delays-us = <0 20000 100000>;
+	assigned-clocks = <&cru SCLK_GMAC>;
+	assigned-clock-parents = <&gmac_clkin>;
+	tx_delay = <0x50>;
+	rx_delay = <0x3a>;
+	status = "disabled";
+};
+
+&uart2 {
+	clock-frequency = <24000000>;
+	status = "okay";
+};

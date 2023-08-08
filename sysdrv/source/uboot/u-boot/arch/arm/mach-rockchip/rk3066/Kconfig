@@ -1,0 +1,31 @@
+if ROCKCHIP_RK3066
+
+config TARGET_MK808_RK3066
+        bool "MK808_RK3066"
+	help
+	  MK808 is a tv stick with usb host and otg, microsd card slot, hdmi and wifi.
+
+config SYS_SOC
+        default "rockchip"
+
+config SYS_MALLOC_F_LEN
+        default 0x0800
+
+config SPL_LIBCOMMON_SUPPORT
+        default y
+
+config SPL_LIBGENERIC_SUPPORT
+        default y
+
+config SPL_SERIAL_SUPPORT
+        default y
+
+config TPL_LIBCOMMON_SUPPORT
+        default y
+
+config TPL_LIBGENERIC_SUPPORT
+        default y
+
+source "board/rikomagic/mk808_rk3066/Kconfig"
+
+endif

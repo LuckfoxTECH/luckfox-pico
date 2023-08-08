@@ -1,0 +1,50 @@
+
+**配置项**                    | **说明**
+--------------------------------------------------------------------
+RK_ARCH                       | arm或arm64: 定义编译32位或64位程序
+RK_CHIP                       | 不可修改: 不同的芯片对应不同的SDK
+RK_TOOLCHAIN_CROSS            | 不可修改: 定义交叉工具链
+
+RK_BOOT_MEDIUM                | emmc或spi_nor或spi_nand或slc_nand: 定义板子存储类型
+
+RK_UBOOT_DEFCONFIG            | U-Boot defconfig文件名
+RK_UBOOT_DEFCONFIG_FRAGMENT   | U-Boot config文件名（可选） 对RK_UBOOT_DEFCONFIG定义的defconfig进行覆盖
+RK_UBOOT_RKBIN_INI_OVERLAY    | U-Boot 编译打包rkbin文件ini文件（可选）对U-Boot的defconfig中定义的CONFIG_LOADER_INI进行覆盖
+
+RK_KERNEL_DEFCONFIG           | 内核defconfig文件名
+RK_KERNEL_DEFCONFIG_FRAGMENT  | 内核defconfig文件名（可选）对RK_KERNEL_DEFCONFIG定义的defconfig进行覆盖
+
+RK_KERNEL_DTS                 | 内核dts文件名
+
+RK_MISC                       | 如果打开recovery功能，系统启动时读取标志选择进recovery系统或应用系统（没有recovery时，可以去掉）
+
+RK_CAMERA_SENSOR_IQFILES      | Camera Sensor的IQ配置文件: 多个IQ文件用空格隔开，例如RK_CAMERA_SENSOR_IQFILES="iqfile_1 iqfile_2"
+RK_CAMERA_SENSOR_CAC_BIN      | Camera Module Lens 的去紫边（CAC）标定文件夹：多个bin文件可以用空格隔开，例如RK_CAMERA_SENSOR_CAC_BIN=“dir_1 dir_2”
+
+RK_PARTITION_CMD_IN_ENV       | 配置分区表（重要）,分区表格式：<partdef>[,<partdef>]<partdef>格式：<size>[@<offset>](part-name)
+RK_PARTITION_FS_TYPE_CFG      | 配置分区文件系统类型以及挂载点（重要）格式说明：分区名称@分区挂载点@分区文件系统类型
+
+RK_SQUASHFS_COMP              | 配置squashfs镜像压缩算法（可选）支持：lz4/lzo/lzma/xz/gzip (default xz)
+RK_UBIFS_COMP                 | 配置ubifs镜像压缩算法（可选）支持：lzo/zlib (default lzo)
+
+RK_APP_TYPE                   | 配置编译参考的应用（可选）运行./build.sh info 可以查看支持的参考应用
+RK_APP_IPCWEB_BACKEND         | 配置是否编译web应用（可选）y:使能
+
+RK_ENABLE_RECOVERY            | 配置是否使能recovery功能（可选）y:使能
+RK_ENABLE_FASTBOOT            | 配置是否快速启动功能（可选）y:使能(需要配合U-Boot和内核修改)
+RK_ENABLE_GDB                 | 配置是否编译gdb（可选）y:使能
+RK_ENABLE_ADBD                | 配置是否支持adb功能（可选）y:使能(注：需要内核打开对应USB配置)
+RK_ENABLE_WIFI                | 配置是否支持wifi功能（可选）y:使能
+RK_ENABLE_MOTOR               | 配置是否支持马达功能（可选）y:使能
+RK_ENABLE_EUDEV               | 配置是否支持eudev(外设热拔插）功能（可选）y:使能
+RK_ENABLE_ROCKCHIP_TEST       | 配置是否支持ddr/cpu/reboot/flash压测功能（可选）y:使能
+
+RK_BOOTARGS_CMA_SIZE          | 配置内核CMA大小，例如RK_BOOTARGS_CMA_SIZE=24M （可选）
+
+RK_POST_BUILD_SCRIPT          | 配置的脚本将会在打包rootfs.img前执行（脚本放在BoardConfig对应目录下）
+RK_PRE_BUILD_OEM_SCRIPT       | 配置的脚本将会在打包oem.img前执行（脚本放在BoardConfig对应目录下）
+RK_BUILD_APP_TO_OEM_PARTITION | 配置是否将应用安装到oem分区（可选）y:使能
+RK_ENABLE_RNDIS               | 配置是否打开rndis功能（可选）y:使能
+RK_META_PARAM                 | 配置meta分区参数（可选，用于电池IPC类产品）
+RK_POST_OVERLAY               | 配置资源文件覆盖到文件系统的目录（例如，在对应BoardConfig.mk目录下创建overlay/user_overlay_files，则RK_POST_OVERLAY=user_overlay_files）
+

@@ -1,0 +1,29 @@
+rksfc (Rockchip SPI FLASH SFC drivers)
+=====================================================
+
+Overview
+--------
+
+The rksfc is used for Rockchip Soc sfc devices with
+block interface.
+
+Status
+------
+It supprot SFC SPI NOR.
+
+Usage in U-Boot
+---------------
+
+To list all of the rksfc hard disks, try:
+
+  => rksfc info
+  Device 0: Vendor: 0x0308 Rev: V1.00 Prod: rksfc
+	    Type: Hard Disk
+	    Capacity: 32.0 MB = 0.0 GB (65600 x 512)
+
+To find and initialize sfc devices, try:
+  => rksfc dev 0
+  Device 0: Vendor: 0x0308 Rev: V1.00 Prod: rksfc
+	    Type: Hard Disk
+	    Capacity: 32.0 MB = 0.0 GB (65600 x 512)
+... is now current device

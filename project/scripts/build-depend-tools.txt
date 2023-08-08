@@ -1,0 +1,10 @@
+# for uboot compile
+dtc --version,device-tree-compiler
+#for gdb compile
+makeinfo --version,texinfo
+#for eudev compile
+gperf --version,gperf
+# for gcc multilib
+dpkg --list |grep g++-.*-multilib, g++-multilib
+dpkg --list |grep gcc-.*-multilib, gcc-multilib
+make -v, make

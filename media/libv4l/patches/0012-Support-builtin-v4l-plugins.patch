@@ -1,0 +1,286 @@
+From 7d24eaf3d43274790a32892db5b4c6b94bca695c Mon Sep 17 00:00:00 2001
+From: Jeffy Chen <jeffy.chen@rock-chips.com>
+Date: Tue, 14 Dec 2021 17:09:52 +0800
+Subject: [PATCH 12/12] Support builtin v4l plugins
+
+Use --enable-builtin-plugins to enable it.
+
+Only support mplane plugin for now.
+
+Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
+---
+ configure.ac                      | 13 ++++++
+ lib/Makefile.am                   |  4 +-
+ lib/libv4l-mplane/Makefile.am     |  9 ++++
+ lib/libv4l-mplane/libv4l-mplane.c |  4 ++
+ lib/libv4l2/Makefile.am           |  3 ++
+ lib/libv4l2/libv4l2-priv.h        | 16 +++----
+ lib/libv4l2/libv4l2.c             | 73 +++++++++++++++++++++++++++++++
+ lib/libv4l2/v4l2-plugin.c         |  8 ++--
+ 8 files changed, 116 insertions(+), 14 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 2dc0339..f266eb1 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -504,6 +504,14 @@ AC_ARG_ENABLE(bpf,
+    esac]
+ )
+ 
++AC_ARG_ENABLE(builtin-plugins,
++  AS_HELP_STRING([--enable-builtin-plugins], [enable builtin libv4l plugins]),
++  [case "${enableval}" in
++     yes | no ) ;;
++     *) AC_MSG_ERROR(bad value ${enableval} for --enable-builtin-plugins) ;;
++   esac]
++)
++
+ PKG_CHECK_MODULES([SDL2], [sdl2 SDL2_image], [sdl_pc=yes], [sdl_pc=no])
+ AM_CONDITIONAL([HAVE_SDL], [test x$sdl_pc = xyes])
+ 
+@@ -520,6 +528,7 @@ AM_CONDITIONAL([WITH_V4LUTILS],	    [test x$enable_v4l_utils != xno -a x$linux_o
+ AM_CONDITIONAL([WITH_QV4L2],	    [test x${qt_pkgconfig} = xtrue -a x$enable_qv4l2 != xno])
+ AM_CONDITIONAL([WITH_QVIDCAP],	    [test x${qt_desktop_opengl} = xyes -a x$enable_qvidcap != xno])
+ AM_CONDITIONAL([WITH_V4L_PLUGINS],  [test x$enable_dyn_libv4l != xno -a x$enable_shared != xno])
++AM_CONDITIONAL([WITH_V4L_BUILTIN_PLUGINS], [test x$enable_builtin_plugins = xyes])
+ AM_CONDITIONAL([WITH_V4L_WRAPPERS], [test x$enable_dyn_libv4l != xno -a x$enable_shared != xno])
+ AM_CONDITIONAL([WITH_QTGL],	    [test x${qt_desktop_opengl} = xyes])
+ AM_CONDITIONAL([WITH_GCONV],        [test x$enable_gconv = xyes -a x$enable_shared == xyes -a x$with_gconvdir != x -a -f $with_gconvdir/gconv-modules])
+@@ -554,6 +563,9 @@ AM_COND_IF([WITH_QVIDCAP], [USE_QVIDCAP="yes"], [USE_QVIDCAP="no"])
+ AM_COND_IF([WITH_V4L_PLUGINS], [USE_V4L_PLUGINS="yes"
+ 				AC_DEFINE([HAVE_V4L_PLUGINS], [1], [V4L plugin support enabled])],
+ 				[USE_V4L_PLUGINS="no"])
++AM_COND_IF([WITH_V4L_BUILTIN_PLUGINS], [USE_V4L_BUILTIN_PLUGINS="yes"
++				AC_DEFINE([HAVE_V4L_BUILTIN_PLUGINS], [1], [V4L builtin plugin support enabled])],
++				[USE_V4L_BUILTIN_PLUGINS="no"])
+ AM_COND_IF([WITH_V4L_WRAPPERS], [USE_V4L_WRAPPERS="yes"], [USE_V4L_WRAPPERS="no"])
+ AM_COND_IF([WITH_GCONV], [USE_GCONV="yes"], [USE_GCONV="no"])
+ AM_COND_IF([WITH_V4L2_CTL_LIBV4L], [USE_V4L2_CTL_LIBV4L="yes"], [USE_V4L2_CTL_LIBV4L="no"])
+@@ -598,6 +610,7 @@ compile time options summary
+ 
+     dynamic libv4l             : $USE_DYN_LIBV4L
+     v4l_plugins                : $USE_V4L_PLUGINS
++    v4l_builtin_plugins        : $USE_V4L_BUILTIN_PLUGINS
+     v4l_wrappers               : $USE_V4L_WRAPPERS
+     libdvbv5                   : $USE_LIBDVBV5
+     dvbv5-daemon               : $USE_DVBV5_REMOTE
+diff --git a/lib/Makefile.am b/lib/Makefile.am
+index a105c95..4952d6d 100644
+--- a/lib/Makefile.am
++++ b/lib/Makefile.am
+@@ -1,9 +1,9 @@
+ SUBDIRS = \
++	libv4l-mplane \
+ 	libv4lconvert \
+ 	libv4l2 \
+ 	libv4l1 \
+-	libv4l2rds \
+-	libv4l-mplane
++	libv4l2rds
+ 
+ if WITH_LIBDVBV5
+ SUBDIRS += \
+diff --git a/lib/libv4l-mplane/Makefile.am b/lib/libv4l-mplane/Makefile.am
+index 5264ecf..4c0ba0a 100644
+--- a/lib/libv4l-mplane/Makefile.am
++++ b/lib/libv4l-mplane/Makefile.am
+@@ -1,7 +1,16 @@
++if WITH_V4L_BUILTIN_PLUGINS
++noinst_LTLIBRARIES = libv4l-mplane.la
++else
+ if WITH_V4L_PLUGINS
+ libv4l2plugin_LTLIBRARIES = libv4l-mplane.la
+ endif
++endif
+ 
+ libv4l_mplane_la_SOURCES = libv4l-mplane.c
++if WITH_V4L_BUILTIN_PLUGINS
++libv4l_mplane_la_CPPFLAGS = -static
++libv4l_mplane_la_LDFLAGS = -static
++else
+ libv4l_mplane_la_CPPFLAGS = $(CFLAG_VISIBILITY)
+ libv4l_mplane_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -lpthread
++endif
+diff --git a/lib/libv4l-mplane/libv4l-mplane.c b/lib/libv4l-mplane/libv4l-mplane.c
+index db22b0b..fcd522e 100644
+--- a/lib/libv4l-mplane/libv4l-mplane.c
++++ b/lib/libv4l-mplane/libv4l-mplane.c
+@@ -609,7 +609,11 @@ static ssize_t plugin_write(void *dev_ops_priv, int fd, const void *buf,
+ 	return SYS_WRITE(fd, buf, len);
+ }
+ 
++#ifdef HAVE_V4L_BUILTIN_PLUGINS
++const struct libv4l_dev_ops libv4l2_plugin_mplane = {
++#else
+ PLUGIN_PUBLIC const struct libv4l_dev_ops libv4l2_plugin = {
++#endif
+ 	.init = &plugin_init,
+ 	.close = &plugin_close,
+ 	.ioctl = &plugin_ioctl,
+diff --git a/lib/libv4l2/Makefile.am b/lib/libv4l2/Makefile.am
+index 3a1bb90..1250d84 100644
+--- a/lib/libv4l2/Makefile.am
++++ b/lib/libv4l2/Makefile.am
+@@ -23,6 +23,9 @@ endif
+ libv4l2_la_CPPFLAGS = $(CFLAG_VISIBILITY) $(ENFORCE_LIBV4L_STATIC)
+ libv4l2_la_LDFLAGS = $(LIBV4L2_VERSION) -lpthread $(DLOPEN_LIBS) $(ENFORCE_LIBV4L_STATIC)
+ libv4l2_la_LIBADD = ../libv4lconvert/libv4lconvert.la
++if WITH_V4L_BUILTIN_PLUGINS
++libv4l2_la_LIBADD += ../libv4l-mplane/libv4l-mplane.la
++endif
+ 
+ v4l2convert_la_SOURCES = v4l2convert.c
+ v4l2convert_la_LIBADD = libv4l2.la
+diff --git a/lib/libv4l2/libv4l2-priv.h b/lib/libv4l2/libv4l2-priv.h
+index cce6de4..cc8c4f5 100644
+--- a/lib/libv4l2/libv4l2-priv.h
++++ b/lib/libv4l2/libv4l2-priv.h
+@@ -109,20 +109,20 @@ struct v4l2_dev_info {
+ 
+ /* From v4l2-plugin.c */
+ #if defined(HAVE_V4L_PLUGINS)
+-void v4l2_plugin_init(int fd, void **plugin_lib_ret, void **plugin_priv_ret,
+-		      const struct libv4l_dev_ops **dev_ops_ret);
+-void v4l2_plugin_cleanup(void *plugin_lib, void *plugin_priv,
+-			 const struct libv4l_dev_ops *dev_ops);
++void v4l2_dyn_plugin_init(int fd, void **plugin_lib_ret, void **plugin_priv_ret,
++			  const struct libv4l_dev_ops **dev_ops_ret);
++void v4l2_dyn_plugin_cleanup(void *plugin_lib, void *plugin_priv,
++			     const struct libv4l_dev_ops *dev_ops);
+ #else
+-static inline void v4l2_plugin_init(int fd, void **plugin_lib_ret, void **plugin_priv_ret,
+-				    const struct libv4l_dev_ops **dev_ops_ret)
++static inline void v4l2_dyn_plugin_init(int fd, void **plugin_lib_ret, void **plugin_priv_ret,
++					const struct libv4l_dev_ops **dev_ops_ret)
+ {
+ 	*dev_ops_ret = v4lconvert_get_default_dev_ops();
+ 	*plugin_lib_ret = NULL;
+ 	*plugin_priv_ret = NULL;
+ }
+-static inline void v4l2_plugin_cleanup(void *plugin_lib, void *plugin_priv,
+-				       const struct libv4l_dev_ops *dev_ops)
++static inline void v4l2_dyn_plugin_cleanup(void *plugin_lib, void *plugin_priv,
++					   const struct libv4l_dev_ops *dev_ops)
+ {
+ }
+ #endif /* WITH_V4L_PLUGINS */
+diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
+index f949b5d..1fdf3fe 100644
+--- a/lib/libv4l2/libv4l2.c
++++ b/lib/libv4l2/libv4l2.c
+@@ -74,6 +74,8 @@
+ #include "libv4l2-priv.h"
+ #include "libv4l-plugin.h"
+ 
++#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
++
+ /* Note these flags are stored together with the flags passed to v4l2_fd_open()
+    in v4l2_dev_info's flags member, so care should be taken that the do not
+    use the same bits! */
+@@ -618,6 +620,77 @@ static void v4l2_update_fps(int index, struct v4l2_streamparm *parm)
+ 		devices[index].fps = 0;
+ }
+ 
++#ifdef HAVE_V4L_BUILTIN_PLUGINS
++extern const struct libv4l_dev_ops libv4l2_plugin_mplane;
++
++void v4l2_builtin_plugin_init(int fd, void **plugin_priv_ret,
++			      const struct libv4l_dev_ops **dev_ops_ret)
++{
++	const struct libv4l_dev_ops *builtin_plugins[] = {
++		&libv4l2_plugin_mplane,
++	};
++	const struct libv4l_dev_ops *libv4l2_plugin = NULL;
++	int i;
++
++	*dev_ops_ret = NULL;
++	*plugin_priv_ret = NULL;
++
++	for (i = 0; i < ARRAY_SIZE(builtin_plugins); i++) {
++		V4L2_LOG("PLUGIN: try builtin(%d);\n", i);
++
++		libv4l2_plugin = builtin_plugins[i];
++
++		if (!libv4l2_plugin->init ||
++		    !libv4l2_plugin->close ||
++		    !libv4l2_plugin->ioctl) {
++			V4L2_LOG("PLUGIN: does not have all mandatory ops\n");
++			continue;
++		}
++
++		*plugin_priv_ret = libv4l2_plugin->init(fd);
++		if (!*plugin_priv_ret) {
++			V4L2_LOG("PLUGIN: plugin init() returned NULL\n");
++			continue;
++		}
++
++		*dev_ops_ret = libv4l2_plugin;
++		break;
++	}
++}
++
++void v4l2_builtin_plugin_cleanup(void *plugin_priv,
++				 const struct libv4l_dev_ops *dev_ops)
++{
++	dev_ops->close(plugin_priv);
++}
++#endif /* HAVE_V4L_PLUGINS */
++
++void v4l2_plugin_init(int fd, void **plugin_lib_ret, void **plugin_priv_ret,
++		      const struct libv4l_dev_ops **dev_ops_ret)
++{
++#ifdef HAVE_V4L_BUILTIN_PLUGINS
++	*plugin_lib_ret = NULL;
++	v4l2_builtin_plugin_init(fd, plugin_priv_ret, dev_ops_ret);
++	if (*dev_ops_ret)
++		return;
++#endif
++
++	v4l2_dyn_plugin_init(fd, plugin_lib_ret, plugin_priv_ret, dev_ops_ret);
++}
++
++void v4l2_plugin_cleanup(void *plugin_lib, void *plugin_priv,
++			 const struct libv4l_dev_ops *dev_ops)
++{
++#ifdef HAVE_V4L_BUILTIN_PLUGINS
++	if (!plugin_lib) {
++		v4l2_builtin_plugin_cleanup(plugin_priv, dev_ops);
++		return;
++	}
++#endif
++
++	v4l2_dyn_plugin_cleanup(plugin_lib, plugin_priv, dev_ops);
++}
++
+ int v4l2_open(const char *file, int oflag, ...)
+ {
+ 	int fd;
+diff --git a/lib/libv4l2/v4l2-plugin.c b/lib/libv4l2/v4l2-plugin.c
+index fbf92d8..e1e6eae 100644
+--- a/lib/libv4l2/v4l2-plugin.c
++++ b/lib/libv4l2/v4l2-plugin.c
+@@ -48,8 +48,8 @@
+ 
+ #define PLUGINS_PATTERN LIBV4L2_PLUGIN_DIR "/*.so"
+ 
+-void v4l2_plugin_init(int fd, void **plugin_lib_ret, void **plugin_priv_ret,
+-		      const struct libv4l_dev_ops **dev_ops_ret)
++void v4l2_dyn_plugin_init(int fd, void **plugin_lib_ret, void **plugin_priv_ret,
++			  const struct libv4l_dev_ops **dev_ops_ret)
+ {
+ 	char *error;
+ 	int glob_ret, i;
+@@ -110,8 +110,8 @@ leave:
+ 	globfree(&globbuf);
+ }
+ 
+-void v4l2_plugin_cleanup(void *plugin_lib, void *plugin_priv,
+-			 const struct libv4l_dev_ops *dev_ops)
++void v4l2_dyn_plugin_cleanup(void *plugin_lib, void *plugin_priv,
++			     const struct libv4l_dev_ops *dev_ops)
+ {
+ 	if (plugin_lib) {
+ 		dev_ops->close(plugin_priv);
+-- 
+2.20.1
+

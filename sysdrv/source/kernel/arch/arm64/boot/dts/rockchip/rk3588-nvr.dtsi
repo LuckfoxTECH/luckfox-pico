@@ -1,0 +1,342 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2021 Rockchip Electronics Co., Ltd.
+ *
+ */
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/pwm/pwm.h>
+#include <dt-bindings/pinctrl/rockchip.h>
+#include <dt-bindings/input/rk-input.h>
+#include <dt-bindings/display/drm_mipi_dsi.h>
+#include <dt-bindings/display/rockchip_vop.h>
+#include <dt-bindings/sensor-dev.h>
+#include "rk3588-cpu-swap.dtsi"
+
+/ {
+	adc_keys: adc-keys {
+		compatible = "adc-keys";
+		io-channels = <&saradc 1>;
+		io-channel-names = "buttons";
+		keyup-threshold-microvolt = <1800000>;
+		poll-interval = <100>;
+
+		vol-up-key {
+			label = "volume up";
+			linux,code = <KEY_VOLUMEUP>;
+			press-threshold-microvolt = <1750>;
+		};
+	};
+
+	dp0_sound: dp0-sound {
+		status = "disabled";
+		compatible = "rockchip,hdmi";
+		rockchip,card-name= "rockchip,dp0";
+		rockchip,mclk-fs = <512>;
+		rockchip,cpu = <&spdif_tx2>;
+		rockchip,codec = <&dp0 1>;
+		rockchip,jack-det;
+	};
+
+	dp1_sound: dp1-sound {
+		status = "disabled";
+		compatible = "rockchip,hdmi";
+		rockchip,card-name= "rockchip,dp1";
+		rockchip,mclk-fs = <512>;
+		rockchip,cpu = <&spdif_tx5>;
+		rockchip,codec = <&dp1 1>;
+		rockchip,jack-det;
+	};
+
+	hdmi0_sound: hdmi0-sound {
+		status = "disabled";
+		compatible = "simple-audio-card";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,mclk-fs = <128>;
+		simple-audio-card,name = "rockchip,hdmi0";
+
+		simple-audio-card,cpu {
+			sound-dai = <&i2s5_8ch>;
+		};
+		simple-audio-card,codec {
+			sound-dai = <&hdmi0>;
+		};
+	};
+
+	hdmi1_sound: hdmi1-sound {
+		status = "disabled";
+		compatible = "simple-audio-card";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,mclk-fs = <128>;
+		simple-audio-card,name = "rockchip,hdmi1";
+
+		simple-audio-card,cpu {
+			sound-dai = <&i2s6_8ch>;
+		};
+		simple-audio-card,codec {
+			sound-dai = <&hdmi1>;
+		};
+	};
+
+	test-power {
+		status = "okay";
+	};
+};
+
+&av1d_mmu {
+	status = "okay";
+};
+
+&CPU_SLEEP {
+	status = "disabled";
+};
+
+&cluster0_opp_table {
+	/delete-node/ opp-408000000;
+	/delete-node/ opp-600000000;
+	/delete-node/ opp-816000000;
+	/delete-node/ opp-1008000000;
+};
+
+&cluster1_opp_table {
+	/delete-node/ opp-408000000;
+	/delete-node/ opp-600000000;
+	/delete-node/ opp-816000000;
+	/delete-node/ opp-1008000000;
+	/delete-node/ opp-2256000000;
+	/delete-node/ opp-2304000000;
+	/delete-node/ opp-2352000000;
+	/delete-node/ opp-2400000000;
+};
+
+&cluster2_opp_table {
+	/delete-node/ opp-408000000;
+	/delete-node/ opp-600000000;
+	/delete-node/ opp-816000000;
+	/delete-node/ opp-1008000000;
+	/delete-node/ opp-2256000000;
+	/delete-node/ opp-2304000000;
+	/delete-node/ opp-2352000000;
+	/delete-node/ opp-2400000000;
+};
+
+&cpu_l0 {
+	cpu-supply = <&vdd_cpu_lit_s0>;
+	mem-supply = <&vdd_cpu_lit_mem_s0>;
+};
+
+&cpu_b0 {
+	cpu-supply = <&vdd_cpu_big0_s0>;
+	mem-supply = <&vdd_cpu_big0_mem_s0>;
+};
+
+&cpu_b2 {
+	cpu-supply = <&vdd_cpu_big1_s0>;
+	mem-supply = <&vdd_cpu_big1_mem_s0>;
+};
+
+&display_subsystem {
+	clocks = <&hdptxphy_hdmi_clk0>, <&hdptxphy_hdmi_clk1>;
+	clock-names = "hdmi0_phy_pll", "hdmi1_phy_pll";
+};
+
+&gpu_opp_table {
+	/delete-node/ opp-198000000;
+	/delete-node/ opp-297000000;
+	/delete-node/ opp-396000000;
+	/delete-node/ opp-500000000;
+	/delete-node/ opp-1000000000;
+
+};
+
+&gpu {
+	mali-supply = <&vdd_gpu_s0>;
+	mem-supply = <&vdd_gpu_mem_s0>;
+	status = "okay";
+};
+
+&hdptxphy_hdmi_clk0 {
+	status = "okay";
+};
+
+&hdptxphy_hdmi_clk1 {
+	status = "okay";
+};
+
+&iep {
+	status = "okay";
+};
+
+&iep_mmu {
+	status = "okay";
+};
+
+&jpegd {
+	status = "okay";
+};
+
+&jpegd_mmu {
+	status = "okay";
+};
+
+&jpege_ccu {
+	status = "okay";
+};
+
+&jpege0 {
+	status = "okay";
+};
+
+&jpege0_mmu {
+	status = "okay";
+};
+
+&jpege1 {
+	status = "okay";
+};
+
+&jpege1_mmu {
+	status = "okay";
+};
+
+&jpege2 {
+	status = "okay";
+};
+
+&jpege2_mmu {
+	status = "okay";
+};
+
+&jpege3 {
+	status = "okay";
+};
+
+&jpege3_mmu {
+	status = "okay";
+};
+
+&mpp_srv {
+	status = "okay";
+};
+
+&rga3_core0 {
+	status = "okay";
+};
+
+&rga3_0_mmu {
+	status = "okay";
+};
+
+&rga3_core1 {
+	status = "okay";
+};
+
+&rga3_1_mmu {
+	status = "okay";
+};
+
+&rga2 {
+	status = "okay";
+};
+
+&rknpu {
+	rknpu-supply = <&vdd_npu_s0>;
+	mem-supply = <&vdd_npu_mem_s0>;
+	status = "okay";
+};
+
+&rknpu_mmu {
+	status = "okay";
+};
+
+&rkvdec_ccu {
+	status = "okay";
+};
+
+&rkvdec0 {
+	status = "okay";
+};
+
+&rkvdec0_mmu {
+	status = "okay";
+};
+
+&rkvdec1 {
+	status = "okay";
+};
+
+&rkvdec1_mmu {
+	status = "okay";
+};
+
+&rkvenc_ccu {
+	status = "okay";
+};
+
+&rkvenc0 {
+	status = "okay";
+};
+
+&rkvenc0_mmu {
+	status = "okay";
+};
+
+&rkvenc1 {
+	status = "okay";
+};
+
+&rkvenc1_mmu {
+	status = "okay";
+};
+
+&saradc {
+	status = "okay";
+	vref-supply = <&avcc_1v8_s0>;
+};
+
+&tsadc {
+	status = "okay";
+};
+
+&vdpu {
+	status = "okay";
+};
+
+&vdpu_mmu {
+	status = "okay";
+};
+
+&vepu {
+	status = "okay";
+};
+
+&vop {
+	assigned-clocks = <&cru ACLK_VOP>;
+	assigned-clock-rates = <800000000>;
+	status = "okay";
+};
+
+&vop_mmu {
+	status = "okay";
+};
+
+/* vp0 & vp1 splice for 8K output */
+&vp0 {
+	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER0 | 1 << ROCKCHIP_VOP2_ESMART0)>;
+	rockchip,primary-plane = <ROCKCHIP_VOP2_ESMART0>;
+};
+
+&vp1 {
+	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER1 | 1 << ROCKCHIP_VOP2_ESMART1)>;
+	rockchip,primary-plane = <ROCKCHIP_VOP2_ESMART1>;
+};
+
+&vp2 {
+	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER2 | 1 << ROCKCHIP_VOP2_ESMART2)>;
+	rockchip,primary-plane = <ROCKCHIP_VOP2_ESMART2>;
+};
+
+&vp3 {
+	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER3 | 1 << ROCKCHIP_VOP2_ESMART3)>;
+	rockchip,primary-plane = <ROCKCHIP_VOP2_ESMART3>;
+};

@@ -1,0 +1,57 @@
+{
+    "pipe_0": {
+        "node_0": {
+            "node_opts": {
+                "node_name"       : "external_source"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 1,
+                "node_buff_count" : 0
+            },
+            "stream_opts": {
+                "stream_output"   : "external_source_out",
+                "stream_fmt_in"   : "image:nv21",
+                "stream_fmt_out"  : "image:nv21"
+            },
+            "stream_opts_extra": {
+            }
+        },
+        "node_1": {
+            "node_opts": {
+                "node_name"       : "st_asteria"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 1,
+                "node_buff_count" : 0
+            },
+            "stream_opts": {
+                "stream_input"    : "external_source_out",
+                "stream_output"   : "st_asteria_out",
+                "stream_fmt_in"   : "image:nv21",
+                "stream_fmt_out"  : "nn:stasteria"
+            },
+            "stream_opts_extra": {
+                "opt_stasteria_mode"       : "picture",
+                "opt_stasteria_sup_mode"   : "picture",
+                "opt_stasteria_scene"      : "scene_pic",
+                "opt_stasteria_sup_detect" : "face,face_attribute,face_feature",
+                "opt_stasteria_detect"     : "face,face_attribute,face_feature"
+            }
+        },
+        "node_1000": {
+            "node_opts": {
+                "node_name"       : "link_output"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 1,
+                "node_buff_count" : 0
+            },
+            "stream_opts": {
+                "stream_input"    : "st_asteria_out",
+                "stream_output"   : "st_asteria_link_out",
+                "stream_fmt_in"   : "nn:stasteria",
+                "stream_fmt_out"  : "nn:stasteria"
+            }
+        }
+    }
+}

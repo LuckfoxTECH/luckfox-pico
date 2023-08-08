@@ -1,0 +1,163 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2018 Fuzhou Rockchip Electronics Co., Ltd
+ */
+
+/dts-v1/;
+#include "rk3326.dtsi"
+#include "rk3326-linux.dtsi"
+#include "rk3326-evb-lp3-v10.dtsi"
+
+/ {
+	model = "Rockchip rk3326 evb lpddr3 v10 board for linux";
+	compatible = "rockchip,rk3326-evb-lp3-v10-linux", "rockchip,rk3326";
+
+	chosen {
+                bootargs = "earlycon=uart8250,mmio32,0xff160000 console=ttyFIQ0 rw root=PARTUUID=614e0000-0000 rootfstype=ext4 rootwait";
+        };
+
+	/delete-node/ test-power;
+};
+
+&cif_new {
+	status = "okay";
+
+	port {
+		cif_in: endpoint {
+			remote-endpoint = <&gc2155_out>;
+			vsync-active = <0>;
+			hsync-active = <1>;
+		};
+	};
+};
+
+&i2c2 {
+	status = "okay";
+	clock-frequency = <400000>;
+
+	/* 24M mclk is shared for multiple cameras */
+	pinctrl-0 = <&i2c2_xfer &cif_clkout_m0>;
+
+	/* These are relatively safe rise/fall times; TODO: measure */
+	i2c-scl-falling-time-ns = <50>;
+	i2c-scl-rising-time-ns = <300>;
+
+	gc2155: gc2155@3c {
+		compatible = "gc,gc2155";
+		reg = <0x3c>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&cif_pin_m0>;
+
+		clocks = <&cru SCLK_CIF_OUT>;
+		clock-names = "xvclk";
+
+		avdd-supply = <&vcc2v8_dvp>;
+		dovdd-supply = <&vcc1v8_dvp>;
+		dvdd-supply = <&vcc1v8_dvp>;
+
+		/* hw changed the pwdn to gpio2_b5 */
+		pwdn-gpios = <&gpio2 13 GPIO_ACTIVE_HIGH>;
+
+		port {
+			gc2155_out: endpoint {
+				remote-endpoint = <&cif_in>;
+			};
+		};
+	};
+
+	ov5695: ov5695@36 {
+		compatible = "ovti,ov5695";
+		reg = <0x36>;
+
+		clocks = <&cru SCLK_CIF_OUT>;
+		clock-names = "xvclk";
+
+		avdd-supply = <&vcc2v8_dvp>;
+		dovdd-supply = <&vcc1v8_dvp>;
+		dvdd-supply = <&vdd1v5_dvp>;
+
+		/*reset-gpios = <&gpio2 14 GPIO_ACTIVE_HIGH>;*/
+		pwdn-gpios = <&gpio2 14 GPIO_ACTIVE_HIGH>;
+
+		rockchip,camera-module-index = <0>;
+		rockchip,camera-module-facing = "back";
+		rockchip,camera-module-name = "TongJu";
+		rockchip,camera-module-lens-name = "CHT842-MD";
+
+		port {
+			ucam_out: endpoint {
+				remote-endpoint = <&mipi_in_ucam>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+};
+
+&mipi_dphy_rx0 {
+	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			mipi_in_ucam: endpoint@1 {
+				reg = <1>;
+				remote-endpoint = <&ucam_out>;
+				data-lanes = <1 2>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			dphy_rx0_out: endpoint@0 {
+				reg = <0>;
+				remote-endpoint = <&isp0_mipi_in>;
+			};
+		};
+	};
+};
+
+&pinctrl {
+	cif-pin-m0 {
+		cif_pin_m0: cif-pin-m0 {
+			rockchip,pins =
+				<2 RK_PA0 1 &pcfg_pull_none>,/* cif_data2 */
+				<2 RK_PA1 1 &pcfg_pull_none>,/* cif_data3 */
+				<2 RK_PA2 1 &pcfg_pull_none>,/* cif_data4 */
+				<2 RK_PA3 1 &pcfg_pull_none>,/* cif_data5 */
+				<2 RK_PA4 1 &pcfg_pull_none>,/* cif_data6 */
+				<2 RK_PA5 1 &pcfg_pull_none>,/* cif_data7 */
+				<2 RK_PA6 1 &pcfg_pull_none>,/* cif_data8 */
+				<2 RK_PA7 1 &pcfg_pull_none>,/* cif_data9 */
+				<2 RK_PB0 1 &pcfg_pull_none>,/* cif_sync */
+				<2 RK_PB1 1 &pcfg_pull_none>,/* cif_href */
+				<2 RK_PB2 1 &pcfg_pull_none>;/* cif_clkin */
+		};
+	};
+};
+
+&rkisp1 {
+	status = "okay";
+
+	port {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		isp0_mipi_in: endpoint@0 {
+			reg = <0>;
+			remote-endpoint = <&dphy_rx0_out>;
+		};
+	};
+};
+
+&vip_mmu {
+	status = "okay";
+};

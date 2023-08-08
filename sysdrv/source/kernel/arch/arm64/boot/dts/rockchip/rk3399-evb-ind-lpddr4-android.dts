@@ -1,0 +1,157 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2019 Fuzhou Rockchip Electronics Co., Ltd
+ */
+
+/dts-v1/;
+
+#include "rk3399-evb-ind.dtsi"
+#include "rk3399-android.dtsi"
+
+/ {
+	model = "Rockchip RK3399 EVB IND LPDDR4 Board edp (Android)";
+	compatible = "rockchip,android", "rockchip,rk3399-evb-ind-lpddr4-android", "rockchip,rk3399";
+
+	iram: sram@ff8d0000 {
+		compatible = "mmio-sram";
+		reg = <0x0 0xff8d0000 0x0 0x20000>;
+	};
+
+	vcc_lcd: vcc-lcd {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc_lcd";
+		startup-delay-us = <20000>;
+		enable-active-high;
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-boot-on;
+		vin-supply = <&vcc5v0_sys>;
+	};
+
+	panel: panel {
+		compatible = "simple-panel";
+		backlight = <&backlight>;
+		power-supply = <&vcc_lcd>;
+		enable-gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio1 23 GPIO_ACTIVE_LOW>;
+		prepare-delay-ms = <20>;
+		enable-delay-ms = <20>;
+
+		display-timings {
+			native-mode = <&timing0>;
+
+			timing0: timing0 {
+				clock-frequency = <200000000>;
+				hactive = <1536>;
+				vactive = <2048>;
+				hfront-porch = <12>;
+				hsync-len = <16>;
+				hback-porch = <48>;
+				vfront-porch = <8>;
+				vsync-len = <4>;
+				vback-porch = <8>;
+				hsync-active = <0>;
+				vsync-active = <0>;
+				de-active = <0>;
+				pixelclk-active = <0>;
+			};
+		};
+
+		ports {
+			panel_in: endpoint {
+				remote-endpoint = <&edp_out>;
+			};
+		};
+	};
+
+	test-power {
+		status = "okay";
+	};
+};
+
+&backlight {
+	enable-gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>;
+};
+
+&dmac_bus {
+	iram = <&iram>;
+	rockchip,force-iram;
+};
+
+&dp_sound {
+	status = "disabled";
+};
+
+&edp {
+	status = "okay";
+	force-hpd;
+
+	ports {
+		port@1 {
+			reg = <1>;
+
+			edp_out: endpoint {
+				remote-endpoint = <&panel_in>;
+			};
+		};
+	};
+};
+
+&edp_in_vopl {
+	status = "disabled";
+};
+
+&i2s2 {
+	#sound-dai-cells = <0>;
+	status = "okay";
+};
+
+&hdmi_sound {
+	status = "okay";
+};
+
+&route_edp {
+	status = "okay";
+};
+
+&i2s1 {
+	#sound-dai-cells = <0>;
+	status = "okay";
+};
+
+&rk809_sound {
+	status = "okay";
+};
+
+&hdmi_in_vopb {
+	status = "disabled";
+};
+
+/*
+ * if enable dp_sound, should disable spdif_sound and spdif_out
+ */
+&spdif_out {
+	status = "disabled";
+};
+
+&spdif_sound {
+	status = "disabled";
+};
+
+&i2s0 {
+	#sound-dai-cells = <0>;
+	status = "disabled";
+};
+
+&tc358749x_sound {
+	status = "disabled";
+};
+
+&pinctrl {
+	lcd-panel {
+		lcd_panel_reset: lcd-panel-reset {
+			rockchip,pins = <1 RK_PC7 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+};
+

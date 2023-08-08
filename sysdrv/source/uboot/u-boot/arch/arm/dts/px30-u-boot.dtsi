@@ -1,0 +1,153 @@
+/*
+ * (C) Copyright 2017 Rockchip Electronics Co., Ltd
+ *
+ * SPDX-License-Identifier:     GPL-2.0+
+ */
+
+/ {
+	aliases {
+		mmc0 = &emmc;
+		mmc1 = &sdmmc;
+	};
+
+	chosen {
+		u-boot,spl-boot-order = &emmc, &sdmmc;
+		stdout-path = &uart2;
+	};
+};
+
+&psci {
+	u-boot,dm-pre-reloc;
+};
+
+&dmc {
+	u-boot,dm-pre-reloc;
+};
+
+&uart5 {
+	clock-frequency = <24000000>;
+	u-boot,dm-pre-reloc;
+};
+
+&uart2 {
+	clock-frequency = <24000000>;
+	u-boot,dm-pre-reloc;
+};
+
+&nandc0 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&sdmmc {
+	u-boot,dm-spl;
+};
+
+&emmc {
+	u-boot,dm-spl;
+};
+
+&pmugrf {
+	u-boot,dm-spl;
+};
+
+&cru {
+	u-boot,dm-spl;
+};
+
+&crypto {
+	u-boot,dm-spl;
+};
+
+&pmucru {
+	u-boot,dm-spl;
+};
+
+&saradc {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&gpio0 {
+	u-boot,dm-pre-reloc;
+	status = "disabled";
+};
+
+&gpio1 {
+	u-boot,dm-pre-reloc;
+	status = "disabled";
+};
+
+&gpio2 {
+	u-boot,dm-pre-reloc;
+	status = "disabled";
+};
+
+&gpio3 {
+	u-boot,dm-pre-reloc;
+	status = "disabled";
+};
+
+&usb20_otg {
+	u-boot,dm-pre-reloc;
+};
+
+&usb2phy_grf {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&u2phy {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&u2phy_otg {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&sfc {
+	u-boot,dm-spl;
+	/delete-property/ pinctrl-names;
+	/delete-property/ pinctrl-0;
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-rates;
+	status = "okay";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+	spi_nand: flash@0 {
+		u-boot,dm-spl;
+		compatible = "spi-nand";
+		reg = <0>;
+		spi-tx-bus-width = <1>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <75000000>;
+	};
+
+	spi_nor: flash@1 {
+		u-boot,dm-spl;
+		compatible = "jedec,spi-nor";
+		label = "sfc_nor";
+		reg = <0>;
+		spi-tx-bus-width = <1>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <100000000>;
+	};
+};
+
+&nandc0 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	nand@0 {
+		u-boot,dm-pre-reloc;
+		reg = <0>;
+		nand-ecc-mode = "hw_syndrome";
+		nand-ecc-strength = <16>;
+		nand-ecc-step-size = <1024>;
+	};
+};

@@ -1,0 +1,20 @@
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Local History for Visual Studio Code
+.history/
+
+*.mod.c
+*.o
+*o.cmd
+.tmp_versions/
+*.ko
+*.order
+Module.symvers
+driver_install/
+atbm_iot*
+hal_apollo/svn_version.h

@@ -1,0 +1,219 @@
+#!/bin/bash
+
+ssv_phy=""
+phy_dirs="/sys/class/ieee80211/*"
+SSV_CMD_FILE=""
+
+for phy_dir in $phy_dirs; do
+	for phy_dir in $phy_dirs; do
+		if [ ! -d ${phy_dir}/device/driver ]; then
+			 exit 1;
+		fi
+
+		drv_name=`ls ${phy_dir}/device/driver | grep SV6`
+		if [ ${drv_name} ]; then
+			ssv_phy=`basename $phy_dir`;
+			break;
+		fi
+	done
+done
+
+if [ ${ssv_phy} ]; then
+	SSV_CMD_FILE=/proc/ssv/${ssv_phy}/ssv_cmd
+else 
+	echo "Cannot find SSV"
+    exit 1
+fi
+
+if [[ $# == 0 ]]; then
+	echo "rf tx"
+	echo "rf rx"
+	echo "rf reset"
+	echo "rf count"
+	echo "rf rate"
+	echo "rf ch"
+	echo "rf freq"
+	echo "rf rfreq"
+	echo "rf disablethermal"
+    exit 0
+fi
+
+if [[ ${1} == "tx" ]]; then
+    if [[ $# == 1 ]]; then
+        # set default channel
+        echo "ch 1" > $SSV_CMD_FILE
+        cat $SSV_CMD_FILE
+        # Set default rate
+        echo "rf rate 22" > $SSV_CMD_FILE
+        cat $SSV_CMD_FILE
+
+    elif [[ $# == 2 ]]; then
+        # set channel
+        echo "ch ${2}" > $SSV_CMD_FILE
+        cat $SSV_CMD_FILE
+        # Set default rate
+        echo "rf rate 22" > $SSV_CMD_FILE
+        cat $SSV_CMD_FILE
+
+    elif [[ $# == 3 ]]; then
+        if [[ ${3} == "bw40" ]]; then
+            echo "ch ${2} bw40" > $SSV_CMD_FILE
+            cat $SSV_CMD_FILE
+            
+            # Set default rate
+            echo "rf rate 38" > $SSV_CMD_FILE
+            cat $SSV_CMD_FILE
+
+        else
+            # set channel
+            echo "ch ${2}" > $SSV_CMD_FILE
+            cat $SSV_CMD_FILE
+            # Set default rate
+            echo "rf rate 22" > $SSV_CMD_FILE
+            cat $SSV_CMD_FILE
+        fi
+    else
+        echo "rf tx [ch] [bw40]"
+    fi
+	
+    # generate rf tx
+    echo "rf tx" > $SSV_CMD_FILE
+    cat $SSV_CMD_FILE
+
+elif [[ ${1} == "rx" ]]; then
+    # Set default channel
+    echo "ch 1" > $SSV_CMD_FILE
+    cat $SSV_CMD_FILE
+    # Reset MIB
+    echo "reg w 0xccb0e020 0x400" > $SSV_CMD_FILE
+    cat $SSV_CMD_FILE
+    echo "mib reset" > $SSV_CMD_FILE
+    cat $SSV_CMD_FILE
+
+elif [[ ${1} == "reset" ]]; then
+    echo "reg w 0xccb0e020 0x400" > $SSV_CMD_FILE
+    cat $SSV_CMD_FILE
+    echo "mib reset" > $SSV_CMD_FILE
+    cat $SSV_CMD_FILE
+
+elif [[ ${1} == "count" ]]; then
+    if [[ $# == 2 ]]; then
+        if [[ ${2} == "0" || ${2} == "1" ]]; then
+            echo "rf count ${2}" > $SSV_CMD_FILE
+            cat $SSV_CMD_FILE
+            echo "reg w 0xccb0e020 0x0" > $SSV_CMD_FILE
+            cat $SSV_CMD_FILE
+        else
+            echo "rf count [0|1]"
+        fi
+    else
+        echo "rf count [0|1]"
+    fi
+
+elif [[ ${1} == "rate" ]]; then
+    if [[ $# == 2 ]]; then
+        if [[ ${2} == "list" ]]; then
+            echo "rate index [0]  : 11b, 1M" 
+            echo "rate index [1]  : 11b, 2M,   Long Preamble" 
+            echo "rate index [2]  : 11b, 5.5M, Long Preamble" 
+            echo "rate index [3]  : 11b, 11M,  Long Preamble" 
+            echo "rate index [5]  : 11b, 5.5M, Short Preamble" 
+            echo "rate index [6]  : 11b, 11M,  Short Preamble" 
+            echo "rate index [7]  : 11g, 6M" 
+            echo "rate index [8]  : 11g, 9M" 
+            echo "rate index [9]  : 11g, 12M" 
+            echo "rate index [10] : 11g, 18M" 
+            echo "rate index [11] : 11g, 24M" 
+            echo "rate index [12] : 11g, 36M" 
+            echo "rate index [13] : 11g, 48M" 
+            echo "rate index [14] : 11g, 54M" 
+            echo "rate index [15] : 11n, MCS0, HT20, LGI" 
+            echo "rate index [16] : 11n, MCS1, HT20, LGI" 
+            echo "rate index [17] : 11n, MCS2, HT20, LGI" 
+            echo "rate index [18] : 11n, MCS3, HT20, LGI" 
+            echo "rate index [19] : 11n, MCS4, HT20, LGI" 
+            echo "rate index [20] : 11n, MCS5, HT20, LGI" 
+            echo "rate index [21] : 11n, MCS6, HT20, LGI" 
+            echo "rate index [22] : 11n, MCS7, HT20, LGI" 
+            echo "rate index [23] : 11n, MCS0, HT20, SGI" 
+            echo "rate index [24] : 11n, MCS1, HT20, SGI" 
+            echo "rate index [25] : 11n, MCS2, HT20, SGI" 
+            echo "rate index [26] : 11n, MCS3, HT20, SGI" 
+            echo "rate index [27] : 11n, MCS4, HT20, SGI" 
+            echo "rate index [28] : 11n, MCS5, HT20, SGI" 
+            echo "rate index [29] : 11n, MCS6, HT20, SGI" 
+            echo "rate index [30] : 11n, MCS7, HT20, SGI" 
+            echo "rate index [31] : 11n, MCS0, HT40, LGI" 
+            echo "rate index [32] : 11n, MCS1, HT40, LGI" 
+            echo "rate index [33] : 11n, MCS2, HT40, LGI" 
+            echo "rate index [34] : 11n, MCS3, HT40, LGI" 
+            echo "rate index [35] : 11n, MCS4, HT40, LGI" 
+            echo "rate index [36] : 11n, MCS5, HT40, LGI" 
+            echo "rate index [37] : 11n, MCS6, HT40, LGI" 
+            echo "rate index [38] : 11n, MCS7, HT40, LGI" 
+            echo "rate index [39] : 11n, MCS0, HT40, SGI" 
+            echo "rate index [40] : 11n, MCS1, HT40, SGI" 
+            echo "rate index [41] : 11n, MCS2, HT40, SGI" 
+            echo "rate index [42] : 11n, MCS3, HT40, SGI" 
+            echo "rate index [43] : 11n, MCS4, HT40, SGI" 
+            echo "rate index [44] : 11n, MCS5, HT40, SGI" 
+            echo "rate index [45] : 11n, MCS6, HT40, SGI" 
+            echo "rate index [46] : 11n, MCS7, HT40, SGI" 
+        else
+            echo "rf rate ${2}" > $SSV_CMD_FILE
+            cat $SSV_CMD_FILE
+        fi
+    else
+        echo "rf rate [rateidx]"
+    fi
+
+elif [[ ${1} == "freq" ]]; then
+    if [[ $# == 2 ]]; then
+        echo "rf freq ${2}" > $SSV_CMD_FILE
+        cat $SSV_CMD_FILE
+    else
+        echo "rf freq [value]"
+    fi
+
+elif [[ ${1} == "rfreq" ]]; then
+    echo "rf rfreq" > $SSV_CMD_FILE
+    cat $SSV_CMD_FILE
+
+elif [[ ${1} == "ch" ]]; then
+    
+    if [[ $# == 2 ]]; then
+        echo "ch ${2}" > $SSV_CMD_FILE
+        cat $SSV_CMD_FILE
+    
+    elif [[ $# == 3 ]]; then
+        if [[ ${3} == "bw40" ]]; then
+            echo "ch ${2} bw40" > $SSV_CMD_FILE
+            cat $SSV_CMD_FILE
+        else
+            echo "rf ch [ch] [bw40]"
+        fi
+    else
+        echo "rf ch [ch] [bw40]"
+    fi
+
+elif [[ ${1} == "disablethermal" ]]; then
+
+    if [[ $# == 2 ]]; then
+        echo "rf disablethermal ${2}" > $SSV_CMD_FILE
+        cat $SSV_CMD_FILE
+    else
+        echo "rf disablethermal [1|0]"
+    fi
+
+else
+	echo "rf tx"
+	echo "rf rx"
+	echo "rf reset"
+	echo "rf count"
+	echo "rf rate"
+	echo "rf ch"
+	echo "rf freq"
+	echo "rf rfreq"
+	echo "rf disablethermal"
+fi
+

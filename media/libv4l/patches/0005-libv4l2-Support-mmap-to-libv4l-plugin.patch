@@ -1,0 +1,48 @@
+From 067cee204b33cc0f75d09afefa8d7032a74a1980 Mon Sep 17 00:00:00 2001
+From: Jeffy Chen <jeffy.chen@rock-chips.com>
+Date: Sun, 28 Apr 2019 15:31:53 +0800
+Subject: [PATCH] libv4l2: Support mmap() to libv4l-plugin
+
+Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
+---
+ lib/include/libv4l-plugin.h |  2 ++
+ lib/libv4l2/libv4l2.c       | 10 ++++++++++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/lib/include/libv4l-plugin.h b/lib/include/libv4l-plugin.h
+index 23b2dfb..acb0a54 100644
+--- a/lib/include/libv4l-plugin.h
++++ b/lib/include/libv4l-plugin.h
+@@ -32,6 +32,8 @@ struct libv4l_dev_ops {
+     int (*ioctl)(void *dev_ops_priv, int fd, unsigned long int request, void *arg);
+     ssize_t (*read)(void *dev_ops_priv, int fd, void *buffer, size_t n);
+     ssize_t (*write)(void *dev_ops_priv, int fd, const void *buffer, size_t n);
++    void * (*mmap)(void *dev_ops_priv, void *start, size_t length, int prot,
++		   int flags, int fd, int64_t offset);
+     /* For future plugin API extension, plugins implementing the current API
+        must set these all to NULL, as future versions may check for these */
+     void (*reserved1)(void);
+diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
+index 2db25d1..21e6f05 100644
+--- a/lib/libv4l2/libv4l2.c
++++ b/lib/libv4l2/libv4l2.c
+@@ -1627,6 +1627,16 @@ void *v4l2_mmap(void *start, size_t length, int prot, int flags, int fd,
+ 	void *result;
+ 
+ 	index = v4l2_get_index(fd);
++	if (index != -1 && devices[index].dev_ops->mmap) {
++		pthread_mutex_lock(&devices[index].stream_lock);
++		result = devices[index].dev_ops->mmap(
++				devices[index].dev_ops_priv, start,
++				length, prot, flags, fd, offset);
++
++		pthread_mutex_unlock(&devices[index].stream_lock);
++		return result;
++	}
++
+ 	if (index == -1 ||
+ 			/* Check if the mmap data matches our answer to QUERY_BUF. If it doesn't,
+ 			   let the kernel handle it (to allow for mmap-based non capture use) */
+-- 
+2.11.0
+

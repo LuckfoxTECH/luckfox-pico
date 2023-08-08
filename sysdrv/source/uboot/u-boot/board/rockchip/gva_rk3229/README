@@ -1,0 +1,71 @@
+Get the Source and prebuild binary
+==================================
+
+  > mkdir ~/gva_rk3229
+  > cd ~/gva_rk3229
+  > git clone git://git.denx.de/u-boot.git
+  > git clone https://github.com/OP-TEE/optee_os.git
+  > git clone https://github.com/rockchip-linux/rkbin.git
+  > git clone https://github.com/rockchip-linux/rkdeveloptool.git
+
+Compile the OP-TEE
+(For Android Things Project, use the image bellow.
+<android root>/vendor/bsp/rockchip/security/optee/os/trust_with_ta.img)
+===============
+
+  > cd optee_os
+  > make clean
+  > make CROSS_COMPILE_ta_arm32=arm-none-eabi- PLATFORM=rockchip-rk322x
+  Get tee.bin in this step, copy it to U-Boot root dir:
+  > cp out/arm-plat-rockchip/core/tee-pager.bin ../u-boot/tee.bin
+
+Compile the U-Boot
+(For Android Things Project, use Android build system.)
+==================
+
+  > cd ../u-boot
+  > export CROSS_COMPILE=arm-linux-gnueabihf-
+  > export ARCH=arm
+  > make gva-rk3229_defconfig
+  > make u-boot-dtb.bin
+
+  Get u-boot-dtb.bin in this step.
+
+Compile the rkdeveloptool
+=======================
+  Follow instructions in latest README
+  > cd ../rkdeveloptool
+  > sudo apt-get install libudev-dev libusb-1.0-0-dev dh-autoreconf
+  > autoreconf -i
+  > ./configure
+  > make
+
+  Get rkdeveloptool in you Host in this step.
+
+Both origin binaries and Tool are ready now, choose either option 1 or
+option 2 to deploy U-Boot.
+
+Package the image
+(For Android Things Project, use Android build system.)
+=================
+
+  > cd ../u-boot
+  > rkbin/tools/loaderimage --pack --uboot u-boot-dtb.bin uboot.img 0x61000000
+
+  Get uboot.img in this step.
+
+Flash the image to eMMC
+(For Android Things Project that supports AB update,
+please follow google's documents.)
+=======================
+Power on(or reset with RESET KEY) with MASKROM KEY preesed, and then:
+  > cd ..
+  > rkdeveloptool db rkbin/rk32/rk322x_loader_v1.04.232.bin
+  > rkdeveloptool wl 0x4000 uboot.img
+  > rkdeveloptool wl 0x6000 trust.img
+  > rkdeveloptool rd
+
+You should be able to get U-Boot log message with OP-TEE boot info.
+
+For more detail, please reference to:
+http://opensource.rock-chips.com/wiki_Boot_option

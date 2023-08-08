@@ -1,0 +1,96 @@
+/*
+ * (C) Copyright 2018 Rockchip Electronics Co., Ltd
+ *
+ * SPDX-License-Identifier:     GPL-2.0+
+ */
+
+/dts-v1/;
+
+#include <dt-bindings/input/input.h>
+#include "rk3128.dtsi"
+#include "rk3128-u-boot.dtsi"
+
+/ {
+	model = "Rockchip PX3SE Evaluation board";
+	compatible = "rockchip,px3se-evb", "rockchip,px3se";
+
+	chosen {
+		stdout-path = &uart1;
+	};
+
+	adc-keys {
+		compatible = "adc-keys";
+		io-channels = <&saradc 1>;
+		io-channel-names = "buttons";
+		poll-interval = <100>;
+		keyup-threshold-microvolt = <1800000>;
+
+		vol-up {
+			label = "Volume Up";
+			linux,code = <KEY_VOLUMEUP>;
+			press-threshold-microvolt = <18000>;
+		};
+
+		vol-down {
+			label = "Volume Down";
+			linux,code = <KEY_VOLUMEDOWN>;
+			press-threshold-microvolt = <300000>;
+		};
+	};
+
+	vcc50_otg: vcc50-otg {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc50_otg";
+		gpio = <&gpio0 12 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&otg_drv>;
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+	};
+};
+
+&emmc {
+	fifo-mode;
+	status = "okay";
+};
+
+&saradc {
+	status = "okay";
+};
+
+&u2phy {
+	status = "okay";
+};
+
+&u2phy_otg {
+	status = "okay";
+};
+
+&u2phy_host {
+	status = "okay";
+};
+
+&uart1 {
+	status = "okay";
+};
+
+&usb_host_ehci {
+	status = "okay";
+};
+
+&usb_host_ohci {
+	status = "okay";
+};
+
+&usb_otg {
+	vbus-supply = <&vcc50_otg>;
+	status = "okay";
+};
+
+&pinctrl {
+	usb_otg {
+		otg_drv: otg-drv {
+			rockchip,pins = <2 12 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+};

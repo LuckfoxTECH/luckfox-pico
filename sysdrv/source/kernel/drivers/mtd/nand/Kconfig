@@ -1,0 +1,28 @@
+# SPDX-License-Identifier: GPL-2.0-only
+
+menu "NAND"
+
+config MTD_NAND_CORE
+	tristate
+
+source "drivers/mtd/nand/onenand/Kconfig"
+source "drivers/mtd/nand/raw/Kconfig"
+source "drivers/mtd/nand/spi/Kconfig"
+
+menu "ECC engine support"
+
+config MTD_NAND_ECC
+       bool
+       depends on MTD_NAND_CORE
+
+config MTD_NAND_BBT_USING_FLASH
+	bool "Mtd Nand BBT using flash management strategy"
+	depends on MTD_NAND_CORE
+	help
+	  This is a simple flash BBT management strategy for Nand devices.
+
+	  Say Y when you want to use BBT in flash.
+
+endmenu
+
+endmenu

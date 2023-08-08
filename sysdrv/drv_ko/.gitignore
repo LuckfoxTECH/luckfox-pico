@@ -1,0 +1,15 @@
+*.cmd
+*.ko
+!mpp_vcodec.ko
+!rockit.ko
+*.mod
+*.mod.c
+*.mod.o
+*.o
+*Module.symvers
+*modules.order
+*ssv_mod_conf.h
+kmpp/kmpp
+# motor
+out
+rockit/rockit-ko

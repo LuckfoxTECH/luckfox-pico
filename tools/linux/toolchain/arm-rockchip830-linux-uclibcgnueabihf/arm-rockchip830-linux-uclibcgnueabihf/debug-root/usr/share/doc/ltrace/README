@@ -1,0 +1,101 @@
+This directory contains sources of ltrace.  See the file configure.ac
+to see what version this is.
+
+Ltrace is a debugging program which runs a specified command until the
+command exits.  While the command is executing, ltrace intercepts and
+records both the dynamic library calls called by the executed process
+and the signals received by the executed process.  Ltrace can also
+intercept and print system calls executed by the process.
+
+For general building and installation instructions, see the file INSTALL.
+
+For list of authors and contributors, see the file CREDITS.
+
+ltrace is free software.  See the file COPYING for license.
+
+Some documentation on ltrace usage is given in the manual page, which
+is in the file ltrace.1.
+
+
+Supported Targets
+-----------------
+
+The following targets are currently (at least somewhat) supported.
+Some of them may be more or less broken in reality, it is not feasible
+to test each release comprehensively on each target.
+
+	i[4567]86-*-linux-gnu
+	ia64-*-linux-gnu
+	m68k-*-linux-gnu
+	mips-*-linux-gnu
+	powerpc-*-linux-gnu
+	powerpc64-*-linux-gnu
+	s390-*-linux-gnu
+	s390x-*-linux-gnu
+	x86_64-*-linux-gnu
+
+The following systems were supported at some point in past, but
+current status is unknown:
+
+	sparc*-*-linux-gnu
+	sparc64*-*-linux-gnu
+	alpha*-*-linux-gnu
+
+Support of the following systems is known to be broken and requires
+fixing:
+
+	arm-*-linux-gnueabi
+
+
+Bug Reports
+-----------
+
+You can send bug reports to <ltrace-devel@lists.alioth.debian.org>.
+User requests can also be directed to that address.
+
+If the ltrace package that you are using came with your operating
+system, please be sure to reproduce the problem in unmodified upstream
+version of ltrace before reporting a bug.
+
+
+Development
+-----------
+
+ltrace development is hosted by Alioth.Debian.org:
+
+  https://alioth.debian.org/projects/ltrace/
+
+Release tarballs can be downloaded here:
+
+  https://alioth.debian.org/frs/?group_id=30892
+
+Anonymous GIT access is available via:
+
+  git://git.debian.org/git/collab-maint/ltrace.git
+
+If you have anything to contribute, please send an e-mail to
+<ltrace-devel@lists.alioth.debian.org>, and attach your patches
+formatted with git format-patch.  This makes them easy to apply after
+review, and such patches also preserve authorship.
+
+If you intend to work on a feature (essentially anything beyond a
+quick one-liner), it is advisable to send an e-mail beforehand.
+
+
+-------------------------------------------------------------------------------
+Copyright (C) 2012 Petr Machata <pmachata@redhat.com>
+Copyright (C) 1997-2009 Juan Cespedes <cespedes@debian.org>
+This file is part of ltrace.
+
+ltrace is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 2 of the License, or (at your
+option) any later version.
+
+ltrace is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.

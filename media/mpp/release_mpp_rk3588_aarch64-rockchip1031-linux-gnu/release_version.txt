@@ -1,0 +1,11 @@
+commit 516a02c4c4afd5833f874bd018431d048500e10a
+Author: Hongjin Li <vic.hong@rock-chips.com>
+Date:   Wed Sep 7 09:21:44 2022 +0800
+
+    [h265d_parser]: Fix I frame is marked with wrong flag issue
+    
+    Fixed the problem that the I frame could not be judged correctly,
+    resulting in the wrong flag of the I frame to be set.
+    
+    Signed-off-by: Hongjin Li <vic.hong@rock-chips.com>
+    Change-Id: Ieeeb7c70d440f720808fabc6918b04b20f63565c

@@ -1,0 +1,11 @@
+#!/bin/sh
+phy_dirs="/sys/class/ieee80211/*"
+key_word="SSV|RSV"
+
+for phy_dir in $phy_dirs; do
+	drv_name=`ls ${phy_dir}/device/driver | grep -E $key_word`
+    if [ ${drv_name} ]; then
+    	echo `basename $phy_dir`;
+    	break;
+    fi
+done

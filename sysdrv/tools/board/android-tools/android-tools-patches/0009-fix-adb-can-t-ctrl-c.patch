@@ -1,0 +1,25 @@
+From df9042ef20102e99f7851752f8d6ddec49388d6c Mon Sep 17 00:00:00 2001
+From: "jkand.huang" <jkand.huang@rock-chips.com>
+Date: Thu, 31 Jan 2019 17:17:00 +0800
+Subject: [PATCH] fix adb can't ctrl-c.
+
+Signed-off-by: jkand.huang <jkand.huang@rock-chips.com>
+---
+ core/adbd/adb.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/core/adbd/adb.c b/core/adbd/adb.c
+index 7fe6445..c4c00d7 100644
+--- a/core/adbd/adb.c
++++ b/core/adbd/adb.c
+@@ -1706,6 +1706,7 @@ int recovery_mode = 0;
+ 
+ int main(int argc, char **argv)
+ {
++    signal(SIGINT, NULL);
+ #if ADB_HOST
+     adb_sysdeps_init();
+     adb_trace_init();
+-- 
+2.7.4
+

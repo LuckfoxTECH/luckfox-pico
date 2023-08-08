@@ -1,0 +1,98 @@
+/*
+ * (C) Copyright 2017 Rockchip Electronics Co., Ltd
+ *
+ * SPDX-License-Identifier:     GPL-2.0+
+ */
+
+/dts-v1/;
+
+#include "rk3128.dtsi"
+#include "rk3128-u-boot.dtsi"
+#include <dt-bindings/input/input.h>
+
+/ {
+	model = "Rockchip RK3126 Evaluation board";
+	compatible = "rockchip,rk3126-evb", "rockchip,rk3126";
+
+	vcc5v0_otg: vcc5v0-otg-drv {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc5v0_otg";
+		gpio = <&gpio0 26 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&otg_vbus_drv>;
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+	};
+
+	adc-keys {
+		compatible = "adc-keys";
+		io-channels = <&saradc 2>;
+		io-channel-names = "buttons";
+		poll-interval = <100>;
+		keyup-threshold-microvolt = <3300000>;
+
+		button-up {
+			label = "Volume Up";
+			linux,code = <KEY_VOLUMEUP>;
+			press-threshold-microvolt = <0>;
+		};
+
+		button-down {
+			label = "Volume Down";
+			linux,code = <KEY_VOLUMEDOWN>;
+			press-threshold-microvolt = <1650000>;
+		};
+	};
+};
+
+&cru {
+	compatible = "rockchip,rk3126-cru";
+};
+
+&u2phy {
+	status = "okay";
+};
+
+&u2phy_otg {
+	status = "okay";
+};
+
+&u2phy_host {
+	status = "okay";
+};
+
+&uart2 {
+	status = "okay";
+};
+
+&usb_host_ehci {
+	status = "okay";
+};
+
+&usb_host_ohci {
+	status = "okay";
+};
+
+&usb_otg {
+	vbus-supply = <&vcc5v0_otg>;
+	status = "okay";
+};
+
+&emmc {
+	fifo-mode;
+	status = "okay";
+};
+
+&pinctrl {
+	usb_otg {
+		otg_vbus_drv: otg-vbus-drv {
+			rockchip,pins = <0 26 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	usb_host {
+		host_vbus_drv: host-vbus-drv {
+			rockchip,pins = <2 23 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+};

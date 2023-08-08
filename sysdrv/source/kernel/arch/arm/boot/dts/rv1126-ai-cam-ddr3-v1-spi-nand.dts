@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2020 Rockchip Electronics Co., Ltd.
+ */
+
+/dts-v1/;
+#include "rv1126-ai-cam-ddr3-v1.dts"
+
+/ {
+	model = "Rockchip RV1126 AI CAMERA DDR3L Board";
+	compatible = "rockchip,rv1126-ai-cam-ddr3-v1-spi-nand", "rockchip,rv1126";
+
+	chosen {
+		bootargs = "earlycon=uart8250,mmio32,0xff570000 console=ttyFIQ0 ubi.mtd=2 root=ubi0:rootfs rootfstype=ubifs snd_aloop.index=7";
+	};
+};
+
+&sfc {
+	status = "okay";
+
+	flash@0 {
+		compatible = "spi-nand";
+		reg = <0>;
+		spi-max-frequency = <80000000>;
+		spi-rx-bus-width = <4>;
+		spi-tx-bus-width = <1>;
+	};
+};
+

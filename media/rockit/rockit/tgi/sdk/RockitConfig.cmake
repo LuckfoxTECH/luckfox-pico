@@ -1,0 +1,16 @@
+
+set(ROCKIT_FILE_CONFIGS ${CMAKE_CURRENT_LIST_DIR}/conf)
+set(ROCKIT_FILE_HEADERS ${CMAKE_CURRENT_LIST_DIR}/include)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set (TARGET_LIB_ARCH lib64)
+else()
+    set (TARGET_LIB_ARCH lib32)
+endif()
+
+option(ENABLE_UAC  "enable uac" ON)
+set(ROCKIT_FILE_LIBS ${CMAKE_CURRENT_LIST_DIR}/../../lib/${TARGET_LIB_ARCH}/librockit.so)
+
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/configs")
+    file(GLOB ROCKIT_FILE_CONFIGS "${CMAKE_CURRENT_LIST_DIR}/configs/*")
+endif()

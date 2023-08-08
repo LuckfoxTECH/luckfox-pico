@@ -1,0 +1,14 @@
+dts example:
+
+	motor: motor{
+		compatible = "motor";
+		status = "okay";
+		motorA-gpios = <&gpio1 RK_PC4 GPIO_ACTIVE_HIGH>;
+		motorB-gpios = <&gpio1 RK_PC5 GPIO_ACTIVE_HIGH>;
+		motorC-gpios = <&gpio1 RK_PC6 GPIO_ACTIVE_HIGH>;
+		motorD-gpios = <&gpio1 RK_PC7 GPIO_ACTIVE_HIGH>;
+		motorE-gpios = <&gpio1 RK_PC0 GPIO_ACTIVE_HIGH>;
+		motorF-gpios = <&gpio1 RK_PC1 GPIO_ACTIVE_HIGH>;
+		motorG-gpios = <&gpio1 RK_PC2 GPIO_ACTIVE_HIGH>;
+		motorH-gpios = <&gpio1 RK_PC3 GPIO_ACTIVE_HIGH>;
+	};

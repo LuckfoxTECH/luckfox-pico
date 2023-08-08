@@ -1,0 +1,28 @@
+From 9f7965caf8393b5cd609963a571bf899235bbd10 Mon Sep 17 00:00:00 2001
+From: "vicent.chi" <vicent.chi@rock-chips.com>
+Date: Tue, 16 Jun 2020 10:06:06 +0800
+Subject: [PATCH] make adb tcp function default enbale
+
+Signed-off-by: vicent.chi <vicent.chi@rock-chips.com>
+---
+ core/adbd/adb.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/core/adbd/adb.c b/core/adbd/adb.c
+index c4c00d7..0004f2c 100644
+--- a/core/adbd/adb.c
++++ b/core/adbd/adb.c
+@@ -1322,8 +1322,8 @@ int adb_main(int is_daemon, int server_port)
+     //    printf("using port=%d\n", port);
+         // listen on TCP port specified by service.adb.tcp.port property
+     //    local_init(port);
+-    //} else 
+-    if (!usb) {
++    //} else if (!usb) 
++    if (usb) {
+         printf("Using USB\n");
+         // listen on default port
+         local_init(DEFAULT_ADB_LOCAL_TRANSPORT_PORT);
+-- 
+2.26.1
+

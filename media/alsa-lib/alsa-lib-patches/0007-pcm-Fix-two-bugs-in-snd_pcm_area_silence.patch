@@ -1,0 +1,70 @@
+From e24dc73bd61008bb31158f7c946b03302255f68a Mon Sep 17 00:00:00 2001
+From: furrywolf <alsa2@bushytails.net>
+Date: Sat, 20 Jan 2018 19:27:03 -0800
+Subject: [PATCH] pcm: Fix two bugs in snd_pcm_area_silence()
+
+First, after silencing the buffer 64 bits at a time, any remaining samples
+need to be silenced by the following width-specific code.  However, instead
+of silencing the end of the buffer, the code instead re-silences the start
+of the buffer, leaving the end unsilenced.  To fix this, update the pointer
+used by the width-specific code to point to the end of the area just
+silenced, instead of leaving it pointing to the start of the buffer.
+
+Second, the code for 24 bit samples can only silence a single sample, as
+there's no loop for multiple samples as with other formats.  To fix this,
+add a loop similar to the ones used for every other width.
+
+The symptoms of these bugs are random data at the end of every supposedly
+silenced buffer with certain format/buffer size combinations, resulting in
+pops and noise.
+
+Signed-off-by: furrywolf <alsa2@bushytails.net>
+Reviewed-by: Takashi Sakamoto <o-takashi@sakamocchi.jp>
+Signed-off-by: Jaroslav Kysela <perex@perex.cz>
+---
+ src/pcm/pcm.c | 19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
+
+diff --git a/src/pcm/pcm.c b/src/pcm/pcm.c
+index 69d7d665..1753cdac 100644
+--- a/src/pcm/pcm.c
++++ b/src/pcm/pcm.c
+@@ -2955,6 +2955,7 @@ int snd_pcm_area_silence(const snd_pcm_channel_area_t *dst_area, snd_pcm_uframes
+ 			*dstp++ = silence;
+ 		if (samples == 0)
+ 			return 0;
++		dst = (char *)dstp;
+ 	}
+ 	dst_step = dst_area->step / 8;
+ 	switch (width) {
+@@ -2996,16 +2997,20 @@ int snd_pcm_area_silence(const snd_pcm_channel_area_t *dst_area, snd_pcm_uframes
+ 		}
+ 		break;
+ 	}
+-	case 24:
++	case 24: {
++		while (samples-- > 0) {
+ #ifdef SNDRV_LITTLE_ENDIAN
+-		*(dst + 0) = silence >> 0;
+-		*(dst + 1) = silence >> 8;
+-		*(dst + 2) = silence >> 16;
++			*(dst + 0) = silence >> 0;
++			*(dst + 1) = silence >> 8;
++			*(dst + 2) = silence >> 16;
+ #else
+-		*(dst + 2) = silence >> 0;
+-		*(dst + 1) = silence >> 8;
+-		*(dst + 0) = silence >> 16;
++			*(dst + 2) = silence >> 0;
++			*(dst + 1) = silence >> 8;
++			*(dst + 0) = silence >> 16;
+ #endif
++			dst += dst_step;
++		}
++	}
+ 		break;
+ 	case 32: {
+ 		uint32_t sil = silence;
+-- 
+2.25.1
+

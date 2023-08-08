@@ -1,0 +1,132 @@
+config INPUT
+	bool "Enable input subsystem"
+	depends on DM
+	default y
+
+config SPL_INPUT
+	bool "Enable input subsystem for SPL"
+	depends on SPL_DM
+
+config TPL_INPUT
+	bool "Enable input subsystem for TPL"
+	depends on TPL_DM
+
+config DM_KEYBOARD
+	bool "Enable driver model keyboard support"
+	depends on DM
+	help
+	  This adds a uclass for keyboards and implements keyboard support
+	  using driver model. The API is implemented by keyboard.h and
+	  includes methods to start/stop the device, check for available
+	  input and update LEDs if the keyboard has them.
+
+config DM_KEY
+	bool "Enable driver model key support"
+	depends on DM
+	help
+	  This adds a simple uclass for key.
+
+config DM_RC
+	bool "Enable driver model Remote Controller support"
+	depends on DM
+	help
+	  This adds a uclass for Remote Controllers. This is needed
+	  in order to support standalone IR receivers.
+
+config RK_IR
+	bool "Enable rk ir support"
+	depends on DM_RC
+	select BITREVERSE
+	help
+	  This adds a driver for the rockchip IR controller.
+
+config SPL_DM_KEYBOARD
+	bool "Enable driver model keyboard support"
+	depends on SPL_DM
+	help
+	  This adds a uclass for keyboards and implements keyboard support
+	  using driver model. The API is implemented by keyboard.h and
+	  includes methods to start/stop the device, check for available
+	  input and update LEDs if the keyboard has them.
+
+config TPL_DM_KEYBOARD
+	bool "Enable driver model keyboard support"
+	depends on TPL_DM
+	help
+	  This adds a uclass for keyboards and implements keyboard support
+	  using driver model. The API is implemented by keyboard.h and
+	  includes methods to start/stop the device, check for available
+	  input and update LEDs if the keyboard has them.
+
+config CROS_EC_KEYB
+	bool "Enable Chrome OS EC keyboard support"
+	depends on INPUT
+	help
+	  Most ARM Chromebooks use an EC to provide access to the keyboard.
+	  Messages are used to request key scans from the EC and these are
+	  then decoded into keys by this driver.
+
+config SPL_CROS_EC_KEYB
+	bool "Enable Chrome OS EC keyboard support in SPL"
+	depends on SPL_INPUT
+	help
+	  Most ARM Chromebooks use an EC to provide access to the keyboard.
+	  Messages are used to request key scans from the EC and these are
+	  then decoded into keys by this driver.
+
+config TPL_CROS_EC_KEYB
+	bool "Enable Chrome OS EC keyboard support in TPL"
+	depends on TPL_INPUT
+	help
+	  Most ARM Chromebooks use an EC to provide access to the keyboard.
+	  Messages are used to request key scans from the EC and these are
+	  then decoded into keys by this driver.
+
+config I8042_KEYB
+	bool "Enable Intel i8042 keyboard support"
+	depends on DM_KEYBOARD
+	default X86
+	help
+	  This adds a driver for the i8042 keyboard controller, allowing the
+	  keyboard to be used on devices which support this controller. The
+	  driver handles English and German keyboards - set the environment
+	  variable 'keymap' to "de" to select German. Keyboard repeat is
+	  handled by the keyboard itself.
+
+config RK8XX_PWRKEY
+	bool "Enable RK805/rk806/816/817 pwrkey support"
+	depends on DM_KEY && (PMIC_RK8XX || PMIC_SPI_RK8XX) && IRQ
+	help
+	  This adds a driver for the RK805/816/817 pwrkey support.
+
+config ADC_KEY
+	bool "Enable adc keys support"
+	depends on DM_KEY
+	help
+	  This adds a driver for the adc keys support.
+
+config SPL_ADC_KEY
+        bool "Enable SPL adc keys support without DM"
+        depends on SPL_INPUT
+        help
+          This adds a driver for the SPL adc keys support
+
+config GPIO_KEY
+	bool "Enable gpio keys support"
+	depends on DM_KEY
+	help
+	  This adds a driver for the gpio keys support.
+
+config RK_KEY
+	bool "Enable rk keys support"
+	depends on DM_KEY
+	help
+	  This adds a driver for the rk keys support.
+
+config PWRKEY_DNL_TRIGGER_NUM
+	int "Enter download mode by pwrkey trigger count"
+	default 0
+	depends on DM_KEY && IRQ
+	help
+	  This support enter download mode by press and release pwrkey for times
+	  over the trigger count. The default value 0 means disabled.

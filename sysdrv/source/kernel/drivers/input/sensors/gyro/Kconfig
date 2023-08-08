@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: GPL-2.0
+#
+# gyroscope drivers configuration
+#
+
+menuconfig GYROSCOPE_DEVICE
+	tristate "gyroscope device support"
+	default n
+
+if GYROSCOPE_DEVICE
+
+config GYRO_L3G4200D
+	tristate "gyroscope l3g4200d"
+	default n
+
+config GYRO_K3G
+	tristate "gyroscope k3g"
+	default n
+
+config GYRO_L3G20D
+	tristate "gyroscope l3g20d"
+	default n
+
+config GYRO_EWTSA
+	tristate "gyroscope ewtsa"
+	default n
+
+config GYRO_MPU6500
+	tristate "gyroscope mpu6500_gyro"
+        default n
+
+config GYRO_MPU6880
+	tristate "gyroscope mpu6880_gyro"
+	default n
+
+config GYRO_LSM330
+	tristate "gyroscope lsm330_gyro"
+	default n
+
+config GYRO_ICM2060X
+	tristate "gyroscope icm2060x_gyro"
+endif

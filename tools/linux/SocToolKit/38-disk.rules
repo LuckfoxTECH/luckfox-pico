@@ -1,0 +1,2 @@
+ACTION=="add",SUBSYSTEM=="block",ATTR{removable}=="1",MODE="0666"
+ACTION=="add",SUBSYSTEM=="block",ATTR{partition}=="1",MODE="0666"

@@ -1,0 +1,23 @@
+config CHARGER_BQ25700
+	bool "BQ25700 charger support"
+	depends on DM_FUEL_GAUGE
+	help
+	  This adds support for BQ25700 charger support.
+
+config CHARGER_BQ25890
+	bool "BQ25890 charger support"
+	depends on DM_FUEL_GAUGE
+	help
+	  This adds support for BQ25890 charger support.
+
+config CHARGER_SC8551
+	bool "SC8551 charger support"
+	depends on DM_FUEL_GAUGE
+	help
+	  This adds support for sc8551 charger support.
+
+config CHARGER_SGM41542
+	bool "SGM41542 charger support"
+	depends on DM_FUEL_GAUGE
+	help
+	  This adds support for sgm41542 charger support.

@@ -1,0 +1,261 @@
+
+CURRENT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
+C_BLACK  = \e[30;1m
+C_RED    = \e[31;1m
+C_GREEN  = \e[32;1m
+C_YELLOW = \e[33;1m
+C_BLUE   = \e[34;1m
+C_PURPLE = \e[35;1m
+C_CYAN   = \e[36;1m
+C_WHITE  = \e[37;1m
+C_NORMAL = \033[0m
+
+################################################################################
+##   Platform Specified Configuraton
+################################################################################
+include $(CURRENT_DIR)/cfg/cfg.mk
+ifeq ($(SYSDRV_CROSS),)
+SYSDRV_CROSS := $(CONFIG_SYSDRV_CROSS)
+endif
+
+ifneq ($(findstring $(RK_CHIP),rv1126 rk3588 rv1106),)
+CHIP := $(RK_CHIP)
+endif
+
+ifeq ($(CHIP),)
+CHIP := $(CONFIG_SYSDRV_CHIP)
+endif
+
+ifneq ($(findstring $(RK_BOOT_MEDIUM),emmc spi_nor spi_nand slc_nand),)
+BOOT_MEDIUM := $(RK_BOOT_MEDIUM)
+endif
+
+ifeq ($(CHIP),)
+$(error Please Select CHIP, build like this: make CHIP=<rv1126|rk3588>)
+endif
+
+ifeq ($(shell $(SYSDRV_CROSS)-gcc --version),)
+$(info ************************************************************************)
+$(info Not found tool $(SYSDRV_CROSS)-gcc, please install first !!!)
+$(info ************************************************************************)
+$(error *ERROR*)
+endif
+
+PATH:=$(CURRENT_DIR)/tools/pc/uboot_tools:$(CURRENT_DIR)/out/bin/pc:$(PATH)
+PATH:=$(CURRENT_DIR)/tools/pc/toolkits:$(PATH)
+
+################################################################################
+##   Public Configuraton
+################################################################################
+ifeq ($(SYSDRV_JOBS),)
+SYSDRV_JOBS:=$(shell echo `getconf _NPROCESSORS_ONLN`)
+endif
+ifeq ($(SYSDRV_JOBS),0)
+SYSDRV_JOBS:=6
+endif
+
+SYSDRV_OPTS := -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+KERNEL_DIR := $(CURRENT_DIR)/source/kernel
+
+ifeq ($(SYSDRV_CROSS),arm-rockchip830-linux-uclibcgnueabihf)
+SYSDRV_LIB_TYPE := uclibc
+ARCH := arm
+SYSDRV_CROSS_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
+endif
+
+ifeq ($(SYSDRV_CROSS),arm-rockchip830-linux-gnueabihf)
+SYSDRV_LIB_TYPE := glibc
+ARCH := arm
+SYSDRV_CROSS_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
+endif
+
+ifeq ($(SYSDRV_CROSS),aarch64-rockchip1031-linux-gnu)
+SYSDRV_LIB_TYPE := glibc
+ARCH := arm64
+SYSDRV_CROSS_CFLAGS += -mtune=cortex-a76.cortex-a55
+endif
+
+################################################################################
+##   Public function and export
+################################################################################
+
+#
+# $(1) destination folder
+# $(2) source dirctory or files
+#
+# default:
+# copy $(2)/* to $(1)
+#
+# if $(3) = SELF
+# copy $(2) to $(1)
+#
+define MAROC_COPY_PKG_TO_SYSDRV_OUTPUT
+@dir_out=$(shell echo $(1)); \
+cpflag=$(shell echo $(3)); \
+if [ -n "$$dir_out" ] ;then \
+	echo -e "\n\n$(C_GREEN) [INSTALL] $(2) \n    TO \t    $$dir_out $(C_NORMAL)\n\n" ;\
+	mkdir -p "$$dir_out"; \
+	for item in $(2);do \
+		if [ -d "$$item" -a -z "$$cpflag" ]; then cp -raf $$item/* $$dir_out; \
+		elif [ -d "$$item" -a "$$cpflag" = "SELF" ]; then cp -arf $$item $$dir_out; \
+		elif [ -f "$$item" ]; then cp -af $$item $$dir_out; \
+		fi; \
+	done; \
+fi
+endef
+
+#
+# $(1) destination folder
+# $(2) source dirctory or files
+#
+# move $(2) to $(1)
+#
+define MAROC_MOVE_PKG_TO_SYSDRV_OUTPUT
+@dir_out=$(shell echo $(1)); \
+if [ -n "$$dir_out" ] ;then \
+	echo -e "\n\n$(C_GREEN) [MOVE] $(2) \n    TO \t    $$dir_out $(C_NORMAL)\n\n" ;\
+	mkdir -p "$$dir_out"; \
+	for item in $(2);do \
+		if [ -d "$$item" ]; then  rm -rf $$dir_out/$(shell basename $$item) && mv $$item $$dir_out; \
+		elif [ -f "$$item" ]; then mv -f $$item $$dir_out; \
+		fi; \
+	done; \
+fi
+endef
+
+#
+# $(1) destination folder
+#
+# file exclusions:
+# - libpthread.so: a non-stripped libpthread shared library is needed for
+#   proper debugging of pthread programs using gdb.
+# - ld.so: a non-stripped dynamic linker library is needed for valgrind
+# - kernel modules (*.ko): do not function properly when stripped like normal
+#   applications and libraries. Normally kernel modules are already excluded
+#   by the executable permission check above, so the explicit exclusion is only
+#   done for kernel modules with incorrect permissions.
+define MAROC_STRIP_DEBUG_SYMBOL
+target_dir=$(shell if [ -d $(1) ]; then echo "$(1)" | sed 's/[[:space:]]//g'; else echo "";fi); \
+test -n "$$target_dir" && \
+	find "$$target_dir" -type f \( -perm /111 -o -name '*.so*' \) \
+		-not \( -name 'libpthread*.so*' -o -name 'ld-*.so*' -o -name '*.ko' \) -print0 | \
+		xargs -0 $(SYSDRV_CROSS)-strip 2>/dev/null || true
+endef
+
+#
+########## {{{
+# DO NOT RUN THIS TARGET
+# $(1)   PKG $(CURRENT_DIR)
+# $(2)   PKG $(PKG_NAME)
+# $(3)   PKG $(PKG_BIN)
+#
+define MAROC_PKG_RELEASE
+@(pkg_path=$(strip $(1)/$(strip $(3))); \
+pkg_src=$(strip $(1)/$(strip $(2))); \
+pkg_dst=$(strip $(1)/release_$(strip $(2))_$(CHIP)_$(ARCH)); \
+test ! -d $$pkg_path || test ! -d $$pkg_src/.git || (\
+	rm -rf $$pkg_dst; \
+	mkdir -p $$pkg_dst; \
+	cp -rfa $$pkg_path/* $$pkg_dst/; \
+	git --git-dir=$$pkg_src/.git log -1 > $$pkg_dst/release_version.txt; \
+	););
+endef
+######### }}}
+
+#
+########## {{{
+# DO NOT RUN THIS TARGET
+# $(1)   PKG $(CURRENT_DIR)
+# $(2)   PKG $(PKG_NAME)
+#
+define MAROC_PKG_RELEASE_ASM
+@(pkg_src=$(strip $(1)/$(strip $(2))); \
+pkg_dir=$(strip $(2)); \
+pkg_dst=$(strip $(1)/release_$(strip $(2))_$(CHIP)_$(ARCH)_asm); \
+test ! -d $$pkg_src || test ! -d $$pkg_src/.git || (\
+	rm -rf $$pkg_dst; \
+	mkdir -p $$pkg_dst; \
+	echo "obj-y += $$pkg_dir.o" > $$pkg_dst/Makefile ; \
+	for item in `cd $$pkg_dir && find "./" -name "*\.s" -type f`; do \
+		mkdir -p $$pkg_dst/`dirname $$item` ; \
+		echo "$$pkg_dir-objs += $${item/%\.s/\.o}" >> $$pkg_dst/Makefile ; \
+		cp -f $$pkg_dir/$$item "$$pkg_dst/$${item/%\.s/\.S}"; \
+	done ;\
+	git --git-dir=$$pkg_src/.git log -1 > $$pkg_dst/release_version.txt; \
+	););
+endef
+######### }}}
+
+#
+########## {{{
+# $(1)   PKG $(CURRENT_DIR)
+# $(2)   PKG $(PKG_NAME)
+# $(3)   PKG $(PKG_BIN)
+#
+define MAROC_PKG_CHECK_PREBUILT
+@(pkg_path=$(strip $(1)/$(strip $(3))); \
+pkg_src=$(strip $(1)/$(strip $(2))); \
+pkg_dst=$(strip $(1)/release_$(strip $(2))_$(CHIP)_$(ARCH)); \
+test -d $$pkg_src && echo "Found $$pkg_src source to build" || \
+	test ! -d $$pkg_dst || (\
+	echo "Start to release $$pkg_dst"; \
+	mkdir -p $$pkg_path; \
+	cp -rfa $$pkg_dst/* $$pkg_path/; \
+););
+endef
+######### }}}
+
+#
+########## {{{
+# $(1)   source driver path
+# $(2)   dest dir name (which under $(KERNEL_DIR)/drivers)
+#
+define MACRO_CHK_DRIVER_MODULE
+@(pkg_src=$(strip $(1)); \
+pkg_dst=$(strip $(2)); \
+pkg_release=$(strip release_$${pkg_dst}_$(CHIP)_$(ARCH)_asm); \
+if [ -d "$$pkg_src/$$pkg_dst" ];then echo "TEST: $$pkg_src/$$pkg_dst" && \
+	(rm -f $$KERNEL_DIR/drivers/$$pkg_dst && \
+	ln -sf $$pkg_src/$$pkg_dst $$KERNEL_DIR/drivers/$$pkg_dst ); \
+	else echo "TEST: $$pkg_src/$$pkg_release" && \
+	(rm -f $$KERNEL_DIR/drivers/$$pkg_dst && \
+	ln -sf $$pkg_src/$$pkg_release $$KERNEL_DIR/drivers/$$pkg_dst ); \
+fi; \
+grep -w "$$pkg_dst" $$KERNEL_DIR/drivers/Makefile || \
+	(echo "obj-\$$(CONFIG_VIDEO_ROCKCHIP_THUNDER_BOOT_ISP)	+= $$pkg_dst/" >> $$KERNEL_DIR/drivers/Makefile ); \
+);
+endef
+######### }}}
+
+########## {{{
+# $(1)   dest dir name (which under $(KERNEL_DIR)/drivers)
+#
+define MACRO_CLEAN_DRIVER_MODULE
+@(pkg_dst=$(strip $(1)); \
+pkg_cmds="sed -i '/\<obj-\$$(CONFIG_VIDEO_ROCKCHIP_THUNDER_BOOT_ISP)	+= $(strip $(1))\//d' $$KERNEL_DIR/drivers/Makefile"; \
+grep -w "$$pkg_dst" $$KERNEL_DIR/drivers/Makefile && \
+eval "$$pkg_cmds";\
+);
+endef
+######### }}}
+
+########## {{{
+# $(1)   PACKAGE enable variable
+#
+define MACRO_CHECK_ENABLE_PKG
+$(if $(findstring $($(strip $(1))),y n), \
+	ENABLE_$(strip $(patsubst RK_ENABLE_%,%,$(1)))=$($(strip $(1))), \
+	ENABLE_$(strip $(patsubst RK_ENABLE_%,%,$(1)))=$(CONFIG_SYSDRV_ENABLE_$(patsubst RK_ENABLE_%,%,$(1))))
+endef
+######### }}}
+export ARCH
+export SYSDRV_CROSS
+export SYSDRV_CROSS_CFLAGS
+export SYSDRV_ARCH_TYPE=$(ARCH)
+export CROSS_COMPILE=$(SYSDRV_CROSS)-
+export KERNEL_DIR
+
+export SYSDRV_OPTS
+
+include $(CURRENT_DIR)/cfg/package.mk

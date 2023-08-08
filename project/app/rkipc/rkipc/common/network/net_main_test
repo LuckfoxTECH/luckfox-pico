@@ -1,0 +1,166 @@
+// Copyright 2021 Rockchip Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <netinet/in.h> 
+#include <sys/stat.h>
+#include <net/if.h>
+#include <stdio.h>
+#include <linux/ethtool.h>
+#include <linux/sockios.h>
+#include "net_protype.h"
+#include <sys/socket.h>
+#include <linux/rtnetlink.h>
+#include <arpa/inet.h>
+#include <asm/types.h>  
+#include <linux/netlink.h>  
+#include <linux/rtnetlink.h>    
+#include <linux/if.h>  
+
+#define A 'A'
+#define B 'B'
+#define C 'C'
+#define D 'D'
+#define E 'E'
+#define F 'F'
+#define G 'G'
+#define H 'H'
+#define I 'I'
+#define Q 'Q'
+#define J 'J'
+#define K 'K'
+#define L 'L'
+#define M 'M'
+#define N 'N'
+
+typedef void (*func_cb)(HANDLE handle);
+
+void NetFunc_proc(){
+	rk_network_get_cable_state();
+}
+
+void NetFunc_init(func_cb func){
+    /*
+	pthread_t Net_trd;
+    if (pthread_create(&Net_trd, NULL, NetFunc_proc, NULL) != 0){
+        printf("Creat thread failed!\n");
+    }
+    char *interface, *method,*address, *netmask, *gateway;
+    interface = malloc(5);
+	method = malloc(12);
+	address = malloc(36);
+	netmask = malloc(64);
+	gateway = malloc(64);
+    rk_network_ipv4_get(interface, method, address, netmask, gateway);*/
+    NetFunc_proc();
+}
+
+int main(void){
+	int status = 1;
+	char choice;
+	char *interface, *method,*address, *netmask, *gateway;
+	char *ifname;
+	int speed;
+	int duplex;
+	int autoneg;
+	char mac[18];
+	Ether_info_t eth;
+	interface = malloc(5);
+	method = malloc(12);
+	address = malloc(36);
+	netmask = malloc(64);
+	gateway = malloc(64);
+	NetFunc_init(NetFunc_proc);
+
+	memcpy(eth.interface,"eth0",sizeof("eth0"));
+	memcpy(eth.method,"dhcp",sizeof("dhcp"));
+	memcpy(eth.ip,"192.168.1.105",sizeof("192.168.1.101"));
+	memcpy(eth.netmask,"255.255.255.0",sizeof("255.255.255.0"));
+	memcpy(eth.gateway,"192.168.1.1",sizeof("192.168.1.1"));
+	memcpy(eth.dns,"192.168.1.1",sizeof("192.168.1.1"));
+	memcpy(eth.dns1,"10.10.10.188",sizeof("10.10.10.188"));
+	memcpy(eth.mac,"96:6B:75:6A:F8:56",sizeof("96:6B:75:6A:F8:56"));
+	eth.support_ipv4 = 1;
+	eth.v4_is_dhcp = 0;
+	eth.link_type = 0;
+
+	char* ethernet_v4_dns;
+	char* ethernet_v4_dns1;
+	ethernet_v4_dns = malloc(64);
+	ethernet_v4_dns1 = malloc(64);
+	printf("Please select the operation you want to do:\n");
+	printf("A.set ipv4 B.get ipv4 info C.get nicspeed D.set nicspeed E.ethernet on \n" );
+	printf("F.ethernet off G.get cable status H.get nicspeed support I.get dns\n" );
+	printf("J.ethernet link state K.get mac L.set mac M.set dns\n");
+
+	while (status){
+		scanf("%c",&choice);//Enter your choice:
+		switch ( choice ){
+			case A:
+                printf("Enter the Info you want to set,format as ifname netmode ip netmask gateway:\n");
+                scanf("%s %s %s %s %s",interface,method,address,netmask,gateway);
+				rk_network_ipv4_set(interface,method,address,netmask,gateway,eth);
+				break;
+			case B:
+				rk_network_ipv4_get(interface, method, address, netmask, gateway);
+				break;
+			case C:
+				rk_network_nicspeed_get("eth0",speed,duplex,autoneg);
+				break;
+			case D:
+                printf("Enter the Info you want to set,format as ifname speed duplex autoneg:\n");
+                scanf("%s %d %d %d",interface,&speed,&duplex,&autoneg);
+				rk_network_nicspeed_set(interface,speed,duplex,autoneg);
+				break;
+			case E:
+				rk_ethernet_power_set(eth,0x01,1);
+				break;
+			case F:
+				rk_ethernet_power_set(eth,0x01,0);
+				break;
+			case G:
+				rk_nic_state_get("eth0");
+				break;
+			case H:
+				rk_network_nicspeed_support_get("eth0");
+				break;
+			case I:
+				rk_network_dns_get(ethernet_v4_dns,ethernet_v4_dns1);
+				break;
+			case Q:
+				rk_network_get_cable_state();
+				//status = 0;
+				//return 0;
+				break;
+			case J:
+				whether_ether_is_linked("eth0",strlen(ifname));
+				break;
+			case K:
+				rk_ether_get_mac("eth0",mac,sizeof(mac));
+				break;
+			case L:
+                printf("Enter the Info you want to set,format as ifname mac:\n");
+                scanf("%s %s",interface,mac);
+				rk_ether_set_mac(interface,mac); // 96:6B:76:6A:F8:56 00:25:5E:08:DE:43
+				break;
+			case M:
+                printf("Enter the Info you want to set,format as ifname dns1 dns2:\n");
+                scanf("%s %s %s",interface,ethernet_v4_dns,ethernet_v4_dns1);
+				rk_network_dns_set(interface,ethernet_v4_dns,ethernet_v4_dns1);
+				break;
+		}
+	}
+	free(interface);
+	free(method);
+	free(address);
+	free(netmask);
+	free(gateway);
+	free(ethernet_v4_dns);
+	free(ethernet_v4_dns1);
+	return 0;
+}

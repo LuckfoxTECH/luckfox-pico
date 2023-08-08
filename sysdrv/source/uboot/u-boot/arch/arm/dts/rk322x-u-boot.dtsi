@@ -1,0 +1,86 @@
+/*
+ * (C) Copyright 2018 Rockchip Electronics Co., Ltd
+ *
+ * SPDX-License-Identifier:     GPL-2.0+
+ */
+
+/ {
+	aliases {
+		mmc0 = &emmc;
+		mmc1 = &sdmmc;
+	};
+
+	chosen {
+		stdout-path = &uart2;
+	};
+};
+
+&psci {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&cru {
+	u-boot,dm-pre-reloc;
+};
+
+&crypto {
+	u-boot,dm-pre-reloc;
+};
+
+&dmc {
+	u-boot,dm-pre-reloc;
+};
+
+&grf {
+	u-boot,dm-pre-reloc;
+};
+
+&service_msch {
+	u-boot,dm-pre-reloc;
+};
+
+&emmc {
+	u-boot,dm-spl;
+};
+
+&nandc {
+	u-boot,dm-spl;
+};
+
+&sdmmc {
+	u-boot,dm-spl;
+};
+
+&uart2 {
+	u-boot,dm-spl;
+};
+
+&u2phy0 {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&u2phy0_otg {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&usb20_otg {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&pinctrl {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&gpio1 {
+	u-boot,dm-spl;
+};
+
+&gpio3 {
+	u-boot,dm-spl;
+	status = "okay";
+};

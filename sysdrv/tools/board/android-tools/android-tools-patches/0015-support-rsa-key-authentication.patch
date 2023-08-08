@@ -1,0 +1,112 @@
+From 740ac5567f62b6a3690d1d8d30855d1c218aa3dd Mon Sep 17 00:00:00 2001
+From: Ziyuan Xu <xzy.xu@rock-chips.com>
+Date: Thu, 4 Jun 2020 17:52:40 +0800
+Subject: [PATCH] support rsa key authentication
+
+The auth key is /etc/adbkey.pub as default that should match with
+~/.android/adbkey.pub on PC.
+
+Signed-off-by: Ziyuan Xu <xzy.xu@rock-chips.com>
+---
+ core/adbd/adb.c             |  6 ++++--
+ core/adbd/adb_auth.h        |  2 +-
+ core/adbd/adb_auth_client.c | 43 ++++++++++++++-----------------------
+ 3 files changed, 21 insertions(+), 30 deletions(-)
+
+diff --git a/core/adbd/adb.c b/core/adbd/adb.c
+index c4c00d7..27d48f7 100644
+--- a/core/adbd/adb.c
++++ b/core/adbd/adb.c
+@@ -559,7 +559,9 @@ void handle_packet(apacket *p, atransport *t)
+                 send_auth_request(t);
+             }
+         } else if (p->msg.arg0 == ADB_AUTH_RSAPUBLICKEY) {
+-            adb_auth_confirm_key(p->data, p->msg.data_length, t);
++            if (adb_auth_confirm_key(p->data)) {
++                adb_auth_verified(t);
++            }
+         }
+         break;
+ 
+@@ -1231,7 +1233,7 @@ int adb_main(int is_daemon, int server_port)
+     }
+ #else
+     //property_get("ro.adb.secure", value, "0");
+-    auth_enabled = 0;//!strcmp(value, "1");
++    auth_enabled = getenv("ADBD_RSA_AUTH_ENABLE")? 1: 0;
+     if (auth_enabled)
+         adb_auth_init();
+ 
+diff --git a/core/adbd/adb_auth.h b/core/adbd/adb_auth.h
+index 1fffa49..c788838 100644
+--- a/core/adbd/adb_auth.h
++++ b/core/adbd/adb_auth.h
+@@ -46,7 +46,7 @@ static inline int adb_auth_get_userkey(unsigned char *data, size_t len) { return
+ 
+ int adb_auth_generate_token(void *token, size_t token_size);
+ int adb_auth_verify(void *token, void *sig, int siglen);
+-void adb_auth_confirm_key(unsigned char *data, size_t len, atransport *t);
++bool adb_auth_confirm_key(unsigned char *data);
+ void adb_auth_reload_keys(void);
+ 
+ #endif // ADB_HOST
+diff --git a/core/adbd/adb_auth_client.c b/core/adbd/adb_auth_client.c
+index 068d837..34a19dc 100644
+--- a/core/adbd/adb_auth_client.c
++++ b/core/adbd/adb_auth_client.c
+@@ -172,36 +172,25 @@ static void adb_auth_event(int fd, unsigned events, void *data)
+     }
+ }
+ 
+-void adb_auth_confirm_key(unsigned char *key, size_t len, atransport *t)
++bool adb_auth_confirm_key(unsigned char *key)
+ {
+-    char msg[MAX_PAYLOAD];
+-    int ret;
+-
+-    if (framework_fd < 0) {
+-        D("Client not connected\n");
+-        return;
++    char *auth_key_file = getenv("ADBD_RSA_KEY_FILE") ? getenv("ADBD_RSA_KEY_FILE"): "/etc/adbkey.pub";
++    char msg[MAX_PAYLOAD] = {0};
++    if(-1 == snprintf(msg,sizeof(msg),"%s",key)){
++        D("Could not read pc pub msg");
++        return false;
+     }
+-
+-    if (key[len - 1] != '\0') {
+-        D("Key must be a null-terminated string\n");
+-        return;
++    char buff[MAX_PAYLOAD] = {0};
++    FILE *fp = NULL;
++    fp = fopen(auth_key_file, "r");
++    if (NULL ==  fp) {
++        D("Could not read pub\n");
++        fclose(fp);
++        return false;
+     }
+-
+-    ret = snprintf(msg, sizeof(msg), "PK%s", key);
+-    if (ret >= (signed)sizeof(msg)) {
+-        D("Key too long. ret=%d", ret);
+-        return;
+-    }
+-    D("Sending '%s'\n", msg);
+-
+-    ret = unix_write(framework_fd, msg, ret);
+-    if (ret < 0) {
+-        D("Failed to write PK, errno=%d\n", errno);
+-        return;
+-    }
+-
+-    fdevent_install(&t->auth_fde, framework_fd, adb_auth_event, t);
+-    fdevent_add(&t->auth_fde, FDE_READ);
++    fgets(buff,MAX_PAYLOAD,fp);
++    fclose(fp);
++    return strcmp(msg,buff) ? false : true;
+ }
+ 
+ static void adb_auth_listener(int fd, unsigned events, void *data)
+-- 
+2.26.1
+

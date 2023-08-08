@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2017 Fuzhou Rockchip Electronics Co., Ltd
+ *
+ */
+
+/dts-v1/;
+#include "rk3328-evb-android.dtsi"
+
+/ {
+	model = "Rockchip RK3328 EVB avb";
+	compatible = "rockchip,rk3328-evb-avb", "rockchip,rk3328";
+};

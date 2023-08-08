@@ -1,0 +1,181 @@
+/*
+ * (C) Copyright 2022 Rockchip Electronics Co., Ltd
+ *
+ * SPDX-License-Identifier:     GPL-2.0+
+ */
+
+/ {
+	aliases {
+		mmc1 = &sdmmc;
+		mmc0 = &emmc;
+	};
+
+	chosen {
+		stdout-path = &uart2;
+		u-boot,spl-boot-order = &sdmmc, &spi_nor, &spi_nand, &emmc;
+	};
+
+	secure_otp: secure_otp@ff3fd8000 {
+		compatible = "rockchip,rv1106-secure-otp";
+		reg = <0xff3d8000 0x4000>;
+		secure_conf = <0xff07a018>;
+		cru_rst_addr = <0xff3bca08>;
+		mask_addr = <0xff3dc000>;
+		u-boot,dm-spl;
+		status = "okay";
+	};
+};
+
+&emmc {
+	mmc-ecsd = <0x3F000>;
+	bus-width = <8>;
+	mmc-hs200-1_8v;
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&cru {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&gmac {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&grf {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&grf_cru {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&mdio {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&rmii_phy {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&sdmmc {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&sdmmc0 {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_bus4 {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_clk {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_cmd {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_det {
+	u-boot,dm-spl;
+};
+
+&pinctrl {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&ioc {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&pmuioc {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&pcfg_pull_up_drv_level_2 {
+	u-boot,dm-spl;
+};
+
+&pcfg_pull_up {
+	u-boot,dm-spl;
+};
+
+&gpio3 {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&crypto {
+	u-boot,dm-spl;
+	clocks = <&cru CLK_CORE_CRYPTO>, <&cru CLK_PKA_CRYPTO>;
+	clock-frequency = <300000000>, <300000000>;
+	status = "okay";
+};
+
+&rng {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&saradc {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&sfc {
+	u-boot,dm-spl;
+	status = "okay";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+	spi_nand: flash@0 {
+		u-boot,dm-spl;
+		compatible = "spi-nand";
+		reg = <0>;
+		spi-tx-bus-width = <1>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <80000000>;
+	};
+
+	spi_nor: flash@1 {
+		u-boot,dm-spl;
+		compatible = "jedec,spi-nor";
+		label = "sfc_nor";
+		reg = <0>;
+		spi-tx-bus-width = <1>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <100000000>;
+	};
+};
+
+&u2phy {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&u2phy_otg {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&usbdrd {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&usbdrd_dwc3 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};

@@ -1,0 +1,6 @@
+MK808
+M:	Paweł Jarosz <paweljarosz3691@gmail.com>
+S:	Maintained
+F:	include/configs/mk808_rk3066.h
+F:	configs/mk808-rk3066_defconfig
+F:	board/rikomagic/mk808_rk3066

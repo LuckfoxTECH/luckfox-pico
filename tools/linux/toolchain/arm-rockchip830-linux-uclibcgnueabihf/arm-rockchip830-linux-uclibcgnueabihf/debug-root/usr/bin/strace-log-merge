@@ -1,0 +1,53 @@
+#!/bin/sh
+#
+# This script processes strace -ff -tt output.  It merges the contents of all
+# STRACE_LOG.PID files and sorts them, printing result on the standard output.
+#
+# Copyright (c) 2012-2018 The strace developers.
+#
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
+show_usage()
+{
+	cat <<__EOF__
+Usage: ${0##*/} STRACE_LOG
+
+Finds all STRACE_LOG.PID files, adds PID prefix to every line,
+then combines and sorts them, and prints result to standard output.
+
+It is assumed that STRACE_LOGs were produced by strace with -tt[t]
+option which prints timestamps (otherwise sorting won't do any good).
+__EOF__
+}
+
+dd='\([0-9][0-9]\)'
+ds='\([0-9][0-9]*\)'
+
+if [ $# -ne 1 ]; then
+	show_usage >&2
+	exit 1
+elif [ "$1" = '--help' ]; then
+	show_usage
+	exit 0
+fi
+
+logfile=$1
+
+for file in "$logfile".*; do
+	[ -f "$file" ] || continue
+	suffix=${file#"$logfile".}
+	[ "$suffix" -gt 0 ] 2> /dev/null ||
+		continue
+	pid=$(printf "%-5s" $suffix)
+	# Some strace logs have last line which is not '\n' terminated,
+	# so add extra newline to every file.
+	# grep -v '^$' removes empty lines which may result.
+	sed -n "s/^\($dd:\)\?\($dd:\)\?\($ds\.\)\?$ds /\2\4\6\7 $pid \0/p" < "$file"
+	echo
+done \
+| sort -s -n -k1,1 | sed -n 's/^[0-9][0-9]* //p'
+
+rc=$?
+[ $rc -eq 1 ] &&
+	echo >&2 "${0##*/}: $logfile: strace output not found"
+exit $rc

@@ -1,0 +1,8 @@
+commit fb2eed2be49e25359ed5c0718d309276ec595b4c
+Author: Colum Jin <colum.jin@rock-chips.com>
+Date:   Tue Jan 31 14:33:40 2023 +0800
+
+    support support dynmaic change chn attr
+    
+    Signed-off-by: Colum Jin <colum.jin@rock-chips.com>
+    Change-Id: Id0a97974548aec855514a5123ad8dc89a94c4556

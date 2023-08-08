@@ -1,0 +1,161 @@
+# SPDX-License-Identifier: GPL-2.0
+#
+# gsensor drivers configuration
+#
+
+menuconfig GSENSOR_DEVICE
+	tristate "g_sensor device support"
+	default n
+	help
+	  Enable this to be able to choose the drivers for controlling the
+	  g_sensor on some platforms, for example on PDAs.
+
+if GSENSOR_DEVICE
+config GS_MMA8452
+	tristate "gsensor mma8451/mma8452/mma8453/mma8653"
+	default n
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config STK8BAXX_ACC
+	tristate "gsensor STK8BAXX"
+	default n
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config MPU6880_ACC
+	tristate "Sensor mpu6880_acc"
+	default n
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config MPU6500_ACC
+	tristate "Sensor mpu6500_acc"
+	default n
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config GS_KXTIK
+	tristate "gsensor kxtik"
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config GS_KXTJ9
+	tristate "gsensor kxtj9"
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config GS_LIS3DH
+	tristate "gsensor lis3dh"
+	default n
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config GS_MMA7660
+	tristate "gsensor mma7660"
+	default n
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config GS_MC3230
+	tristate "gsensor mc3230"
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config GS_SC7660
+	tristate "gsensor sc7660"
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config GS_SC7A20
+	tristate "gsensor sc7a20"
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config GS_SC7A30
+	tristate "gsensor sc7a30"
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config GS_MXC6225
+	tristate "gsensor mxc6225"
+	help
+	  To have support for your sepcific gsensor you will have to
+	  select het proper drivers which depend on this option.
+
+config GS_MXC6655XA
+	tristate "gsensor mxc6655xa"
+	help
+	  To have support for your sepcific gsensor you will have to
+	  select het proper drivers which depend on this option.
+
+config GS_DMT10
+	tristate "gsensor dmard10"
+	help
+	  To have support for your sepcific gsensor you will have to
+	  select het proper drivers which depend on this option.
+
+config GS_LSM303D
+	tristate "gsensor lsm303d"
+	default n
+	help
+	  To have support for your sepcific gsensor you will have to
+	  select het proper drivers which depend on this option.
+
+config GS_BMA023
+	tristate "gsensor bma023"
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config LSM330_ACC
+	tristate "gsensor lsm330"
+	default n
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config BMA2XX_ACC
+	tristate "Sensor bma2xx_acc"
+	default n
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config GS_DA215S
+	tristate "gsensor da215s"
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config GS_DA223
+	tristate "gsensor da223"
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config GS_DA228E
+	tristate "gsensor da228e"
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+config ICM2060X_ACC
+	tristate "gsensor icm2060x"
+	help
+	  To have support for your specific gsesnor you will have to
+	  select the proper drivers which depend on this option.
+
+endif

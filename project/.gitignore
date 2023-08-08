@@ -1,0 +1,14 @@
+# app/component
+# app/cvr
+# app/facial_gate
+# app/ipcweb
+# app/rk_smart_door
+# app/rkipc
+# app/rkscaner/
+# app/uac_app
+# app/uvc_app
+# app/wifi_app/
+# cfg/
+image/
+make_meta
+out/

@@ -1,0 +1,12 @@
+
+include ../config.mk
+
+
+all:
+	$(CC) -o $(TARGET) user_smartlink.c ../$(LIB_DIR)/$(LIB_NAME) -I../$(LIB_DIR)/
+	$(CC) -static -o $(TARGET)-static user_smartlink.c ../$(LIB_DIR)/$(LIB_NAME) -I../$(LIB_DIR)/
+
+clean:
+	$(RM) -f *.o $(TARGET) $(TARGET)-static
+
+

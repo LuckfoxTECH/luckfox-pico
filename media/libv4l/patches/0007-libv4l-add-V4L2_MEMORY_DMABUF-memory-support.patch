@@ -1,0 +1,93 @@
+From b50c21b261f1816f580e0374a4d9f8028bd520f2 Mon Sep 17 00:00:00 2001
+From: "vicent.chi" <vicent.chi@rock-chips.com>
+Date: Thu, 31 Oct 2019 11:46:12 +0800
+Subject: [PATCH] libv4l: add V4L2_MEMORY_DMABUF memory support
+
+Signed-off-by: vicent.chi <vicent.chi@rock-chips.com>
+---
+ lib/libv4l2/libv4l2-priv.h |  1 +
+ lib/libv4l2/libv4l2.c      | 23 +++++++++++++++++++++--
+ 2 files changed, 22 insertions(+), 2 deletions(-)
+
+diff --git a/lib/libv4l2/libv4l2-priv.h b/lib/libv4l2/libv4l2-priv.h
+index 1924c91..30dd1bc 100644
+--- a/lib/libv4l2/libv4l2-priv.h
++++ b/lib/libv4l2/libv4l2-priv.h
+@@ -104,6 +104,7 @@ struct v4l2_dev_info {
+ 	void *plugin_library;
+ 	void *dev_ops_priv;
+ 	const struct libv4l_dev_ops *dev_ops;
++	int has_dmabuf_memory;
+ };
+ 
+ /* From v4l2-plugin.c */
+diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
+index 21e6f05..f949b5d 100644
+--- a/lib/libv4l2/libv4l2.c
++++ b/lib/libv4l2/libv4l2.c
+@@ -543,7 +543,7 @@ static int v4l2_deactivate_read_stream(int index)
+ 
+ static int v4l2_needs_conversion(int index)
+ {
+-	if (devices[index].convert == NULL)
++	if (devices[index].convert == NULL || devices[index].has_dmabuf_memory)
+ 		return 0;
+ 
+ 	return v4lconvert_needs_conversion(devices[index].convert,
+@@ -1305,12 +1305,18 @@ no_capture_request:
+ 		struct v4l2_requestbuffers *req = arg;
+ 
+ 		/* IMPROVEME (maybe?) add support for userptr's? */
+-		if (req->memory != V4L2_MEMORY_MMAP) {
++		if (req->memory != V4L2_MEMORY_MMAP && req->memory != V4L2_MEMORY_DMABUF) {
+ 			errno = EINVAL;
+ 			result = -1;
+ 			break;
+ 		}
+ 
++		if (req->memory == V4L2_MEMORY_DMABUF) {
++			devices[index].has_dmabuf_memory = 1;
++			V4L2_LOG("memory type is V4L2_MEMORY_DMABUF, "
++			         "buf conversion and mmap emulation are disabled\n");
++		}
++
+ 		result = v4l2_check_buffer_change_ok(index);
+ 		if (result)
+ 			break;
+@@ -1563,6 +1569,14 @@ ssize_t v4l2_read(int fd, void *dest, size_t n)
+ 		goto leave;
+ 	}
+ 
++	if (!(devices[index].flags & V4L2_USE_READ_FOR_READ) &&
++	    devices[index].has_dmabuf_memory) {
++		V4L2_PERROR("memory type is V4L2_MEMORY_DMABUF, "
++		            "no support v4l2 read\n");
++		errno = EINVAL;
++		return -1;
++	}
++
+ 	/* Since we need to do conversion try to use mmap (streaming) mode under
+ 	   the hood as that safes a memcpy for each frame read.
+ 
+@@ -1627,6 +1641,7 @@ void *v4l2_mmap(void *start, size_t length, int prot, int flags, int fd,
+ 	void *result;
+ 
+ 	index = v4l2_get_index(fd);
++
+ 	if (index != -1 && devices[index].dev_ops->mmap) {
+ 		pthread_mutex_lock(&devices[index].stream_lock);
+ 		result = devices[index].dev_ops->mmap(
+@@ -1637,6 +1652,10 @@ void *v4l2_mmap(void *start, size_t length, int prot, int flags, int fd,
+ 		return result;
+ 	}
+ 
++        if (index != -1 && devices[index].has_dmabuf_memory) {
++                return (void *)SYS_MMAP(start, length, prot, flags, fd, offset);
++        }
++
+ 	if (index == -1 ||
+ 			/* Check if the mmap data matches our answer to QUERY_BUF. If it doesn't,
+ 			   let the kernel handle it (to allow for mmap-based non capture use) */
+-- 
+2.7.4
+

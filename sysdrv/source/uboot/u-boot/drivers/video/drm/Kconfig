@@ -1,0 +1,231 @@
+menuconfig DRM_ROCKCHIP
+	bool "Rockchip DRM Support"
+	depends on DM_VIDEO && OF_LIVE
+	select VIDEO_BRIDGE
+	select PHY
+	help
+	  Rockchip SoCs provide video output capabilities for High-Definition
+	  Multimedia Interface (HDMI), Low-voltage Differential Signalling
+	  (LVDS), embedded DisplayPort (eDP) and Display Serial Interface (DSI).
+
+	  This driver supports the on-chip video output device, and targets the
+	  Rockchip RK3288 and RK3399.
+
+config DRM_MEM_RESERVED_SIZE_MBYTES
+	int "Size in Mega Bytes"
+	depends on DRM_ROCKCHIP
+	default 32
+
+config DRM_DP_HELPER
+	bool
+	depends on DRM_ROCKCHIP
+
+config DRM_MAXIM_MAX96745
+	bool "Maxim max96745 GMSL2 Serializer"
+	depends on DRM_ROCKCHIP
+	select I2C_MUX_MAX96745
+	select PINCTRL_MAX96745
+	help
+	  Driver for Maxim MAX96745 GMSL2 Serializer with eDP1.4a/DP1.4 Input.
+
+config DRM_MAXIM_MAX96752F
+	bool "Maxim max96752F GMSL2 Deserializer"
+	depends on DRM_ROCKCHIP
+	select I2C_MUX_MAX96752F
+	select PINCTRL_MAX96752F
+	select GPIO_MAX96752F
+	help
+	  Driver for Maxim MAX96752F GMSL2 Deserializer with Dual LVDS Output.
+
+config DRM_MAXIM_MAX96755F
+	bool "Maxim max96755F GMSL2 Serializer"
+	depends on DRM_ROCKCHIP
+	select I2C_MUX_MAX96755F
+	select PINCTRL_MAX96755F
+	help
+	  Driver for Maxim MAX96755F GMSL2 Serializer with MIPI-DSI Input.
+
+config DRM_PANEL_MAXIM_DESERIALIZER
+	bool "Maxim deserializer panel driver"
+	depends on DRM_ROCKCHIP
+	help
+	  Driver for Maxim deserializer panels.
+
+config DRM_ROCKCHIP_PANEL
+	bool "Rockchip Panel Support"
+	depends on DRM_ROCKCHIP
+	select DRM_MIPI_DSI
+
+config DRM_ROHM_BU18XL82
+	bool "ROHM clockless serializer BU18TL82 and  deserializer BU18RL82"
+	depends on DRM_ROCKCHIP && I2C_MUX
+	help
+	  Driver for ROHM clockless serdes with MIPI or LVDS Input.
+
+config DRM_ROCKCHIP_DW_HDMI
+	bool "Rockchip specific extensions for Synopsys DW HDMI"
+	depends on DRM_ROCKCHIP
+	help
+	 This selects support for Rockchip SoC specific extensions
+	 for the Synopsys DesignWare HDMI driver. If you want to
+	 enable HDMI on, you should selet this option.
+
+config DRM_ROCKCHIP_DW_HDMI_QP
+	bool "Rockchip specific extensions for Synopsys DW HDMI QP"
+	depends on DRM_ROCKCHIP
+	help
+	 This selects support for Rockchip SoC specific extensions
+	 for the Synopsys DesignWare HDMI QP driver. If you want to
+	 enable HDMI on, you should select this option.
+
+config DRM_ROCKCHIP_INNO_HDMI
+	bool "Rockchip specific extensions for INNO HDMI"
+	depends on DRM_ROCKCHIP
+	help
+	 This selects support for Rockchip SoC specific extensions
+	 for the Synopsys DesignWare HDMI driver. If you want to
+	 enable HDMI on, you should selet this option.
+
+config ROCKCHIP_INNO_HDMI_PHY
+	bool "Rockchip specific extensions for INNO HDMI PHY"
+	depends on DRM_ROCKCHIP
+	help
+	 This selects support for INNO HDMI PHY. If you want to
+	 use HDMI or TVE in RK322XH or RK322X, you should selet
+	 this option.
+
+config DRM_ROCKCHIP_INNO_MIPI_PHY
+	tristate "Rockchip INNO MIPI PHY driver"
+	depends on DRM_ROCKCHIP
+	help
+	  Enable this to support the Rockchip MIPI PHY
+	  with Innosilicon IP block.
+
+config DRM_ROCKCHIP_INNO_VIDEO_PHY
+	tristate "Rockchip INNO LVDS/TTL PHY driver"
+	depends on DRM_ROCKCHIP
+	help
+	  Enable this to support the Rockchip LVDS/TTL PHY
+	  with Innosilicon IP block.
+
+config DRM_ROCKCHIP_INNO_VIDEO_COMBO_PHY
+	tristate "Rockchip INNO MIPI/LVDS/TTL PHY driver"
+	depends on DRM_ROCKCHIP
+	help
+	  Enable this to support the Rockchip MIPI/LVDS/TTL PHY
+	  with Innosilicon IP block.
+
+config DRM_MIPI_DSI
+	bool
+	depends on DRM_ROCKCHIP
+
+config DRM_DSC
+	bool
+	depends on DRM_ROCKCHIP
+
+config DRM_ROCKCHIP_DW_MIPI_DSI
+	tristate "Rockchip specific extensions for Synopsys DW MIPI DSI"
+	depends on DRM_ROCKCHIP
+	select DRM_MIPI_DSI
+	select DRM_ROCKCHIP_PANEL
+	help
+	 This selects support for Rockchip SoC specific extensions
+	 for the Synopsys DesignWare HDMI driver. If you want to
+	 enable MIPI DSI on RK3288 based SoC, you should selet this
+	 option.
+
+config DRM_ROCKCHIP_DW_MIPI_DSI2
+	tristate "Rockchip specific extensions for Synopsys DW MIPI DSI2"
+	depends on DRM_ROCKCHIP
+	select DRM_MIPI_DSI
+	select DRM_DSC
+	select DRM_ROCKCHIP_PANEL
+	help
+	 This selects support for Rockchip SoC specific extensions
+	 for the Synopsys DesignWare MIPI DSI2 driver. If you want to
+	 enable MIPI DSI2 on RK3588 based SoC, you should selet this
+	 option.
+
+config DRM_ROCKCHIP_DW_DP
+	bool "Rockchip specific extensions for Synopsys DW DP driver"
+	depends on DRM_ROCKCHIP
+	select DRM_DP_HELPER
+	help
+	  This selects support for Rockchip SoC specific extensions
+	  for the Synopsys DW DP driver. If you want to enable DP
+	  on RK3588 based SoC, you should select this option.
+
+config DRM_ROCKCHIP_ANALOGIX_DP
+	bool "Rockchip specific extensions for Analogix DP driver"
+	depends on DRM_ROCKCHIP
+	select DRM_ROCKCHIP_PANEL
+	select DRM_DP_HELPER
+	help
+	  This selects support for Rockchip SoC specific extensions
+	  for the Analogix Core DP driver. If you want to enable DP
+	  on RK3288 based SoC, you should selet this option.
+
+config DRM_ROCKCHIP_LVDS
+	bool "Rockchip LVDS Support"
+	depends on DRM_ROCKCHIP
+	select DRM_ROCKCHIP_PANEL
+	help
+	  Choose this option to enable support for Rockchip LVDS controllers.
+	  Rockchip rk3288 SoC has LVDS TX Controller can be used, and it
+	  support LVDS, rgb, dual LVDS output mode. say Y to enable its
+	  driver.
+
+config DRM_ROCKCHIP_RGB
+	bool "Rockchip RGB Support"
+	depends on DRM_ROCKCHIP
+	select DRM_ROCKCHIP_PANEL
+	help
+	  Choose this option to enable support for Rockchip RGB driver.
+	  say Y to enable its driver.
+
+config DRM_ROCKCHIP_RK618
+	bool "Rockchip RK618 display bridge driver"
+	depends on DRM_ROCKCHIP
+	select DRM_ROCKCHIP_PANEL
+	select VIDEO_BRIDGE
+	help
+	  Choose this option to enable support for Rockchip RK618 display
+	  bridge chips driver. say Y to enable its driver.
+
+config DRM_ROCKCHIP_RK1000
+	bool "Rockchip RK1000 display bridge driver"
+	depends on DRM_ROCKCHIP
+	select DRM_ROCKCHIP_PANEL
+	select VIDEO_BRIDGE
+	help
+	  Choose this option to enable support for Rockchip RK1000 display
+	  bridge chips driver. say Y to enable its driver.
+
+config DRM_ROCKCHIP_SAMSUNG_MIPI_DCPHY
+	tristate "Rockchip SAMSUNG MIPI DCPHY driver"
+	depends on DRM_ROCKCHIP
+	help
+	  Enable this to support the Rockchip MIPI DCPHY
+	  with SAMSUNG IP block.
+
+config PHY_ROCKCHIP_SAMSUNG_HDPTX_HDMI
+	bool "Rockchip Samsung HDMI/DP Combo PHY HDMI driver"
+	depends on DRM_ROCKCHIP
+	select LIB_RATIONAL
+	help
+	  Support for Rockchip HDMI/DP Combo PHY HDMI with Samsung
+	  IP block.
+
+config DRM_ROCKCHIP_TVE
+	bool "Rockchip TVE Support"
+	depends on DRM_ROCKCHIP
+	help
+	  Choose this option to enable support for Rockchip TVE.
+	  Say Y to enable TVE driver.
+
+config ROCKCHIP_CUBIC_LUT_SIZE
+	int "Rockchip cubic lut size"
+	depends on DRM_ROCKCHIP
+	default 0
+	help
+	  Used to calc cubic lut size.

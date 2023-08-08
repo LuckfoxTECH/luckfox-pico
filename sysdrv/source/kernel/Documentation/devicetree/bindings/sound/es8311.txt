@@ -1,0 +1,38 @@
+Everest ES8311 audio CODEC
+
+Required properties:
+
+  - compatible: "everest,es8311"
+  - reg: the I2C address of the device for I2C
+  - spk-ctl-gpios: control spk enable/disable
+Optional properties:
+
+- clocks: The phandle of the master clock to the CODEC
+- clock-names: Should be "mclk"
+- adc-pga-gain: The PGA Gain of ADC, the value range is: 0(0dB) ~ 10(30dB),
+                the step is 3dB.
+- adc-volume: The volume of ADC, range is: 0x00(-95dB) ~ 0xff(+32dB), 0dB is 0xbf.
+- dac-volume: The volume of DAC, range is: 0x00(-95dB) ~ 0xff(+32dB), 0dB is 0xbf.
+- aec-mode: The string of description AEC path between ADC and DAC, It should be:
+		"adc left, adc right",
+		"adc left, null right",
+		"null left, adc right",
+		"null left, null right",
+		"dac left, adc right",
+		"adc left, dac right",
+		"dac left, dac right"
+	    And aec-mode is "adc left, adc right" by default, if the property
+	    is not specified.
+Example:
+
+es8311: es8311@18 {
+	compatible = "everest,es8311";
+	reg = <0x18>;
+	clocks = <&cru MCLK_I2S0_TX_OUT2IO>;
+	clock-names = "mclk";
+	adc-pga-gain = <0>;  /* 0dB */
+	adc-volume = <0xbf>;  /* 0dB */
+	dac-volume = <0xbf>;  /* 0dB */
+	aec-mode = "dac left, adc right";
+	spk-ctl-gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
+};

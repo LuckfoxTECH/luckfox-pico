@@ -1,0 +1,76 @@
+/*
+ * SPDX-License-Identifier:     GPL-2.0+
+ *
+ * (C) Copyright 2018 Rockchip Electronics Co., Ltd
+ */
+
+/dts-v1/;
+#include "rk3368.dtsi"
+#include "rk3368-u-boot.dtsi"
+#include <dt-bindings/input/input.h>
+
+/ {
+	model = "Rockchip RK3368 Evaluation Board";
+	compatible = "rockchip,rk3368-evb", "rockchip,rk3368";
+
+	adc-keys {
+		compatible = "adc-keys";
+		io-channels = <&saradc 1>;
+		io-channel-names = "buttons";
+		keyup-threshold-microvolt = <1024000>;
+		u-boot,dm-pre-reloc;
+		status = "okay";
+
+		volumeup-key {
+			label = "volume up";
+			u-boot,dm-pre-reloc;
+			linux,code = <KEY_VOLUMEUP>;
+			press-threshold-microvolt = <1000>;
+		};
+	};
+};
+
+&crypto {
+	status = "okay";
+};
+
+&emmc {
+	fifo-mode;
+	bus-width = <8>;
+	cap-mmc-highspeed;
+	supports-emmc;
+	disable-wp;
+	non-removable;
+	num-slots = <1>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&emmc_clk &emmc_cmd &emmc_bus8>;
+	status = "okay";
+};
+
+&uart2 {
+	status = "okay";
+};
+
+&u2phy {
+	status = "okay";
+};
+
+&usb_host0_ehci {
+	status = "okay";
+};
+
+&usb_host0_ohci {
+	status = "okay";
+};
+
+&u2phy_host {
+	status = "okay";
+};
+
+&u2phy_otg {
+	status = "okay";
+};
+
+&usb_otg {
+	status = "okay";
+};

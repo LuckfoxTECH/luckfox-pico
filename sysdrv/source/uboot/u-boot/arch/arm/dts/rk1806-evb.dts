@@ -1,0 +1,13 @@
+// SPDX-License-Identifier:     GPL-2.0+
+/*
+ * (C) Copyright 2019 Rockchip Electronics Co., Ltd
+ *
+ */
+
+/dts-v1/;
+#include "rk1808-evb.dts"
+
+/ {
+	model = "Rockchip RK1806 EVB";
+};
+

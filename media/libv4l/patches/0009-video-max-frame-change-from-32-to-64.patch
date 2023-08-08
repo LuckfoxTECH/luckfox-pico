@@ -1,0 +1,54 @@
+From ecbd146123c548152bdead7ed817801746bfdd6d Mon Sep 17 00:00:00 2001
+From: Hans Yang <yhx@rock-chips.com>
+Date: Fri, 18 Dec 2020 17:42:01 +0800
+Subject: [PATCH] video max frame change from 32 to 64
+
+Signed-off-by: Hans Yang <yhx@rock-chips.com>
+---
+ contrib/freebsd/include/linux/videodev2.h | 2 +-
+ include/linux/videodev2.h                 | 2 +-
+ lib/libv4l2/libv4l2-priv.h                | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/contrib/freebsd/include/linux/videodev2.h b/contrib/freebsd/include/linux/videodev2.h
+index 3559acc..8176647 100644
+--- a/contrib/freebsd/include/linux/videodev2.h
++++ b/contrib/freebsd/include/linux/videodev2.h
+@@ -102,7 +102,7 @@ typedef int8_t __s8;
+  * Common stuff for both V4L1 and V4L2
+  * Moved from videodev.h
+  */
+-#define VIDEO_MAX_FRAME               32
++#define VIDEO_MAX_FRAME                64
+ #define VIDEO_MAX_PLANES               8
+ 
+ /*
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index b0ad815..aeb483e 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -68,7 +68,7 @@
+  * Common stuff for both V4L1 and V4L2
+  * Moved from videodev.h
+  */
+-#define VIDEO_MAX_FRAME               32
++#define VIDEO_MAX_FRAME                64
+ #define VIDEO_MAX_PLANES               8
+ 
+ /*
+diff --git a/lib/libv4l2/libv4l2-priv.h b/lib/libv4l2/libv4l2-priv.h
+index 30dd1bc..cce6de4 100644
+--- a/lib/libv4l2/libv4l2-priv.h
++++ b/lib/libv4l2/libv4l2-priv.h
+@@ -29,7 +29,7 @@
+ /* Warning when making this larger the frame_queued and frame_mapped members of
+    the v4l2_dev_info struct can no longer be a bitfield, so the code needs to
+    be adjusted! */
+-#define V4L2_MAX_NO_FRAMES 32
++#define V4L2_MAX_NO_FRAMES 64
+ #define V4L2_DEFAULT_NREADBUFFERS 4
+ #define V4L2_IGNORE_FIRST_FRAME_ERRORS 3
+ #define V4L2_DEFAULT_FPS 30
+-- 
+2.29.0
+

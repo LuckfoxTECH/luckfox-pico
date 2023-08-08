@@ -1,0 +1,170 @@
+
+MAKE_PARAM_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
+################################################################################
+##   Platform Specified  Configuraton
+################################################################################
+include $(MAKE_PARAM_DIR)/cfg/cfg.mk
+ifeq ($(RK_MEDIA_CROSS),)
+RK_MEDIA_CROSS := $(CONFIG_RK_MEDIA_CROSS)
+endif
+
+ifneq ($(findstring $(RK_CHIP),rv1126 rk3588 rv1106),)
+RK_MEDIA_CHIP := $(RK_CHIP)
+endif
+
+ifeq ($(RK_MEDIA_CHIP),)
+RK_MEDIA_CHIP := $(CONFIG_RK_CHIP)
+endif
+
+ifeq ($(shell $(RK_MEDIA_CROSS)-gcc --version),)
+$(info ************************************************************************)
+$(info Not found tool $(RK_MEDIA_CROSS)-gcc, please install first !!!)
+$(info ************************************************************************)
+$(error *ERROR*)
+endif
+################################################################################
+##   Public Configuraton
+################################################################################
+C_BLACK  = \e[30;1m
+C_RED    = \e[31;1m
+C_GREEN  = \e[32;1m
+C_YELLOW = \e[33;1m
+C_BLUE   = \e[34;1m
+C_PURPLE = \e[35;1m
+C_CYAN   = \e[36;1m
+C_WHITE  = \e[37;1m
+C_NORMAL = \033[0m
+
+RK_MEDIA_OPTS := -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+RK_MEDIA_CROSS_CFLAGS += $(RK_MEDIA_OPTS)
+
+RK_MEDIA_TOP_DIR := $(MAKE_PARAM_DIR)
+RK_MEDIA_OUTPUT := $(MAKE_PARAM_DIR)/out
+RK_MEDIA_NEED_INSTALL_ROOT_DIR_NAME := root
+
+ifeq ($(RK_MEDIA_CROSS),arm-rockchip830-linux-uclibcgnueabihf)
+RK_MEDIA_LIB_TYPE := uclibc
+RK_MEDIA_ARCH_TYPE := arm
+RK_MEDIA_CROSS_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
+endif
+
+ifeq ($(RK_MEDIA_CROSS),arm-rockchip830-linux-gnueabihf)
+RK_MEDIA_LIB_TYPE := glibc
+RK_MEDIA_ARCH_TYPE := arm
+RK_MEDIA_CROSS_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
+endif
+
+ifeq ($(RK_MEDIA_CROSS),aarch64-rockchip1031-linux-gnu)
+RK_MEDIA_LIB_TYPE := glibc
+RK_MEDIA_ARCH_TYPE := arm64
+RK_MEDIA_CROSS_CFLAGS += -mtune=cortex-a76.cortex-a55
+endif
+
+ifneq ($(RK_JOBS),)
+RK_MEDIA_JOBS:=$(RK_JOBS)
+endif
+ifeq ($(RK_MEDIA_JOBS),)
+RK_MEDIA_JOBS:=$(shell echo `getconf _NPROCESSORS_ONLN`)
+endif
+ifeq ($(RK_MEDIA_JOBS),0)
+RK_MEDIA_JOBS:=6
+endif
+
+################################################################################
+##   Public function and export
+################################################################################
+
+#
+# $(1) destination folder
+# $(2) source dirctory or files
+#
+# default:
+# copy $(2)/* to $(1)
+#
+# if $(3) = SELF
+# copy $(2) to $(1)
+#
+define MAROC_COPY_PKG_TO_MEDIA_OUTPUT
+@dir_out=$(shell echo $(1)); \
+cpflag=$(shell echo $(3)); \
+if [ -n "$$dir_out" ] ;then \
+	echo -e "\n\n$(C_GREEN) [INSTALL] $(2) \n    TO \t    $$dir_out $(C_NORMAL)\n\n" ;\
+	mkdir -p "$$dir_out"; \
+	for item in $(2);do \
+		if [ -d $$item -a -z "$$cpflag" ]; then cp -raf $$item/* $$dir_out; \
+		elif [ -d $$item -a "$$cpflag" = "SELF" ]; then cp -arf $$item $$dir_out; \
+		elif [ -f $$item ]; then cp -af $$item $$dir_out; \
+		fi; \
+	done; \
+fi
+endef
+
+#
+# $(1) destination folder
+#
+# file exclusions:
+# - libpthread.so: a non-stripped libpthread shared library is needed for
+#   proper debugging of pthread programs using gdb.
+# - ld.so: a non-stripped dynamic linker library is needed for valgrind
+# - kernel modules (*.ko): do not function properly when stripped like normal
+#   applications and libraries. Normally kernel modules are already excluded
+#   by the executable permission check above, so the explicit exclusion is only
+#   done for kernel modules with incorrect permissions.
+define MAROC_STRIP_DEBUG_SYMBOL
+@(target_dir=$(strip $(1)); \
+test ! -d $$target_dir || (\
+	find "$$target_dir" -name 'lib*.la' -exec rm -rf {} \; ;\
+	rm -rf `find "$$target_dir" -name pkgconfig`; \
+	find "$$target_dir" -type f \( -perm /111 -o -name '*.so*' \) \
+		-not \( -name 'libpthread*.so*' -o -name 'ld-*.so*' -o -name '*.ko' \) -print0 | \
+		xargs -0 $(RK_MEDIA_CROSS)-strip --strip-debug  2>/dev/null || true ); );
+endef
+
+#
+########## {{{
+# DO NOT RUN THIS TARGET
+# $(1)   PKG $(CURRENT_DIR)
+# $(2)   PKG $(PKG_NAME)
+# $(3)   PKG $(PKG_BIN)
+#
+define MAROC_PKG_RELEASE
+@(pkg_path=$(strip $(1)/$(strip $(3))); \
+pkg_src=$(strip $(1)/$(strip $(2))); \
+pkg_dst=$(strip $(1)/release_$(strip $(2))_$(RK_MEDIA_CHIP)_$(RK_MEDIA_CROSS)); \
+test ! -d $$pkg_path || test ! -d $$pkg_src/.git || (\
+	rm -rf $$pkg_dst; \
+	mkdir -p $$pkg_dst; \
+	cp -rfa $$pkg_path/* $$pkg_dst/; \
+	git --git-dir=$$pkg_src/.git log -1 > $$pkg_dst/release_version.txt; \
+	););
+endef
+######### }}}
+
+#
+########## {{{
+# $(1)   PKG $(CURRENT_DIR)
+# $(2)   PKG $(PKG_NAME)
+# $(3)   PKG $(PKG_BIN)
+#
+define MAROC_PKG_CHECK_PREBUILT
+@(pkg_path=$(strip $(1)/$(strip $(3))); \
+pkg_src=$(strip $(1)/$(strip $(2))); \
+pkg_dst=$(strip $(1)/release_$(strip $(2))_$(RK_MEDIA_CHIP)_$(RK_MEDIA_CROSS)); \
+test -d $$pkg_src && echo "Found $$pkg_src source to build" || \
+	test ! -d $$pkg_dst || (\
+	echo "Start to release $$pkg_dst"; \
+	mkdir -p $$pkg_path; \
+	cp -rfa $$pkg_dst/* $$pkg_path/; \
+););
+endef
+######### }}}
+
+export RK_MEDIA_CHIP
+export RK_MEDIA_CROSS
+export RK_MEDIA_CROSS_CFLAGS
+export RK_MEDIA_ARCH_TYPE
+
+export RK_MEDIA_OPTS
+export RK_MEDIA_OUTPUT
+export RK_MEDIA_TOP_DIR

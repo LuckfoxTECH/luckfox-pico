@@ -1,0 +1,45 @@
+From 36ec0a534665a15fec8b4dc51afa33983b56c610 Mon Sep 17 00:00:00 2001
+From: "vicent.chi" <vicent.chi@rock-chips.com>
+Date: Sat, 28 Mar 2020 18:03:57 +0800
+Subject: [PATCH] libv4l mplane plugin add exbuf_ioctl for dmabuf
+
+Signed-off-by: vicent.chi <vicent.chi@rock-chips.com>
+---
+ lib/libv4l-mplane/libv4l-mplane.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/lib/libv4l-mplane/libv4l-mplane.c b/lib/libv4l-mplane/libv4l-mplane.c
+index b30840a..db22b0b 100644
+--- a/lib/libv4l-mplane/libv4l-mplane.c
++++ b/lib/libv4l-mplane/libv4l-mplane.c
+@@ -539,6 +539,17 @@ static int buf_ioctl(int fd, unsigned long int cmd, struct v4l2_buffer *arg)
+ 	return ret;
+ }
+ 
++static int exbuf_ioctl(int fd, unsigned long int cmd, struct v4l2_exportbuffer *arg)
++{
++	if (arg->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE ||
++		arg->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		errno = EINVAL;
++		return -1;
++	}
++	arg->type = convert_type(arg->type);
++	return SYS_IOCTL(fd, cmd, arg);
++}
++
+ static int plugin_ioctl(void *dev_ops_priv, int fd,
+ 			unsigned long int cmd, void *arg)
+ {
+@@ -580,7 +591,8 @@ static int plugin_ioctl(void *dev_ops_priv, int fd,
+ 
+ 		return SYS_IOCTL(fd, cmd, &type);
+ 	}
+-	/* CASE VIDIOC_EXPBUF: */
++	case VIDIOC_EXPBUF:
++		return exbuf_ioctl(fd, cmd, arg);
+ 	default:
+ 		return SYS_IOCTL(fd, cmd, arg);
+ 	}
+-- 
+2.25.0
+

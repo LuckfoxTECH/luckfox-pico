@@ -1,0 +1,9 @@
+
+Linux 系统工具
+工具名称               | 工具用途
+---------------------- | -------------------------------------------
+SocToolKit             | Linux图形化固件烧录工具
+Linux_Upgrade_Tool     | 命令行烧录工具（只支持USB）
+toolchain              | 交叉编译工具链
+
+联系Email:liuyi@rock-chips.com

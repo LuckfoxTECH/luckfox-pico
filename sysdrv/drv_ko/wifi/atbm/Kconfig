@@ -1,0 +1,429 @@
+menuconfig ATBM_WIRELESS
+    tristate "Atbm Wireless Lan"
+    default m
+
+if ATBM_WIRELESS
+config ATBM_APOLLO
+    tristate "ATBM_APOLLO WLAN support"
+    select CRYPTO
+    select CRYPTO_ARC4
+    select CRYPTO_AES
+    select CRC32
+    select AVERAGE
+    depends on !ATBM_MENUCONFIG
+    help
+
+    This is an experimental driver for the ATBM_APOLLO chip-set.
+    Enabling this option enables the generic driver without
+    any platform support.
+ 
+    Please select the appropriate platform below.
+config ATBM_WEXT
+	tristate "support wireless wext"
+	select WIRELESS_EXT
+	select WEXT_PRIV
+	---help---
+		only select WEIRELESS_EXT and WEXT_PRIV
+  
+if ATBM_MENUCONFIG || ATBM_APOLLO
+choice
+    prompt "select which atbm Wi-Fi product  will be used:ATBM601x,ATBM602x,ATBM603x,ATBM604x,default:ATBM602x"
+    default ATBM603x
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    help
+     Here,you must make sure which atbm Wi-Fi product you will want to use,ATBM601x,ATBM602x,ATBM603x,ATBM604x
+config ATBM601x
+    bool "ATBM601x chip"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    help
+     we will use ATBM601x chip
+config ATBM602x
+    bool "ATBM602x chip"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    help
+     we will use ATBM602x chip
+config ATBM603x
+    bool "ATBM603x chip"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    help
+     we will use ATBM603x chip
+
+config ATBM6012B_COMB
+	bool "ATBM6012B chip"
+	depends on  (ATBM_MENUCONFIG || ATBM_APOLLO) && ATBM603x && ATBM_USB_BUS
+	help
+		ATBM603X Compatible with the ATBM6012B
+
+config ATBM6041
+    bool "ATBM6041 chip"
+    depends on ATBM_MENUCONFIG || ATBM_HERA
+    help
+      we will use ATBM6041 chip
+endchoice
+
+choice
+    prompt "select which bus will be used"
+    default ATBM_USB_BUS
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    help
+     Here,you must make sure what interface you will want to use,usb
+     sdio or spi
+config ATBM_USB_BUS
+    bool "usb bus"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    help
+      we will use usb bus
+config ATBM_SDIO_BUS
+    bool "sdio bus"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    help
+     sdio bus
+config ATBM_SPI_BUS
+    bool "spi bus"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    help
+     we will use spi bus
+endchoice
+
+choice
+    prompt "Select which firmware will be used:.bin or firmware.h"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    default ATBM_USE_FIRMWARE_BIN
+    help
+     include firmware.h or request xxx.bin from system
+config ATBM_USE_FIRMWARE_BIN
+    bool "Request .bin from system"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    help
+     Request .bin from system
+config ATBM_USE_FIRMWARE_H
+    bool "Include firmware.h"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    help
+     include firmware.h
+endchoice
+
+choice
+    prompt "select which sido dpll freq used:24M or 40M.default:40M"
+    default ATBM_SDIO_40M
+    depends on (ATBM_MENUCONFIG || ATBM_APOLLO) && ATBM_SDIO_BUS && (ATBM602x || ATBM601x)
+    help
+     Here,you must make sure the sdio interface use 40M or 24M dpll
+config ATBM_SDIO_40M
+    bool "SDIO 40M"
+    depends on (ATBM_MENUCONFIG || ATBM_APOLLO) && ATBM_SDIO_BUS
+    help
+     we will use SDIO 40M
+config ATBM_SDIO_24M
+    bool "SDIO 24M"
+    depends on (ATBM_MENUCONFIG || ATBM_APOLLO) && ATBM_SDIO_BUS
+    help
+     we will use SDIO 24M
+endchoice
+
+
+menu "Driver Extern Function Select"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+config ATBM_SUPPORT_BRIDGE
+    bool "Enable wifi interface bridge function"
+    default n
+config ATBM_FUNC_NOTXCONFIRM
+    bool "Enable Tx no confirm function to enhance performance"
+    default y
+config ATBM_FUNC_EARLYSUSPEND
+    bool "Enable early suspend function for some platform power save"
+    default n
+config ATBM_FUNC_MONITOR
+    bool "Enable rx monitor function to receive all package"
+    default y
+config ATBM_FUNC_MONITOR_HDR_PRISM
+    bool "Enable rx monitor header prism"
+    depends on ATBM_FUNC_MONITOR
+    default n
+config ATBM_FUNC_SKB_DEBUG
+    bool "Enable skb debug function to debug skb alloc and free"
+    default n
+config ATBM_FUNC_MEM_DEBUG
+    bool "Enable memory debug function to debug memory alloc and free"
+    default n
+config ATBM_FUNC_CHANNEL_5G_PRETEND_2G
+    bool "Enable 2.4g useing 5g channel function ,only support special frequnce"
+    default n
+config ATBM_WITHBAND_ONLY_HT20
+    bool "Enable only support HT20"
+    default y
+config ATBM_FUNC_USB_AGGRTX
+    bool "Enabel usb aggr tx funciton to enchance tx performance"
+    depends on ATBM_USB_BUS
+    default n
+    select  ATBM_FUNC_USB_DMABUFF
+config ATBM_FUNC_USB_DMABUFF
+    bool "Enable usb use dam buff for xmit"
+    depends on ATBM_USB_BUS
+    default n
+config ATBM_FUNC_USB_CMD_ENHANCE
+    bool "Enable usb cmd send directly function"
+    depends on ATBM_USB_BUS
+    default n
+    select ATBM_FUNC_USB_AGGRTX
+config ATBM_FUNC_USB_DATA_ENHANCE
+    bool "Enable usb data send directly function"
+    depends on ATBM_USB_BUS
+    default n
+    select ATBM_FUNC_USB_AGGRTX
+config ATBM_FUNC_PS_WAKEUP_RELOAD_FW
+    bool "Enable usb wakeup reload fw function"
+    depends on ATBM_USB_BUS
+    default n
+config ATBM_FUNC_HW_CHSUM
+    bool "Enable hw do tcp/ip checksum function"
+    depends on ATBM603x
+    default n
+config ATBM_SW_RATE_CTRL
+    bool "Enable sw do rate ctrl"
+    depends on !ATBM_FUNC_NOTXCONFIRM
+    default n
+config ATBM_FUNC_P2P_ENABLE
+    bool "Enable P2P"
+    default n
+config ATBM_FUNC_SW_ENC
+    bool "enable sw enc function"
+    default y
+config ATBM_FUNC_DEV_CTRL_API
+    bool "enabel dev_ctrl api"
+    default y
+config ATBM_FUNC_MODULE_FS
+    bool "enable modules fs"
+    default y
+config ATBM_FUNC_SMARTCONFIG
+    bool "enable smartconfig function"
+    default n 
+config ATBM_FUNC_DRV_LOADER_FAST
+	bool "Enable loader driver fast function"
+	depends on ATBM_USB_BUS
+	default y
+config ATBM_FUNC_PRIVE_IE
+	bool "Enable iwpriv some prive func"
+	default n
+config ATBM_FUNC_SAE_AUTHEN
+	bool "Enable WPA3 support,but make sure the kernel support sae before enabled"
+	default y
+endmenu
+
+menu "Driver debug features"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+
+config ATBM_APOLLO_DEBUGFS
+    bool "Expose driver internals to DebugFS (DEVELOPMENT)"
+config ATBM_APOLLO_DEBUG_ON_BOOT
+    bool "Enable selected driver debug messages during boot time (DEVELOPMENT)"
+
+config ATBM_APOLLO_BH_DEBUG
+    bool "Enable low-level device communication logs (DEVELOPMENT)"
+
+config ATBM_APOLLO_WSM_DEBUG
+    bool "Enable WSM API debug messages (DEVELOPMENT)"
+
+config ATBM_APOLLO_WSM_DUMPS
+    bool "Verbose WSM API logging (DEVELOPMENT)"
+
+config ATBM_APOLLO_WSM_DUMPS_SHORT
+    bool "Dump only first x bytes (default 20) (DEVELOPMENT)"
+
+config ATBM_APOLLO_TXRX_DEBUG
+    bool "Enable TX/RX debug messages (DEVELOPMENT)"
+
+config ATBM_APOLLO_TX_POLICY_DEBUG
+    bool "Enable TX policy debug (DEVELOPMENT)"
+
+config ATBM_APOLLO_STA_DEBUG
+    bool "Enable STA/AP debug (DEVELOPMENT)"
+
+config ATBM_APOLLO_DUMP_ON_ERROR
+    bool "Dump kernel in case of critical error (DEVELOPMENT)"
+endmenu
+
+config ATBM_SDIO_MMCx
+    string "which mmc will be used"
+    depends on (ATBM_MENUCONFIG || ATBM_APOLLO) && ATBM_SDIO_BUS
+    default "mmc0"
+    help
+     set which mmc will be used
+config ATBM_APOLLO_USE_GPIO_IRQ
+    bool "Use GPIO interrupt"
+    depends on (ATBM_MENUCONFIG || ATBM_APOLLO) && ATBM_SDIO_BUS
+    default n
+    help
+     Say Y here if you want to include GPIO IRQ support instead of SDIO IRQ.
+     if unsure, say N.
+config ATBM_APOLLO_WAPI_SUPPORT
+    bool "WAPI support"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    default n
+    help
+     Say Y if your compat-wireless support WAPI.
+     If unsure, say N.
+
+config ATBM_APOLLO_SUPPORT_SGI
+    bool "Use short GI support"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    default y
+    help
+    Say Y here if you want to include short gi support
+	 If unsure, say N.
+config MAC80211_ATBM_HAS_RC
+	bool
+	
+config MAC80211_ATBM_RC_MINSTREL
+	bool "Minstrel" if EXPERT && ATBM_SW_RATE_CTRL
+	select MAC80211_ATBM_HAS_RC
+	default y
+        depends on ATBM_SW_RATE_CTRL
+	---help---
+	  This option enables the 'minstrel' TX rate control algorithm
+
+config MAC80211_ATBM_RC_MINSTREL_HT
+	bool "Minstrel 802.11n support" if EXPERT && ATBM_SW_RATE_CTRL
+	depends on MAC80211_ATBM_RC_MINSTREL && ATBM_SW_RATE_CTRL
+	default y
+	---help---
+	  This option enables the 'minstrel_ht' TX rate control algorithm
+	 
+config MAC80211_ATBM_RC_DEFAULT_MINSTREL
+	bool "Minstrel"	if EXPERT && ATBM_SW_RATE_CTRL
+	depends on MAC80211_ATBM_RC_MINSTREL && ATBM_SW_RATE_CTRL
+	default y
+	---help---
+	  Select Minstrel as the default rate control algorithm.
+
+config ATBM_WIFIIF1_NAME
+    string "Setting wifi interface 1 name"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    default "wlan%d"
+    help
+      Set name for wireless interface 1,the length of name is must smaller than 15
+config NEED_P2P0_INTERFACE
+	bool "ENABLE scond interface"
+	depends on ATBM_MENUCONFIG || ATBM_APOLLO
+	default y
+	help
+		enable scond interface,default p2p0
+		
+config ATBM_WIFIIF2_NAME
+    string "Setting wifi interface 2 name"
+    depends on (ATBM_MENUCONFIG || ATBM_APOLLO) && NEED_P2P0_INTERFACE
+    default "p2p%d"
+    help
+     set name for wireless interface 2,the length of name is must smaller than 15
+
+config ATBM_MODULE_PM_STAYAWK
+    string "Setting wifi pm stay awake modules name"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    default "pm_stayawake"
+    help
+     set name for pm stay awake modules,the length of name is must smaller than 15
+
+config ATBM_MODULE_DRIVER_NAME
+    string "Setting wifi module driver name"
+    depends on (ATBM_MENUCONFIG || ATBM_APOLLO) && (ATBM_USB_BUS || ATBM_SDIO_BUS)
+    default "atbm_wlan"
+    help
+     set name for wireless interface 2,the length of name is must smaller than 15
+
+config ATBM_PLATFORM_DEVICE_NAME
+    string "Setting wifi platform device name"
+    depends on (ATBM_MENUCONFIG || ATBM_APOLLO) && (ATBM_USB_BUS || ATBM_SDIO_BUS)
+    default "atbm_dev_wifi"
+    help
+     set name for wireless platform device name,the length of name is must smaller than 15
+     
+config ATBM_USB_VID
+    hex "Setting wifi usb vid"
+    depends on (ATBM_MENUCONFIG || ATBM_APOLLO) && ATBM_USB_BUS
+    default 0x007a
+    help
+     set usb enumeration vendor id ,value is hex
+
+config ATBM_USB_PID
+    hex "Setting wifi usb pid"
+    depends on (ATBM_MENUCONFIG || ATBM_APOLLO) && ATBM_USB_BUS
+    default 0x8888
+    help
+     set usb enumeration product id ,value is hex
+
+config ATBM_SDIO_VID
+    hex "Setting wifi sdio vid"
+    depends on (ATBM_MENUCONFIG || ATBM_APOLLO) && ATBM_SDIO_BUS
+    default 0x007a
+    help
+     set SDIO enumeration vendor id ,value is hex
+
+config ATBM_SDIO_PID
+    hex "Setting wifi sdio pid"
+    depends on (ATBM_MENUCONFIG || ATBM_APOLLO) && ATBM_SDIO_BUS
+    default 0x6011
+    help
+     set SDIO enumeration product id ,value is hex
+
+config ATBM_MODULE_NAME
+    string "set module name"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    default "atbm601x_wifi_usb" if ATBM601x && ATBM_USB_BUS
+    default "atbm602x_wifi_usb" if ATBM602x && ATBM_USB_BUS
+    default "atbm603x_wifi_usb" if ATBM603x && ATBM_USB_BUS
+    default "atbm601x_wifi_spi" if ATBM601x && ATBM_SPI_BUS
+    default "atbm602x_wifi_spi" if ATBM602x && ATBM_SPI_BUS
+    default "atbm603x_wifi_spi" if ATBM603x && ATBM_SPI_BUS
+    default "atbm601x_wifi_sdio_24M" if ATBM601x && ATBM_SDIO_24M
+    default "atbm602x_wifi_sdio_24M" if ATBM602x && ATBM_SDIO_24M
+    default "atbm601x_wifi_sdio_40M" if ATBM601x && ATBM_SDIO_40M
+    default "atbm602x_wifi_sdio_40M" if ATBM602x && ATBM_SDIO_40M
+    default "atbm603x_wifi_sdio" if ATBM603x && ATBM_SDIO_BUS
+    default "atbm6041_wifi_sdio" if ATBM6041
+    help 
+     set name for wifi module
+config ATBM_FW_NAME
+    string "set fw path name"
+    depends on ATBM_MENUCONFIG || ATBM_APOLLO
+    depends on ATBM_USE_FIRMWARE_BIN
+    default "/system/etc/firmware/atbm601x_fw_usb.bin" if ATBM601x && ATBM_USB_BUS
+    default "/system/etc/firmware/atbm602x_fw_usb.bin" if ATBM602x && ATBM_USB_BUS
+    default "/system/etc/firmware/atbm603x_fw_usb.bin" if ATBM603x && ATBM_USB_BUS
+    default "/system/etc/firmware/atbm601x_fw_spi.bin" if ATBM601x && ATBM_SPI_BUS
+    default "/system/etc/firmware/atbm602x_fw_spi.bin" if ATBM602x && ATBM_SPI_BUS
+    default "/system/etc/firmware/atbm603x_fw_usb.bin" if ATBM603x && ATBM_SPI_BUS
+    default "/system/etc/firmware/atbm601x_fw_sdio_24M.bin" if ATBM601x && ATBM_SDIO_24M
+    default "/system/etc/firmware/atbm602x_fw_sdio_24M.bin" if ATBM602x && ATBM_SDIO_24M
+    default "/system/etc/firmware/atbm601x_fw_sdio_40M.bin" if ATBM601x && ATBM_SDIO_40M
+    default "/system/etc/firmware/atbm602x_fw_sdio_40M.bin" if ATBM602x && ATBM_SDIO_40M
+    default "/system/etc/firmware/atbm603x_fw_sdio.bin" if ATBM603x && ATBM_SDIO_BUS
+    help
+     set name for wifi module
+
+config MAC80211_ATBM_RC_DEFAULT
+	string
+	default "minstrel_ht" if MAC80211_ATBM_RC_DEFAULT_MINSTREL && MAC80211_ATBM_RC_MINSTREL_HT
+	default "minstrel" if MAC80211_ATBM_RC_DEFAULT_MINSTREL
+	default "pid" if MAC80211_ATBM_RC_DEFAULT_PID
+	default ""
+#comment "Some wireless drivers require a rate control algorithm"
+#	depends on MAC80211_ATBM_HAS_RC
+	
+
+config MAC80211_ATBM_NOINLINE
+	bool "Do not inline TX/RX handlers"
+	depends on MAC80211_ATBM_DEBUG_MENU
+	---help---
+	  This option affects code generation in mac80211, when
+	  selected some functions are marked "noinline" to allow
+	  easier debugging of problems in the transmit and receive
+	  paths.
+
+	  This option increases code size a bit and inserts a lot
+	  of function calls in the code, but is otherwise safe to
+	  enable.
+
+	  If unsure, say N unless you expect to be finding problems
+	  in mac80211.
+endif
+endif

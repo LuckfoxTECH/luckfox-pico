@@ -1,0 +1,10 @@
+commit 331d5750df5b928972a24a191a2160a96b980404
+Author: Yu Qiaowei <cerf.yu@rock-chips.com>
+Date:   Tue Jun 21 09:44:51 2022 +0800
+
+    samples: add readme
+    
+    version: 1.8.1_[2]
+    
+    Signed-off-by: Yu Qiaowei <cerf.yu@rock-chips.com>
+    Change-Id: I28c2fa1a23a5e7a8e1d01a79a5d38e8a86cc5046

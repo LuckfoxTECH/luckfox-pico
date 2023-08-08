@@ -1,0 +1,20 @@
+config CPU
+	bool "Enable CPU drivers using Driver Model"
+	help
+	  This allows drivers to be provided for CPUs and their type to be
+	  specified in the board's device tree. For boards which support
+	  multiple CPUs, then normally have to be set up in U-Boot so that
+	  they can work correctly in the OS. This provides a framework for
+	  finding out information about available CPUs and making changes.
+
+config AMP
+	bool "Enable AMP drivers using Driver Model"
+	help
+	  This support Asymmetric Multi-Processing, cpus can run on different
+	  firmware.
+
+config ROCKCHIP_AMP
+	bool "Enable Rockchip AMP driver"
+	depends on AMP && ROCKCHIP_SMCCC && RKIMG_BOOTLOADER
+	help
+	  This enable Rockchip AMP driver support.

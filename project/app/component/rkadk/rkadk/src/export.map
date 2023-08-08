@@ -1,0 +1,7 @@
+{
+  local:
+    *cJSON*;
+    *iniparser*;
+    *dictionary*;
+};
+

@@ -1,0 +1,18 @@
+if ROCKCHIP_RK3308
+
+config TARGET_EVB_RK3308
+	bool "EVB_RK3308"
+	select BOARD_LATE_INIT
+
+config SYS_SOC
+	default "rockchip"
+
+config SYS_MALLOC_F_LEN
+	default 0x400
+
+config SPL_SERIAL_SUPPORT
+	default y
+
+source "board/rockchip/evb_rk3308/Kconfig"
+
+endif

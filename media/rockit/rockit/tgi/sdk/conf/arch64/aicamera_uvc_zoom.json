@@ -1,0 +1,89 @@
+{
+    "pipe_0": {
+        "node_0": {
+            "node_opts": {
+                "node_name"       : "rkisp"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 0,
+                "node_buff_count" : 3,
+                "node_buff_size"  : 1382400
+            },
+            "stream_opts": {
+                "stream_output"   : "isp_scale_0",
+                "stream_fmt_out"  : "image:nv12"
+            },
+            "stream_opts_extra": {
+                "opt_entity_name" : "/dev/video0",
+                "opt_width"       : 1280,
+                "opt_height"      : 720,
+                "opt_vir_width"   : 1280,
+                "opt_vir_height"  : 720,
+                "opt_buf_type"    : 1,
+                "opt_mem_type"    : 4,
+                "opt_use_libv4l2" : 1,
+                "opt_colorspace"  : 0
+            }
+        },
+        "node_3": {
+            "node_opts": {
+                "node_name"       : "rkzoom"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 1,
+                "node_buff_count" : 0
+            },
+            "stream_opts": {
+                "stream_input"    : "zoom_ctl_in",
+                "stream_output"   : "zoom_ctl_out",
+                "stream_fmt_in"   : "image:nv12",
+                "stream_fmt_out"  : "image:nv12"
+            }
+        },
+        "node_6": {
+            "node_opts": {
+                "node_name"       : "rkrga"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 0,
+                "node_buff_count" : 3,
+                "node_buff_size"  : 614400
+            },
+            "stream_opts": {
+                "stream_input"    : "eptz_clip_in",
+                "stream_output"   : "eptz_clip_out",
+                "stream_fmt_in"   : "image:nv12",
+                "stream_fmt_out"  : "image:nv12",
+                "stream_mode_in"  : "remain_newest"
+            },
+            "stream_opts_extra": {
+                "opt_trans_rect"  : "(0,0,1920,1080)->(0,0,1280,720)",
+                "opt_trans_rotate": 0
+            }
+        },
+        "node_7": {
+            "node_opts": {
+                "node_name"       : "link_output"
+            },
+            "node_opts_extra": {
+                "node_buff_type"  : 1,
+                "node_buff_count" : 0
+            },
+            "stream_opts": {
+                "stream_input"    : "uvc_link_out_in",
+                "stream_output"   : "uvc_link_out_out",
+                "stream_fmt_in"   : "image:nv12",
+                "stream_fmt_out"  : "image:nv12"
+            }
+        },
+        "default_mode_link": "none",
+        "link_0": {
+            "link_name"          : "uvc",
+            "link_ship"          : "0,7"
+        },
+        "link_2": {
+            "link_name"          : "uvc_zoom",
+            "link_ship"          : "0,3,6,7"
+        }
+    }
+}

@@ -1,0 +1,15 @@
+/*
+ * (C) Copyright 2018 Rockchip Electronics Co., Ltd
+ *
+ * SPDX-License-Identifier:     GPL-2.0+
+ */
+
+#include "rk3328-u-boot.dtsi"
+
+&vcc3v3_sdmmc {
+	u-boot,dm-spl;
+};
+
+&vcc5v0_otg {
+	u-boot,dm-spl;
+};

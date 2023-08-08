@@ -1,0 +1,10 @@
+
+*.o
+avs/sample_multi_vi_avs
+test/sample_camera_stresstest
+venc/sample_multi_vi_avs_osd_venc
+venc/sample_vi_vpss_osd_venc
+vi/sample_multi_vi
+vi/sample_vi
+vo/sample_vi_vo
+out

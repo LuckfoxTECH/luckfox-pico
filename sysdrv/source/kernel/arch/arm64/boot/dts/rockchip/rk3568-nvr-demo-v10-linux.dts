@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2020 Rockchip Electronics Co., Ltd.
+ *
+ */
+
+/dts-v1/;
+
+#include "rk3568-nvr-demo-v10.dtsi"
+#include "rk3568-nvr-linux.dtsi"
+
+/ {
+	model = "Rockchip RK3568 NVR DEMO DDR4 V10 Linux Board";
+	compatible = "rockchip,rk3568-nvr-demo-ddr4-v10-linux", "rockchip,rk3568";
+};
+
+&pcie30phy {
+	status = "disabled";
+};
+
+&pcie3x1 {
+	status = "disabled";
+};
+
+&pcie3x2 {
+	status = "disabled";
+};

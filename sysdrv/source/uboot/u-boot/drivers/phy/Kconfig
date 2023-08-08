@@ -1,0 +1,144 @@
+
+menu "PHY Subsystem"
+
+config PHY
+	bool "PHY Core"
+	depends on DM
+	help
+	  PHY support.
+
+	  This framework is designed to provide a generic interface for PHY
+	  devices. PHY devices are dedicated hardware that handle the physical
+	  layer of the protocols in the OSI model.
+	  PHYs are commonly used for high speed interfaces such as Serial-ATA
+	  or PCI express.
+	  The API provides functions to initialize/deinitialize the
+	  PHY, power on/off the PHY, and reset the PHY. It's meant to be as
+	  compatible as possible with the equivalent framework found in the
+	  linux kernel.
+
+config SPL_PHY
+	bool "PHY Core in SPL"
+	depends on DM
+	help
+	  PHY support in SPL.
+
+	  This framework is designed to provide a generic interface for PHY
+	  devices. PHY devices are dedicated hardware that handle the physical
+	  layer of the protocols (https://en.wikipedia.org/wiki/OSI_model).
+	  PHYs are commonly used for high speed interfaces such as Serial-ATA
+	  or PCI express.
+	  The API provides functions to initialize/deinitialize the
+	  PHY, power on/off the PHY, and reset the PHY. It's meant to be as
+	  compatible as possible with the equivalent framework found in the
+	  linux kernel.
+
+config PHY_SANDBOX
+	bool "Sandbox PHY support"
+	depends on SANDBOX
+	depends on PHY
+	help
+	  This select a dummy sandbox PHY driver. It used only to implement
+	  the unit tests for the phy framework
+
+config NOP_PHY
+	bool "NOP PHY driver"
+	depends on PHY
+	help
+	  Support for a no-op PHY driver (stubbed PHY driver).
+
+	  This is useful when a driver uses the PHY framework but no real PHY
+	  hardware exists.
+
+config SPL_NOP_PHY
+	bool "NOP PHY driver in SPL"
+	depends on SPL_PHY
+	help
+	  Support for a no-op PHY driver (stubbed PHY driver) in the SPL.
+
+	  This is useful when a driver uses the PHY framework but no real PHY
+	  hardware exists.
+
+config PHY_ROCKCHIP_INNO_USB2
+	bool "Support Rockchip INNO USB2PHY"
+	depends on ARCH_ROCKCHIP
+	select PHY
+	help
+	  Support for Rockchip USB 2.0 PHY with Innosilicon IP block.
+
+config PHY_ROCKCHIP_NANENG_COMBOPHY
+	bool "Support Rockchip NANENG combo PHY Driver"
+	depends on ARCH_ROCKCHIP
+	select PHY
+	help
+	  Enable this to support the Rockchip NANENG combo PHY.
+
+config PHY_ROCKCHIP_NANENG_USB2
+	bool "Support Rockchip Naneng USB2PHY"
+	depends on ARCH_ROCKCHIP
+	select PHY
+	help
+	  Support for Rockchip USB 2.0 PHY with Naneng IP block.
+
+config PHY_ROCKCHIP_INNO_USB3
+	bool "Support Rockchip INNO USB3PHY"
+	depends on ARCH_ROCKCHIP
+	select PHY
+	help
+	  Support for Rockchip USB 3.0 PHY with Innosilicon IP block.
+
+config PHY_ROCKCHIP_NANENG_EDP
+	bool "Support Rockchip Naneng eDP Transmitter PHY"
+	depends on ARCH_ROCKCHIP
+	select PHY
+	help
+	  Support for Rockchip eDP Transmitter PHY with Naneng IP block.
+
+config PHY_ROCKCHIP_SAMSUNG_HDPTX
+	bool "Rockchip Samsung HDMI/DP Combo PHY driver"
+	depends on ARCH_ROCKCHIP
+	select PHY
+	help
+	  Support for Rockchip HDMI/DP Combo PHY with Samsung IP block.
+
+config PHY_ROCKCHIP_SNPS_PCIE3
+	bool "Rockchip Snps PCIe3 PHY Driver"
+	depends on ARCH_ROCKCHIP
+	select PHY
+	help
+	  Support for Rockchip PCIe3 PHY with Synopsys IP block.
+
+config PHY_ROCKCHIP_USBDP
+	tristate "Rockchip USBDP COMBO PHY Driver"
+	depends on ARCH_ROCKCHIP
+	select PHY
+	help
+	  Enable this to support the Rockchip USB3.0/DP
+	  combo PHY with Samsung IP block.
+
+config PHY_ROCKCHIP_TYPEC
+	bool "Support Rockchip TYPEC PHY Driver"
+	depends on ARCH_ROCKCHIP
+	select PHY
+	help
+	  Enable this to support the Rockchip USB Type-C PHY.
+
+config PIPE3_PHY
+	bool "Support omap's PIPE3 PHY"
+	depends on PHY && ARCH_OMAP2PLUS
+	help
+	  Support for the omap PIPE3 phy for sata
+
+	  This PHY is found on omap devices supporting SATA such as dra7, am57x
+	  and omap5
+
+config SPL_PIPE3_PHY
+	bool "Support omap's PIPE3 PHY in SPL"
+	depends on SPL_PHY && ARCH_OMAP2PLUS
+	help
+	  Support for the omap PIPE3 phy for sata in SPL
+
+	  This PHY is found on omap devices supporting SATA such as dra7, am57x
+	  and omap5
+
+endmenu

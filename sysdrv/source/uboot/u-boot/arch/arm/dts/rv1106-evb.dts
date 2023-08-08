@@ -1,0 +1,32 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2021 Fuzhou Rockchip Electronics Co., Ltd.
+ */
+
+/dts-v1/;
+
+#include "rv1106.dtsi"
+#include "rv1106-u-boot.dtsi"
+#include <dt-bindings/input/input.h>
+
+/ {
+	model = "Rockchip RV1106 EVB Board";
+	compatible = "rockchip,rv1106-evb", "rockchip,rv1106";
+
+	adc-keys {
+		compatible = "adc-keys";
+		io-channels = <&saradc 0>;
+		io-channel-names = "buttons";
+		keyup-threshold-microvolt = <1800000>;
+		u-boot,dm-pre-reloc;
+		status = "okay";
+
+		volumeup-key {
+			u-boot,dm-pre-reloc;
+			linux,code = <KEY_VOLUMEUP>;
+			label = "volume up";
+			press-threshold-microvolt = <1750>;
+		};
+	};
+};
+

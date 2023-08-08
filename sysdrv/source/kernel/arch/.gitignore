@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: GPL-2.0-only
+i386
+x86_64
+
+!alpha/boot/*.lds
+!h8300/boot/compressed/*.lds
+!ia64/scripts/*.lds
+!m68k/kernel/*.lds
+!powerpc/platforms/44x/*.lds

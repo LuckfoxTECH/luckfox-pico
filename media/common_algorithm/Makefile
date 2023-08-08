@@ -1,0 +1,89 @@
+
+ifeq ($(MEDIA_PARAM), )
+    MEDIA_PARAM:=../Makefile.param
+    include $(MEDIA_PARAM)
+endif
+
+export LC_ALL=C
+SHELL:=/bin/bash
+
+CURRENT_DIR := $(shell pwd)
+PKG_NAME := common_algorithm
+PKG_BIN ?= out
+PKG_BUILD ?= build
+
+ifeq ($(PKG_BIN),)
+$(error ### $(CURRENT_DIR): PKG_BIN is NULL, Please Check !!!)
+endif
+
+ifeq ($(RK_MEDIA_CHIP), rk3588)
+PKG_CONF_OPTS += -DUSE_64BIT=TRUE
+PKG_CONF_OPTS += -DUSE_32BIT=FALSE
+PKG_CONF_OPTS += -DAEC_ANR_AGC_ENABLE=TRUE
+PKG_CONF_OPTS += -DANR_ENABLE=TRUE
+PKG_CONF_OPTS += -DMOVE_DETECT_ENABLE=TRUE
+PKG_CONF_OPTS += -DOCCLUSION_DETECT_ENABLE=TRUE
+PKG_CONF_OPTS += -DRK3588=TRUE
+endif
+
+ifeq ($(RK_MEDIA_CHIP), rv1126)
+PKG_CONF_OPTS += -DUSE_64BIT=FALSE
+PKG_CONF_OPTS += -DUSE_32BIT=TRUE
+PKG_CONF_OPTS += -DAEC_ANR_AGC_ENABLE=TRUE
+PKG_CONF_OPTS += -DANR_ENABLE=TRUE
+PKG_CONF_OPTS += -DMOVE_DETECT_ENABLE=TRUE
+PKG_CONF_OPTS += -DOCCLUSION_DETECT_ENABLE=TRUE
+PKG_CONF_OPTS += -DRV1126_RV1109=TRUE
+endif
+
+ifeq ($(RK_MEDIA_CHIP), rv1106)
+PKG_CONF_OPTS += -DUSE_64BIT=FALSE
+PKG_CONF_OPTS += -DUSE_32BIT=FALSE
+PKG_CONF_OPTS += -DUSE_UCLIBC=TRUE
+PKG_CONF_OPTS += -DRKAPPLUS_ENABLE=TRUE
+PKG_CONF_OPTS += -DRKAPPLUS_AED_ENABLE=TRUE
+PKG_CONF_OPTS += -DRV1106_RV1103=TRUE
+endif
+
+ifeq ($(CONFIG_RK_COMMON_ALGORITHM),y)
+PKG_TARGET := common_algorithm-build
+endif
+
+all: $(PKG_TARGET)
+	@echo "build $(PKG_NAME) done";
+
+common_algorithm-build:
+	@test ! -d $(CURRENT_DIR)/$(PKG_NAME) || \
+		test -f $(CURRENT_DIR)/$(PKG_BIN)/lib/libRKAP_Common.so || (\
+	echo "Start to build $(PKG_NAME)"; \
+	rm -rf $(PKG_BIN) $(PKG_BUILD); \
+	mkdir -p $(CURRENT_DIR)/$(PKG_BUILD)/; \
+	pushd $(CURRENT_DIR)/$(PKG_BUILD); \
+		rm -f CMakeCache.txt; \
+		cmake $(CURRENT_DIR)/$(PKG_NAME)/ \
+			-DCMAKE_C_COMPILER=$(RK_MEDIA_CROSS)-gcc \
+			-DCMAKE_CXX_COMPILER=$(RK_MEDIA_CROSS)-g++ \
+			-DCMAKE_INSTALL_PREFIX="$(CURRENT_DIR)/$(PKG_BIN)" \
+			-DCMAKE_BUILD_TYPE=Release \
+			-DCMAKE_COLOR_MAKEFILE=OFF \
+			-DBUILD_DOC=OFF \
+			-DBUILD_DOCS=OFF \
+			-DBUILD_EXAMPLE=OFF \
+			-DBUILD_EXAMPLES=OFF \
+			-DBUILD_TESTS=OFF \
+			-DBUILD_TESTING=OFF \
+			-DBUILD_SHARED_LIBS=ON \
+			$(PKG_CONF_OPTS); \
+		make -j$(RK_JOBS) || exit -1; \
+		make install; \
+		mkdir -p $(CURRENT_DIR)/$(PKG_BIN)/share; \
+		test ! -d $(CURRENT_DIR)/$(PKG_BIN)/vqefiles || \
+		mv $(CURRENT_DIR)/$(PKG_BIN)/vqefiles $(CURRENT_DIR)/$(PKG_BIN)/share; \
+	popd; ) || exit -1;
+	$(call MAROC_COPY_PKG_TO_MEDIA_OUTPUT, $(RK_MEDIA_OUTPUT), $(PKG_BIN))
+	@echo "build $(PKG_NAME) done";
+
+clean: distclean
+
+distclean:
+	-rm -rf $(PKG_BIN) $(PKG_BUILD)

@@ -1,0 +1,8 @@
+
+工具名称              | 工具用途
+----------------------|-------------------------------------------
+SocToolKit            | 开发阶段用的固件升级工具
+DriverAssitant        | 驱动安装工具
+FactoryTool           | 量产升级工具
+
+联系Email:liuyi@rock-chips.com

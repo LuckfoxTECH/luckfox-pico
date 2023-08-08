@@ -1,0 +1,8 @@
+commit 9093280df536e902dd5125cdc9953509ebc59a74
+Author: Colum Jin <colum.jin@rock-chips.com>
+Date:   Tue Dec 20 14:35:57 2022 +0800
+
+    [vsys] replace if-else chains with switch
+    
+    Signed-off-by: Colum Jin <colum.jin@rock-chips.com>
+    Change-Id: I440ee6be20ad658f831db4f91b5eb17380675450

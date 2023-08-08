@@ -1,0 +1,28 @@
+rknand (Rockchip NAND FLASH drivers with FTL)
+=====================================================
+
+Overview
+--------
+
+The rknand is used for Rockchip Soc NAND FLASH devices.
+
+Status
+------
+It supprot SLC and MLC NAND Flash with fully FTL.
+
+Usage in U-Boot
+---------------
+
+To list all of the rknand hard disks, try:
+
+  => rknand info
+  Device 0: Vendor: 0x2207 Rev: V1.00 Prod: rknand
+	    Type: Hard Disk
+	    Capacity: 7304.0 MB = 7.1 GB (14958592 x 512)
+
+To find and initialize nand devices, try:
+  => rknand dev 0
+  Device 0: Vendor: 0x2207 Rev: V1.00 Prod: rknand
+	    Type: Hard Disk
+	    Capacity: 7304.0 MB = 7.1 GB (14958592 x 512)
+... is now current device

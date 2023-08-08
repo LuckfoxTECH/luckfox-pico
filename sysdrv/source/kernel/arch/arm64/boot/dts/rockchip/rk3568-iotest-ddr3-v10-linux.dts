@@ -1,0 +1,73 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2020 Rockchip Electronics Co., Ltd.
+ *
+ */
+
+/dts-v1/;
+
+#include "rk3568.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	model = "Rockchip RK3568 IOTEST DDR3 V10 Board";
+	compatible = "rockchip,rk3568-iotest-ddr3-v10", "rockchip,rk3568";
+
+	chosen: chosen {
+		bootargs = "earlycon=uart8250,mmio32,0xfe660000 console=ttyFIQ0 root=PARTUUID=614e0000-0000 rw rootwait";
+	};
+
+	fiq-debugger {
+		compatible = "rockchip,fiq-debugger";
+		rockchip,serial-id = <2>;
+		rockchip,wake-irq = <0>;
+		/* If enable uart uses irq instead of fiq */
+		rockchip,irq-mode-enable = <1>;
+		rockchip,baudrate = <1500000>;  /* Only 115200 and 1500000 */
+		interrupts = <GIC_SPI 252 IRQ_TYPE_LEVEL_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&uart2m0_xfer>;
+		status = "okay";
+	};
+
+	test-power {
+		status = "okay";
+	};
+};
+
+&rkvdec {
+	/delete-property/ vdec-supply;
+};
+
+&sdhci {
+	bus-width = <8>;
+	no-sdio;
+	no-sd;
+	non-removable;
+	max-frequency = <200000000>;
+	status = "okay";
+};
+
+&u2phy0_otg {
+	status = "okay";
+};
+
+&usb2phy0 {
+	status = "okay";
+};
+
+&usbdrd_dwc3 {
+	dr_mode = "otg";
+	phys = <&u2phy0_otg>;
+	phy-names = "usb2-phy";
+	extcon = <&usb2phy0>;
+	maximum-speed = "high-speed";
+	snps,dis_u2_susphy_quirk;
+	status = "okay";
+};
+
+&usbdrd30 {
+	status = "okay";
+};
+
+/delete-node/ &display_subsystem;

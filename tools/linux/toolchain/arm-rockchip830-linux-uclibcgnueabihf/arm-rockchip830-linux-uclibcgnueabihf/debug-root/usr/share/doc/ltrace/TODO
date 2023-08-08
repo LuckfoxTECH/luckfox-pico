@@ -1,0 +1,138 @@
+-*-org-*-
+* TODO
+** Automatic prototype discovery:
+*** Use debuginfo if available
+    Alternatively, use debuginfo to generate configure file.
+*** Demangled identifiers contain partial prototypes themselves
+** Automatically update list of syscalls?
+** Update /etc/ltrace.conf
+   In particular, we could use a config directory, where packages
+   would install their ltrace config scripts.  The config file could
+   be named after SONAME, and automatically read when corresponding
+   library is mapped.
+** More operating systems (solaris?)
+** Get rid of EVENT_ARCH_SYSCALL and EVENT_ARCH_SYSRET
+** Implement displaced tracing
+   A technique used in GDB (and in uprobes, I believe), whereby the
+   instruction under breakpoint is moved somewhere else, and followed
+   by a jump back to original place.  When the breakpoint hits, the IP
+   is moved to the displaced instruction, and the process is
+   continued.  We avoid all the fuss with singlestepping and
+   reenablement.
+** Create different ltrace processes to trace different children
+** Config file syntax
+*** named arguments
+    This would be useful for replacing the arg1, emt2 etc.
+
+*** parameter pack improvements
+    The above format tweaks require that packs that expand to no types
+    at all be supported.  If this works, then it should be relatively
+    painless to implement conditionals:
+
+    | void ptrace(REQ=enum(PTRACE_TRACEME=0,...),
+    |             if[REQ==0](pack(),pack(pid_t, void*, void *)))
+
+    This is of course dangerously close to a programming language, and
+    I think ltrace should be careful to stay as simple as possible.
+    (We can hook into Lua, or TinyScheme, or some such if we want more
+    general scripting capabilities.  Implementing something ad-hoc is
+    undesirable.)  But the above can be nicely expressed by pattern
+    matching:
+
+    | void ptrace(REQ=enum[int](...)):
+    |   [REQ==0] => ()
+    |   [REQ==1 or REQ==2] => (pid_t, void*)
+    |   [true] => (pid_t, void*, void*);
+
+    Or:
+
+    | int open(string, FLAGS=flags[int](O_RDONLY=00,...,O_CREAT=0100,...)):
+    |   [(FLAGS & 0100) != 0] => (flags[int](S_IRWXU,...))
+
+    This would still require pretty complete expression evaluation.
+    _Including_ pointer dereferences and such.  And e.g. in accept, we
+    need subtraction:
+
+    | int accept(int, +struct(short, +array(hex(char), X-2))*, (X=uint)*);
+
+    Perhaps we should hook to something after all.
+
+*** errno tracking
+    Some calls result in setting errno.  Somehow mark those, and on
+    failure, show errno.
+
+*** second conversions?
+    This definitely calls for some general scripting.  The goal is to
+    have seconds in adjtimex calls show as e.g. 10s, 1m15s or some
+    such.
+
+*** format should take arguments like string does
+    Format should take value argument describing the value that should
+    be analyzed.  The following overwriting rules would then apply:
+
+    | format       | format(array(char, zero)*) |
+    | format(LENS) | X=LENS, format[X]          |
+
+    The latter expanded form would be canonical.
+
+    This depends on named arguments and parameter pack improvements
+    (we need to be able to construct parameter packs that expand to
+    nothing).
+
+*** More fine-tuned control of right arguments
+    Combination of named arguments and some extensions could take care
+    of that:
+
+    | void func(X=hide(int*), long*, +pack(X)); |
+
+    This would show long* as input argument (i.e. the function could
+    mangle it), and later show the pre-fetched X.  The "pack" syntax is
+    utterly undeveloped as of now.  The general idea is to produce
+    arguments that expand to some mix of types and values.  But maybe
+    all we need is something like
+
+    | void func(out int*, long*); |
+
+    ltrace would know that out/inout/in arguments are given in the
+    right order, but left pass should display in and inout arguments
+    only, and right pass then out and inout.  + would be
+    backward-compatible syntactic sugar, expanded like so:
+
+    | void func(int*, int*, +long*, long*);              |
+    | void func(in int*, in int*, out long*, out long*); |
+
+    But sometimes we may want to see a different type on the way in and
+    on the way out.  E.g. in asprintf, what's interesting on the way in
+    is the address, but on the way out we want to see buffer contents.
+    Does something like the following make sense?
+
+    | void func(X=void*, long*, out string(X)); |
+
+** Support for functions that never return
+   This would be useful for __cxa_throw, presumably also for longjmp
+   (do we handle that at all?) and perhaps a handful of others.
+
+** Support flag fields
+   enum-like syntax, except disjunction of several values is assumed.
+** Support long long
+   We currently can't define time_t on 32bit machines.  That mean we
+   can't describe a range of time-related functions.
+
+** Support signed char, unsigned char, char
+   Also, don't format it as characted by default, string lens can do
+   it.  Perhaps introduce byte and ubyte and leave 'char' as alias of
+   one of those with string lens applied by default.
+
+** Support fixed-width types
+   Really we should keep everything as {u,}int{8,16,32,64} internally,
+   and have long, short and others be translated to one of those
+   according to architecture rules.  Maybe this could be achieved by a
+   per-arch config file with typedefs such as:
+
+   | typedef ulong = uint8_t |
+
+** Some more functions in vect might be made to take const*
+   Or even marked __attribute__((pure)).
+
+* BUGS
+** After a clone(), syscalls may be seen as sysrets in s390 (see trace.c:syscall_p())

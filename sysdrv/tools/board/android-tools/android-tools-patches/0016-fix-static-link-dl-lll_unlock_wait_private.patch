@@ -1,0 +1,28 @@
+From 7b7ec88edeaf1a4290bdefed76fa88031b447f23 Mon Sep 17 00:00:00 2001
+From: Ziyuan Xu <xzy.xu@rock-chips.com>
+Date: Wed, 10 Jun 2020 16:51:09 +0800
+Subject: [PATCH] fix static link dl/lll_unlock_wait_private
+
+[1] https://stackoverrun.com/cn/q/11281009
+
+Signed-off-by: Ziyuan Xu <xzy.xu@rock-chips.com>
+---
+ debian/makefiles/adbd.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/debian/makefiles/adbd.mk b/debian/makefiles/adbd.mk
+index cc636e1..def0233 100644
+--- a/debian/makefiles/adbd.mk
++++ b/debian/makefiles/adbd.mk
+@@ -44,7 +44,7 @@ CPPFLAGS+= -DADBD_NON_ANDROID
+ CPPFLAGS+= -I$(SRCDIR)/core/adbd
+ CPPFLAGS+= -I$(SRCDIR)/core/include
+ 
+-LIBS+= -lc -lpthread -lcrypto -lz -lcrypt
++LIBS+= -lpthread -lc -lcrypto -lz -lcrypt -ldl
+ 
+ OBJS= $(patsubst %, %.o, $(basename $(SRCS)))
+ 
+-- 
+2.26.1
+

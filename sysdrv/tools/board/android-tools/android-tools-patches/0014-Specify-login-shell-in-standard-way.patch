@@ -1,0 +1,38 @@
+From 3abe6e977003ea21d96faa25bbded18ed93e6f63 Mon Sep 17 00:00:00 2001
+From: Jeffy Chen <jeffy.chen@rock-chips.com>
+Date: Wed, 13 May 2020 15:11:00 +0800
+Subject: [PATCH] Specify login shell in standard way
+
+Unlike android's mksh, most of other shells support using '-l' to
+specify login shell.
+
+Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
+---
+ core/adbd/services.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/core/adbd/services.c b/core/adbd/services.c
+index b4c94cb..239f49f 100644
+--- a/core/adbd/services.c
++++ b/core/adbd/services.c
+@@ -324,7 +324,7 @@ static int create_subprocess(const char *cmd, const char *arg0, const char *arg1
+         } else {
+            D("adb: unable to open %s\n", text);
+         }
+-        execl(cmd, cmd, arg0, arg1, NULL);
++        execl(cmd, cmd, "-l", arg0, arg1, NULL);
+         fprintf(stderr, "- exec '%s' failed: %s (%d) -\n",
+                 cmd, strerror(errno), errno);
+         exit(-1);
+@@ -386,7 +386,7 @@ static int create_subproc_thread(const char *name)
+     if(name) {
+         ret_fd = create_subprocess(SHELL_COMMAND, "-c", name, &pid);
+     } else {
+-        ret_fd = create_subprocess(SHELL_COMMAND, "-", 0, &pid);
++        ret_fd = create_subprocess(SHELL_COMMAND, 0, 0, &pid);
+     }
+     D("create_subprocess() ret_fd=%d pid=%d\n", ret_fd, pid);
+ 
+-- 
+2.20.1
+

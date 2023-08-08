@@ -1,0 +1,6 @@
+GVA-RK3229
+M:      Kever Yang <kever.yang@rock-chips.com>
+S:      Maintained
+F:      board/rockchip/gva_rk3229
+F:      include/configs/gva_rk3229.h
+F:      configs/gva-rk3229_defconfig

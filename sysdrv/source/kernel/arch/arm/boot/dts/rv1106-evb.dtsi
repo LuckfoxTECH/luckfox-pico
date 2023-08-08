@@ -1,0 +1,102 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2022 Rockchip Electronics Co., Ltd.
+ */
+#include "rv1106-amp.dtsi"
+#include <dt-bindings/input/input.h>
+
+/ {
+	adc-keys {
+		compatible = "adc-keys";
+		io-channels = <&saradc 0>;
+		io-channel-names = "buttons";
+		poll-interval = <100>;
+		keyup-threshold-microvolt = <1800000>;
+
+		key_volumeup-key {
+			label = "key_volumeup";
+			linux,code = <KEY_VOLUMEUP>;
+			press-threshold-microvolt = <0>;
+		};
+
+		key_volumedown-key {
+			label = "key_volumedown";
+			linux,code = <KEY_VOLUMEDOWN>;
+			press-threshold-microvolt = <400781>;
+		};
+	};
+
+	restart-poweroff {
+		compatible = "restart-poweroff";
+	};
+};
+
+&fiq_debugger {
+	rockchip,irq-mode-enable = <1>;
+	status = "okay";
+};
+
+&gmac {
+	status = "okay";
+};
+
+&i2s0_8ch {
+	status = "okay";
+};
+
+&mpp_srv {
+	status = "okay";
+};
+
+&mpp_vcodec {
+	status = "okay";
+};
+
+&npu {
+	status = "okay";
+};
+
+&rga2 {
+	status = "okay";
+};
+
+&rkdvbm {
+	status = "okay";
+};
+
+&rkvenc {
+	status = "okay";
+};
+
+&rkvenc_pp {
+	status = "okay";
+};
+
+&rng {
+	status = "okay";
+};
+
+&rve {
+	status = "okay";
+};
+
+&tsadc {
+	status = "okay";
+};
+
+&u2phy {
+	status = "okay";
+};
+
+&u2phy_otg {
+	status = "okay";
+};
+
+&usbdrd {
+	status = "okay";
+};
+
+&usbdrd_dwc3 {
+	extcon = <&u2phy>;
+	status = "okay";
+};

@@ -1,0 +1,181 @@
+U-Boot for UniPhier SoC family
+==============================
+
+
+Recommended toolchains
+----------------------
+
+The UniPhier platform is well tested with Linaro toolchains.
+You can download pre-built toolchains from:
+
+    http://www.linaro.org/downloads/
+
+
+Compile the source
+------------------
+
+The source can be configured and built with the following commands:
+
+    $ make <defconfig>
+    $ make CROSS_COMPILE=<toolchain-prefix> DEVICE_TREE=<device-tree>
+
+The recommended <toolchain-prefix> is `arm-linux-gnueabihf-` for 32bit SoCs,
+`aarch64-linux-gnu-` for 64bit SoCs, but you may wish to change it to use your
+favorite compiler.
+
+The following tables show <defconfig> and <device-tree> for each board.
+
+32bit SoC boards:
+
+ Board         | <defconfig>                  | <device-tree>
+---------------|------------------------------|------------------------------
+LD4 reference  | uniphier_ld4_sld8_defconfig  | uniphier-ld4-ref (default)
+sld8 reference | uniphier_ld4_sld8_defconfig  | uniphier-sld8-def
+Pro4 reference | uniphier_pro4_defconfig      | uniphier-pro4-ref (default)
+Pro4 Ace       | uniphier_pro4_defconfig      | uniphier-pro4-ace
+Pro4 Sanji     | uniphier_pro4_defconfig      | uniphier-pro4-sanji
+Pro5 4KBOX     | uniphier_pxs2_ld6b_defconfig | uniphier-pro5-4kbox
+PXs2 Gentil    | uniphier_pxs2_ld6b_defconfig | uniphier-pxs2-gentil
+PXs2 Vodka     | uniphier_pxs2_ld6b_defconfig | uniphier-pxs2-vodka (default)
+LD6b reference | uniphier_pxs2_ld6b_defconfig | uniphier-ld6b-ref
+
+64bit SoC boards:
+
+ Board         | <defconfig>           | <device-tree>
+---------------|-----------------------|----------------------------
+LD11 reference | uniphier_v8_defconfig | uniphier-ld11-ref
+LD11 Global    | uniphier_v8_defconfig | uniphier-ld11-global
+LD20 reference | uniphier_v8_defconfig | uniphier-ld20-ref (default)
+LD20 Global    | uniphier_v8_defconfig | uniphier-ld20-global
+
+For example, to compile the source for PXs2 Vodka board, run the following:
+
+    $ make uniphier_pxs2_ld6b_defconfig
+    $ make CROSS_COMPILE=arm-linux-gnueabihf- DEVICE_TREE=uniphier-pxs2-vodka
+
+The device tree marked as (default) can be omitted.  `uniphier-pxs2-vodka` is
+the default device tree for the configuration `uniphier_pxs2_ld6b_defconfig`,
+so the following gives the same result.
+
+    $ make uniphier_pxs2_ld6b_defconfig
+    $ make CROSS_COMPILE=arm-linux-gnueabihf-
+
+
+Booting 32bit SoC boards
+------------------------
+
+The build command will generate the following:
+- u-boot.bin
+- spl/u-boot.bin
+
+U-Boot can boot UniPhier 32bit SoC boards by itself.  Flash the generated images
+to the storage device (NAND or eMMC) on your board.
+
+ - spl/u-boot-spl.bin at the offset address 0x00000000
+ - u-boot.bin         at the offset address 0x00020000
+
+The `u-boot-with-spl.bin` is the concatenation of the two (with appropriate
+padding), so you can also do:
+
+ - u-boot-with-spl.bin at the offset address 0x00000000
+
+If a TFTP server is available, the images can be easily updated.
+Just copy the u-boot-spl.bin and u-boot.bin to the TFTP public directory,
+and run the following command at the U-Boot command line:
+
+To update the images in NAND:
+
+    => run nandupdate
+
+To update the images in eMMC:
+
+    => run emmcupdate
+
+
+Booting 64bit SoC boards
+------------------------
+
+The build command will generate the following:
+- u-boot.bin
+
+However, U-Boot is not the first stage loader for UniPhier 64bit SoC boards.
+U-Boot serves as a non-secure boot loader loaded by [ARM Trusted Firmware],
+so you need to provide the `u-boot.bin` to the build command of ARM Trusted
+Firmware.
+
+[ARM Trusted Firmware]: https://github.com/ARM-software/arm-trusted-firmware
+
+
+UniPhier specific commands
+--------------------------
+
+ - pinmon (enabled by CONFIG_CMD_PINMON)
+     shows the boot mode pins that has been latched at the power-on reset
+
+ - ddrphy (enabled by CONFIG_CMD_DDRPHY_DUMP)
+     shows the DDR PHY parameters set by the PHY training
+
+ - ddrmphy (enabled by CONFIG_CMD_DDRMPHY_DUMP)
+     shows the DDR Multi PHY parameters set by the PHY training
+
+
+Supported devices
+-----------------
+
+ - UART (on-chip)
+ - NAND
+ - SD/eMMC
+ - USB 2.0 (EHCI)
+ - USB 3.0 (xHCI)
+ - GPIO
+ - LAN (on-board SMSC9118)
+ - I2C
+ - EEPROM (connected to the on-board I2C bus)
+ - Support card (SRAM, NOR flash, some peripherals)
+
+
+Micro Support Card
+------------------
+
+The recommended bit switch settings are as follows:
+
+ SW2    OFF(1)/ON(0)   Description
+ ------------------------------------------
+ bit 1   <----         BKSZ[0]
+ bit 2   ---->         BKSZ[1]
+ bit 3   <----         SoC Bus Width 16/32
+ bit 4   <----         SERIAL_SEL[0]
+ bit 5   ---->         SERIAL_SEL[1]
+ bit 6   ---->         BOOTSWAP_EN
+ bit 7   <----         CS1/CS5
+ bit 8   <----         SOC_SERIAL_DISABLE
+
+ SW8    OFF(1)/ON(0)   Description
+ ------------------------------------------
+ bit 1    <----        CS1_SPLIT
+ bit 2    <----        CASE9_ON
+ bit 3    <----        CASE10_ON
+ bit 4  Don't Care     Reserve
+ bit 5  Don't Care     Reserve
+ bit 6  Don't Care     Reserve
+ bit 7    ---->        BURST_EN
+ bit 8    ---->        FLASHBUS32_16
+
+The BKSZ[1:0] specifies the address range of memory slot and peripherals
+as follows:
+
+ BKSZ    Description              RAM slot            Peripherals
+ --------------------------------------------------------------------
+ 0b00   15MB RAM / 1MB Peri    00000000-00efffff    00f00000-00ffffff
+ 0b01   31MB RAM / 1MB Peri    00000000-01efffff    01f00000-01ffffff
+ 0b10   64MB RAM / 1MB Peri    00000000-03efffff    03f00000-03ffffff
+ 0b11  127MB RAM / 1MB Peri    00000000-07efffff    07f00000-07ffffff
+
+Set BSKZ[1:0] to 0b01 for U-Boot.
+This mode is the most handy because EA[24] is always supported by the save pin
+mode of the system bus.  On the other hand, EA[25] is not supported for some
+newer SoCs.  Even if it is, EA[25] is not connected on most of the boards.
+
+--
+Masahiro Yamada <yamada.masahiro@socionext.com>
+Jul. 2017

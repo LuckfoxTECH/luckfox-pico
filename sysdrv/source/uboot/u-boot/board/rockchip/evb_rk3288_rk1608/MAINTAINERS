@@ -1,0 +1,6 @@
+EVB-RK3288-RK1608
+M:	Xing Zheng <zhengxing@rock-chips.com>
+S:	Maintained
+F:	board/rockchip/evb_rk3288_rk1608
+F:	include/configs/evb_rk3288_rk1608.h
+F:	configs/evb-rk3288-rk1608_defconfig

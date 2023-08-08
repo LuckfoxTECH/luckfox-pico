@@ -1,0 +1,17 @@
+cmake_minimum_required( VERSION 2.8.8 )
+project (rkfsmk)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+set(RKFSMK_FILE_LIBS
+    ${CMAKE_CURRENT_LIST_DIR}/lib/${_CMAKE_TOOLCHAIN_PREFIX}lib64/librkfsmk.so
+)
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+set(RKFSMK_FILE_LIBS
+    ${CMAKE_CURRENT_LIST_DIR}/lib/${_CMAKE_TOOLCHAIN_PREFIX}lib32/librkfsmk.so
+)
+endif()
+
+set(RKFSMK_FILE_HEADERS ${CMAKE_CURRENT_LIST_DIR}/include)
+
+install(FILES ${RKFSMK_FILE_LIBS} DESTINATION "lib")
+install(DIRECTORY ${RKFSMK_FILE_HEADERS}/ DESTINATION "include")

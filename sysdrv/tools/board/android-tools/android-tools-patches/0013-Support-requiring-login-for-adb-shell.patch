@@ -1,0 +1,53 @@
+From 86d419c414f1850497ef6236939ab986e20ca10c Mon Sep 17 00:00:00 2001
+From: Jeffy Chen <jeffy.chen@rock-chips.com>
+Date: Wed, 13 May 2020 11:00:40 +0800
+Subject: [PATCH] Support requiring login for adb shell
+
+Run /usr/bin/adb_auth.sh for "adb shell auth" to login.
+
+Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
+---
+ core/adbd/services.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+
+diff --git a/core/adbd/services.c b/core/adbd/services.c
+index 03140e7..b4c94cb 100644
+--- a/core/adbd/services.c
++++ b/core/adbd/services.c
+@@ -408,10 +408,33 @@ static int create_subproc_thread(const char *name)
+ }
+ #endif
+ 
++void require_auth_service(int fd, void *data)
++{
++    char buf[100];
++
++    snprintf(buf, sizeof(buf),
++             "login with \"adb shell auth\" to continue.\r\n");
++    writex(fd, buf, strlen(buf));
++    adb_close(fd);
++}
++
+ int service_to_fd(const char *name)
+ {
+     int ret = -1;
+ 
++#define ADBD_AUTH "/usr/bin/adb_auth.sh"
++    if (!access(ADBD_AUTH, X_OK)) {
++        if(!strcmp(name, "shell:auth")) {
++            name = "shell:" ADBD_AUTH;
++        } else if(system(ADBD_AUTH " check")) {
++            ret = create_service_thread(require_auth_service, NULL);
++            if (ret >= 0) {
++                close_on_exec(ret);
++            }
++            return ret;
++        }
++    }
++
+     if(!strncmp(name, "tcp:", 4)) {
+         int port = atoi(name + 4);
+         name = strchr(name + 4, ':');
+-- 
+2.20.1
+

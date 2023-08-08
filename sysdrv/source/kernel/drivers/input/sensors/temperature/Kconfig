@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: GPL-2.0
+#
+# temperature sensor drivers configuration
+#
+
+menuconfig TEMPERATURE_DEVICE
+	tristate "temperature sensor device support"
+	default n
+
+if TEMPERATURE_DEVICE
+ config TMP_MS5607
+	tristate"temperature sensor ms5607"
+ 	default n
+ 
+endif

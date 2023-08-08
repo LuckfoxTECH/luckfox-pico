@@ -1,0 +1,41 @@
+// SPDX-License-Identifier:     GPL-2.0+
+/*
+ * (C) Copyright 2018 Rockchip Electronics Co., Ltd
+ *
+ */
+
+/dts-v1/;
+#include "rk1808.dtsi"
+#include <dt-bindings/input/input.h>
+#include <linux/media-bus-format.h>
+
+/ {
+	model = "Rockchip RK3399PRO NPU";
+	compatible = "rockchip,rk3399pro-npu";
+
+	chosen {
+		stdout-path = &uart2;
+	};
+};
+
+&dmc {
+	u-boot,dm-pre-reloc;
+};
+
+&cru {
+	u-boot,dm-pre-reloc;
+};
+
+&grf {
+	u-boot,dm-pre-reloc;
+};
+
+&pmugrf {
+	u-boot,dm-pre-reloc;
+};
+
+&uart2 {
+	u-boot,dm-pre-reloc;
+	clock-frequency = <24000000>;
+	status = "okay";
+};

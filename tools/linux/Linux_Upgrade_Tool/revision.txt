@@ -1,0 +1,69 @@
+v2.17 revision(2022/09/19)
+1.fix sparse size larger than 4g bug on computing total size
+
+v2.16 revision(2022/09/19)
+1.fix chunk data size bug on writing sparse
+2.set stdout nobuffer mode
+
+v2.15 revision(2022/08/21)
+1.fix multi-storage firmware compatible bug
+
+v2.14 revision(2022/08/16)
+1.fix  upgrade multi-storage firmware bug
+2.change sparse percent output
+
+v2.13 revision(2022/08/08)
+1.support new multi-storage firmware
+
+v2.12 revision(2022/08/04)
+1.download_image get lbatimes to set package size
+
+v2.11 revision(2022/08/04)
+1.support multi-storage firmware with div
+2.ssd suport to set storage no argument
+
+v2.10 revision(2022/06/13)
+1.add parity on writing lba
+2.change idblock copycount as 2
+3.modify write sector function for verifying
+
+v2.9 revision(2022/05/27)
+1.fix upgrade env update bug
+
+v2.8 revision(2022/05/20)
+1.add read/write/search operation for disk
+
+v2.7 revision(2022/03/28)
+1.add block align check on writing lba for nand
+2.add print file and offset on writing lba
+
+v2.6 revision(2022/03/26)
+1.fix upgrade firmware bug after ssd
+2.add another jffs magic 
+3.delete program log printf
+
+v2.5 revision(2022/03/22)
+1.support to upgrade env firmware
+2.fix wl command for ubi bug
+
+v2.4 revision(2022/03/17)
+1.get serial no on windows
+2.wl command support ubi and jffs
+3.pl command support env partition table
+
+v2.3 revision(2022/03/09)
+1.support SocToolKit 
+2.support to compile on mac
+3.fix ssd call on linux
+
+v2.2 revision(2021/12/31)
+1.fix rc4 size bug
+2.support to parse efi flag on gpt parameter
+
+v2.1 revision(2021/11/11)
+1.add function to check pagesize for ubi image
+2.destrory gpt content when download parameter
+
+v2.0 revision(2021/08/23)
+1.add switch storage function
+2.support upgrade loader with storage

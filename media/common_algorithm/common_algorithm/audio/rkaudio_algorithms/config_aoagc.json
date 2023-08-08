@@ -1,0 +1,22 @@
+{
+    "skv_agc_configs": {
+        "agc": {
+            "status" : "enable",
+            "attack_time"  : "float:200.0",
+            "release_time" : "float:200.0",
+            "attenuate_time" : "float:1000",
+            "max_gain"  : "float:20.0",
+            "max_peak" : "float:-1.0",
+            "fRth0": "float:-45",
+            "fRth1" : "float:-40",
+            "fRth2" : "float:-35",
+            "fRk0" : "float:2.0",
+            "fRk1" : "float:0.8",
+            "fRk2" : "float:0.4",
+            "fLineGainDb" : "float:-25.0",
+            "swSmL0" : 40,
+            "swSmL1" : 80,
+            "swSmL2" : 80
+        }
+    }
+}

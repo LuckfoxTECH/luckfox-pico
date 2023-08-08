@@ -1,0 +1,78 @@
+# SPDX-License-Identifier: GPL-2.0
+config VIDEO_ROCKCHIP_CIF
+	tristate "Rockchip Camera Interface driver"
+	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+	depends on ARCH_ROCKCHIP || COMPILE_TEST
+	depends on MEDIA_CAMERA_SUPPORT
+	select VIDEOBUF2_CMA_SG
+	select VIDEOBUF2_VMALLOC
+	select V4L2_FWNODE
+	default n
+	help
+	  Support for CIF on the rockchip SoCs like rk312x, rk3288.
+
+choice
+	prompt "rockchip camera sensor interface work mode"
+	depends on VIDEO_ROCKCHIP_CIF
+	default ROCKCHIP_CIF_WORKMODE_PINGPONG
+
+config ROCKCHIP_CIF_WORKMODE_PINGPONG
+	bool "interface works in pingpong mode"
+
+config ROCKCHIP_CIF_WORKMODE_ONEFRAME
+	bool "interface works in oneframe mode"
+
+endchoice
+
+choice
+	prompt "rockchip rkcif device dummy buffer choice"
+	depends on VIDEO_ROCKCHIP_CIF
+	default ROCKCHIP_CIF_USE_DUMMY_BUF
+
+config ROCKCHIP_CIF_USE_DUMMY_BUF
+	bool "rkcif use dummy buffer"
+
+config ROCKCHIP_CIF_USE_NONE_DUMMY_BUF
+	bool "rkcif not use dummy buffer"
+
+endchoice
+
+config ROCKCHIP_CIF_USE_MONITOR
+	bool "rkcif use monitor"
+	depends on VIDEO_ROCKCHIP_CIF
+	default n
+	help
+	  Support for CIF to monitor capture error.
+
+config ROCKCHIP_CIF_MONITOR_MODE
+	hex "rkcif monitor mode"
+	default 0x1
+	depends on ROCKCHIP_CIF_USE_MONITOR
+
+config ROCKCHIP_CIF_MONITOR_START_FRAME
+	hex "the frame id to start monitor"
+	default 0
+	depends on ROCKCHIP_CIF_USE_MONITOR
+
+config ROCKCHIP_CIF_MONITOR_CYCLE
+	hex "frame num of monitoring cycle"
+	default 0x8
+	depends on ROCKCHIP_CIF_USE_MONITOR
+
+config ROCKCHIP_CIF_MONITOR_KEEP_TIME
+	hex "timeout for keep monitoring after finding out error, unit(ms)"
+	default 0x3e8
+	depends on ROCKCHIP_CIF_USE_MONITOR
+
+config ROCKCHIP_CIF_MONITOR_ERR_CNT
+	hex "error reference val for resetting"
+	default 0x5
+	depends on ROCKCHIP_CIF_USE_MONITOR
+
+config ROCKCHIP_CIF_RESET_BY_USER
+	bool "rkcif reset by user"
+	depends on ROCKCHIP_CIF_USE_MONITOR
+	default n
+	help
+	  Support for CIF to reset pipe by user.
+

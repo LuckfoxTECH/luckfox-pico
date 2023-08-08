@@ -1,0 +1,212 @@
+
+MAKE_PARAM_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
+ifeq ($(RK_PROJECT_OUTPUT),)
+-include $(MAKE_PARAM_DIR)/../../.BoardConfig.mk
+RK_PROJECT_OUTPUT:=$(MAKE_PARAM_DIR)/../../output/out
+RK_PROJECT_PATH_MEDIA:=$(RK_PROJECT_OUTPUT)/media_out
+endif
+ifneq ($(RK_PROJECT_OUTPUT),)
+RK_APP_PATH_LIB_INCLUDE := $(RK_PROJECT_PATH_MEDIA)
+RK_APP_PATH_PC_TOOLS := $(RK_PROJECT_PATH_PC_TOOLS)
+else
+$(info *** build app depend on media libs and header files)
+$(info *** Please set RK_APP_PATH_LIB_INCLUDE)
+$(error *** error: Please Check Configure !!!)
+endif
+
+RK_APP_TOP_DIR := $(MAKE_PARAM_DIR)
+
+ifneq ($(findstring $(RK_CHIP),rv1126 rk3588 rv1106),)
+RK_APP_CHIP := $(RK_CHIP)
+endif
+
+ifneq ($(findstring $(RK_TOOLCHAIN_CROSS),aarch64-rockchip1031-linux-gnu \
+	arm-rockchip830-linux-gnueabihf \
+	arm-rockchip830-linux-uclibcgnueabihf),)
+RK_APP_CROSS := $(RK_TOOLCHAIN_CROSS)
+endif
+
+ifeq ($(shell $(RK_APP_CROSS)-gcc --version),)
+$(info ************************************************************************)
+$(info Not found tool $(RK_APP_CROSS)-gcc, please run command install: )
+$(info "" )
+$(info "    cd ${RK_PROJECT_OUTPUT}/../../tools/linux/toolchain/${RK_TOOLCHAIN_CROSS}/" )
+$(info "    source env_install_toolchain.sh" )
+$(info ************************************************************************)
+$(error *ERROR*)
+endif
+
+################################################################################
+##   Public Configuraton
+################################################################################
+C_BLACK  = \e[30;1m
+C_RED    = \e[31;1m
+C_GREEN  = \e[32;1m
+C_YELLOW = \e[33;1m
+C_BLUE   = \e[34;1m
+C_PURPLE = \e[35;1m
+C_CYAN   = \e[36;1m
+C_WHITE  = \e[37;1m
+C_NORMAL = \033[0m
+
+PATH:=$(RK_APP_PATH_PC_TOOLS):$(PATH)
+
+RK_APP_TOOLS_MKFS_SQUASHFS := mkfs_squashfs.sh
+RK_APP_TOOLS_MKFS_EXT4 := mkfs_ext4.sh
+RK_APP_TOOLS_MKFS_UBIFS := mkfs_ubi.sh
+RK_APP_TOOLS_MKFS_JFFS2 := mkfs_jffs2.sh
+
+RK_APP_OUTPUT := $(RK_APP_TOP_DIR)/out
+RK_APP_COMPONENT := $(RK_APP_TOP_DIR)/component
+
+RK_APP_OPTS := -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+
+RK_APP_MEDIA_INCLUDE_PATH := $(RK_APP_PATH_LIB_INCLUDE)/include
+RK_APP_MEDIA_LIBS_PATH := $(RK_APP_PATH_LIB_INCLUDE)/lib
+
+ifneq ($(findstring $(RK_BOOT_MEDIA),emmc spi_nor spi_nand slc_nand),)
+RK_APP_BOOT_MEDIA := $(RK_BOOT_MEDIA)
+endif
+
+ifeq ($(RK_APP_CROSS),arm-rockchip830-linux-uclibcgnueabihf)
+RK_APP_LIB_TYPE := uclibc
+RK_APP_CROSS_CFLAGS := -mfpu=neon -mfloat-abi=hard
+RK_APP_ARCH_TYPE := arm
+endif
+
+ifeq ($(RK_APP_CROSS),arm-rockchip830-linux-gnueabihf)
+RK_APP_LIB_TYPE := glibc
+RK_APP_CROSS_CFLAGS := -mfpu=neon -mfloat-abi=hard
+RK_APP_ARCH_TYPE := arm
+endif
+
+ifeq ($(RK_APP_CROSS),aarch64-rockchip1031-linux-gnu)
+RK_APP_LIB_TYPE := glibc
+RK_APP_CROSS_CFLAGS := -mtune=cortex-a76.cortex-a55
+RK_APP_ARCH_TYPE := arm64
+endif
+
+ifneq ($(RK_JOBS),)
+RK_APP_JOBS:=$(RK_JOBS)
+endif
+ifeq ($(RK_APP_JOBS),)
+RK_APP_JOBS:=$(shell echo `getconf _NPROCESSORS_ONLN`)
+endif
+ifeq ($(RK_APP_JOBS),0)
+RK_APP_JOBS:=6
+endif
+
+################################################################################
+##   Public function and export
+################################################################################
+
+#
+# $(1) destination folder
+# $(2) source dirctory or files
+#
+# default:
+# copy $(2)/* to $(1)
+#
+# if $(3) = SELF
+# copy $(2) to $(1)
+#
+define MAROC_COPY_PKG_TO_APP_OUTPUT
+@dir_out=$(shell echo $(1)); \
+cpflag=$(shell echo $(3)); \
+if [[ -n "$$dir_out" ]] ;then \
+	echo -e "\n\n$(C_GREEN) [INSTALL] $(2) \n    TO \t    $$dir_out $(C_NORMAL)\n\n" ;\
+	mkdir -p "$$dir_out"; \
+	for item in $(2);do \
+		if [ -d $$item -a -z "$$cpflag" ]; then cp -raf $$item/* $$dir_out; \
+		elif [ -d $$item -a "$$cpflag" = "SELF" ]; then cp -arf $$item $$dir_out; \
+		elif [[ -f $$item ]]; then cp -af $$item $$dir_out; \
+		fi; \
+	done; \
+fi
+endef
+
+#
+# $(1) destination folder
+# $(2) source dirctory or files
+#
+# move $(2) to $(1)
+#
+define MAROC_MOVE_PKG_TO_APP_OUTPUT
+@dir_out=$(shell echo $(1)); \
+if [[ -n "$$dir_out" ]] ;then \
+	echo -e "\n\n$(C_GREEN) [MOVE] $(2) \n    TO \t    $$dir_out $(C_NORMAL)\n\n" ;\
+	mkdir -p "$$dir_out"; \
+	for item in $(2);do \
+		if [[ -d $$item ]]; then  rm -rf $$dir_out/$(shell basename $$item) && mv $$item $$dir_out; \
+		elif [[ -f $$item ]]; then mv -f $$item $$dir_out; \
+		fi; \
+	done; \
+fi
+endef
+
+#
+# $(1) destination folder
+#
+# file exclusions:
+# - libpthread.so: a non-stripped libpthread shared library is needed for
+#   proper debugging of pthread programs using gdb.
+# - ld.so: a non-stripped dynamic linker library is needed for valgrind
+# - kernel modules (*.ko): do not function properly when stripped like normal
+#   applications and libraries. Normally kernel modules are already excluded
+#   by the executable permission check above, so the explicit exclusion is only
+#   done for kernel modules with incorrect permissions.
+define MAROC_STRIP_DEBUG_SYMBOL
+@target_dir=$(shell if [ -d $(1) ]; then echo "$(1)" | sed 's/[[:space:]]//g'; else echo "";fi); \
+[[ -n "$$target_dir" ]] && \
+	find "$$target_dir" -type f \( -perm /111 -o -name '*.so*' \) \
+		-not \( -name 'libpthread*.so*' -o -name 'ld-*.so*' -o -name '*.ko' \) -print0 | \
+		xargs -0 $(RK_APP_CROSS)-strip 2>/dev/null || true
+endef
+
+#
+########## {{{
+# DO NOT RUN THIS TARGET
+# $(1)   PKG $(CURRENT_DIR)
+# $(2)   PKG $(PKG_NAME)
+# $(3)   PKG $(PKG_BIN)
+#
+define MAROC_PKG_RELEASE
+@(pkg_path=$(strip $(1)/$(strip $(3))); \
+pkg_src=$(strip $(1)/$(strip $(2))); \
+pkg_dst=$(strip $(1)/release_$(strip $(2))_$(RK_APP_CHIP)_$(RK_APP_CROSS)); \
+test ! -d $$pkg_path || test ! -d $$pkg_src/.git || (\
+	rm -rf $$pkg_dst; \
+	mkdir -p $$pkg_dst; \
+	cp -rfa $$pkg_path/* $$pkg_dst/; \
+	git --git-dir=$$pkg_src/.git log -1 > $$pkg_dst/release_version.txt; \
+	););
+endef
+######### }}}
+
+#
+########## {{{
+# $(1)   PKG $(CURRENT_DIR)
+# $(2)   PKG $(PKG_NAME)
+# $(3)   PKG $(PKG_BIN)
+#
+define MAROC_PKG_CHECK_PREBUILT
+@(pkg_path=$(strip $(1)/$(strip $(3))); \
+pkg_src=$(strip $(1)/$(strip $(2))); \
+pkg_dst=$(strip $(1)/release_$(strip $(2))_$(RK_APP_CHIP)_$(RK_APP_CROSS)); \
+test -d $$pkg_src && echo "Found $$pkg_src source to build" || \
+	test ! -d $$pkg_dst || (\
+	echo "Start to release $$pkg_dst"; \
+	mkdir -p $$pkg_path; \
+	cp -rfa $$pkg_dst/* $$pkg_path/; \
+););
+endef
+
+export RK_APP_CROSS
+export RK_APP_CROSS_CFLAGS
+export RK_APP_ARCH_TYPE
+
+export RK_APP_OPTS
+
+export RK_APP_CHIP
+export RK_APP_OUTPUT

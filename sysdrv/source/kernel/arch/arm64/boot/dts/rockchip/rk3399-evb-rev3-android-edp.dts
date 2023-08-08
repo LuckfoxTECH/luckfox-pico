@@ -1,0 +1,90 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2022 Rockchip Electronics Co., Ltd.
+ *
+ */
+
+/dts-v1/;
+
+#include "rk3399-evb-rev3.dtsi"
+#include "rk3399-android.dtsi"
+
+/ {
+	model = "Rockchip RK3399 Evaluation Board v3 edp (Android)";
+	compatible = "rockchip,android", "rockchip,rk3399-evb-rev3", "rockchip,rk3399";
+
+	edp_panel: edp-panel {
+		compatible = "lg,lp079qx1-sp0v", "panel-simple";
+		backlight = <&backlight>;
+		power-supply = <&vcc3v3_s0>;
+		enable-gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
+
+		ports {
+			panel_in_edp: endpoint {
+				remote-endpoint = <&edp_out_panel>;
+			};
+		};
+	};
+};
+
+&i2s2 {
+	status = "okay";
+};
+
+&gt9xx {
+	status = "disabled";
+};
+
+&i2c4 {
+	gsl3673: gsl3673@40 {
+		compatible = "GSL,GSL3673";
+		reg = <0x40>;
+		screen_max_x = <1536>;
+		screen_max_y = <2048>;
+		irq_gpio_number = <&gpio1 20 IRQ_TYPE_LEVEL_LOW>;
+		rst_gpio_number = <&gpio4 22 GPIO_ACTIVE_HIGH>;
+	};
+};
+
+&edp {
+	force-hpd;
+	status = "okay";
+
+	ports {
+		edp_out: port@1 {
+			reg = <1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			edp_out_panel: endpoint@0 {
+				reg = <0>;
+				remote-endpoint = <&panel_in_edp>;
+			};
+		};
+	};
+};
+
+&route_edp {
+	status = "okay";
+};
+
+&firmware_android {
+	compatible = "android,firmware";
+	fstab {
+		compatible = "android,fstab";
+		system {
+			compatible = "android,system";
+			dev = "/dev/block/by-name/system";
+			type = "ext4";
+			mnt_flags = "ro,barrier=1,inode_readahead_blks=8";
+			fsmgr_flags = "wait,verify";
+		};
+		vendor {
+			compatible = "android,vendor";
+			dev = "/dev/block/by-name/vendor";
+			type = "ext4";
+			mnt_flags = "ro,barrier=1,inode_readahead_blks=8";
+			fsmgr_flags = "wait,verify";
+		};
+	};
+};

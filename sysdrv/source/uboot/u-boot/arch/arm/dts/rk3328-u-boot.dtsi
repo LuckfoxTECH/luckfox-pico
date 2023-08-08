@@ -1,0 +1,100 @@
+/*
+ * (C) Copyright 2018 Rockchip Electronics Co., Ltd
+ *
+ * SPDX-License-Identifier:     GPL-2.0+
+ */
+
+/ {
+	aliases {
+		mmc0 = &emmc;
+		mmc1 = &sdmmc;
+	};
+
+	chosen {
+		u-boot,spl-boot-order = &sdmmc, &emmc;
+		stdout-path = &uart2;
+	};
+
+};
+
+&psci {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&cru {
+	u-boot,dm-pre-reloc;
+};
+
+&crypto {
+	u-boot,dm-pre-reloc;
+};
+
+&grf {
+	u-boot,dm-pre-reloc;
+};
+
+&dmc {
+	u-boot,dm-pre-reloc;
+};
+
+&uart2 {
+	u-boot,dm-pre-reloc;
+};
+
+&emmc {
+	u-boot,dm-spl;
+};
+
+&sdmmc {
+	u-boot,dm-spl;
+};
+
+&saradc {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&usb20_otg {
+	u-boot,dm-spl;
+};
+
+&usb2phy_grf {
+	u-boot,dm-spl;
+};
+
+&u2phy {
+	u-boot,dm-spl;
+};
+
+&u2phy_otg {
+	u-boot,dm-spl;
+};
+
+&u2phy_host {
+	u-boot,dm-spl;
+};
+
+&usb_host0_ehci {
+	u-boot,dm-spl;
+};
+
+&pinctrl {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_bus4 {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_clk {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_cmd {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_dectn {
+	u-boot,dm-spl;
+};

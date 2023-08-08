@@ -1,0 +1,50 @@
+#!/bin/sh
+
+DESC="Simple FastCGI wrapper for CGI scripts"
+DAEMON=/usr/sbin/fcgiwrap
+PIDFILE=/var/run/fcgiwrap.pid
+SOCKET=/run/fcgiwrap.sock
+USER=www-data
+
+test -x $DAEMON || exit 0
+
+start() {
+	FCGIWRAP_ARGS="$FCGIWRAP_ARGS -f -s unix:$SOCKET"
+	printf "Starting fcgiwrap daemon: "
+	# TODO: Fix this security issue
+	umask 000
+
+	start-stop-daemon -S -m -p $PIDFILE \
+		-b \
+		-x $DAEMON -- $FCGIWRAP_ARGS
+	[ $? = 0 ] && echo "OK" || echo "FAIL"
+	chmod a+wx $SOCKET
+}
+stop() {
+	printf "Stopping fcgiwrap: "
+	start-stop-daemon -K -p $PIDFILE
+	[ $? = 0 ] && echo "OK" || echo "FAIL"
+	rm -rf $PIDFILE
+}
+restart() {
+	stop
+	start
+}
+
+case "$1" in
+	start)
+		export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/oem/usr/lib
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart|reload)
+		restart
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+esac
+
+exit $?

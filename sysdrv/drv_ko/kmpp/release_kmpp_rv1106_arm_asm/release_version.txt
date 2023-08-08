@@ -1,0 +1,8 @@
+commit 0cf529e00c8e27cb06b40f4f4a5b411fdd771632
+Author: Zhihua Wang <hogan.wang@rock-chips.com>
+Date:   Fri Dec 30 11:37:41 2022 +0800
+
+    [vcodec]: add packet num module parameter
+    
+    Signed-off-by: Zhihua Wang <hogan.wang@rock-chips.com>
+    Change-Id: Iebacf1a6e3dc80e3aa3eb82298baaad6bf932fe7

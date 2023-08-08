@@ -1,0 +1,116 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2020 Rockchip Electronics Co., Ltd.
+ */
+
+/ {
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		waveform_reserved: waveform@10800000 {
+			reg = <0x0 0x10800000 0x0 0x100000>;
+		};
+
+		display_reserved: framebuffer@10900000 {
+			reg = <0x0 0x10900000 0x0 0x2000000>;
+		};
+	};
+
+	ebc_dev: ebc-dev {
+		compatible = "rockchip,ebc-dev";
+		ebc_tcon = <&ebc>;
+		eink_tcon = <&eink>;
+		memory-region = <&display_reserved>;
+		waveform-region = <&waveform_reserved>;
+		status = "okay";
+	};
+};
+
+&cpu0_opp_table {
+	opp-216000000 {
+		opp-hz = /bits/ 64 <216000000>;
+		opp-microvolt = <825000 825000 1150000>;
+		clock-latency-ns = <40000>;
+	};
+	opp-312000000 {
+		opp-hz = /bits/ 64 <312000000>;
+		opp-microvolt = <825000 825000 1150000>;
+		clock-latency-ns = <40000>;
+	};
+};
+
+&dfi {
+	status = "okay";
+};
+
+&dmc {
+	center-supply = <&vdd_logic>;
+	auto-freq-en = <0>;
+	status = "okay";
+};
+
+&dmc_opp_table {
+	opp-324000000 {
+		opp-hz = /bits/ 64 <324000000>;
+		opp-microvolt = <875000>;
+	};
+	opp-528000000 {
+		opp-hz = /bits/ 64 <528000000>;
+		opp-microvolt = <875000>;
+	};
+};
+
+&ebc {
+	status = "okay";
+};
+
+&eink {
+	status = "okay";
+};
+
+&gpu_opp_table {
+	opp-100000000 {
+		opp-hz = /bits/ 64 <100000000>;
+		opp-microvolt = <825000>;
+	};
+	opp-150000000 {
+		opp-hz = /bits/ 64 <150000000>;
+		opp-microvolt = <825000>;
+	};
+};
+
+&lpddr4_params {
+	/* freq info, freq_0 is final frequency, unit: MHz */
+	freq_0 = <528>;
+	freq_1 = <324>;
+	freq_2 = <324>;
+	freq_3 = <324>;
+};
+
+&lpddr4x_params {
+	/* freq info, freq_0 is final frequency, unit: MHz */
+	freq_0 = <528>;
+	freq_1 = <324>;
+	freq_2 = <324>;
+	freq_3 = <324>;
+};
+
+&rockchip_suspend {
+	status = "okay";
+
+	rockchip,sleep-debug-en = <0>;
+	rockchip,sleep-mode-config = <
+		(0
+		| RKPM_SLP_ARMOFF_LOGOFF
+		| RKPM_SLP_CENTER_OFF
+		| RKPM_SLP_HW_PLLS_OFF
+		| RKPM_SLP_PMUALIVE_32K
+		| RKPM_SLP_OSC_DIS
+		| RKPM_SLP_PMIC_LP
+		| RKPM_SLP_32K_PVTM
+		)
+	>;
+};
+

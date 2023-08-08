@@ -1,0 +1,170 @@
+// SPDX-License-Identifier:     GPL-2.0+
+/*
+ * (C) Copyright 2018 Rockchip Electronics Co., Ltd
+ *
+ */
+
+/ {
+	aliases {
+		mmc0 = &emmc;
+		mmc1 = &sdmmc;
+
+		serial0 = &uart0;
+		serial1 = &uart1;
+		serial2 = &uart2;
+		serial3 = &uart3;
+		serial4 = &uart4;
+		serial5 = &uart5;
+		serial6 = &uart6;
+		serial7 = &uart7;
+	};
+
+	chosen {
+		stdout-path = &uart2;
+		u-boot,spl-boot-order = &spi_nand, &spi_nor, &emmc;
+	};
+
+};
+
+&psci {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&crypto {
+	u-boot,dm-spl;
+};
+
+&dmc {
+	u-boot,dm-spl;
+};
+
+&cru {
+	u-boot,dm-spl;
+};
+
+&grf {
+	u-boot,dm-spl;
+};
+
+&pmugrf {
+	u-boot,dm-spl;
+};
+
+&emmc {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&sdmmc {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&sfc {
+	u-boot,dm-spl;
+	status = "okay";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+	spi_nand: flash@0 {
+		u-boot,dm-spl;
+		compatible = "spi-nand";
+		reg = <0>;
+		spi-tx-bus-width = <1>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <96000000>;
+	};
+
+	spi_nor: flash@1 {
+		u-boot,dm-spl;
+		compatible = "jedec,spi-nor";
+		label = "sfc_nor";
+		reg = <0>;
+		spi-tx-bus-width = <1>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <96000000>;
+	};
+};
+
+&saradc {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&sfc {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&uart0 {
+	u-boot,dm-pre-reloc;
+};
+
+&uart1 {
+	u-boot,dm-pre-reloc;
+};
+
+&uart2 {
+	u-boot,dm-spl;
+};
+
+&uart3 {
+	u-boot,dm-pre-reloc;
+};
+
+&uart4 {
+	u-boot,dm-pre-reloc;
+};
+
+&uart5 {
+	u-boot,dm-pre-reloc;
+};
+
+&uart6 {
+	u-boot,dm-pre-reloc;
+};
+
+&uart7 {
+	u-boot,dm-pre-reloc;
+};
+
+&u2phy {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&usb2phy_grf {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&u2phy_host {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&u2phy_otg {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&usb_host0_ehci {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&usb_host0_ohci {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&usbdrd3 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&usbdrd_dwc3 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};

@@ -1,0 +1,198 @@
+From 200cb3393dbdbb14847cb9b6a96a6f823ae93f50 Mon Sep 17 00:00:00 2001
+From: Yu YongZhen <yuyz@rock-chips.com>
+Date: Fri, 11 May 2018 14:45:40 +0800
+Subject: [PATCH] add dcbfilter 16bit process
+
+---
+ src/pcm/pcm.c | 168 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 167 insertions(+), 1 deletion(-)
+
+diff --git a/src/pcm/pcm.c b/src/pcm/pcm.c
+index fc7bd52..9c90afb 100644
+--- a/src/pcm/pcm.c
++++ b/src/pcm/pcm.c
+@@ -664,6 +664,167 @@ playback devices.
+ 			  P_STATE(PAUSED) | \
+ 			  P_STATE(DRAINING))
+ 
++//#define DCB_FILTER_16BIT
++#ifdef DCB_FILTER_16BIT
++
++#define A1 32511 // (1-2^(-7))     Q32:1.31 // 32752=>0.99951171875
++
++#define TO_16BIT_SHIFT 15
++#define MAX_Uint_PCMBIT_SIZE 4294967296
++#define MAX_UNSIGN_PCMBIT_SIZE 65536
++#define MAX_SIGN_POS_PCMBIT_SIZE 32768
++#define MAX_SIGN_NEG_PCMBIT_SIZE -32768
++
++/* static variables for previous values */
++/* left 1 */
++static int16_t x_prev_l1=0;
++static int16_t   y_prev_l1=0;
++/* right 1 */
++static int16_t x_prev_r1=0;
++static int16_t   y_prev_r1=0;
++/* left 2 */
++static int16_t x_prev_l2=0;
++static int16_t   y_prev_l2=0;
++/* right 1 */
++static int16_t x_prev_r2=0;
++static int16_t   y_prev_r2=0;
++/* left 1 */
++static int16_t x_prev_l3=0;
++static int16_t   y_prev_l3=0;
++/* right 1 */
++static int16_t x_prev_r3=0;
++static int16_t   y_prev_r3=0;
++
++void dc_filter_left1(int16_t *pcmIn)
++{
++    int16_t sampleIn, delta_x, sampleOut;
++    int16_t   a1_y_prev;
++
++    sampleIn = *pcmIn;
++    delta_x = sampleIn-x_prev_l1;
++    a1_y_prev = A1*y_prev_l1/MAX_SIGN_POS_PCMBIT_SIZE;
++    sampleOut = delta_x+a1_y_prev;
++
++    x_prev_l1 = sampleIn;
++    y_prev_l1 = sampleOut;
++
++    *pcmIn = sampleOut;
++}
++void dc_filter_right1(int16_t *pcmIn)
++{
++    int16_t sampleIn, delta_x, sampleOut;
++    int16_t a1_y_prev;
++
++    sampleIn = *pcmIn;
++    delta_x = sampleIn-x_prev_r1;
++    a1_y_prev = A1*y_prev_r1/MAX_SIGN_POS_PCMBIT_SIZE;
++    sampleOut = delta_x+a1_y_prev;
++
++    x_prev_r1 = sampleIn;
++    y_prev_r1 = sampleOut;
++
++    *pcmIn = sampleOut;
++}
++void dc_filter_left2(int16_t *pcmIn)
++{
++    int16_t sampleIn, delta_x, sampleOut;
++    int16_t a1_y_prev;
++
++    sampleIn = *pcmIn;
++    delta_x = sampleIn-x_prev_l2;
++    a1_y_prev = A1*y_prev_l2/MAX_SIGN_POS_PCMBIT_SIZE;
++    sampleOut = delta_x+a1_y_prev;
++
++    x_prev_l2 = sampleIn;
++    y_prev_l2 = sampleOut;
++
++    *pcmIn = sampleOut;
++}
++
++void dc_filter_right2(int16_t *pcmIn)
++{
++    int16_t sampleIn, delta_x, sampleOut;
++    int16_t a1_y_prev;
++
++    sampleIn = *pcmIn;
++    delta_x = sampleIn-x_prev_r2;
++    a1_y_prev = A1*y_prev_r2/MAX_SIGN_POS_PCMBIT_SIZE;
++    sampleOut = delta_x+a1_y_prev;
++
++    x_prev_r2 = sampleIn;
++    y_prev_r2 = sampleOut;
++
++    *pcmIn = sampleOut;
++}
++void dc_filter_left3(int16_t *pcmIn)
++{
++    int16_t sampleIn, delta_x, sampleOut;
++    int16_t a1_y_prev;
++
++    sampleIn = *pcmIn;
++    delta_x = sampleIn-x_prev_l3;
++    a1_y_prev = A1*y_prev_l3/MAX_SIGN_POS_PCMBIT_SIZE;
++    sampleOut = delta_x+a1_y_prev;
++
++    x_prev_l3 = sampleIn;
++    y_prev_l3 = (int16_t)sampleOut;
++
++    *pcmIn = sampleOut;
++}
++
++void dc_filter_right3(int16_t *pcmIn)
++{
++    int16_t sampleIn, delta_x, sampleOut;
++    int16_t a1_y_prev;
++
++    sampleIn = *pcmIn;
++    delta_x = sampleIn-x_prev_r3;
++    a1_y_prev = A1*y_prev_r3/MAX_SIGN_POS_PCMBIT_SIZE;
++    sampleOut = delta_x+a1_y_prev;
++
++    x_prev_r3 = sampleIn;
++    y_prev_r3 = (int16_t)sampleOut;
++
++    *pcmIn = sampleOut;
++}
++
++void DCBDoing(void* pIn, int length, int channels)
++{
++    int i = 0;
++    int16_t * pInBuf  =  (int16_t *)pIn;
++
++    //printf("vicent-DCB_Doing---------------length = %d\n",length);
++
++    for(i = 0; i < length; i ++ ) {
++
++        int curChannel = i % channels;
++
++        switch(curChannel){
++            case 0:
++                dc_filter_left1(pInBuf);
++                break;
++            case 1:
++                dc_filter_right1(pInBuf);
++                break;
++            case 2:
++                dc_filter_left2(pInBuf);
++                break;
++            case 3:
++                dc_filter_right2(pInBuf);
++                break;
++            case 4:
++                dc_filter_left3(pInBuf);
++                break;
++            case 5:
++                dc_filter_right3(pInBuf);
++                break;
++            default:
++                break;
++        }
++        pInBuf++;
++    }
++}
++#endif
+ /* check whether the PCM is in the unexpected state */
+ static int bad_pcm_state(snd_pcm_t *pcm, unsigned int supported_states)
+ {
+@@ -1509,7 +1670,12 @@ snd_pcm_sframes_t snd_pcm_readi(snd_pcm_t *pcm, void *buffer, snd_pcm_uframes_t
+ 	}
+ 	if (bad_pcm_state(pcm, P_STATE_RUNNABLE))
+ 		return -EBADFD;
+-	return _snd_pcm_readi(pcm, buffer, size);
++
++	snd_pcm_sframes_t tmp = _snd_pcm_readi(pcm, buffer, size);  
++#ifdef DCB_FILTER_16BIT
++	DCBDoing((void*)buffer, tmp * pcm->frame_bits / 8 / sizeof(int16_t), pcm->channels);
++#endif
++	return tmp;
+ }
+ 
+ /**
+-- 
+2.7.4
+

@@ -1,0 +1,8 @@
+commit e38eb3c578a1b545be539c80753438188dbc7247
+Author: Dexiong Zhang <dexiong.zhang@rock-chips.com>
+Date:   Mon Feb 27 17:31:30 2023 +0800
+
+    smart ir: rename get_env_value function to avoid conflict
+    
+    Signed-off-by: Dexiong Zhang <dexiong.zhang@rock-chips.com>
+    Change-Id: I8c6bd0d587b3729d8c6a35291c1111c355b11284

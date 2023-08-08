@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: GPL-2.0-only
+Image
+zImage
+xipImage
+bootpImage
+uImage
+!bootp/bootp.lds

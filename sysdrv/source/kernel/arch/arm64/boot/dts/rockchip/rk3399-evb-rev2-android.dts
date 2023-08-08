@@ -1,0 +1,120 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2022 Rockchip Electronics Co., Ltd.
+ *
+ */
+
+/dts-v1/;
+
+#include "rk3399-evb-rev2.dtsi"
+#include "rk3399-android.dtsi"
+
+/ {
+	model = "Rockchip RK3399 Evaluation Board v2 (Android)";
+	compatible = "rockchip,android", "rockchip,rk3399-evb-rev2", "rockchip,rk3399";
+};
+
+&vdd_center {
+	rockchip,pwm_id= <3>;
+	rockchip,pwm_voltage = <900000>;
+};
+
+&i2s2 {
+	status = "okay";
+};
+
+&spdif {
+	status = "okay";
+};
+
+&spdif_out {
+	status = "okay";
+};
+
+&spdif_sound {
+	status = "okay";
+};
+
+&dsi {
+	status = "okay";
+
+	panel@0 {
+		compatible ="simple-panel-dsi";
+		reg = <0>;
+		backlight = <&backlight>;
+		enable-gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
+
+		dsi,flags = <(MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_BURST)>;
+		dsi,format = <MIPI_DSI_FMT_RGB888>;
+		dsi,lanes = <4>;
+
+		display-timings {
+			native-mode = <&timing0>;
+
+			timing0: timing0 {
+				clock-frequency = <160000000>;
+				hactive = <1200>;
+				vactive = <1920>;
+				hback-porch = <21>;
+				hfront-porch = <120>;
+				vback-porch = <18>;
+				vfront-porch = <21>;
+				hsync-len = <20>;
+				vsync-len = <3>;
+				hsync-active = <0>;
+				vsync-active = <0>;
+				de-active = <0>;
+				pixelclk-active = <0>;
+			};
+		};
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				panel_in_dsi: endpoint {
+					remote-endpoint = <&dsi_out_panel>;
+				};
+			};
+		};
+	};
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@1 {
+			reg = <1>;
+			dsi_out_panel: endpoint {
+				remote-endpoint = <&panel_in_dsi>;
+			};
+		};
+	};
+};
+
+&route_dsi {
+	status = "okay";
+};
+
+&firmware_android {
+	compatible = "android,firmware";
+	fstab {
+		compatible = "android,fstab";
+		system {
+			compatible = "android,system";
+			dev = "/dev/block/by-name/system";
+			type = "ext4";
+			mnt_flags = "ro,barrier=1,inode_readahead_blks=8";
+			fsmgr_flags = "wait,verify";
+		};
+		vendor {
+			compatible = "android,vendor";
+			dev = "/dev/block/by-name/vendor";
+			type = "ext4";
+			mnt_flags = "ro,barrier=1,inode_readahead_blks=8";
+			fsmgr_flags = "wait,verify";
+		};
+	};
+};

@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: GPL-2.0
+#
+# pressure sensor drivers configuration
+#
+
+menuconfig PRESSURE_DEVICE
+	tristate "pressure sensor device support"
+	default n
+
+if PRESSURE_DEVICE
+ config PR_MS5607
+	 tristate "pressure sensor ms5607"
+	 default n
+ 
+endif

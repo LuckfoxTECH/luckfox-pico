@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: GPL-2.0
+#
+# hall  sensor drivers configuration
+#
+
+menuconfig HALL_DEVICE
+	tristate "hall sensor device support"
+
+if HALL_DEVICE
+config HS_OCH165T
+	tristate "hall sensor och165t"
+
+config HS_MH248
+	tristate "hall sensor mh248"
+
+endif

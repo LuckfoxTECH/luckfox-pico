@@ -1,0 +1,7 @@
+编译：
+make sample
+make sample_clean
+运行：
+insmod /kmod/wlan.ko
+sample_link &
+sample_cli XXX

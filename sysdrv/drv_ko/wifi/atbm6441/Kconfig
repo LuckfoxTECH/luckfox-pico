@@ -1,0 +1,203 @@
+menuconfig ATBM_WIRELESS
+    tristate "Atbm Wireless Lan"
+    default m
+
+if ATBM_WIRELESS
+
+if ATBM_MENUCONFIG
+choice
+	prompt "select chip-set"
+	default ATBM6041
+	help
+	Here,you must make sure which chip-set you will want to use,601x
+	602x 603x or 6041
+config ATBM601x
+    bool "ATBM_601x WLAN support"
+    help
+	ATBM601x chip-set
+config ATBM602x
+    bool "ATBM_602x WLAN support"
+    help
+	ATBM602x chip-set
+config ATBM603x
+    bool "ATBM_603x WLAN support"
+    help
+	ATBM603x chip-set
+config ATBM6041
+    bool "ATBM_6041 WLAN support"
+    help
+	ATBM6041 chip-set
+endchoice
+
+choice
+    prompt "select which bus will be used"
+    default ATBM_SDIO_BUS
+    help
+     Here,you must make sure what interface you will want to use,usb
+     sdio or spi
+config ATBM_USB_BUS
+    bool "usb bus"
+    help
+     usb bus
+config ATBM_SDIO_BUS
+    bool "sdio bus"
+    help
+     sdio bus
+config ATBM_SPI_BUS
+    bool "spi bus"
+    help
+     spi bus
+endchoice
+
+choice
+    prompt "select which mode will be used for firmware download"
+    default ATBM_USE_FIRMWARE_BIN
+    help
+     Here,you must make sure which mode you will want to use,bin
+     or header file
+config ATBM_USE_FIRMWARE_BIN
+    bool "firmware bin"
+    help
+     firmware bi
+config ATBM_USE_FIRMWARE_H
+    bool "firmware header file"
+    help
+     firmware header file
+endchoice
+
+
+menu "Driver Extern Function Select"
+
+config ATBM_SUPPORT_BRIDGE
+	bool "Enable bridge function"
+    default n
+config ATBM_FUNC_NOTXCONFIRM
+	bool "Enable no_txconfirm"
+    default n
+config ATBM_FUNC_EARLYSUSPEND
+	bool "Enable early suspend"
+    default n
+config ATBM_FUNC_MONITOR
+	bool "Enable monitor"
+    default y
+config ATBM_FUNC_SKB_DEBUG
+    bool "Enable skb debug function to debug skb alloc and free"
+    default n
+config ATBM_FUNC_MEM_DEBUG
+    bool "Enable memory debug function to debug memory alloc and free"
+    default n
+
+config ATBM_FUNC_CHANNEL_5G_PRETEND_2G
+	bool "Enable channel 5G pretend 2G"
+    default n
+
+config ATBM_SDIO_ATCMD
+    bool "Enable sdio bus atcmd mode"
+    default n
+
+endmenu
+
+
+menu "Driver debug features"
+
+config ATBM_APOLLO_DEBUGFS
+	bool "Enable debugfs"
+    default n
+config ATBM_APOLLO_DEBUG_ON_BOOT
+	bool "Enable debug on boot"
+    default n
+config ATBM_APOLLO_BH_DEBUG
+	bool "Enable bh debug"
+    default n
+config ATBM_APOLLO_WSM_DEBUG
+	bool "Enable wsm debug"
+    default n
+config ATBM_APOLLO_WSM_DUMPS
+    bool "Enable wsm dumps"
+    default n
+config ATBM_APOLLO_WSM_DUMPS_SHORT
+    bool "Enable wsm dumps short"
+    default n
+config ATBM_APOLLO_TXRX_DEBUG
+    bool "Enable txrx debug"
+    default n
+config ATBM_APOLLO_TX_POLICY_DEBUG
+    bool "Enable tx policy debug"
+    default n
+config ATBM_APOLLO_STA_DEBUG
+	bool "Enable sta debug"
+    default n
+config ATBM_APOLLO_DUMP_ON_ERROR
+	bool "Enable dump on error"
+    default n
+endmenu
+
+
+config ATBM_APOLLO_USE_GPIO_IRQ
+    bool "Use GPIO interrupt"
+    depends on ATBM_SDIO_BUS
+    default n
+    help
+     Say Y here if you want to include GPIO IRQ support instead of SDIO IRQ.
+     if unsure, say N.
+config ATBM_APOLLO_WAPI_SUPPORT
+	bool "wapi support"
+	default n
+	help
+	 set wapi support
+config ATBM_APOLLO_SUPPORT_SGI
+	bool "sgi support"
+	default y
+	help
+	 set sgi support
+config MAC80211_ATBM_HAS_RC
+	bool "mac80211 has rc support"
+	default y
+	help
+	 set mac80211 has rc support
+config MAC80211_ATBM_RC_MINSTREL
+	bool "mac80211 rc minstrel support"
+	default y
+	help
+	 set mac80211 rc minstrel support
+config MAC80211_ATBM_RC_MINSTREL_HT
+	bool "mac80211 rc minstrwl ht support"
+	default y
+	help
+	 set mac80211 rc minstrwl ht support
+config MAC80211_ATBM_RC_DEFAULT_MINSTREL
+	bool "mac80211 rc default minstrel support"
+	default y
+	help
+	 set mac80211 rc default minstrel support
+
+config ATBM_WIFIIF1_NAME
+    string "Setting wifi interface 1 name"
+    default "wlan%d"
+    help
+      Set name for wireless interface 1,the length of name is must smaller than 15
+config ATBM_WIFIIF2_NAME
+    string "Setting wifi interface 2 name"
+    default "p2p%d"
+    help
+      Set name for wireless interface 2,the length of name is must smaller than 15
+config ATBM_MODULE_NAME
+    string "set module name"
+    default "atbm6041_wifi_spi" if  ATBM_SPI_BUS
+    default "atbm6041_wifi_sdio" if ATBM_SDIO_BUS
+	default "atbm6041_wifi_usb" if ATBM_USB_BUS
+    help 
+     set name for wifi module
+config ATBM_FW_NAME
+	string "set fw name"
+	default ""
+    help
+      Set name for wireless fw,the length of name is must smaller than 32
+config MAC80211_ATBM_RC_DEFAULT
+	string "set default rc"
+	default "minstrel_ht"
+	help
+      Set default rc for wireless,the length of name is must smaller than 15
+
+endif
+endif

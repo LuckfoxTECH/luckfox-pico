@@ -1,0 +1,16 @@
+commit 3ed5c9e03e97fb4ec3d723f36f933e96d36c321d
+Author: Xu Hongfei <xuhf@rock-chips.com>
+Date:   Tue Sep 20 20:22:13 2022 +0800
+
+    release v3.0x9.1
+    
+    fb6150d modiferd algos_camgroup/CMakeLists.txt
+    da996d9 hwi: convert -1 to an unsigned type for comparison
+    2ad6032 algo: alsc: adjust the position of crop for lsc otp
+    ......
+    c293e68 PDAF: add luma stable check in monitor
+    fe5177f PDAF: support pd L/R data in different line
+    e1f0cbd AF: support max logical position
+    
+    Signed-off-by: Xu Hongfei <xuhf@rock-chips.com>
+    Change-Id: Iec43e6fe62ead9048346c7d3d40886e8c212dd35

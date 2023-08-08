@@ -1,0 +1,445 @@
+#!/bin/sh
+#
+# setup configfs for adbd, usb mass storage and MTP....
+# For kernel v4.4 usb configfs
+#
+# Load default env variables from profiles
+. /etc/profile
+
+UMS_EN=off
+ADB_EN=on
+MTP_EN=off
+NTB_EN=off
+ACM_EN=off
+UAC1_EN=off
+UAC2_EN=off
+UVC_EN=off
+RNDIS_EN=on
+HID_EN=off
+
+USB_ATTRIBUTE=0x409
+USB_GROUP=rockchip
+USB_SKELETON=b.1
+
+CONFIGFS_DIR=/sys/kernel/config
+USB_CONFIGFS_DIR=${CONFIGFS_DIR}/usb_gadget/${USB_GROUP}
+USB_STRINGS_DIR=${USB_CONFIGFS_DIR}/strings/${USB_ATTRIBUTE}
+USB_FUNCTIONS_DIR=${USB_CONFIGFS_DIR}/functions
+USB_CONFIGS_DIR=${USB_CONFIGFS_DIR}/configs/${USB_SKELETON}
+
+# For VBUS_ALWAYS_ON usb otg is not support ums
+# Since the block to ums is always occupated by USB due to no disconneted state
+UMS_BLOCK=/userdata/ums_shared.img
+UMS_BLOCK_SIZE=0	#unit M
+UMS_BLOCK_TYPE=fat
+UMS_BLOCK_AUTO_MOUNT=off
+UMS_RO=0
+
+UVC_DIR=${USB_FUNCTIONS_DIR}/uvc.gs6/
+UVC_STREAMING_DIR=${UVC_DIR}/streaming/
+UVC_CONTROL_DIR=${UVC_DIR}/control/
+UVC_U_DIR=${UVC_STREAMING_DIR}/uncompressed/u/
+UVC_M_DIR=${UVC_STREAMING_DIR}/mjpeg/m/
+UVC_F_DIR=${UVC_STREAMING_DIR}/framebased/f/
+
+test_write()
+{
+	test -e $2 && echo $1 > $2
+}
+
+function_init()
+{
+	mkdir ${USB_FUNCTIONS_DIR}/uac1.gs0
+	test_write 1 ${USB_FUNCTIONS_DIR}/uac1.gs0/c_feature_unit
+	test_write 1 ${USB_FUNCTIONS_DIR}/uac1.gs0/p_feature_unit
+	mkdir ${USB_FUNCTIONS_DIR}/uac2.gs0
+	test_write 1 ${USB_FUNCTIONS_DIR}/uac2.gs0/c_feature_unit
+	test_write 1 ${USB_FUNCTIONS_DIR}/uac2.gs0/p_feature_unit
+	mkdir ${USB_FUNCTIONS_DIR}/ffs.adb
+	mkdir ${USB_FUNCTIONS_DIR}/ffs.ntb
+	mkdir ${USB_FUNCTIONS_DIR}/mtp.gs0
+	mkdir ${USB_FUNCTIONS_DIR}/rndis.gs0
+	#write /config/usb_gadget/g1/functions/rndis.gs0/wceis 1
+	mkdir ${USB_FUNCTIONS_DIR}/acm.gs6
+	mkdir ${USB_FUNCTIONS_DIR}/mass_storage.0
+	mkdir ${USB_FUNCTIONS_DIR}/uvc.gs6
+	mkdir ${USB_FUNCTIONS_DIR}/hid.usb0
+}
+
+configfs_init()
+{
+	echo "Debug: configfs_init"
+	mkdir /dev/usb-ffs
+
+	mount -t configfs none ${CONFIGFS_DIR}
+	mkdir ${USB_CONFIGFS_DIR} -m 0770
+	echo 0x2207 > ${USB_CONFIGFS_DIR}/idVendor
+	echo 0x0310 > ${USB_CONFIGFS_DIR}/bcdDevice
+	echo 0x0200 > ${USB_CONFIGFS_DIR}/bcdUSB
+	mkdir ${USB_STRINGS_DIR}   -m 0770
+	SERIAL=`cat /proc/cpuinfo | grep Serial | awk '{print $3}'`
+	if [ -z $SERIAL ];then
+		SERIAL=0123456789ABCDEF
+	fi
+	echo $SERIAL > ${USB_STRINGS_DIR}/serialnumber
+	echo "rockchip"  > ${USB_STRINGS_DIR}/manufacturer
+	echo "rk3xxx"  > ${USB_STRINGS_DIR}/product
+
+	function_init
+
+	mkdir ${USB_CONFIGS_DIR}  -m 0770
+	mkdir ${USB_CONFIGS_DIR}/strings/${USB_ATTRIBUTE}  -m 0770
+
+	echo 0x1 > ${USB_CONFIGFS_DIR}/os_desc/b_vendor_code
+	echo "MSFT100" > ${USB_CONFIGFS_DIR}/os_desc/qw_sign
+	echo 500 > ${USB_CONFIGS_DIR}/MaxPower
+	ln -s ${USB_CONFIGS_DIR} ${USB_CONFIGFS_DIR}/os_desc/b.1
+}
+
+make_config_string()
+{
+	tmp=$CONFIG_STRING
+	if [ -n "$CONFIG_STRING" ]; then
+		CONFIG_STRING=${tmp}_${1}
+	else
+		CONFIG_STRING=$1
+	fi
+}
+
+parse_parameter()
+{
+	# find name and var
+	NAME=`echo $1 | awk -F "=" '{print $1}'`
+	VAR=`echo $1 | awk -F "=" '{print $2}'`
+
+	case "$NAME" in
+		ums_block)
+			UMS_BLOCK=${VAR}
+			;;
+		ums_block_size)
+			if [ ! "$VAR" -gt 0 ] 2>/dev/null ;then
+				echo "$VAR is not a number"
+				exit 1
+			fi
+			UMS_BLOCK_SIZE=${VAR}
+			;;
+		ums_block_type)
+			UMS_BLOCK_TYPE=${VAR}
+			;;
+		ums_block_auto_mount)
+			UMS_BLOCK_AUTO_MOUNT=${VAR}
+			;;
+		ums_ro)
+			if [ "$VAR" != "off" ]; then
+				echo "Set UMS read-only"
+				UMS_RO=1
+			fi
+				UMS_RO=0
+			;;
+	esac
+}
+
+parameter_init()
+{
+	while read line
+	do
+		case "$line" in
+			usb_mtp_en)
+				MTP_EN=on
+				make_config_string mtp
+				;;
+			usb_adb_en)
+				ADB_EN=on
+				make_config_string adb
+				;;
+			usb_ums_en)
+				UMS_EN=on
+				make_config_string ums
+				;;
+			usb_ntb_en)
+				NTB_EN=on
+				make_config_string ntb
+				;;
+			usb_acm_en)
+				ACM_EN=on
+				make_config_string acm
+				;;
+			usb_uac1_en)
+				UAC1_EN=on
+				make_config_string uac1
+				;;
+			usb_uac2_en)
+				UAC2_EN=on
+				make_config_string uac2
+				;;
+			usb_uvc_en)
+				UVC_EN=on
+				make_config_string uvc
+				;;
+			usb_rndis_en)
+				RNDIS_EN=on
+				make_config_string rndis
+				;;
+			usb_hid_en)
+				HID_EN=on
+				make_config_string hid
+				;;
+			*)
+				parse_parameter ${line}
+				;;
+		esac
+	done < $USB_CONFIG_FILE
+
+	case "$CONFIG_STRING" in
+		ums)
+			PID=0x0000
+			;;
+		mtp)
+			PID=0x0001
+			;;
+		adb)
+			PID=0x0006
+			;;
+		mtp_adb | adb_mtp)
+			PID=0x0011
+			;;
+		ums_adb | adb_ums)
+			PID=0x0018
+			;;
+		acm)
+			PID=0x1005
+			;;
+		*)
+			PID=0x0019
+	esac
+}
+
+use_os_desc()
+{
+	if [ $MTP_EN = on ];then
+		echo "MTP" > ${USB_FUNCTIONS_DIR}/mtp.gs0/os_desc/interface.MTP/compatible_id
+		echo 1 > ${USB_CONFIGFS_DIR}/os_desc/use
+	fi
+}
+
+pre_run_binary()
+{
+	if [ $ADB_EN = on ];then
+		mkdir /dev/usb-ffs/adb -m 0770
+		mount -o uid=2000,gid=2000 -t functionfs adb /dev/usb-ffs/adb
+		start-stop-daemon --start --quiet --background --exec /usr/bin/adbd
+	fi
+
+	if [ $NTB_EN = on ];then
+		mkdir /dev/usb-ffs/ntb -m 0770
+		mount -o uid=2000,gid=2000 -t functionfs ntb /dev/usb-ffs/ntb
+		# Not start app here
+	fi
+
+	# Add uvc app here with start-stop-daemon
+}
+
+configure_uvc_resolution_yuyv()
+{
+	W=$1
+	H=$2
+	DIR=${UVC_U_DIR}/${H}p/
+	mkdir ${DIR}
+	echo $W > ${DIR}/wWidth
+	echo $H > ${DIR}/wHeight
+	echo 333333 > ${DIR}/dwDefaultFrameInterval
+	echo $((W*H*20)) > ${DIR}/dwMinBitRate
+	echo $((W*H*20)) > ${DIR}/dwMaxBitRate
+	echo $((W*H*2)) > ${DIR}/dwMaxVideoFrameBufferSize
+	echo -e "333333\n666666\n1000000\n2000000" > ${DIR}/dwFrameInterval
+}
+
+configure_uvc_resolution_mjpeg()
+{
+	W=$1
+	H=$2
+	DIR=${UVC_M_DIR}/${H}p/
+	mkdir ${DIR}
+	echo $W > ${DIR}/wWidth
+	echo $H > ${DIR}/wHeight
+	echo 333333 > ${DIR}/dwDefaultFrameInterval
+	echo $((W*H*20)) > ${DIR}/dwMinBitRate
+	echo $((W*H*20)) > ${DIR}/dwMaxBitRate
+	echo $((W*H*2)) > ${DIR}/dwMaxVideoFrameBufferSize
+	echo -e "333333\n666666\n1000000\n2000000" > ${DIR}/dwFrameInterval
+}
+
+configure_uvc_resolution_h264()
+{
+	W=$1
+	H=$2
+	DIR=${UVC_F_DIR}/${H}p/
+	mkdir ${DIR}
+	echo $W > ${DIR}/wWidth
+	echo $H > ${DIR}/wHeight
+	echo 333333 > ${DIR}/dwDefaultFrameInterval
+	echo $((W*H*10)) > ${DIR}/dwMinBitRate
+	echo $((W*H*10)) > ${DIR}/dwMaxBitRate
+	#echo $((W*H*2)) > ${DIR}/dwMaxVideoFrameBufferSize
+	echo -e "333333\n666666\n1000000\n2000000" > ${DIR}/dwFrameInterval
+}
+
+syslink_function()
+{
+	ln -s ${USB_FUNCTIONS_DIR}/$1 ${USB_CONFIGS_DIR}/f${USB_FUNCTIONS_CNT}
+	let USB_FUNCTIONS_CNT=USB_FUNCTIONS_CNT+1
+}
+
+bind_functions()
+{
+	USB_FUNCTIONS_CNT=1
+
+	test $UAC1_EN = on && syslink_function uac1.gs0
+	test $UAC2_EN = on && syslink_function uac2.gs0
+
+	if [ $UVC_EN = on ];then
+		#echo 3072 > ${UVC_DIR}/streaming_maxpacket
+		#echo 1 > ${UVC_DIR}/streaming_bulk
+
+		mkdir ${UVC_CONTROL_DIR}/header/h
+		ln -s ${UVC_CONTROL_DIR}/header/h ${UVC_CONTROL_DIR}/class/fs/h
+		ln -s ${UVC_CONTROL_DIR}/header/h ${UVC_CONTROL_DIR}/class/ss/h
+
+		##YUYV support config
+		mkdir ${UVC_U_DIR}
+		configure_uvc_resolution_yuyv 640 480
+		configure_uvc_resolution_yuyv 1280 720
+
+		##mjpeg support config
+		mkdir ${UVC_M_DIR}
+		configure_uvc_resolution_mjpeg 640 480
+		configure_uvc_resolution_mjpeg 1280 720
+		configure_uvc_resolution_mjpeg 1920 1080
+		configure_uvc_resolution_mjpeg 2560 1440
+		configure_uvc_resolution_mjpeg 2592 1944
+
+		## h.264 support config
+		mkdir ${UVC_F_DIR}
+		configure_uvc_resolution_h264 640 480
+		configure_uvc_resolution_h264 1280 720
+		configure_uvc_resolution_h264 1920 1080
+
+		mkdir ${UVC_STREAMING_DIR}/header/h
+		ln -s ${UVC_U_DIR} ${UVC_STREAMING_DIR}/header/h/u
+		ln -s ${UVC_M_DIR} ${UVC_STREAMING_DIR}/header/h/m
+		ln -s ${UVC_F_DIR} ${UVC_STREAMING_DIR}/header/h/f
+		ln -s ${UVC_STREAMING_DIR}/header/h ${UVC_STREAMING_DIR}/class/fs/h
+		ln -s ${UVC_STREAMING_DIR}/header/h ${UVC_STREAMING_DIR}/class/hs/h
+		ln -s ${UVC_STREAMING_DIR}/header/h ${UVC_STREAMING_DIR}/class/ss/h
+
+		syslink_function uvc.gs6
+	fi
+
+	test $RNDIS_EN = on && syslink_function rndis.gs0
+	test $MTP_EN = on && syslink_function mtp.gs0
+	test $NTB_EN = on && syslink_function ffs.ntb
+	test $ADB_EN = on && syslink_function ffs.adb
+	test $ACM_EN = on && syslink_function acm.gs6
+
+	if [ $HID_EN = on ]; then
+		echo 1 > /sys/kernel/config/usb_gadget/rockchip/functions/hid.usb0/protocol
+		echo 1 > /sys/kernel/config/usb_gadget/rockchip/functions/hid.usb0/subclass
+		echo 8 > /sys/kernel/config/usb_gadget/rockchip/functions/hid.usb0/report_length
+		echo -ne \\x05\\x01\\x09\\x06\\xa1\\x01\\x05\\x07\\x19\\xe0\\x29\\xe7\\x15\\x00\\x25\\x01\\x75\\x01\\x95\\x08\\x81\\x02\\x95\\x01\\x75\\x08\\x81\\x03\\x95\\x05\\x75\\x01\\x05\\x08\\x19\\x01\\x29\\x05\\x91\\x02\\x95\\x01\\x75\\x03\\x91\\x03\\x95\\x06\\x75\\x08\\x15\\x00\\x25\\x65\\x05\\x07\\x19\\x00\\x29\\x65\\x81\\x00\\xc0 > /sys/kernel/config/usb_gadget/rockchip/functions/hid.usb0/report_desc
+		syslink_function hid.usb0
+	fi
+
+	if [ $UMS_EN = on ];then
+		echo ${UMS_RO} > ${USB_FUNCTIONS_DIR}/mass_storage.0/lun.0/ro
+		if [ "$UMS_BLOCK_SIZE" != "0" -a ! -e ${UMS_BLOCK} ]; then
+			dd if=/dev/zero of=${UMS_BLOCK} bs=1M count=${UMS_BLOCK_SIZE}
+			mkfs.${UMS_BLOCK_TYPE} ${UMS_BLOCK}
+			test $? && echo "Warning: failed to mkfs.${UMS_BLOCK_TYPE} ${UMS_BLOCK}"
+		fi
+		mkdir /mnt/ums -p
+		if [ $UMS_BLOCK_AUTO_MOUNT = on ];then
+			mount ${UMS_BLOCK} /mnt/ums
+		else
+			echo ${UMS_BLOCK} > ${USB_FUNCTIONS_DIR}/mass_storage.0/lun.0/file
+		fi
+		syslink_function mass_storage.0
+	fi
+
+	echo ${CONFIG_STRING} > ${USB_CONFIGS_DIR}/strings/${USB_ATTRIBUTE}/configuration
+}
+
+run_binary()
+{
+	if [ $MTP_EN = on ];then
+		start-stop-daemon --start --quiet --background --exec /usr/bin/mtp-server
+	fi
+	if [ $RNDIS_EN = on ];then
+
+	sleep .5
+	ifconfig usb0 172.32.0.70
+	ifconfig usb0 up
+	fi
+
+}
+
+program_kill()
+{
+	P_PID=`ps | grep $1 | grep -v grep | awk '{print $1}'`
+	test -z ${P_PID} || kill -9 ${P_PID}
+}
+
+usb_device_stop()
+{
+	echo "none" > ${USB_CONFIGFS_DIR}/UDC
+	program_kill adbd
+	program_kill mtp-server
+	ls ${USB_CONFIGS_DIR} | grep f[0-9] | xargs -I {} rm ${USB_CONFIGS_DIR}/{}
+}
+
+case "$1" in
+start)
+	ifconfig lo up
+#	if [ ! -e "/tmp/.usb_config" ]; then
+#		echo "$0: Cannot find .usb_config"
+#		# exit 0
+#		USB_CONFIG_FILE=/tmp/.usb_config
+#		echo "usb_adb_en" >> $USB_CONFIG_FILE
+#	fi
+
+#	if [ -e /tmp/.usb_config ]; then
+#		USB_CONFIG_FILE=/tmp/.usb_config
+#	fi
+
+	parameter_init
+#	if [ -z $CONFIG_STRING ]; then
+#		echo "$0: no function be selected"
+#		exit 0
+#	fi
+	test -d ${USB_CONFIGFS_DIR} || configfs_init
+	use_os_desc
+	echo $PID > ${USB_CONFIGFS_DIR}/idProduct
+	bind_functions
+	pre_run_binary
+	sleep 1
+	UDC=`ls /sys/class/udc/| awk '{print $1}'`
+	echo $UDC > ${USB_CONFIGFS_DIR}/UDC
+	run_binary
+	;;
+stop)
+	usb_device_stop
+	;;
+restart|reload)
+	# Do restart usb by udev
+	echo "USB_FORCE_CHANGED" >> /tmp/.usb_config
+	usb_device_stop
+	sleep 1
+	$0 start
+	# Don't forget to clear "USB_FORCE_CHANGED"
+	sed -i "/USB_FORCE_CHANGED/d" /tmp/.usb_config
+	;;
+*)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit 0

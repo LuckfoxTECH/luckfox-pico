@@ -1,0 +1,4 @@
+set sysroot $SYSROOT_DIR
+#set solib-search-path $SDK_OUT_DIR/oem/usr/lib
+set solib-search-path $AIQ_OUT_DIR
+set environment LD_LIBRARY_PATH /oem/usr/lib

@@ -1,0 +1,8 @@
+commit 3760314fc2a60bd419a3263eb6c6d79f66241d1e
+Author: Zhihua Wang <hogan.wang@rock-chips.com>
+Date:   Thu Jan 12 14:50:59 2023 +0800
+
+    [vcodec]: check chan create when destroy
+    
+    Signed-off-by: Zhihua Wang <hogan.wang@rock-chips.com>
+    Change-Id: I885ffdac16690ec54cc3bb608cb127add9ea9f61

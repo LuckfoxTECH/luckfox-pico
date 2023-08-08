@@ -1,0 +1,5 @@
+*.o
+out
+luckfox_crypto_test
+src/librksysutils.a
+src/librksysutils.so

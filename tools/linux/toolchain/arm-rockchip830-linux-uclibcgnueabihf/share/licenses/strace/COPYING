@@ -1,0 +1,20 @@
+Copyright (c) 1991, 1992 Paul Kranenburg <pk@cs.few.eur.nl>
+Copyright (c) 1993 Branko Lankester <branko@hacktic.nl>
+Copyright (c) 1993 Ulrich Pegelow <pegelow@moorea.uni-muenster.de>
+Copyright (c) 1995, 1996 Michael Elizabeth Chastain <mec@duracef.shout.net>
+Copyright (c) 1993, 1994, 1995, 1996 Rick Sladkey <jrs@world.std.com>
+Copyright (c) 1998-2001 Wichert Akkerman <wakkerma@deephackmode.org>
+Copyright (c) 2001-2018 The strace developers.
+All rights reserved.
+
+strace is free software; you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published
+by the Free Software Foundation; either version 2.1 of the License,
+or (at your option) any later version.
+
+strace is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See LGPL-2.1-or-later for more details.
+
+strace test suite is provided under the terms of the GNU General Public License
+version 2 or later, see tests/COPYING for more details.

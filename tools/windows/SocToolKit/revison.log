@@ -1,0 +1,67 @@
+2022/10/12  v1.85:
+1.support env using ab system
+2.add switch maskrom |read flashinfo | read capability
+
+2022/09/23  v1.84:
+1.change ui lib from pyqt5 into pyside6
+
+2022/08/12  v1.83:
+1.fix load env bug
+2.fix load config bug
+
+2022/08/05  v1.82:
+1.load new env and recreate all of download item
+2.fix change search dir can't update env 
+
+2022/07/21  v1.81:
+1.fix load boot files one by one bug
+
+2022/06/10  v1.8:
+1.support to upgrade update.img
+2.support to upgrade miniloaderall.bin
+3.support to upgrade parameter
+4.support to make gpt binary from parameter
+5.support to make idblock binary from loader
+
+2022/05/18  v1.7:
+1.add create boot or upgrade sdcard
+2.add restore sdcard
+3.add read sdcard
+
+2022/04/14  v1.6:
+1.support to read com log from device
+
+2022/03/31 v1.5:
+1.add ubi and jffs erase in com
+2.support firmware create and unpack
+
+2022/03/28 v1.4:
+1.add com collision check
+2.make write lba print complete
+3.add block align check on writing for nand
+
+2022/03/26  v1.3:
+1.verify com operation on ubuntu
+2.reload env on change root dir
+3.question change root dir on loading env
+4.support jsffs image download
+
+2022/03/17 01 v1.2:
+1.change gui from pyside6 into pyqt5
+2.support to download ubi and jffs image
+
+2022/03/25  v1.2:
+1.support to load partition from parameter
+2.debug com download done
+3.support read gpt table from device
+4.fix ubi image bug
+5.cell item elidenone
+6.load address by selecting env file
+7.verify com erase and read function
+
+2022/03/16 v1.1:
+1.env fix at offset 0 and don't check crc
+2.add root dir
+3.support to identify usbplug device on usb
+4.load default config on boot program
+5.support to update config on close program

@@ -1,0 +1,10 @@
+menuconfig ATBM_MENUCONFIG
+       tristate "Atbm Wireless Lan"
+       default m
+
+if ATBM_MENUCONFIG
+config DRIVER_PATH
+	string
+	option env="DRIVER_PATH"
+source "$DRIVER_PATH/Kconfig"
+endif

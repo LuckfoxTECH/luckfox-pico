@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: GPL-2.0
+menuconfig WL_ROCKCHIP
+	tristate "Rockchip Wireless LAN support"
+	select WIRELESS_EXT
+	select WEXT_PRIV
+	select CFG80211
+	select MAC80211
+	help
+	  Enable compatible Wifi drivers for Rockchip platform.
+
+if WL_ROCKCHIP
+
+config WIFI_BUILD_MODULE
+	bool "build wifi ko modules"
+	default n
+	help
+	  Wifi drivers will compile as ko module
+
+config WIFI_LOAD_DRIVER_WHEN_KERNEL_BOOTUP
+	bool "Wifi load driver when kernel bootup"
+	default n
+	help
+	  Wifi driver will be load (use late_initcall) when kernel bootup
+
+config WIFI_GENERATE_RANDOM_MAC_ADDR
+	bool "Wifi generate random mac address and save to vendor storage for cob chip"
+	default n
+	help
+	  Wifi generate random mac address and save to vendor storage for cob chip
+
+menuconfig BCMDHD
+	bool "Broadcom Wireless Device Driver Support"
+	default y
+
+if BCMDHD
+source "drivers/net/wireless/rockchip_wlan/rkwifi/Kconfig"
+endif
+
+source "drivers/net/wireless/rockchip_wlan/cywdhd/Kconfig"
+source "drivers/net/wireless/rockchip_wlan/infineon/Kconfig"
+
+endif # WL_ROCKCHIP

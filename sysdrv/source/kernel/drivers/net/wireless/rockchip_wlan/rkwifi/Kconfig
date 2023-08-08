@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: GPL-2.0
+config AP6XXX
+	tristate "ap6xxx wireless cards support"
+	depends on RFKILL_RK
+	select CFG80211
+	select MAC80211
+	help
+	  This module adds support for wireless adapters based on
+	  Broadcom ap6xxx chipset.
+
+	  This driver uses the kernel's wireless extensions subsystem.
+
+	  If you choose to build a module, it'll be called dhd. Say M if
+	  unsure.
+
+choice
+	prompt "Enable Chip Interface"
+	depends on BCMDHD
+	default BCMDHD_SDIO
+	help
+	  Enable Chip Interface.
+
+config BCMDHD_SDIO
+	bool "SDIO bus interface support"
+	depends on BCMDHD && MMC
+
+config BCMDHD_PCIE
+	bool "PCIe bus interface support"
+	depends on BCMDHD && PCI
+
+endchoice
+
+config PCIEASPM_ROCKCHIP_WIFI_EXTENSION
+	bool "Extend ASPM function"
+	depends on BCMDHD_PCIE && PCIEASPM_EXT
+	help
+	  This enables the extensions APIs for ASPM control.
+
+config BCMDHD_FW_PATH
+	depends on BCMDHD
+	string "Firmware path"
+	default "/vendor/etc/firmware/fw_bcmdhd.bin"
+	help
+	  Path to the firmware file.
+
+config BCMDHD_NVRAM_PATH
+	depends on BCMDHD
+	string "NVRAM path"
+	default "/vendor/etc/firmware/nvram.txt"
+	help
+	  Path to the calibration file.a
+
+config BCMDHD_STATIC_IF
+	bool "Enable wlan1 support"
+	help
+	  default to add wlan1 interface

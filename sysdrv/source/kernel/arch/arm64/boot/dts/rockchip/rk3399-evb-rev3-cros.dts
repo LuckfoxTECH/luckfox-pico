@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2022 Rockchip Electronics Co., Ltd.
+ *
+ */
+
+/dts-v1/;
+
+#include "rk3399-evb-rev3.dtsi"
+#include "rk3399-evb-cros.dtsi"
+
+/ {
+	model = "Rockchip RK3399 Evaluation Board v3 (Chrome OS)";
+	compatible = "google,rk3399evb-rev3", "rockchip,rk3399-evb-rev3", "rockchip,rk3399";
+};

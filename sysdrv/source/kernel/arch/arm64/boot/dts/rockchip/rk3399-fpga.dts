@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2022 Rockchip Electronics Co., Ltd.
+ *
+ */
+
+/dts-v1/;
+#include "rk3399.dtsi"
+
+/ {
+	model = "Rockchip RK3399 FPGA Board";
+	compatible = "rockchip,fpga", "rockchip,rk3399";
+
+	chosen {
+		bootargs = "init=/init console=uart,mmio32,0xff1a0000";
+	};
+
+	memory@00000000 {
+		device_type = "memory";
+		reg = <0x0 0x00000000 0x0 0x20000000>;
+	};
+};
+
+&uart2 {
+	status = "okay";
+	clocks = <&xin24m>, <&xin24m>;
+};
+

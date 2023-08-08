@@ -1,0 +1,20 @@
+config ROCKCHIP_EBC_TCON
+        bool "Rockchip ebc tcon Support"
+        depends on ROCKCHIP_EINK
+        help
+           Choose this option to enable support for EBC TCON controller
+
+config ROCKCHIP_TPS65185
+        bool "TPS65185 Support"
+        depends on ROCKCHIP_EINK
+        help
+           Choose this option to enable support for TPS65185, which is
+           used to supply power for eink panel.
+
+config ROCKCHIP_EINK_DISPLAY
+        bool "Rockchip EINK DISPLAY Support"
+        depends on ROCKCHIP_EINK
+        help
+           Choose this option to enable support for eink display, which is
+           used to display uboot/charging/lowerpower logo, and also used to
+           load kernel logo to ram, which can pass to kernel to display.

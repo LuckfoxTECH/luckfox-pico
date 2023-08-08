@@ -1,0 +1,8 @@
+#menu "iComm-semi 6X5X WLAN support"
+config SSV6X5X
+	tristate "SSV6X5X Wireless driver"
+	depends on MAC80211 && MMC
+	help
+		Enable iComm-semi SSV6X5X WLAN kernel driver.
+
+#endmenu

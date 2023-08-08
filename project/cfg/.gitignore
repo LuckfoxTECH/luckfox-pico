@@ -1,0 +1,7 @@
+.BoardConfig.mk
+BoardConfig_BatteryIPC
+BoardConfig_FacialGate
+BoardConfig_SmartDoor
+BoardConfig_UVC
+BoardConfig_CVR
+BoardConfig_Scaner

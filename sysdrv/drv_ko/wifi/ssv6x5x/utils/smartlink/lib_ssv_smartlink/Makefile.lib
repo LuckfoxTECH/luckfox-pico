@@ -1,0 +1,8 @@
+include ../config.mk
+
+
+all:
+	$(CC) -c -o ssv_smartlink.o ssv_smartlink.c
+	$(AR) rcs $(LIB_NAME) ssv_smartlink.o
+clean:
+	#rm -rf *.a *.o

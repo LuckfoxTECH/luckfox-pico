@@ -1,0 +1,8 @@
+commit f0079f49d247288631aa42e83e20f7b2d456f2f6
+Author: Herman Chen <herman.chen@rock-chips.com>
+Date:   Thu Feb 24 17:18:38 2022 +0800
+
+    [h264e_vepu580]: Add dpb hal func and more buffer
+    
+    Change-Id: I1e458732b821571d25079aebe19831948bd591ee
+    Signed-off-by: Herman Chen <herman.chen@rock-chips.com>
