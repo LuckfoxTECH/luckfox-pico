@@ -62,10 +62,9 @@ int main(int argc, char *argv[])
   printf("i2cdetect addr : ");
   for (int x = 0; x < 0x7f; x++)
   {
-    if (luckfox_i2c_write(fd, x,0,0) == 0)
+    if (luckfox_i2c_write(fd, x, 0, 0) == 0)
     {
       printf("0x%x,", x);
-
     }
   }
   printf("\r\n");

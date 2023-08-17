@@ -34,30 +34,29 @@
 #include <stdlib.h> //exit()
 #include "luckfox_adc.h"
 
-
-void Delay_ms(uint32_t xms) {
+void Delay_ms(uint32_t xms)
+{
   uint32_t i;
-  for (i = 0; i < xms; i++) {
+  for (i = 0; i < xms; i++)
+  {
     usleep(1000);
   }
 }
 
-
 int main(int argc, char *argv[])
 {
-    int adc_read_value[2];
-    float adc_voltage[2];
-    while (1)
+  int adc_read_value[2];
+  float adc_voltage[2];
+  while (1)
+  {
+    printf("***********ADC READ TEST***********\r\n");
+    for (int cnt = 0; cnt < 2; cnt++)
     {
-      printf("***********ADC READ TEST***********\r\n");
-        for (int cnt = 0; cnt < 2; cnt++)
-        {
-            adc_read_value[cnt] = luckfox_adc_get_value(luckfox_adc_get_devnum("ff3c0000.saradc"), cnt);
-            adc_voltage[cnt]= adc_read_value[cnt]*1.8/1024;
-            printf("ADC %d:raw data = %d,voltage = %.2f \r\n",cnt,adc_read_value[cnt],adc_voltage[cnt]);
-        }
-        Delay_ms(1000);
+      adc_read_value[cnt] = luckfox_adc_get_value(luckfox_adc_get_devnum("ff3c0000.saradc"), cnt);
+      adc_voltage[cnt] = adc_read_value[cnt] * 1.8 / 1024;
+      printf("ADC %d:raw data = %d,voltage = %.2f \r\n", cnt, adc_read_value[cnt], adc_voltage[cnt]);
     }
-    return 0;
+    Delay_ms(1000);
+  }
+  return 0;
 }
-

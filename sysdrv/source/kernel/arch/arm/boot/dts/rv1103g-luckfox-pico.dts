@@ -104,27 +104,32 @@
 
 };
 
-// &sfc {
-// 	status = "okay";
-
-// 	flash@0 {
-// 		compatible = "spi-nand";
-// 		reg = <0>;
-// 		spi-max-frequency = <75000000>;
-// 		spi-rx-bus-width = <4>;
-// 		spi-tx-bus-width = <1>;
-// 	};
-// };
-
-&usbdrd_dwc3 {
-	dr_mode = "peripheral";
-};
 
 
+
+
+
+/**********ETH**********/
 &gmac {
 	status = "disabled";
 };
 
+/**********USB**********/
+// &usbdrd {
+// 	status = "disabled";
+// };
+
+// &usbdrd_dwc3 {
+// 	status = "disabled";
+// };
+
+// &u2phy {
+// 	status = "disabled";
+// };
+
+// &u2phy_otg {
+// 	status = "disabled";
+// };
 
 /**********I2C**********/
 // &i2c0 {
@@ -138,7 +143,7 @@
 	clock-frequency = <100000>;
 };
 
-/**********SPI**********/
+// /**********SPI**********/
 &spi0 {
 	status = "okay";
 	pinctrl-names = "default";
@@ -154,7 +159,7 @@
 	};
 };
 
-/**********UART**********/
+// /**********UART**********/
 &uart3 {
 	status = "okay";
 	pinctrl-names = "default";

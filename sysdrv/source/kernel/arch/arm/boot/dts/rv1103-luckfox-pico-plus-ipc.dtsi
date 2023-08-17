@@ -54,7 +54,7 @@
 			gpios = <&gpio3 RK_PC6 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "activity";
 			default-state = "on";
-    	};	
+		};	
 	};
 };
 
@@ -222,9 +222,9 @@
 	};
 };
 
-&pwm0 {
-	status = "okay";
-};
+//&pwm0 {
+//	status = "okay";
+//};
 
 &rkcif {
 	status = "okay";
@@ -273,47 +273,33 @@
 	vref-supply = <&vcc_1v8>;
 };
 
-// &sfc {
-// 	status = "okay";
+//&sfc {
+//	status = "okay";
 
-// 	flash@0 {
-// 		compatible = "jedec,spi-nor";
-// 		reg = <0>;
-// 		spi-max-frequency = <80000000>;
-// 		spi-rx-bus-width = <4>;
-// 		spi-tx-bus-width = <1>;
-// 	};
-// };
+//	flash@0 {
+//		compatible = "spi-nand";
+//		reg = <0>;
+//		spi-max-frequency = <80000000>;
+//		spi-rx-bus-width = <4>;
+//		spi-tx-bus-width = <1>;
+//	};
+//};
 
-// &sdmmc {
-// 	max-frequency = <50000000>;
-// 	no-sdio;
-// 	no-mmc;
-// 	bus-width = <4>;
-// 	cap-mmc-highspeed;
-// 	cap-sd-highspeed;
-// 	disable-wp;
-// 	pinctrl-names = "default";
-// 	pinctrl-0 = <&sdmmc0_clk &sdmmc0_cmd &sdmmc0_det &sdmmc0_bus4>;
-// 	status = "okay";
-// };
+//&sdmmc {
+//	max-frequency = <50000000>;
+//	no-sdio;
+//	no-mmc;
+//	bus-width = <4>;
+//	cap-mmc-highspeed;
+//	cap-sd-highspeed;
+//	disable-wp;
+//	pinctrl-names = "default";
+//	pinctrl-0 = <&sdmmc0_clk &sdmmc0_cmd &sdmmc0_det &sdmmc0_bus4>;
+//	status = "okay";
+//};
 
 &tsadc {
 	status = "okay";
 };
 
-// &u2phy {
-//	status = "disabled";
-// };
 
-// &u2phy_otg {
-//	status = "disabled";
-// };
-
-// &usbdrd {
-//	status = "disabled";
-// };
-
-// &usbdrd_dwc3 {
-//	status = "disabled";
-// };

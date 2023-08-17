@@ -42,7 +42,6 @@ int uart_fd = 0;
 char w_data[] = "Waveshare Hello World";
 char r_data[256];
 
-
 void Delay_ms(uint32_t xms)
 {
   uint32_t i;
@@ -92,7 +91,7 @@ int main(int argc, char *argv[])
   luckfox_uart_begin(dev);
   luckfox_uart_write(w_data, strlen(w_data));
   Delay_ms(5);
-  // callback 
+  // callback
   while (1)
   {
 

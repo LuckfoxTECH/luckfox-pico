@@ -35,31 +35,31 @@
 #include <signal.h> //signal()
 #include "luckfox_spi.h"
 
-#define spidev0_path        "/dev/spidev0.0"
+#define spidev0_path "/dev/spidev0.0"
 
 /* SPI send and receive buffer */
 static unsigned char tx_buffer[100] = "hello the world !";
 static unsigned char rx_buffer[100];
 
-static int fd;                          // File descriptor for SPI control pins
+static int fd; // File descriptor for SPI control pins
 
-static uint32_t mode = SPI_MODE_2;      // Used to save SPI mode
-static uint8_t bits = 8;                // Number of bits for receive and send data
-static uint32_t speed = 500000;         // Transfer speed
+static uint32_t mode = SPI_MODE_2; // Used to save SPI mode
+static uint8_t bits = 8;           // Number of bits for receive and send data
+static uint32_t speed = 500000;    // Transfer speed
 
-int main(int argc,char * argv[])
+int main(int argc, char *argv[])
 {
    int ret;
-   uint16_t delay=10; 
-   fd = luckfox_spi_init(spidev0_path,mode,bits,speed);
-   if( fd == -1 )
+   uint16_t delay = 10;
+   fd = luckfox_spi_init(spidev0_path, mode, bits, speed);
+   if (fd == -1)
    {
       printf("spi_init error\n");
       exit(-1);
    }
 
-   ret = luckfox_spi_transfer(fd, tx_buffer, rx_buffer, sizeof(tx_buffer),delay);
-   if (ret == -1   )
+   ret = luckfox_spi_transfer(fd, tx_buffer, rx_buffer, sizeof(tx_buffer), delay);
+   if (ret == -1)
    {
       printf("transfer error...\n");
       exit(-1);

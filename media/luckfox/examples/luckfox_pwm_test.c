@@ -34,12 +34,13 @@
 #include <signal.h> //signal()
 #include "luckfox_pwm.h"
 
-int PWMS[] = { 0,1,10,11 };
+int PWMS[] = {0, 1, 10, 11};
 
-
-void Delay_ms(uint32_t xms) {
+void Delay_ms(uint32_t xms)
+{
   uint32_t i;
-  for (i = 0; i < xms; i++) {
+  for (i = 0; i < xms; i++)
+  {
     usleep(1000);
   }
 }
@@ -50,8 +51,9 @@ void Handler(int signo)
   printf("\r\nHandler:exit\r\n");
   for (int x = 0; x < 4; x++)
   {
+    luckfox_pwm_set_duty(PWMS[x], 0);
     luckfox_pwm_deinit(PWMS[x]);
-    printf("PWM%dM0 deinit\r\n",PWMS[x]);
+    printf("PWM%dM0 deinit\r\n", PWMS[x]);
   }
 
   exit(0);
@@ -59,17 +61,17 @@ void Handler(int signo)
 
 int main(int argc, char *argv[])
 {
-    signal(SIGINT, Handler);
-    for(int x = 0 ; x < 4;x++)
-    {
-        luckfox_pwm_init(PWMS[x], 100000, 5000*(x+1), PWM_POLARITY_INVERSED);
-        luckfox_pwm_set_enable(PWMS[x], true);
-        printf("PWM%dM0 period=%d duty=%d\r\n",PWMS[x],luckfox_pwm_get_period(PWMS[x]),luckfox_pwm_get_duty(PWMS[x]));
-    }
-    while(1)
-    {
-        Delay_ms(1000);
-    }
+  signal(SIGINT, Handler);
+  for (int x = 0; x < 4; x++)
+  {
+    luckfox_pwm_init(PWMS[x], 100000, 15000 * (x + 1), PWM_POLARITY_NORMAL);
+    luckfox_pwm_set_enable(PWMS[x], true);
+    printf("PWM%dM0 period=%d duty=%d\r\n", PWMS[x], luckfox_pwm_get_period(PWMS[x]), luckfox_pwm_get_duty(PWMS[x]));
+  }
+  while (1)
+  {
+    Delay_ms(1000);
+  }
 
-    return 0;
+  return 0;
 }
