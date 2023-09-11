@@ -1,1 +1,1 @@
-../../../../rk_aiq/include/common/rk_aiq_mems_sensor.h
+../../../../include/rk_aiq/common/rk_aiq_mems_sensor.h
