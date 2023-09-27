@@ -14,7 +14,7 @@ TARGET5 = luckfox_uart_test
 TARGET6 = luckfox_spi_test
 
 
-all: $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) $(TARGET6) 
+all: $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) $(TARGET6)
 
 $(TARGET1):  $(TARGET1).o $(OBJ)
 	@$(CC) $(CFLAGS) $(TARGET1).o $(OBJ) -o $@

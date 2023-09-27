@@ -38,6 +38,37 @@
 int GPIO_BEGIN_PIN, GPIO_END_PIN;
 int *TEST_PIN;
 
+int PICO_MAX_GPIOS[] = {
+    LUCKFOX_PICO_MAX_GPIO0,
+    LUCKFOX_PICO_MAX_GPIO1,
+    LUCKFOX_PICO_MAX_GPIO2,
+    LUCKFOX_PICO_MAX_GPIO3,
+    LUCKFOX_PICO_MAX_GPIO4,
+    LUCKFOX_PICO_MAX_GPIO5,
+    LUCKFOX_PICO_MAX_GPIO6,
+    LUCKFOX_PICO_MAX_GPIO7,
+    LUCKFOX_PICO_MAX_GPIO8,
+    LUCKFOX_PICO_MAX_GPIO9,
+    LUCKFOX_PICO_MAX_GPIO10,
+    LUCKFOX_PICO_MAX_GPIO11,
+    LUCKFOX_PICO_MAX_GPIO12,
+    LUCKFOX_PICO_MAX_GPIO13,
+    LUCKFOX_PICO_MAX_GPIO14,
+    LUCKFOX_PICO_MAX_GPIO15,
+    LUCKFOX_PICO_MAX_GPIO16,
+    LUCKFOX_PICO_MAX_GPIO17,
+    LUCKFOX_PICO_MAX_GPIO18,
+    LUCKFOX_PICO_MAX_GPIO19,
+    LUCKFOX_PICO_MAX_GPIO20,
+    LUCKFOX_PICO_MAX_GPIO21,
+    LUCKFOX_PICO_MAX_GPIO22,
+    /*23-25*/
+    LUCKFOX_PICO_MAX_GPIO26,
+    LUCKFOX_PICO_MAX_GPIO27,
+    LUCKFOX_PICO_MAX_GPIO28,
+
+};
+
 int PICO_PLUS_GPIOS[] = {
     LUCKFOX_PICO_PLUS_GPIO0,
     LUCKFOX_PICO_PLUS_GPIO1,
@@ -62,6 +93,7 @@ int PICO_PLUS_GPIOS[] = {
     LUCKFOX_PICO_PLUS_GPIO20,
     LUCKFOX_PICO_PLUS_GPIO21,
     LUCKFOX_PICO_PLUS_GPIO22,
+    /*23-25*/
     LUCKFOX_PICO_PLUS_GPIO26,
     LUCKFOX_PICO_PLUS_GPIO27,
 };
@@ -125,12 +157,13 @@ int main(int argc, char *argv[])
     printf("Please select your test borad\r\n");
     printf("* 1. LUCKFOX PICO\r\n");
     printf("* 2. LUCKFOX PICO PLUS\r\n");
+    printf("* 3. LUCKFOX PICO MAX\r\n");
     printf("-----------------------------\r\n");
     while (1)
     {
         printf("Which would you like? :");
         input_char = getchar();
-        if (input_char >= '1' && input_char <= '2')
+        if (input_char >= '1' && input_char <= '3')
         {
             break;
         }
@@ -148,6 +181,12 @@ int main(int argc, char *argv[])
         GPIO_END_PIN = 22;
         TEST_PIN = PICO_PLUS_GPIOS;
     }
+    else if (input_char == '3')
+    {
+        GPIO_BEGIN_PIN = 16;
+        GPIO_END_PIN = 22;
+        TEST_PIN = PICO_MAX_GPIOS;
+    }
     else
     {
         exit(0);
@@ -155,7 +194,7 @@ int main(int argc, char *argv[])
     printf("-----------------------------\r\n");
     printf("Please select your test borad\r\n");
     printf("* 1. Default part(GP%d-GP%d)\r\n", GPIO_BEGIN_PIN, GPIO_END_PIN);
-    printf("* 2. ALL(Except GP0 GP1)\r\n");
+    printf("* 2. ALL(GP2-GP%d)\r\n", GPIO_END_PIN);
     printf("-----------------------------\r\n");
     while (1)
     {
