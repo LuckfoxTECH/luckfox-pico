@@ -34,7 +34,9 @@
 #include <signal.h> //signal()
 #include "luckfox_pwm.h"
 
-int PWMS[] = {0, 1, 10, 11};
+int PICO_PWMS[] = {0, 1, 10, 11};
+int PICO_MAX_PWMS[] = {5, 6, 10, 11};
+int *TEST_PWM;
 
 void Delay_ms(uint32_t xms)
 {
@@ -51,9 +53,9 @@ void Handler(int signo)
   printf("\r\nHandler:exit\r\n");
   for (int x = 0; x < 4; x++)
   {
-    luckfox_pwm_set_duty(PWMS[x], 0);
-    luckfox_pwm_deinit(PWMS[x]);
-    printf("PWM%dM0 deinit\r\n", PWMS[x]);
+    luckfox_pwm_set_duty(TEST_PWM[x], 0);
+    luckfox_pwm_deinit(TEST_PWM[x]);
+    printf("PWM%dM0 deinit\r\n", TEST_PWM[x]);
   }
 
   exit(0);
@@ -61,12 +63,43 @@ void Handler(int signo)
 
 int main(int argc, char *argv[])
 {
+  char input_char = '0';
   signal(SIGINT, Handler);
+  printf("-----------------------------\r\n");
+  printf("----------PWM  TEST----------\r\n");
+  printf("-----------------------------\r\n");
+  printf("Please select your test borad\r\n");
+  printf("* 1. LUCKFOX PICO & LUCKFOX PICO PLUS\r\n");
+  printf("* 2. LUCKFOX PICO MAX\r\n");
+  printf("-----------------------------\r\n");
+  while (1)
+  {
+    printf("Which would you like? :");
+    input_char = getchar();
+    if (input_char >= '1' && input_char <= '2')
+    {
+      break;
+    }
+  }
+
+  if (input_char == '1')
+  {
+    TEST_PWM = PICO_PWMS;
+  }
+  else if (input_char == '2')
+  {
+    TEST_PWM = PICO_MAX_PWMS;
+  }
+  else
+  {
+    exit(0);
+  }
+
   for (int x = 0; x < 4; x++)
   {
-    luckfox_pwm_init(PWMS[x], 100000, 15000 * (x + 1), PWM_POLARITY_NORMAL);
-    luckfox_pwm_set_enable(PWMS[x], true);
-    printf("PWM%dM0 period=%d duty=%d\r\n", PWMS[x], luckfox_pwm_get_period(PWMS[x]), luckfox_pwm_get_duty(PWMS[x]));
+    luckfox_pwm_init(TEST_PWM[x], 100000, 15000 * (x + 1), PWM_POLARITY_NORMAL);
+    luckfox_pwm_set_enable(TEST_PWM[x], true);
+    printf("PWM%dM0 period=%d duty=%d\r\n", TEST_PWM[x], luckfox_pwm_get_period(TEST_PWM[x]), luckfox_pwm_get_duty(TEST_PWM[x]));
   }
   while (1)
   {
