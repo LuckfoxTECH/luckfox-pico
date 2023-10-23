@@ -9,8 +9,7 @@
 
 /*
  * <FUNCTION DESCRIPTION>
- *   The  swprintf_s  function  is  the  wide-character  equivalent  of the
- * sprintf_s function
+ *   The  swprintf_s  function  is  the  wide-character  equivalent  of the sprintf_s function
  *
  * <INPUT PARAMETERS>
  *    strDest                   Storage location for the output.
@@ -22,21 +21,22 @@
  *    strDest                    is updated
  *
  * <RETURN VALUE>
- *    return  the number of wide characters stored in strDest, not  counting the
- * terminating null wide character. return -1  if an error occurred.
+ *    return  the number of wide characters stored in strDest, not  counting the terminating null wide character.
+ *    return -1  if an error occurred.
  *
- * If there is a runtime-constraint violation, strDest[0] will be set to the
- * '\0' when strDest and destMax valid
+ * If there is a runtime-constraint violation, strDest[0] will be set to the '\0' when strDest and destMax valid
  */
-int swprintf_s(wchar_t *strDest, size_t destMax, const wchar_t *format, ...) {
-  int ret; /* If initialization causes  e838 */
-  va_list argList;
+int swprintf_s(wchar_t *strDest, size_t destMax, const wchar_t *format, ...)
+{
+    int ret;                    /* If initialization causes  e838 */
+    va_list argList;
 
-  va_start(argList, format);
-  ret = vswprintf_s(strDest, destMax, format, argList);
-  va_end(argList);
-  (void)argList; /* To clear e438 last value assigned not used , the compiler
-                    will optimize this code */
+    va_start(argList, format);
+    ret = vswprintf_s(strDest, destMax, format, argList);
+    va_end(argList);
+    (void)argList;              /* To clear e438 last value assigned not used , the compiler will optimize this code */
 
-  return ret;
+    return ret;
 }
+
+

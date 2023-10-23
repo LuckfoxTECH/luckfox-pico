@@ -17,12 +17,19 @@ void sta_ip6addr_del(struct hostapd_data *hapd, struct sta_info *sta);
 
 #else /* CONFIG_PROXYARP && CONFIG_IPV6 */
 
-static inline int ndisc_snoop_init(struct hostapd_data *hapd) { return 0; }
+static inline int ndisc_snoop_init(struct hostapd_data *hapd)
+{
+	return 0;
+}
 
-static inline void ndisc_snoop_deinit(struct hostapd_data *hapd) {}
+static inline void ndisc_snoop_deinit(struct hostapd_data *hapd)
+{
+}
 
 static inline void sta_ip6addr_del(struct hostapd_data *hapd,
-                                   struct sta_info *sta) {}
+				   struct sta_info *sta)
+{
+}
 
 #endif /* CONFIG_PROXYARP && CONFIG_IPV6 */
 

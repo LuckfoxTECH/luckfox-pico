@@ -12,8 +12,7 @@
 
 #include "fi/w1/wpa_supplicant/BnIface.h"
 
-extern "C"
-{
+extern "C" {
 #include "utils/common.h"
 #include "utils/includes.h"
 #include "../wpa_supplicant_i.h"

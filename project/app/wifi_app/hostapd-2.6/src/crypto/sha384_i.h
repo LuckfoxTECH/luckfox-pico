@@ -17,7 +17,7 @@
 
 void sha384_init(struct sha384_state *md);
 int sha384_process(struct sha384_state *md, const unsigned char *in,
-                   unsigned long inlen);
+		   unsigned long inlen);
 int sha384_done(struct sha384_state *md, unsigned char *out);
 
 #endif /* SHA384_I_H */

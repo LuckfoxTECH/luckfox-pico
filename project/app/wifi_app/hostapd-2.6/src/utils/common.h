@@ -12,17 +12,17 @@
 #include "os.h"
 
 #if defined(__linux__) || defined(__GLIBC__)
-#include <byteswap.h>
 #include <endian.h>
+#include <byteswap.h>
 #endif /* __linux__ */
 
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__) ||   \
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__) || \
     defined(__OpenBSD__)
-#include <sys/endian.h>
 #include <sys/types.h>
-#define __BYTE_ORDER _BYTE_ORDER
-#define __LITTLE_ENDIAN _LITTLE_ENDIAN
-#define __BIG_ENDIAN _BIG_ENDIAN
+#include <sys/endian.h>
+#define __BYTE_ORDER	_BYTE_ORDER
+#define	__LITTLE_ENDIAN	_LITTLE_ENDIAN
+#define	__BIG_ENDIAN	_BIG_ENDIAN
 #ifdef __OpenBSD__
 #define bswap_16 swap16
 #define bswap_32 swap32
@@ -32,22 +32,24 @@
 #define bswap_32 bswap32
 #define bswap_64 bswap64
 #endif /* __OpenBSD__ */
-#endif /* defined(__FreeBSD__) || defined(__NetBSD__) ||                       \
-        * defined(__DragonFly__) || defined(__OpenBSD__) */
+#endif /* defined(__FreeBSD__) || defined(__NetBSD__) ||
+	* defined(__DragonFly__) || defined(__OpenBSD__) */
 
 #ifdef __APPLE__
-#include <machine/endian.h>
 #include <sys/types.h>
-#define __BYTE_ORDER _BYTE_ORDER
-#define __LITTLE_ENDIAN _LITTLE_ENDIAN
-#define __BIG_ENDIAN _BIG_ENDIAN
-static inline unsigned short bswap_16(unsigned short v) {
-  return ((v & 0xff) << 8) | (v >> 8);
+#include <machine/endian.h>
+#define __BYTE_ORDER	_BYTE_ORDER
+#define __LITTLE_ENDIAN	_LITTLE_ENDIAN
+#define __BIG_ENDIAN	_BIG_ENDIAN
+static inline unsigned short bswap_16(unsigned short v)
+{
+	return ((v & 0xff) << 8) | (v >> 8);
 }
 
-static inline unsigned int bswap_32(unsigned int v) {
-  return ((v & 0xff) << 24) | ((v & 0xff00) << 8) | ((v & 0xff0000) >> 8) |
-         (v >> 24);
+static inline unsigned int bswap_32(unsigned int v)
+{
+	return ((v & 0xff) << 24) | ((v & 0xff00) << 8) |
+		((v & 0xff0000) >> 8) | (v >> 24);
 }
 #endif /* __APPLE__ */
 
@@ -70,6 +72,7 @@ typedef int socklen_t;
 #undef close
 #define close closesocket
 #endif /* _MSC_VER */
+
 
 /* Define platform specific integer types */
 
@@ -114,17 +117,20 @@ typedef int8_t s8;
 #define WPA_TYPES_DEFINED
 #endif /* !WPA_TYPES_DEFINED */
 
+
 /* Define platform specific byte swapping macros */
 
 #if defined(__CYGWIN__) || defined(CONFIG_NATIVE_WINDOWS)
 
-static inline unsigned short wpa_swap_16(unsigned short v) {
-  return ((v & 0xff) << 8) | (v >> 8);
+static inline unsigned short wpa_swap_16(unsigned short v)
+{
+	return ((v & 0xff) << 8) | (v >> 8);
 }
 
-static inline unsigned int wpa_swap_32(unsigned int v) {
-  return ((v & 0xff) << 24) | ((v & 0xff00) << 8) | ((v & 0xff0000) >> 8) |
-         (v >> 24);
+static inline unsigned int wpa_swap_32(unsigned int v)
+{
+	return ((v & 0xff) << 24) | ((v & 0xff00) << 8) |
+		((v & 0xff0000) >> 8) | (v >> 24);
 }
 
 #define le_to_host16(n) (n)
@@ -139,6 +145,7 @@ static inline unsigned int wpa_swap_32(unsigned int v) {
 #define WPA_BYTE_SWAP_DEFINED
 
 #endif /* __CYGWIN__ || CONFIG_NATIVE_WINDOWS */
+
 
 #ifndef WPA_BYTE_SWAP_DEFINED
 
@@ -155,18 +162,18 @@ static inline unsigned int wpa_swap_32(unsigned int v) {
 #endif /* __BYTE_ORDER */
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-#define le_to_host16(n) ((__force u16)(le16)(n))
-#define host_to_le16(n) ((__force le16)(u16)(n))
-#define be_to_host16(n) bswap_16((__force u16)(be16)(n))
-#define host_to_be16(n) ((__force be16)bswap_16((n)))
-#define le_to_host32(n) ((__force u32)(le32)(n))
-#define host_to_le32(n) ((__force le32)(u32)(n))
-#define be_to_host32(n) bswap_32((__force u32)(be32)(n))
-#define host_to_be32(n) ((__force be32)bswap_32((n)))
-#define le_to_host64(n) ((__force u64)(le64)(n))
-#define host_to_le64(n) ((__force le64)(u64)(n))
-#define be_to_host64(n) bswap_64((__force u64)(be64)(n))
-#define host_to_be64(n) ((__force be64)bswap_64((n)))
+#define le_to_host16(n) ((__force u16) (le16) (n))
+#define host_to_le16(n) ((__force le16) (u16) (n))
+#define be_to_host16(n) bswap_16((__force u16) (be16) (n))
+#define host_to_be16(n) ((__force be16) bswap_16((n)))
+#define le_to_host32(n) ((__force u32) (le32) (n))
+#define host_to_le32(n) ((__force le32) (u32) (n))
+#define be_to_host32(n) bswap_32((__force u32) (be32) (n))
+#define host_to_be32(n) ((__force be32) bswap_32((n)))
+#define le_to_host64(n) ((__force u64) (le64) (n))
+#define host_to_le64(n) ((__force le64) (u64) (n))
+#define be_to_host64(n) bswap_64((__force u64) (be64) (n))
+#define host_to_be64(n) ((__force be64) bswap_64((n)))
 #elif __BYTE_ORDER == __BIG_ENDIAN
 #define le_to_host16(n) bswap_16(n)
 #define host_to_le16(n) bswap_16(n)
@@ -190,87 +197,109 @@ static inline unsigned int wpa_swap_32(unsigned int v) {
 #define WPA_BYTE_SWAP_DEFINED
 #endif /* !WPA_BYTE_SWAP_DEFINED */
 
+
 /* Macros for handling unaligned memory accesses */
 
-static inline u16 WPA_GET_BE16(const u8 *a) { return (a[0] << 8) | a[1]; }
-
-static inline void WPA_PUT_BE16(u8 *a, u16 val) {
-  a[0] = val >> 8;
-  a[1] = val & 0xff;
+static inline u16 WPA_GET_BE16(const u8 *a)
+{
+	return (a[0] << 8) | a[1];
 }
 
-static inline u16 WPA_GET_LE16(const u8 *a) { return (a[1] << 8) | a[0]; }
-
-static inline void WPA_PUT_LE16(u8 *a, u16 val) {
-  a[1] = val >> 8;
-  a[0] = val & 0xff;
+static inline void WPA_PUT_BE16(u8 *a, u16 val)
+{
+	a[0] = val >> 8;
+	a[1] = val & 0xff;
 }
 
-static inline u32 WPA_GET_BE24(const u8 *a) {
-  return (a[0] << 16) | (a[1] << 8) | a[2];
+static inline u16 WPA_GET_LE16(const u8 *a)
+{
+	return (a[1] << 8) | a[0];
 }
 
-static inline void WPA_PUT_BE24(u8 *a, u32 val) {
-  a[0] = (val >> 16) & 0xff;
-  a[1] = (val >> 8) & 0xff;
-  a[2] = val & 0xff;
+static inline void WPA_PUT_LE16(u8 *a, u16 val)
+{
+	a[1] = val >> 8;
+	a[0] = val & 0xff;
 }
 
-static inline u32 WPA_GET_BE32(const u8 *a) {
-  return ((u32)a[0] << 24) | (a[1] << 16) | (a[2] << 8) | a[3];
+static inline u32 WPA_GET_BE24(const u8 *a)
+{
+	return (a[0] << 16) | (a[1] << 8) | a[2];
 }
 
-static inline void WPA_PUT_BE32(u8 *a, u32 val) {
-  a[0] = (val >> 24) & 0xff;
-  a[1] = (val >> 16) & 0xff;
-  a[2] = (val >> 8) & 0xff;
-  a[3] = val & 0xff;
+static inline void WPA_PUT_BE24(u8 *a, u32 val)
+{
+	a[0] = (val >> 16) & 0xff;
+	a[1] = (val >> 8) & 0xff;
+	a[2] = val & 0xff;
 }
 
-static inline u32 WPA_GET_LE32(const u8 *a) {
-  return ((u32)a[3] << 24) | (a[2] << 16) | (a[1] << 8) | a[0];
+static inline u32 WPA_GET_BE32(const u8 *a)
+{
+	return ((u32) a[0] << 24) | (a[1] << 16) | (a[2] << 8) | a[3];
 }
 
-static inline void WPA_PUT_LE32(u8 *a, u32 val) {
-  a[3] = (val >> 24) & 0xff;
-  a[2] = (val >> 16) & 0xff;
-  a[1] = (val >> 8) & 0xff;
-  a[0] = val & 0xff;
+static inline void WPA_PUT_BE32(u8 *a, u32 val)
+{
+	a[0] = (val >> 24) & 0xff;
+	a[1] = (val >> 16) & 0xff;
+	a[2] = (val >> 8) & 0xff;
+	a[3] = val & 0xff;
 }
 
-static inline u64 WPA_GET_BE64(const u8 *a) {
-  return (((u64)a[0]) << 56) | (((u64)a[1]) << 48) | (((u64)a[2]) << 40) |
-         (((u64)a[3]) << 32) | (((u64)a[4]) << 24) | (((u64)a[5]) << 16) |
-         (((u64)a[6]) << 8) | ((u64)a[7]);
+static inline u32 WPA_GET_LE32(const u8 *a)
+{
+	return ((u32) a[3] << 24) | (a[2] << 16) | (a[1] << 8) | a[0];
 }
 
-static inline void WPA_PUT_BE64(u8 *a, u64 val) {
-  a[0] = val >> 56;
-  a[1] = val >> 48;
-  a[2] = val >> 40;
-  a[3] = val >> 32;
-  a[4] = val >> 24;
-  a[5] = val >> 16;
-  a[6] = val >> 8;
-  a[7] = val & 0xff;
+static inline void WPA_PUT_LE32(u8 *a, u32 val)
+{
+	a[3] = (val >> 24) & 0xff;
+	a[2] = (val >> 16) & 0xff;
+	a[1] = (val >> 8) & 0xff;
+	a[0] = val & 0xff;
 }
 
-static inline u64 WPA_GET_LE64(const u8 *a) {
-  return (((u64)a[7]) << 56) | (((u64)a[6]) << 48) | (((u64)a[5]) << 40) |
-         (((u64)a[4]) << 32) | (((u64)a[3]) << 24) | (((u64)a[2]) << 16) |
-         (((u64)a[1]) << 8) | ((u64)a[0]);
+static inline u64 WPA_GET_BE64(const u8 *a)
+{
+	return (((u64) a[0]) << 56) | (((u64) a[1]) << 48) |
+		(((u64) a[2]) << 40) | (((u64) a[3]) << 32) |
+		(((u64) a[4]) << 24) | (((u64) a[5]) << 16) |
+		(((u64) a[6]) << 8) | ((u64) a[7]);
 }
 
-static inline void WPA_PUT_LE64(u8 *a, u64 val) {
-  a[7] = val >> 56;
-  a[6] = val >> 48;
-  a[5] = val >> 40;
-  a[4] = val >> 32;
-  a[3] = val >> 24;
-  a[2] = val >> 16;
-  a[1] = val >> 8;
-  a[0] = val & 0xff;
+static inline void WPA_PUT_BE64(u8 *a, u64 val)
+{
+	a[0] = val >> 56;
+	a[1] = val >> 48;
+	a[2] = val >> 40;
+	a[3] = val >> 32;
+	a[4] = val >> 24;
+	a[5] = val >> 16;
+	a[6] = val >> 8;
+	a[7] = val & 0xff;
 }
+
+static inline u64 WPA_GET_LE64(const u8 *a)
+{
+	return (((u64) a[7]) << 56) | (((u64) a[6]) << 48) |
+		(((u64) a[5]) << 40) | (((u64) a[4]) << 32) |
+		(((u64) a[3]) << 24) | (((u64) a[2]) << 16) |
+		(((u64) a[1]) << 8) | ((u64) a[0]);
+}
+
+static inline void WPA_PUT_LE64(u8 *a, u64 val)
+{
+	a[7] = val >> 56;
+	a[6] = val >> 48;
+	a[5] = val >> 40;
+	a[4] = val >> 32;
+	a[3] = val >> 24;
+	a[2] = val >> 16;
+	a[1] = val >> 8;
+	a[0] = val & 0xff;
+}
+
 
 #ifndef ETH_ALEN
 #define ETH_ALEN 6
@@ -292,7 +321,7 @@ static inline void WPA_PUT_LE64(u8 *a, u64 val) {
 #endif
 #ifndef ETH_P_PAE
 #define ETH_P_PAE 0x888E /* Port Access Entity (IEEE 802.1X) */
-#endif                   /* ETH_P_PAE */
+#endif /* ETH_P_PAE */
 #ifndef ETH_P_EAPOL
 #define ETH_P_EAPOL ETH_P_PAE
 #endif /* ETH_P_EAPOL */
@@ -303,13 +332,15 @@ static inline void WPA_PUT_LE64(u8 *a, u64 val) {
 #define ETH_P_RRB 0x890D
 #endif /* ETH_P_RRB */
 
+
 #ifdef __GNUC__
-#define PRINTF_FORMAT(a, b) __attribute__((format(printf, (a), (b))))
-#define STRUCT_PACKED __attribute__((packed))
+#define PRINTF_FORMAT(a,b) __attribute__ ((format (printf, (a), (b))))
+#define STRUCT_PACKED __attribute__ ((packed))
 #else
-#define PRINTF_FORMAT(a, b)
+#define PRINTF_FORMAT(a,b)
 #define STRUCT_PACKED
 #endif
+
 
 #ifdef CONFIG_ANSI_C_EXTRA
 
@@ -347,13 +378,14 @@ typedef int socklen_t;
 #endif
 
 #ifndef bswap_16
-#define bswap_16(a) ((((u16)(a) << 8) & 0xff00) | (((u16)(a) >> 8) & 0xff))
+#define bswap_16(a) ((((u16) (a) << 8) & 0xff00) | (((u16) (a) >> 8) & 0xff))
 #endif
 
 #ifndef bswap_32
-#define bswap_32(a)                                                            \
-  ((((u32)(a) << 24) & 0xff000000) | (((u32)(a) << 8) & 0xff0000) |            \
-   (((u32)(a) >> 8) & 0xff00) | (((u32)(a) >> 24) & 0xff))
+#define bswap_32(a) ((((u32) (a) << 24) & 0xff000000) | \
+		     (((u32) (a) << 8) & 0xff0000) | \
+     		     (((u32) (a) >> 8) & 0xff00) | \
+     		     (((u32) (a) >> 24) & 0xff))
 #endif
 
 #ifndef MSG_DONTWAIT
@@ -420,8 +452,8 @@ typedef u64 __bitwise le64;
 #define SSID_MAX_LEN 32
 
 struct wpa_ssid_value {
-  u8 ssid[SSID_MAX_LEN];
-  size_t ssid_len;
+	u8 ssid[SSID_MAX_LEN];
+	size_t ssid_len;
 };
 
 int hwaddr_aton(const char *txt, u8 *addr);
@@ -434,63 +466,68 @@ void inc_byte_array(u8 *counter, size_t len);
 void wpa_get_ntp_timestamp(u8 *buf);
 int wpa_scnprintf(char *buf, size_t size, const char *fmt, ...);
 int wpa_snprintf_hex_sep(char *buf, size_t buf_size, const u8 *data, size_t len,
-                         char sep);
+			 char sep);
 int wpa_snprintf_hex(char *buf, size_t buf_size, const u8 *data, size_t len);
 int wpa_snprintf_hex_uppercase(char *buf, size_t buf_size, const u8 *data,
-                               size_t len);
+			       size_t len);
 
 int hwaddr_mask_txt(char *buf, size_t len, const u8 *addr, const u8 *mask);
 int ssid_parse(const char *buf, struct wpa_ssid_value *ssid);
 
 #ifdef CONFIG_NATIVE_WINDOWS
 void wpa_unicode2ascii_inplace(TCHAR *str);
-TCHAR *wpa_strdup_tchar(const char *str);
+TCHAR * wpa_strdup_tchar(const char *str);
 #else /* CONFIG_NATIVE_WINDOWS */
-#define wpa_unicode2ascii_inplace(s)                                           \
-  do {                                                                         \
-  } while (0)
+#define wpa_unicode2ascii_inplace(s) do { } while (0)
 #define wpa_strdup_tchar(s) strdup((s))
 #endif /* CONFIG_NATIVE_WINDOWS */
 
 void printf_encode(char *txt, size_t maxlen, const u8 *data, size_t len);
 size_t printf_decode(u8 *buf, size_t maxlen, const char *str);
 
-const char *wpa_ssid_txt(const u8 *ssid, size_t ssid_len);
+const char * wpa_ssid_txt(const u8 *ssid, size_t ssid_len);
 
-char *wpa_config_parse_string(const char *value, size_t *len);
+char * wpa_config_parse_string(const char *value, size_t *len);
 int is_hex(const u8 *data, size_t len);
 int has_ctrl_char(const u8 *data, size_t len);
 int has_newline(const char *str);
-size_t merge_byte_arrays(u8 *res, size_t res_len, const u8 *src1,
-                         size_t src1_len, const u8 *src2, size_t src2_len);
-char *dup_binstr(const void *src, size_t len);
+size_t merge_byte_arrays(u8 *res, size_t res_len,
+			 const u8 *src1, size_t src1_len,
+			 const u8 *src2, size_t src2_len);
+char * dup_binstr(const void *src, size_t len);
 
-static inline int is_zero_ether_addr(const u8 *a) {
-  return !(a[0] | a[1] | a[2] | a[3] | a[4] | a[5]);
+static inline int is_zero_ether_addr(const u8 *a)
+{
+	return !(a[0] | a[1] | a[2] | a[3] | a[4] | a[5]);
 }
 
-static inline int is_broadcast_ether_addr(const u8 *a) {
-  return (a[0] & a[1] & a[2] & a[3] & a[4] & a[5]) == 0xff;
+static inline int is_broadcast_ether_addr(const u8 *a)
+{
+	return (a[0] & a[1] & a[2] & a[3] & a[4] & a[5]) == 0xff;
 }
 
-static inline int is_multicast_ether_addr(const u8 *a) { return a[0] & 0x01; }
+static inline int is_multicast_ether_addr(const u8 *a)
+{
+	return a[0] & 0x01;
+}
 
-#define broadcast_ether_addr (const u8 *)"\xff\xff\xff\xff\xff\xff"
+#define broadcast_ether_addr (const u8 *) "\xff\xff\xff\xff\xff\xff"
 
 #include "wpa_debug.h"
 
+
 struct wpa_freq_range_list {
-  struct wpa_freq_range {
-    unsigned int min;
-    unsigned int max;
-  } * range;
-  unsigned int num;
+	struct wpa_freq_range {
+		unsigned int min;
+		unsigned int max;
+	} *range;
+	unsigned int num;
 };
 
 int freq_range_list_parse(struct wpa_freq_range_list *res, const char *value);
 int freq_range_list_includes(const struct wpa_freq_range_list *list,
-                             unsigned int freq);
-char *freq_range_list_str(const struct wpa_freq_range_list *list);
+			     unsigned int freq);
+char * freq_range_list_str(const struct wpa_freq_range_list *list);
 
 int int_array_len(const int *a);
 void int_array_concat(int **res, const int *a);
@@ -505,15 +542,16 @@ void bin_clear_free(void *bin, size_t len);
 int random_mac_addr(u8 *addr);
 int random_mac_addr_keep_oui(u8 *addr);
 
-const char *cstr_token(const char *str, const char *delim, const char **last);
-char *str_token(char *str, const char *delim, char **context);
-size_t utf8_escape(const char *inp, size_t in_size, char *outp,
-                   size_t out_size);
-size_t utf8_unescape(const char *inp, size_t in_size, char *outp,
-                     size_t out_size);
+const char * cstr_token(const char *str, const char *delim, const char **last);
+char * str_token(char *str, const char *delim, char **context);
+size_t utf8_escape(const char *inp, size_t in_size,
+		   char *outp, size_t out_size);
+size_t utf8_unescape(const char *inp, size_t in_size,
+		     char *outp, size_t out_size);
 int is_ctrl_char(char c);
 
 int str_starts(const char *str, const char *start);
+
 
 /*
  * gcc 4.4 ends up generating strict-aliasing warnings about some very common
@@ -524,16 +562,14 @@ int str_starts(const char *str, const char *start);
  * typecast from aliasing for now. A cleaner solution will hopefully be found
  * in the future to handle these cases.
  */
-void *__hide_aliasing_typecast(void *foo);
-#define aliasing_hide_typecast(a, t) (t *)__hide_aliasing_typecast((a))
+void * __hide_aliasing_typecast(void *foo);
+#define aliasing_hide_typecast(a,t) (t *) __hide_aliasing_typecast((a))
 
 #ifdef CONFIG_VALGRIND
 #include <valgrind/memcheck.h>
 #define WPA_MEM_DEFINED(ptr, len) VALGRIND_MAKE_MEM_DEFINED((ptr), (len))
 #else /* CONFIG_VALGRIND */
-#define WPA_MEM_DEFINED(ptr, len)                                              \
-  do {                                                                         \
-  } while (0)
+#define WPA_MEM_DEFINED(ptr, len) do { } while (0)
 #endif /* CONFIG_VALGRIND */
 
 #endif /* COMMON_H */

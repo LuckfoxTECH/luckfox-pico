@@ -21,6 +21,7 @@
 
 #define WSC_FRAGMENT_SIZE 1400
 
-struct wpabuf *eap_wsc_build_frag_ack(u8 id, u8 code);
+
+struct wpabuf * eap_wsc_build_frag_ack(u8 id, u8 code);
 
 #endif /* EAP_WSC_COMMON_H */

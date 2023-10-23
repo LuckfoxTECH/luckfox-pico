@@ -12,13 +12,13 @@
 
 struct hostapd_neighbor_entry *
 hostapd_neighbor_get(struct hostapd_data *hapd, const u8 *bssid,
-                     const struct wpa_ssid_value *ssid);
+		     const struct wpa_ssid_value *ssid);
 int hostapd_neighbor_set(struct hostapd_data *hapd, const u8 *bssid,
-                         const struct wpa_ssid_value *ssid,
-                         const struct wpabuf *nr, const struct wpabuf *lci,
-                         const struct wpabuf *civic);
+			 const struct wpa_ssid_value *ssid,
+			 const struct wpabuf *nr, const struct wpabuf *lci,
+			 const struct wpabuf *civic);
 int hostapd_neighbor_remove(struct hostapd_data *hapd, const u8 *bssid,
-                            const struct wpa_ssid_value *ssid);
+			    const struct wpa_ssid_value *ssid);
 void hostpad_free_neighbor_db(struct hostapd_data *hapd);
 
 #endif /* NEIGHBOR_DB_H */

@@ -40,63 +40,63 @@
 #endif /* _MSC_VER */
 
 struct eap_tlv_hdr {
-  be16 tlv_type;
-  be16 length;
+	be16 tlv_type;
+	be16 length;
 } STRUCT_PACKED;
 
 struct eap_tlv_nak_tlv {
-  be16 tlv_type;
-  be16 length;
-  be32 vendor_id;
-  be16 nak_type;
+	be16 tlv_type;
+	be16 length;
+	be32 vendor_id;
+	be16 nak_type;
 } STRUCT_PACKED;
 
 struct eap_tlv_result_tlv {
-  be16 tlv_type;
-  be16 length;
-  be16 status;
+	be16 tlv_type;
+	be16 length;
+	be16 status;
 } STRUCT_PACKED;
 
 /* RFC 4851, Section 4.2.7 - Intermediate-Result TLV */
 struct eap_tlv_intermediate_result_tlv {
-  be16 tlv_type;
-  be16 length;
-  be16 status;
-  /* Followed by optional TLVs */
+	be16 tlv_type;
+	be16 length;
+	be16 status;
+	/* Followed by optional TLVs */
 } STRUCT_PACKED;
 
 /* RFC 4851, Section 4.2.8 - Crypto-Binding TLV */
 struct eap_tlv_crypto_binding_tlv {
-  be16 tlv_type;
-  be16 length;
-  u8 reserved;
-  u8 version;
-  u8 received_version;
-  u8 subtype;
-  u8 nonce[32];
-  u8 compound_mac[20];
+	be16 tlv_type;
+	be16 length;
+	u8 reserved;
+	u8 version;
+	u8 received_version;
+	u8 subtype;
+	u8 nonce[32];
+	u8 compound_mac[20];
 } STRUCT_PACKED;
 
 struct eap_tlv_pac_ack_tlv {
-  be16 tlv_type;
-  be16 length;
-  be16 pac_type;
-  be16 pac_len;
-  be16 result;
+	be16 tlv_type;
+	be16 length;
+	be16 pac_type;
+	be16 pac_len;
+	be16 result;
 } STRUCT_PACKED;
 
 /* RFC 4851, Section 4.2.9 - Request-Action TLV */
 struct eap_tlv_request_action_tlv {
-  be16 tlv_type;
-  be16 length;
-  be16 action;
+	be16 tlv_type;
+	be16 length;
+	be16 action;
 } STRUCT_PACKED;
 
 /* RFC 5422, Section 4.2.6 - PAC-Type TLV */
 struct eap_tlv_pac_type_tlv {
-  be16 tlv_type; /* PAC_TYPE_PAC_TYPE */
-  be16 length;
-  be16 pac_type;
+	be16 tlv_type; /* PAC_TYPE_PAC_TYPE */
+	be16 length;
+	be16 pac_type;
 } STRUCT_PACKED;
 
 #ifdef _MSC_VER

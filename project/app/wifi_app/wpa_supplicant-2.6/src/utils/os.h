@@ -19,13 +19,13 @@ typedef long os_time_t;
 void os_sleep(os_time_t sec, os_time_t usec);
 
 struct os_time {
-  os_time_t sec;
-  os_time_t usec;
+	os_time_t sec;
+	os_time_t usec;
 };
 
 struct os_reltime {
-  os_time_t sec;
-  os_time_t usec;
+	os_time_t sec;
+	os_time_t usec;
 };
 
 /**
@@ -42,59 +42,77 @@ int os_get_time(struct os_time *t);
  */
 int os_get_reltime(struct os_reltime *t);
 
+
 /* Helpers for handling struct os_time */
 
-static inline int os_time_before(struct os_time *a, struct os_time *b) {
-  return (a->sec < b->sec) || (a->sec == b->sec && a->usec < b->usec);
+static inline int os_time_before(struct os_time *a, struct os_time *b)
+{
+	return (a->sec < b->sec) ||
+	       (a->sec == b->sec && a->usec < b->usec);
 }
 
+
 static inline void os_time_sub(struct os_time *a, struct os_time *b,
-                               struct os_time *res) {
-  res->sec = a->sec - b->sec;
-  res->usec = a->usec - b->usec;
-  if (res->usec < 0) {
-    res->sec--;
-    res->usec += 1000000;
-  }
+			       struct os_time *res)
+{
+	res->sec = a->sec - b->sec;
+	res->usec = a->usec - b->usec;
+	if (res->usec < 0) {
+		res->sec--;
+		res->usec += 1000000;
+	}
 }
+
 
 /* Helpers for handling struct os_reltime */
 
 static inline int os_reltime_before(struct os_reltime *a,
-                                    struct os_reltime *b) {
-  return (a->sec < b->sec) || (a->sec == b->sec && a->usec < b->usec);
+				    struct os_reltime *b)
+{
+	return (a->sec < b->sec) ||
+	       (a->sec == b->sec && a->usec < b->usec);
 }
+
 
 static inline void os_reltime_sub(struct os_reltime *a, struct os_reltime *b,
-                                  struct os_reltime *res) {
-  res->sec = a->sec - b->sec;
-  res->usec = a->usec - b->usec;
-  if (res->usec < 0) {
-    res->sec--;
-    res->usec += 1000000;
-  }
+				  struct os_reltime *res)
+{
+	res->sec = a->sec - b->sec;
+	res->usec = a->usec - b->usec;
+	if (res->usec < 0) {
+		res->sec--;
+		res->usec += 1000000;
+	}
 }
+
 
 static inline void os_reltime_age(struct os_reltime *start,
-                                  struct os_reltime *age) {
-  struct os_reltime now;
+				  struct os_reltime *age)
+{
+	struct os_reltime now;
 
-  os_get_reltime(&now);
-  os_reltime_sub(&now, start, age);
+	os_get_reltime(&now);
+	os_reltime_sub(&now, start, age);
 }
+
 
 static inline int os_reltime_expired(struct os_reltime *now,
-                                     struct os_reltime *ts,
-                                     os_time_t timeout_secs) {
-  struct os_reltime age;
+				     struct os_reltime *ts,
+				     os_time_t timeout_secs)
+{
+	struct os_reltime age;
 
-  os_reltime_sub(now, ts, &age);
-  return (age.sec > timeout_secs) || (age.sec == timeout_secs && age.usec > 0);
+	os_reltime_sub(now, ts, &age);
+	return (age.sec > timeout_secs) ||
+	       (age.sec == timeout_secs && age.usec > 0);
 }
 
-static inline int os_reltime_initialized(struct os_reltime *t) {
-  return t->sec != 0 || t->usec != 0;
+
+static inline int os_reltime_initialized(struct os_reltime *t)
+{
+	return t->sec != 0 || t->usec != 0;
 }
+
 
 /**
  * os_mktime - Convert broken-down time into seconds since 1970-01-01
@@ -112,15 +130,15 @@ static inline int os_reltime_initialized(struct os_reltime *t) {
  * which is used by POSIX mktime().
  */
 int os_mktime(int year, int month, int day, int hour, int min, int sec,
-              os_time_t *t);
+	      os_time_t *t);
 
 struct os_tm {
-  int sec;   /* 0..59 or 60 for leap seconds */
-  int min;   /* 0..59 */
-  int hour;  /* 0..23 */
-  int day;   /* 1..31 */
-  int month; /* 1..12 */
-  int year;  /* Four digit year */
+	int sec; /* 0..59 or 60 for leap seconds */
+	int min; /* 0..59 */
+	int hour; /* 0..23 */
+	int day; /* 1..31 */
+	int month; /* 1..12 */
+	int year; /* Four digit year */
 };
 
 int os_gmtime(os_time_t t, struct os_tm *tm);
@@ -165,7 +183,7 @@ unsigned long os_random(void);
  * configuration files when os_daemonize() may have changed the current working
  * directory and relative path would be pointing to a different location.
  */
-char *os_rel2abs_path(const char *rel_path);
+char * os_rel2abs_path(const char *rel_path);
 
 /**
  * os_program_init - Program initialization (called at start)
@@ -219,7 +237,7 @@ int os_unsetenv(const char *name);
  * binary and text files can be read with this function. The caller is
  * responsible for freeing the returned buffer with os_free().
  */
-char *os_readfile(const char *name, size_t *len);
+char * os_readfile(const char *name, size_t *len);
 
 /**
  * os_file_exists - Check whether the specified file exists
@@ -242,7 +260,7 @@ int os_fdatasync(FILE *stream);
  *
  * Caller is responsible for freeing the returned buffer with os_free().
  */
-void *os_zalloc(size_t size);
+void * os_zalloc(size_t size);
 
 /**
  * os_calloc - Allocate and zero memory for an array
@@ -256,11 +274,13 @@ void *os_zalloc(size_t size);
  *
  * Caller is responsible for freeing the returned buffer with os_free().
  */
-static inline void *os_calloc(size_t nmemb, size_t size) {
-  if (size && nmemb > (~(size_t)0) / size)
-    return NULL;
-  return os_zalloc(nmemb * size);
+static inline void * os_calloc(size_t nmemb, size_t size)
+{
+	if (size && nmemb > (~(size_t) 0) / size)
+		return NULL;
+	return os_zalloc(nmemb * size);
 }
+
 
 /*
  * The following functions are wrapper for standard ANSI C or POSIX functions.
@@ -287,7 +307,7 @@ static inline void *os_calloc(size_t nmemb, size_t size) {
  *
  * Caller is responsible for freeing the returned buffer with os_free().
  */
-void *os_malloc(size_t size);
+void * os_malloc(size_t size);
 
 /**
  * os_realloc - Re-allocate dynamic memory
@@ -299,7 +319,7 @@ void *os_malloc(size_t size);
  * If re-allocation fails, %NULL is returned and the original buffer (ptr) is
  * not freed and caller is still responsible for freeing it.
  */
-void *os_realloc(void *ptr, size_t size);
+void * os_realloc(void *ptr, size_t size);
 
 /**
  * os_free - Free dynamic memory
@@ -317,7 +337,7 @@ void os_free(void *ptr);
  * The memory areas src and dst must not overlap. os_memmove() can be used with
  * overlapping memory.
  */
-void *os_memcpy(void *dest, const void *src, size_t n);
+void * os_memcpy(void *dest, const void *src, size_t n);
 
 /**
  * os_memmove - Copy memory area
@@ -328,7 +348,7 @@ void *os_memcpy(void *dest, const void *src, size_t n);
  *
  * The memory areas src and dst may overlap.
  */
-void *os_memmove(void *dest, const void *src, size_t n);
+void * os_memmove(void *dest, const void *src, size_t n);
 
 /**
  * os_memset - Fill memory with a constant byte
@@ -337,7 +357,7 @@ void *os_memmove(void *dest, const void *src, size_t n);
  * @n: Number of bytes started from s to fill with c
  * Returns: s
  */
-void *os_memset(void *s, int c, size_t n);
+void * os_memset(void *s, int c, size_t n);
 
 /**
  * os_memcmp - Compare memory areas
@@ -357,7 +377,7 @@ int os_memcmp(const void *s1, const void *s2, size_t n);
  *
  * Caller is responsible for freeing the returned buffer with os_free().
  */
-char *os_strdup(const char *s);
+char * os_strdup(const char *s);
 
 /**
  * os_strlen - Calculate the length of a string
@@ -392,7 +412,7 @@ int os_strncasecmp(const char *s1, const char *s2, size_t n);
  * @c: Character to search for
  * Returns: Pointer to the matched character or %NULL if not found
  */
-char *os_strchr(const char *s, int c);
+char * os_strchr(const char *s, int c);
 
 /**
  * os_strrchr - Locate the last occurrence of a character in string
@@ -400,7 +420,7 @@ char *os_strchr(const char *s, int c);
  * @c: Character to search for
  * Returns: Pointer to the matched character or %NULL if not found
  */
-char *os_strrchr(const char *s, int c);
+char * os_strrchr(const char *s, int c);
 
 /**
  * os_strcmp - Compare two strings
@@ -428,7 +448,7 @@ int os_strncmp(const char *s1, const char *s2, size_t n);
  * @needle: Needle to search from haystack
  * Returns: Pointer to the beginning of the substring or %NULL if not found
  */
-char *os_strstr(const char *haystack, const char *needle);
+char * os_strstr(const char *haystack, const char *needle);
 
 /**
  * os_snprintf - Print to a memory buffer
@@ -456,10 +476,10 @@ int os_snprintf(char *str, size_t size, const char *format, ...);
 #else /* OS_NO_C_LIB_DEFINES */
 
 #ifdef WPA_TRACE
-void *os_malloc(size_t size);
-void *os_realloc(void *ptr, size_t size);
+void * os_malloc(size_t size);
+void * os_realloc(void *ptr, size_t size);
 void os_free(void *ptr);
-char *os_strdup(const char *s);
+char * os_strdup(const char *s);
 #else /* WPA_TRACE */
 #ifndef os_malloc
 #define os_malloc(s) malloc((s))
@@ -535,14 +555,18 @@ char *os_strdup(const char *s);
 
 #endif /* OS_NO_C_LIB_DEFINES */
 
-static inline int os_snprintf_error(size_t size, int res) {
-  return res < 0 || (unsigned int)res >= size;
+
+static inline int os_snprintf_error(size_t size, int res)
+{
+	return res < 0 || (unsigned int) res >= size;
 }
 
-static inline void *os_realloc_array(void *ptr, size_t nmemb, size_t size) {
-  if (size && nmemb > (~(size_t)0) / size)
-    return NULL;
-  return os_realloc(ptr, nmemb * size);
+
+static inline void * os_realloc_array(void *ptr, size_t nmemb, size_t size)
+{
+	if (size && nmemb > (~(size_t) 0) / size)
+		return NULL;
+	return os_realloc(ptr, nmemb * size);
 }
 
 /**
@@ -553,11 +577,12 @@ static inline void *os_realloc_array(void *ptr, size_t nmemb, size_t size) {
  * @idx: Index of the member to be removed
  */
 static inline void os_remove_in_array(void *ptr, size_t nmemb, size_t size,
-                                      size_t idx) {
-  if (idx < nmemb - 1)
-    os_memmove(((unsigned char *)ptr) + idx * size,
-               ((unsigned char *)ptr) + (idx + 1) * size,
-               (nmemb - idx - 1) * size);
+				      size_t idx)
+{
+	if (idx < nmemb - 1)
+		os_memmove(((unsigned char *) ptr) + idx * size,
+			   ((unsigned char *) ptr) + (idx + 1) * size,
+			   (nmemb - idx - 1) * size);
 }
 
 /**
@@ -598,6 +623,7 @@ int os_memcmp_const(const void *a, const void *b, size_t len);
  */
 int os_exec(const char *program, const char *arg, int wait_completion);
 
+
 #ifdef OS_REJECT_C_LIB_FUNCTIONS
 #define malloc OS_DO_NOT_USE_malloc
 #define realloc OS_DO_NOT_USE_realloc
@@ -626,6 +652,7 @@ int os_exec(const char *program, const char *arg, int wait_completion);
 
 #define strcpy OS_DO_NOT_USE_strcpy
 #endif /* OS_REJECT_C_LIB_FUNCTIONS */
+
 
 #if defined(WPA_TRACE_BFD) && defined(CONFIG_TESTING_OPTIONS)
 #define TEST_FAIL() testing_test_fail()

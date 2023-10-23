@@ -34,19 +34,19 @@
 #define VLAN_NAME_TYPE_RAW_PLUS_VID_NO_PAD 3
 
 struct vlan_ioctl_args {
-  int cmd;
-  char device1[24];
+	int cmd;
+	char device1[24];
 
-  union {
-    char device2[24];
-    int VID;
-    unsigned int skb_priority;
-    unsigned int name_type;
-    unsigned int bind_type;
-    unsigned int flag;
-  } u;
+	union {
+		char device2[24];
+		int VID;
+		unsigned int skb_priority;
+		unsigned int name_type;
+		unsigned int bind_type;
+		unsigned int flag;
+	} u;
 
-  short vlan_qos;
+	short vlan_qos;
 };
 
 #endif /* LINUX_VLAN_H */

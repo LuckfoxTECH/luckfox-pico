@@ -8,90 +8,97 @@
 
 #include "includes.h"
 
-#include "autoscan.h"
 #include "common.h"
 #include "wpa_supplicant_i.h"
+#include "autoscan.h"
 
 struct autoscan_exponential_data {
-  struct wpa_supplicant *wpa_s;
-  int base;
-  int limit;
-  int interval;
+	struct wpa_supplicant *wpa_s;
+	int base;
+	int limit;
+	int interval;
 };
+
 
 static int
 autoscan_exponential_get_params(struct autoscan_exponential_data *data,
-                                const char *params) {
-  const char *pos;
+				const char *params)
+{
+	const char *pos;
 
-  if (params == NULL)
-    return -1;
+	if (params == NULL)
+		return -1;
 
-  data->base = atoi(params);
+	data->base = atoi(params);
 
-  pos = os_strchr(params, ':');
-  if (pos == NULL)
-    return -1;
+	pos = os_strchr(params, ':');
+	if (pos == NULL)
+		return -1;
 
-  pos++;
-  data->limit = atoi(pos);
+	pos++;
+	data->limit = atoi(pos);
 
-  return 0;
+	return 0;
 }
 
-static void *autoscan_exponential_init(struct wpa_supplicant *wpa_s,
-                                       const char *params) {
-  struct autoscan_exponential_data *data;
 
-  data = os_zalloc(sizeof(struct autoscan_exponential_data));
-  if (data == NULL)
-    return NULL;
+static void * autoscan_exponential_init(struct wpa_supplicant *wpa_s,
+					const char *params)
+{
+	struct autoscan_exponential_data *data;
 
-  if (autoscan_exponential_get_params(data, params) < 0) {
-    os_free(data);
-    return NULL;
-  }
+	data = os_zalloc(sizeof(struct autoscan_exponential_data));
+	if (data == NULL)
+		return NULL;
 
-  wpa_printf(MSG_DEBUG,
-             "autoscan exponential: base exponential is %d "
-             "and limit is %d",
-             data->base, data->limit);
+	if (autoscan_exponential_get_params(data, params) < 0) {
+		os_free(data);
+		return NULL;
+	}
 
-  data->wpa_s = wpa_s;
+	wpa_printf(MSG_DEBUG, "autoscan exponential: base exponential is %d "
+		   "and limit is %d", data->base, data->limit);
 
-  return data;
+	data->wpa_s = wpa_s;
+
+	return data;
 }
 
-static void autoscan_exponential_deinit(void *priv) {
-  struct autoscan_exponential_data *data = priv;
 
-  os_free(data);
+static void autoscan_exponential_deinit(void *priv)
+{
+	struct autoscan_exponential_data *data = priv;
+
+	os_free(data);
 }
+
 
 static int autoscan_exponential_notify_scan(void *priv,
-                                            struct wpa_scan_results *scan_res) {
-  struct autoscan_exponential_data *data = priv;
+					    struct wpa_scan_results *scan_res)
+{
+	struct autoscan_exponential_data *data = priv;
 
-  wpa_printf(MSG_DEBUG, "autoscan exponential: scan result "
-                        "notification");
+	wpa_printf(MSG_DEBUG, "autoscan exponential: scan result "
+		   "notification");
 
-  if (data->interval >= data->limit)
-    return data->limit;
+	if (data->interval >= data->limit)
+		return data->limit;
 
-  if (data->interval <= 0)
-    data->interval = data->base;
-  else {
-    data->interval = data->interval * data->base;
-    if (data->interval > data->limit)
-      return data->limit;
-  }
+	if (data->interval <= 0)
+		data->interval = data->base;
+	else {
+		data->interval = data->interval * data->base;
+		if (data->interval > data->limit)
+			return data->limit;
+	}
 
-  return data->interval;
+	return data->interval;
 }
 
+
 const struct autoscan_ops autoscan_exponential_ops = {
-    .name = "exponential",
-    .init = autoscan_exponential_init,
-    .deinit = autoscan_exponential_deinit,
-    .notify_scan = autoscan_exponential_notify_scan,
+	.name = "exponential",
+	.init = autoscan_exponential_init,
+	.deinit = autoscan_exponential_deinit,
+	.notify_scan = autoscan_exponential_notify_scan,
 };

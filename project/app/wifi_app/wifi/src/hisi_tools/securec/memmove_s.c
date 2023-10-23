@@ -6,9 +6,8 @@
  */
 /*
  * [Standardize-exceptions] Use unsafe function: Portability
- * [reason] Use unsafe function to implement security function to maintain
- * platform compatibility. And sufficient input validation is performed before
- * calling
+ * [reason] Use unsafe function to implement security function to maintain platform compatibility.
+ *          And sufficient input validation is performed before calling
  */
 
 #include "securecutil.h"
@@ -17,34 +16,35 @@
 /*
  * Implementing memory data movement
  */
-SECUREC_INLINE void SecUtilMemmove(void *dst, const void *src, size_t count) {
-  unsigned char *pDest = (unsigned char *)dst;
-  const unsigned char *pSrc = (const unsigned char *)src;
-  size_t maxCount = count;
+SECUREC_INLINE void SecUtilMemmove(void *dst, const void *src, size_t count)
+{
+    unsigned char *pDest = (unsigned char *)dst;
+    const unsigned char *pSrc = (const unsigned char *)src;
+    size_t maxCount = count;
 
-  if (dst <= src || pDest >= (pSrc + maxCount)) {
-    /*
-     * Non-Overlapping Buffers
-     * Copy from lower addresses to higher addresses
-     */
-    while (maxCount--) {
-      *pDest = *pSrc;
-      ++pDest;
-      ++pSrc;
+    if (dst <= src || pDest >= (pSrc + maxCount)) {
+        /*
+         * Non-Overlapping Buffers
+         * Copy from lower addresses to higher addresses
+         */
+        while (maxCount--) {
+            *pDest = *pSrc;
+            ++pDest;
+            ++pSrc;
+        }
+    } else {
+        /*
+         * Overlapping Buffers
+         * Copy from higher addresses to lower addresses
+         */
+        pDest = pDest + maxCount - 1;
+        pSrc = pSrc + maxCount - 1;
+        while (maxCount--) {
+            *pDest = *pSrc;
+            --pDest;
+            --pSrc;
+        }
     }
-  } else {
-    /*
-     * Overlapping Buffers
-     * Copy from higher addresses to lower addresses
-     */
-    pDest = pDest + maxCount - 1;
-    pSrc = pSrc + maxCount - 1;
-    while (maxCount--) {
-      *pDest = *pSrc;
-      --pDest;
-      --pSrc;
-    }
-  }
 }
 #endif
 
@@ -63,51 +63,52 @@ SECUREC_INLINE void SecUtilMemmove(void *dst, const void *src, size_t count) {
  *
  * <RETURN VALUE>
  *    EOK                     Success
- *    EINVAL                  dest is  NULL and destMax != 0 and destMax <=
- * SECUREC_MEM_MAX_LEN EINVAL_AND_RESET        dest != NULL and src is NULLL and
- * destMax != 0 and destMax <= SECUREC_MEM_MAX_LEN ERANGE destMax >
- * SECUREC_MEM_MAX_LEN or destMax is 0 ERANGE_AND_RESET        count > destMax
- * and dest  !=  NULL and src != NULL and destMax != 0 and destMax <=
- * SECUREC_MEM_MAX_LEN
+ *    EINVAL                  dest is  NULL and destMax != 0 and destMax <= SECUREC_MEM_MAX_LEN
+ *    EINVAL_AND_RESET        dest != NULL and src is NULLL and destMax != 0 and destMax <= SECUREC_MEM_MAX_LEN
+ *    ERANGE                  destMax > SECUREC_MEM_MAX_LEN or destMax is 0
+ *    ERANGE_AND_RESET        count > destMax and dest  !=  NULL and src != NULL and destMax != 0
+ *                            and destMax <= SECUREC_MEM_MAX_LEN
  *
- *    If an error occured, dest will  be filled with 0 when dest and destMax
- * valid. If some regions of the source area and the destination overlap,
- * memmove_s ensures that the original source bytes in the overlapping region
- * are copied before being overwritten.
+ *    If an error occured, dest will  be filled with 0 when dest and destMax valid.
+ *    If some regions of the source area and the destination overlap, memmove_s
+ *    ensures that the original source bytes in the overlapping region are copied
+ *    before being overwritten.
  */
-errno_t memmove_s(void *dest, size_t destMax, const void *src, size_t count) {
-  if (destMax == 0 || destMax > SECUREC_MEM_MAX_LEN) {
-    SECUREC_ERROR_INVALID_RANGE("memmove_s");
-    return ERANGE;
-  }
-  if (dest == NULL || src == NULL) {
-    SECUREC_ERROR_INVALID_PARAMTER("memmove_s");
-    if (dest != NULL) {
-      (void)memset(dest, 0, destMax);
-      return EINVAL_AND_RESET;
+errno_t memmove_s(void *dest, size_t destMax, const void *src, size_t count)
+{
+    if (destMax == 0 || destMax > SECUREC_MEM_MAX_LEN) {
+        SECUREC_ERROR_INVALID_RANGE("memmove_s");
+        return ERANGE;
     }
-    return EINVAL;
-  }
-  if (count > destMax) {
-    (void)memset(dest, 0, destMax);
-    SECUREC_ERROR_INVALID_RANGE("memmove_s");
-    return ERANGE_AND_RESET;
-  }
-  if (dest == src) {
-    return EOK;
-  }
+    if (dest == NULL || src == NULL) {
+        SECUREC_ERROR_INVALID_PARAMTER("memmove_s");
+        if (dest != NULL) {
+            (void)memset(dest, 0, destMax);
+            return EINVAL_AND_RESET;
+        }
+        return EINVAL;
+    }
+    if (count > destMax) {
+        (void)memset(dest, 0, destMax);
+        SECUREC_ERROR_INVALID_RANGE("memmove_s");
+        return ERANGE_AND_RESET;
+    }
+    if (dest == src) {
+        return EOK;
+    }
 
-  if (count > 0) {
+    if (count > 0) {
 #ifdef SECUREC_NOT_CALL_LIBC_CORE_API
-    SecUtilMemmove(dest, src, count);
+        SecUtilMemmove(dest, src, count);
 #else
-    /* Use underlying memmove for performance consideration */
-    (void)memmove(dest, src, count);
+        /* Use underlying memmove for performance consideration */
+        (void)memmove(dest, src, count);
 #endif
-  }
-  return EOK;
+    }
+    return EOK;
 }
 
 #if SECUREC_IN_KERNEL
 EXPORT_SYMBOL(memmove_s);
 #endif
+

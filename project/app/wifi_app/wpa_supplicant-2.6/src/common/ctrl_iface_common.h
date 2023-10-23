@@ -18,21 +18,21 @@
  * interface monitors into struct wpa_supplicant.
  */
 struct wpa_ctrl_dst {
-  struct dl_list list;
-  struct sockaddr_storage addr;
-  socklen_t addrlen;
-  int debug_level;
-  int errors;
+	struct dl_list list;
+	struct sockaddr_storage addr;
+	socklen_t addrlen;
+	int debug_level;
+	int errors;
 };
 
 void sockaddr_print(int level, const char *msg, struct sockaddr_storage *sock,
-                    socklen_t socklen);
+		    socklen_t socklen);
 
 int ctrl_iface_attach(struct dl_list *ctrl_dst, struct sockaddr_storage *from,
-                      socklen_t fromlen);
+		       socklen_t fromlen);
 int ctrl_iface_detach(struct dl_list *ctrl_dst, struct sockaddr_storage *from,
-                      socklen_t fromlen);
+		      socklen_t fromlen);
 int ctrl_iface_level(struct dl_list *ctrl_dst, struct sockaddr_storage *from,
-                     socklen_t fromlen, const char *level);
+		     socklen_t fromlen, const char *level);
 
 #endif /* CONTROL_IFACE_COMMON_H */

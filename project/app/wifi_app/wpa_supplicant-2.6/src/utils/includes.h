@@ -16,15 +16,15 @@
 /* Include possible build time configuration before including anything else */
 #include "build_config.h"
 
-#include <stdarg.h>
+#include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #ifndef _WIN32_WCE
-#include <errno.h>
 #include <signal.h>
 #include <sys/types.h>
+#include <errno.h>
 #endif /* _WIN32_WCE */
 #include <ctype.h>
 
@@ -33,12 +33,12 @@
 #endif /* _MSC_VER */
 
 #ifndef CONFIG_NATIVE_WINDOWS
-#include <arpa/inet.h>
-#include <netinet/in.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #ifndef __vxworks
-#include <sys/time.h>
 #include <sys/uio.h>
+#include <sys/time.h>
 #endif /* __vxworks */
 #endif /* CONFIG_NATIVE_WINDOWS */
 

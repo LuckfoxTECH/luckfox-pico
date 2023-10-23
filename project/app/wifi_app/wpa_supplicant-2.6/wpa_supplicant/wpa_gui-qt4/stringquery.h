@@ -10,18 +10,19 @@
 #define STRINGQUERY_H
 
 #include <QDialog>
-#include <QGridLayout>
 #include <QLineEdit>
+#include <QGridLayout>
 
-class StringQuery : public QDialog {
-  Q_OBJECT
+class StringQuery : public QDialog
+{
+	Q_OBJECT
 
 public:
-  StringQuery(QString label);
-  QString get_string();
+	StringQuery(QString label);
+	QString get_string();
 
 private:
-  QLineEdit *edit;
+	QLineEdit *edit;
 };
 
 #endif /* STRINGQUERY_H */

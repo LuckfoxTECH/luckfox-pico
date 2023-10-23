@@ -2,23 +2,23 @@
 #define SOCKET_APP_H
 
 #include <fcntl.h>
-#include <stdio.h>
 #include <sys/socket.h>
-#include <sys/stat.h>
 #include <sys/un.h>
+#include <stdio.h>
+#include <sys/stat.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct rk_socket_app {
-  int server_sockfd;
-  int client_sockfd;
-  int server_len;
-  int client_len;
-  struct sockaddr_un server_address;
-  struct sockaddr_un client_address;
-  char sock_path[512];
+	int server_sockfd;
+	int client_sockfd;
+	int server_len;
+	int client_len;
+	struct sockaddr_un server_address;
+	struct sockaddr_un client_address;
+	char sock_path[512];
 };
 
 /*server api*/

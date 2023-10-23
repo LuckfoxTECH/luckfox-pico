@@ -1,12 +1,4 @@
-# *.o
-# !hostapd-2.6/hostapd/*.o
-# !hostapd-2.6/src/common/*.o
-# !hostapd-2.6/src/crypto/*.o
-# !hostapd-2.6/src/drivers/*.o
-# !hostapd-2.6/src/drivers/*.o
-# !hostapd-2.6/src/drivers/*.o
-# !hostapd-2.6/src/drivers/*.o
-
+*.o
 hostapd-2.6/hostapd/hostapd
 hostapd-2.6/hostapd/hostapd_cli
 install_out

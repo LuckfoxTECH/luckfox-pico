@@ -22,22 +22,23 @@ extern const struct fst_ctrl *fst_ctrl_cli;
 
 #else /* CONFIG_FST */
 
-static inline int fst_ctrl_iface_mb_info(const u8 *addr, char *buf,
-                                         size_t buflen) {
-  return 0;
+static inline int
+fst_ctrl_iface_mb_info(const u8 *addr, char *buf, size_t buflen)
+{
+	return 0;
 }
 
 #endif /* CONFIG_FST */
 
 int fst_read_next_int_param(const char *params, Boolean *valid, char **endp);
 int fst_read_next_text_param(const char *params, char *buf, size_t buflen,
-                             char **endp);
+			     char **endp);
 int fst_read_peer_addr(const char *mac, u8 *peer_addr);
 
 struct fst_iface_cfg;
 
 int fst_parse_attach_command(const char *cmd, char *ifname, size_t ifname_size,
-                             struct fst_iface_cfg *cfg);
+			     struct fst_iface_cfg *cfg);
 int fst_parse_detach_command(const char *cmd, char *ifname, size_t ifname_size);
 int fst_iface_detach(const char *ifname);
 

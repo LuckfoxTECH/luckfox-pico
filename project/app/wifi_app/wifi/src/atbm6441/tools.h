@@ -21,16 +21,11 @@ int get_ipaddr_v4(char *ip_addr, int ip_addr_size);
 int clear_wifi_cfg();
 int set_port_filter(int port, int enable);
 
-int key_long_press_func_cb_register(
-    key_long_press_event_func long_press_func_ptr);
-int key_short_press_func_cb_register(
-    key_short_press_event_func short_press_func_ptr);
+int key_long_press_func_cb_register(key_long_press_event_func long_press_func_ptr);
+int key_short_press_func_cb_register(key_short_press_event_func short_press_func_ptr);
 int wakeup_event_func_cb_register(wakeup_event_func wakeup_event_func_ptr);
-int battery_level_event_func_cb_register(
-    battery_level_event_func battery_level_event_func_ptr);
-int pir_detect_event_func_cb_register(
-    pir_detect_event_func pir_detect_event_func_ptr);
-int wifi_connect_result_event_cb_register(
-    wifi_connect_result_event_func wifi_connect_result_event_func_ptr);
+int battery_level_event_func_cb_register(battery_level_event_func battery_level_event_func_ptr);
+int pir_detect_event_func_cb_register(pir_detect_event_func pir_detect_event_func_ptr);
+int wifi_connect_result_event_cb_register(wifi_connect_result_event_func wifi_connect_result_event_func_ptr);
 
 #endif
