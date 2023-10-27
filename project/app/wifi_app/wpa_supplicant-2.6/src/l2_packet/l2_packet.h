@@ -30,9 +30,9 @@ struct l2_packet_data;
 #endif /* _MSC_VER */
 
 struct l2_ethhdr {
-  u8 h_dest[ETH_ALEN];
-  u8 h_source[ETH_ALEN];
-  be16 h_proto;
+	u8 h_dest[ETH_ALEN];
+	u8 h_source[ETH_ALEN];
+	be16 h_proto;
 } STRUCT_PACKED;
 
 #ifdef _MSC_VER
@@ -40,8 +40,8 @@ struct l2_ethhdr {
 #endif /* _MSC_VER */
 
 enum l2_packet_filter_type {
-  L2_PACKET_FILTER_DHCP,
-  L2_PACKET_FILTER_NDISC,
+	L2_PACKET_FILTER_DHCP,
+	L2_PACKET_FILTER_NDISC,
 };
 
 /**
@@ -61,11 +61,11 @@ enum l2_packet_filter_type {
  * TX buffers start with payload. This behavior can be changed by setting
  * l2_hdr=1 to include the layer 2 header in the data buffer.
  */
-struct l2_packet_data *
-l2_packet_init(const char *ifname, const u8 *own_addr, unsigned short protocol,
-               void (*rx_callback)(void *ctx, const u8 *src_addr, const u8 *buf,
-                                   size_t len),
-               void *rx_callback_ctx, int l2_hdr);
+struct l2_packet_data * l2_packet_init(
+	const char *ifname, const u8 *own_addr, unsigned short protocol,
+	void (*rx_callback)(void *ctx, const u8 *src_addr,
+			    const u8 *buf, size_t len),
+	void *rx_callback_ctx, int l2_hdr);
 
 /**
  * l2_packet_init_bridge - Like l2_packet_init() but with bridge workaround
@@ -73,12 +73,12 @@ l2_packet_init(const char *ifname, const u8 *own_addr, unsigned short protocol,
  * This version of l2_packet_init() can be used to enable a workaround for Linux
  * packet socket in case of a station interface in a bridge.
  */
-struct l2_packet_data *
-l2_packet_init_bridge(const char *br_ifname, const char *ifname,
-                      const u8 *own_addr, unsigned short protocol,
-                      void (*rx_callback)(void *ctx, const u8 *src_addr,
-                                          const u8 *buf, size_t len),
-                      void *rx_callback_ctx, int l2_hdr);
+struct l2_packet_data * l2_packet_init_bridge(
+	const char *br_ifname, const char *ifname, const u8 *own_addr,
+	unsigned short protocol,
+	void (*rx_callback)(void *ctx, const u8 *src_addr,
+			    const u8 *buf, size_t len),
+	void *rx_callback_ctx, int l2_hdr);
 
 /**
  * l2_packet_deinit - Deinitialize l2_packet interface
@@ -107,7 +107,7 @@ int l2_packet_get_own_addr(struct l2_packet_data *l2, u8 *addr);
  * Returns: >=0 on success, <0 on failure
  */
 int l2_packet_send(struct l2_packet_data *l2, const u8 *dst_addr, u16 proto,
-                   const u8 *buf, size_t len);
+		   const u8 *buf, size_t len);
 
 /**
  * l2_packet_get_ip_addr - Get the current IP address from the interface
@@ -124,6 +124,7 @@ int l2_packet_send(struct l2_packet_data *l2, const u8 *dst_addr, u16 proto,
  * -1 if the IP address information is not available.
  */
 int l2_packet_get_ip_addr(struct l2_packet_data *l2, char *buf, size_t len);
+
 
 /**
  * l2_packet_notify_auth_start - Notify l2_packet about start of authentication
@@ -148,6 +149,6 @@ void l2_packet_notify_auth_start(struct l2_packet_data *l2);
  *
  */
 int l2_packet_set_packet_filter(struct l2_packet_data *l2,
-                                enum l2_packet_filter_type type);
+				enum l2_packet_filter_type type);
 
 #endif /* L2_PACKET_H */

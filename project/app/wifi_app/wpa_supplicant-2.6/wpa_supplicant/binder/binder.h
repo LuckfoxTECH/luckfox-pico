@@ -11,25 +11,23 @@
 #define WPA_SUPPLICANT_BINDER_BINDER_H
 
 #ifdef _cplusplus
-extern "C"
-{
+extern "C" {
 #endif /* _cplusplus */
 
-	/**
-	 * This is the binder RPC interface entry point to the wpa_supplicant
-	 * core. This initializes the binder driver & BinderManager instance and
-	 * then forwards all the notifcations from the supplicant core to the
-	 * BinderManager.
-	 */
-	struct wpas_binder_priv;
-	struct wpa_global;
+/**
+ * This is the binder RPC interface entry point to the wpa_supplicant core.
+ * This initializes the binder driver & BinderManager instance and then forwards
+ * all the notifcations from the supplicant core to the BinderManager.
+ */
+struct wpas_binder_priv;
+struct wpa_global;
 
-	struct wpas_binder_priv *wpas_binder_init(struct wpa_global *global);
-	void wpas_binder_deinit(struct wpas_binder_priv *priv);
+struct wpas_binder_priv *wpas_binder_init(struct wpa_global *global);
+void wpas_binder_deinit(struct wpas_binder_priv *priv);
 
 #ifdef CONFIG_CTRL_IFACE_BINDER
-	int wpas_binder_register_interface(struct wpa_supplicant *wpa_s);
-	int wpas_binder_unregister_interface(struct wpa_supplicant *wpa_s);
+int wpas_binder_register_interface(struct wpa_supplicant *wpa_s);
+int wpas_binder_unregister_interface(struct wpa_supplicant *wpa_s);
 #else  /* CONFIG_CTRL_IFACE_BINDER */
 static inline int wpas_binder_register_interface(struct wpa_supplicant *wpa_s)
 {

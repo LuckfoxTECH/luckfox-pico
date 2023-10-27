@@ -17,22 +17,23 @@
 
 class WpaGui;
 
-class AddInterface : public QDialog {
-  Q_OBJECT
+class AddInterface : public QDialog
+{
+	Q_OBJECT
 
 public:
-  AddInterface(WpaGui *_wpagui, QWidget *parent = 0);
+	AddInterface(WpaGui *_wpagui, QWidget *parent = 0);
 
 public slots:
-  virtual void interfaceSelected(QTreeWidgetItem *sel);
+	virtual void interfaceSelected(QTreeWidgetItem *sel);
 
 private:
-  void addInterfaces();
-  bool addRegistryInterface(const QString &ifname);
+	void addInterfaces();
+	bool addRegistryInterface(const QString &ifname);
 
-  QVBoxLayout *vboxLayout;
-  QTreeWidget *interfaceWidget;
-  WpaGui *wpagui;
+	QVBoxLayout *vboxLayout;
+	QTreeWidget *interfaceWidget;
+	WpaGui *wpagui;
 };
 
 #endif /* ADDINTERFACE_H */

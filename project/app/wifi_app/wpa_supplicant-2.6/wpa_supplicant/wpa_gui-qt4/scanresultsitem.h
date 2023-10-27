@@ -11,10 +11,11 @@
 
 #include <QTreeWidgetItem>
 
-class ScanResultsItem : public QTreeWidgetItem {
+class ScanResultsItem : public QTreeWidgetItem
+{
 public:
-  ScanResultsItem(QTreeWidget *tree) : QTreeWidgetItem(tree) {}
-  bool operator<(const QTreeWidgetItem &other) const;
+	ScanResultsItem(QTreeWidget *tree) : QTreeWidgetItem(tree) {}
+	bool operator< (const QTreeWidgetItem &other) const;
 };
 
 #endif /* SCANRESULTSITEM_H */

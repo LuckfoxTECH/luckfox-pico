@@ -29,8 +29,9 @@
  * of a C function definition to declare functions to be run when the state is
  * entered by calling SM_ENTER or SM_ENTER_GLOBAL.
  */
-#define SM_STATE(machine, state)                                               \
-  static void sm_##machine##_##state##_Enter(STATE_MACHINE_DATA *sm, int global)
+#define SM_STATE(machine, state) \
+static void sm_ ## machine ## _ ## state ## _Enter(STATE_MACHINE_DATA *sm, \
+	int global)
 
 /**
  * SM_ENTRY - State machine function entry point
@@ -42,13 +43,13 @@
  * after declaration of possible local variables. This macro prints debug
  * information about state transition and update the state machine state.
  */
-#define SM_ENTRY(machine, state)                                               \
-  if (!global || sm->machine##_state != machine##_##state) {                   \
-    sm->changed = TRUE;                                                        \
-    wpa_printf(MSG_DEBUG, STATE_MACHINE_DEBUG_PREFIX                           \
-               ": " #machine " entering state " #state);                       \
-  }                                                                            \
-  sm->machine##_state = machine##_##state;
+#define SM_ENTRY(machine, state) \
+if (!global || sm->machine ## _state != machine ## _ ## state) { \
+	sm->changed = TRUE; \
+	wpa_printf(MSG_DEBUG, STATE_MACHINE_DEBUG_PREFIX ": " #machine \
+		   " entering state " #state); \
+} \
+sm->machine ## _state = machine ## _ ## state;
 
 /**
  * SM_ENTRY_M - State machine function entry point for state machine group
@@ -61,13 +62,13 @@
  * parameters are set to "sub-state machine" name. prefix is used to allow more
  * than one state variable to be stored in the same data structure.
  */
-#define SM_ENTRY_M(machine, _state, data)                                      \
-  if (!global || sm->data##_##state != machine##_##_state) {                   \
-    sm->changed = TRUE;                                                        \
-    wpa_printf(MSG_DEBUG, STATE_MACHINE_DEBUG_PREFIX                           \
-               ": " #machine " entering state " #_state);                      \
-  }                                                                            \
-  sm->data##_##state = machine##_##_state;
+#define SM_ENTRY_M(machine, _state, data) \
+if (!global || sm->data ## _ ## state != machine ## _ ## _state) { \
+	sm->changed = TRUE; \
+	wpa_printf(MSG_DEBUG, STATE_MACHINE_DEBUG_PREFIX ": " \
+		   #machine " entering state " #_state); \
+} \
+sm->data ## _ ## state = machine ## _ ## _state;
 
 /**
  * SM_ENTRY_MA - State machine function entry point for state machine group
@@ -79,15 +80,14 @@
  * output. STATE_MACHINE_ADDR has to be defined to point to the MAC address to
  * be included in debug.
  */
-#define SM_ENTRY_MA(machine, _state, data)                                     \
-  if (!global || sm->data##_##state != machine##_##_state) {                   \
-    sm->changed = TRUE;                                                        \
-    wpa_printf(MSG_DEBUG,                                                      \
-               STATE_MACHINE_DEBUG_PREFIX ": " MACSTR " " #machine             \
-                                          " entering state " #_state,          \
-               MAC2STR(STATE_MACHINE_ADDR));                                   \
-  }                                                                            \
-  sm->data##_##state = machine##_##_state;
+#define SM_ENTRY_MA(machine, _state, data) \
+if (!global || sm->data ## _ ## state != machine ## _ ## _state) { \
+	sm->changed = TRUE; \
+	wpa_printf(MSG_DEBUG, STATE_MACHINE_DEBUG_PREFIX ": " MACSTR " " \
+		   #machine " entering state " #_state, \
+		   MAC2STR(STATE_MACHINE_ADDR)); \
+} \
+sm->data ## _ ## state = machine ## _ ## _state;
 
 /**
  * SM_ENTER - Enter a new state machine state
@@ -98,7 +98,8 @@
  * with SM_STATE macro. SM_ENTER is used in a state machine step function to
  * move the state machine to a new state.
  */
-#define SM_ENTER(machine, state) sm_##machine##_##state##_Enter(sm, 0)
+#define SM_ENTER(machine, state) \
+sm_ ## machine ## _ ## state ## _Enter(sm, 0)
 
 /**
  * SM_ENTER_GLOBAL - Enter a new state machine state based on global rule
@@ -110,7 +111,8 @@
  * macro is used to avoid unwanted debug message floods when the same global
  * rule is forcing a state machine to remain in on state.
  */
-#define SM_ENTER_GLOBAL(machine, state) sm_##machine##_##state##_Enter(sm, 1)
+#define SM_ENTER_GLOBAL(machine, state) \
+sm_ ## machine ## _ ## state ## _Enter(sm, 1)
 
 /**
  * SM_STEP - Declaration of a state machine step function
@@ -121,7 +123,8 @@
  * state machine to a new state based on state variables. This function uses
  * SM_ENTER and SM_ENTER_GLOBAL macros to enter new state.
  */
-#define SM_STEP(machine) static void sm_##machine##_Step(STATE_MACHINE_DATA *sm)
+#define SM_STEP(machine) \
+static void sm_ ## machine ## _Step(STATE_MACHINE_DATA *sm)
 
 /**
  * SM_STEP_RUN - Call the state machine step function
@@ -130,6 +133,6 @@
  * This macro expands to a function call to a state machine step function
  * defined with SM_STEP macro.
  */
-#define SM_STEP_RUN(machine) sm_##machine##_Step(sm)
+#define SM_STEP_RUN(machine) sm_ ## machine ## _Step(sm)
 
 #endif /* STATE_MACHINE_H */

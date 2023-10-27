@@ -316,22 +316,22 @@ extern "C" {
 
 /* VENDOR_ELEM_* frame id values */
 enum wpa_vendor_elem_frame {
-  VENDOR_ELEM_PROBE_REQ_P2P = 0,
-  VENDOR_ELEM_PROBE_RESP_P2P = 1,
-  VENDOR_ELEM_PROBE_RESP_P2P_GO = 2,
-  VENDOR_ELEM_BEACON_P2P_GO = 3,
-  VENDOR_ELEM_P2P_PD_REQ = 4,
-  VENDOR_ELEM_P2P_PD_RESP = 5,
-  VENDOR_ELEM_P2P_GO_NEG_REQ = 6,
-  VENDOR_ELEM_P2P_GO_NEG_RESP = 7,
-  VENDOR_ELEM_P2P_GO_NEG_CONF = 8,
-  VENDOR_ELEM_P2P_INV_REQ = 9,
-  VENDOR_ELEM_P2P_INV_RESP = 10,
-  VENDOR_ELEM_P2P_ASSOC_REQ = 11,
-  VENDOR_ELEM_P2P_ASSOC_RESP = 12,
-  VENDOR_ELEM_ASSOC_REQ = 13,
-  VENDOR_ELEM_PROBE_REQ = 14,
-  NUM_VENDOR_ELEM_FRAMES
+	VENDOR_ELEM_PROBE_REQ_P2P = 0,
+	VENDOR_ELEM_PROBE_RESP_P2P = 1,
+	VENDOR_ELEM_PROBE_RESP_P2P_GO = 2,
+	VENDOR_ELEM_BEACON_P2P_GO = 3,
+	VENDOR_ELEM_P2P_PD_REQ = 4,
+	VENDOR_ELEM_P2P_PD_RESP = 5,
+	VENDOR_ELEM_P2P_GO_NEG_REQ = 6,
+	VENDOR_ELEM_P2P_GO_NEG_RESP = 7,
+	VENDOR_ELEM_P2P_GO_NEG_CONF = 8,
+	VENDOR_ELEM_P2P_INV_REQ = 9,
+	VENDOR_ELEM_P2P_INV_RESP = 10,
+	VENDOR_ELEM_P2P_ASSOC_REQ = 11,
+	VENDOR_ELEM_P2P_ASSOC_RESP = 12,
+	VENDOR_ELEM_ASSOC_REQ = 13,
+	VENDOR_ELEM_PROBE_REQ = 14,
+	NUM_VENDOR_ELEM_FRAMES
 };
 
 /* wpa_supplicant/hostapd control interface access */
@@ -396,9 +396,8 @@ void wpa_ctrl_close(struct wpa_ctrl *ctrl);
  * receiving event messages, in other words, call wpa_ctrl_attach() only for
  * the control interface connection that will be used for event messages.
  */
-int wpa_ctrl_request(struct wpa_ctrl *ctrl, const char *cmd, size_t cmd_len,
-                     char *reply, size_t *reply_len,
-                     void (*msg_cb)(char *msg, size_t len));
+int wpa_ctrl_request(struct wpa_ctrl *ctrl, const char *cmd, size_t cmd_len, char *reply,
+                     size_t *reply_len, void (*msg_cb)(char *msg, size_t len));
 
 /**
  * wpa_ctrl_attach - Register as an event monitor for the control interface

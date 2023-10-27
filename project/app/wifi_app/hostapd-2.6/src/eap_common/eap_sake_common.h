@@ -45,49 +45,52 @@
 #endif /* _MSC_VER */
 
 struct eap_sake_hdr {
-  u8 version; /* EAP_SAKE_VERSION */
-  u8 session_id;
-  u8 subtype;
+	u8 version; /* EAP_SAKE_VERSION */
+	u8 session_id;
+	u8 subtype;
 } STRUCT_PACKED;
 
 #ifdef _MSC_VER
 #pragma pack(pop)
 #endif /* _MSC_VER */
 
+
 struct eap_sake_parse_attr {
-  const u8 *rand_s;
-  const u8 *rand_p;
-  const u8 *mic_s;
-  const u8 *mic_p;
-  const u8 *serverid;
-  size_t serverid_len;
-  const u8 *peerid;
-  size_t peerid_len;
-  const u8 *spi_s;
-  size_t spi_s_len;
-  const u8 *spi_p;
-  size_t spi_p_len;
-  const u8 *any_id_req;
-  const u8 *perm_id_req;
-  const u8 *encr_data;
-  size_t encr_data_len;
-  const u8 *iv;
-  size_t iv_len;
-  const u8 *next_tmpid;
-  size_t next_tmpid_len;
-  const u8 *msk_life;
+	const u8 *rand_s;
+	const u8 *rand_p;
+	const u8 *mic_s;
+	const u8 *mic_p;
+	const u8 *serverid;
+	size_t serverid_len;
+	const u8 *peerid;
+	size_t peerid_len;
+	const u8 *spi_s;
+	size_t spi_s_len;
+	const u8 *spi_p;
+	size_t spi_p_len;
+	const u8 *any_id_req;
+	const u8 *perm_id_req;
+	const u8 *encr_data;
+	size_t encr_data_len;
+	const u8 *iv;
+	size_t iv_len;
+	const u8 *next_tmpid;
+	size_t next_tmpid_len;
+	const u8 *msk_life;
 };
 
 int eap_sake_parse_attributes(const u8 *buf, size_t len,
-                              struct eap_sake_parse_attr *attr);
+			      struct eap_sake_parse_attr *attr);
 void eap_sake_derive_keys(const u8 *root_secret_a, const u8 *root_secret_b,
-                          const u8 *rand_s, const u8 *rand_p, u8 *tek, u8 *msk,
-                          u8 *emsk);
-int eap_sake_compute_mic(const u8 *tek_auth, const u8 *rand_s, const u8 *rand_p,
-                         const u8 *serverid, size_t serverid_len,
-                         const u8 *peerid, size_t peerid_len, int peer,
-                         const u8 *eap, size_t eap_len, const u8 *mic_pos,
-                         u8 *mic);
-void eap_sake_add_attr(struct wpabuf *buf, u8 type, const u8 *data, size_t len);
+			  const u8 *rand_s, const u8 *rand_p,
+			  u8 *tek, u8 *msk, u8 *emsk);
+int eap_sake_compute_mic(const u8 *tek_auth,
+			 const u8 *rand_s, const u8 *rand_p,
+			 const u8 *serverid, size_t serverid_len,
+			 const u8 *peerid, size_t peerid_len,
+			 int peer, const u8 *eap, size_t eap_len,
+			 const u8 *mic_pos, u8 *mic);
+void eap_sake_add_attr(struct wpabuf *buf, u8 type, const u8 *data,
+		       size_t len);
 
 #endif /* EAP_SAKE_COMMON_H */

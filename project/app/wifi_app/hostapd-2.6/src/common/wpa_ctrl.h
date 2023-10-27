@@ -9,7 +9,7 @@
 #ifndef WPA_CTRL_H
 #define WPA_CTRL_H
 
-#ifdef __cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
 
@@ -290,49 +290,51 @@ extern "C" {
 
 /* BSS command information masks */
 
-#define WPA_BSS_MASK_ALL 0xFFFDFFFF
-#define WPA_BSS_MASK_ID BIT(0)
-#define WPA_BSS_MASK_BSSID BIT(1)
-#define WPA_BSS_MASK_FREQ BIT(2)
-#define WPA_BSS_MASK_BEACON_INT BIT(3)
-#define WPA_BSS_MASK_CAPABILITIES BIT(4)
-#define WPA_BSS_MASK_QUAL BIT(5)
-#define WPA_BSS_MASK_NOISE BIT(6)
-#define WPA_BSS_MASK_LEVEL BIT(7)
-#define WPA_BSS_MASK_TSF BIT(8)
-#define WPA_BSS_MASK_AGE BIT(9)
-#define WPA_BSS_MASK_IE BIT(10)
-#define WPA_BSS_MASK_FLAGS BIT(11)
-#define WPA_BSS_MASK_SSID BIT(12)
-#define WPA_BSS_MASK_WPS_SCAN BIT(13)
-#define WPA_BSS_MASK_P2P_SCAN BIT(14)
-#define WPA_BSS_MASK_INTERNETW BIT(15)
-#define WPA_BSS_MASK_WIFI_DISPLAY BIT(16)
-#define WPA_BSS_MASK_DELIM BIT(17)
-#define WPA_BSS_MASK_MESH_SCAN BIT(18)
-#define WPA_BSS_MASK_SNR BIT(19)
-#define WPA_BSS_MASK_EST_THROUGHPUT BIT(20)
-#define WPA_BSS_MASK_FST BIT(21)
+#define WPA_BSS_MASK_ALL		0xFFFDFFFF
+#define WPA_BSS_MASK_ID			BIT(0)
+#define WPA_BSS_MASK_BSSID		BIT(1)
+#define WPA_BSS_MASK_FREQ		BIT(2)
+#define WPA_BSS_MASK_BEACON_INT		BIT(3)
+#define WPA_BSS_MASK_CAPABILITIES	BIT(4)
+#define WPA_BSS_MASK_QUAL		BIT(5)
+#define WPA_BSS_MASK_NOISE		BIT(6)
+#define WPA_BSS_MASK_LEVEL		BIT(7)
+#define WPA_BSS_MASK_TSF		BIT(8)
+#define WPA_BSS_MASK_AGE		BIT(9)
+#define WPA_BSS_MASK_IE			BIT(10)
+#define WPA_BSS_MASK_FLAGS		BIT(11)
+#define WPA_BSS_MASK_SSID		BIT(12)
+#define WPA_BSS_MASK_WPS_SCAN		BIT(13)
+#define WPA_BSS_MASK_P2P_SCAN		BIT(14)
+#define WPA_BSS_MASK_INTERNETW		BIT(15)
+#define WPA_BSS_MASK_WIFI_DISPLAY	BIT(16)
+#define WPA_BSS_MASK_DELIM		BIT(17)
+#define WPA_BSS_MASK_MESH_SCAN		BIT(18)
+#define WPA_BSS_MASK_SNR		BIT(19)
+#define WPA_BSS_MASK_EST_THROUGHPUT	BIT(20)
+#define WPA_BSS_MASK_FST		BIT(21)
+
 
 /* VENDOR_ELEM_* frame id values */
 enum wpa_vendor_elem_frame {
-  VENDOR_ELEM_PROBE_REQ_P2P = 0,
-  VENDOR_ELEM_PROBE_RESP_P2P = 1,
-  VENDOR_ELEM_PROBE_RESP_P2P_GO = 2,
-  VENDOR_ELEM_BEACON_P2P_GO = 3,
-  VENDOR_ELEM_P2P_PD_REQ = 4,
-  VENDOR_ELEM_P2P_PD_RESP = 5,
-  VENDOR_ELEM_P2P_GO_NEG_REQ = 6,
-  VENDOR_ELEM_P2P_GO_NEG_RESP = 7,
-  VENDOR_ELEM_P2P_GO_NEG_CONF = 8,
-  VENDOR_ELEM_P2P_INV_REQ = 9,
-  VENDOR_ELEM_P2P_INV_RESP = 10,
-  VENDOR_ELEM_P2P_ASSOC_REQ = 11,
-  VENDOR_ELEM_P2P_ASSOC_RESP = 12,
-  VENDOR_ELEM_ASSOC_REQ = 13,
-  VENDOR_ELEM_PROBE_REQ = 14,
-  NUM_VENDOR_ELEM_FRAMES
+	VENDOR_ELEM_PROBE_REQ_P2P = 0,
+	VENDOR_ELEM_PROBE_RESP_P2P = 1,
+	VENDOR_ELEM_PROBE_RESP_P2P_GO = 2,
+	VENDOR_ELEM_BEACON_P2P_GO = 3,
+	VENDOR_ELEM_P2P_PD_REQ = 4,
+	VENDOR_ELEM_P2P_PD_RESP = 5,
+	VENDOR_ELEM_P2P_GO_NEG_REQ = 6,
+	VENDOR_ELEM_P2P_GO_NEG_RESP = 7,
+	VENDOR_ELEM_P2P_GO_NEG_CONF = 8,
+	VENDOR_ELEM_P2P_INV_REQ = 9,
+	VENDOR_ELEM_P2P_INV_RESP = 10,
+	VENDOR_ELEM_P2P_ASSOC_REQ = 11,
+	VENDOR_ELEM_P2P_ASSOC_RESP = 12,
+	VENDOR_ELEM_ASSOC_REQ = 13,
+	VENDOR_ELEM_PROBE_REQ = 14,
+	NUM_VENDOR_ELEM_FRAMES
 };
+
 
 /* wpa_supplicant/hostapd control interface access */
 
@@ -346,7 +348,7 @@ enum wpa_vendor_elem_frame {
  * is configured in wpa_supplicant/hostapd and other programs using the control
  * interface need to use matching path configuration.
  */
-struct wpa_ctrl *wpa_ctrl_open(const char *ctrl_path);
+struct wpa_ctrl * wpa_ctrl_open(const char *ctrl_path);
 
 /**
  * wpa_ctrl_open2 - Open a control interface to wpa_supplicant/hostapd
@@ -360,7 +362,8 @@ struct wpa_ctrl *wpa_ctrl_open(const char *ctrl_path);
  * ctrl_path is usually /var/run/wpa_supplicant or /var/run/hostapd and client
  * socket path is /tmp.
  */
-struct wpa_ctrl *wpa_ctrl_open2(const char *ctrl_path, const char *cli_path);
+struct wpa_ctrl * wpa_ctrl_open2(const char *ctrl_path, const char *cli_path);
+
 
 /**
  * wpa_ctrl_close - Close a control interface to wpa_supplicant/hostapd
@@ -369,6 +372,7 @@ struct wpa_ctrl *wpa_ctrl_open2(const char *ctrl_path, const char *cli_path);
  * This function is used to close a control interface.
  */
 void wpa_ctrl_close(struct wpa_ctrl *ctrl);
+
 
 /**
  * wpa_ctrl_request - Send a command to wpa_supplicant/hostapd
@@ -397,8 +401,9 @@ void wpa_ctrl_close(struct wpa_ctrl *ctrl);
  * the control interface connection that will be used for event messages.
  */
 int wpa_ctrl_request(struct wpa_ctrl *ctrl, const char *cmd, size_t cmd_len,
-                     char *reply, size_t *reply_len,
-                     void (*msg_cb)(char *msg, size_t len));
+		     char *reply, size_t *reply_len,
+		     void (*msg_cb)(char *msg, size_t len));
+
 
 /**
  * wpa_ctrl_attach - Register as an event monitor for the control interface
@@ -412,6 +417,7 @@ int wpa_ctrl_request(struct wpa_ctrl *ctrl, const char *cmd, size_t cmd_len,
  */
 int wpa_ctrl_attach(struct wpa_ctrl *ctrl);
 
+
 /**
  * wpa_ctrl_detach - Unregister event monitor from the control interface
  * @ctrl: Control interface data from wpa_ctrl_open()
@@ -422,6 +428,7 @@ int wpa_ctrl_attach(struct wpa_ctrl *ctrl);
  * wpa_ctrl_attach().
  */
 int wpa_ctrl_detach(struct wpa_ctrl *ctrl);
+
 
 /**
  * wpa_ctrl_recv - Receive a pending control interface message
@@ -439,6 +446,7 @@ int wpa_ctrl_detach(struct wpa_ctrl *ctrl);
  */
 int wpa_ctrl_recv(struct wpa_ctrl *ctrl, char *reply, size_t *reply_len);
 
+
 /**
  * wpa_ctrl_pending - Check whether there are pending event messages
  * @ctrl: Control interface data from wpa_ctrl_open()
@@ -450,6 +458,7 @@ int wpa_ctrl_recv(struct wpa_ctrl *ctrl, char *reply, size_t *reply_len);
  * register the control interface as an event monitor.
  */
 int wpa_ctrl_pending(struct wpa_ctrl *ctrl);
+
 
 /**
  * wpa_ctrl_get_fd - Get file descriptor used by the control interface
@@ -484,10 +493,11 @@ void wpa_ctrl_cleanup(void);
 #define WPA_GLOBAL_CTRL_IFACE_PORT 9878
 #define WPA_GLOBAL_CTRL_IFACE_PORT_LIMIT 20 /* incremented from start */
 
-char *wpa_ctrl_get_remote_ifname(struct wpa_ctrl *ctrl);
+char * wpa_ctrl_get_remote_ifname(struct wpa_ctrl *ctrl);
 #endif /* CONFIG_CTRL_IFACE_UDP */
 
-#ifdef __cplusplus
+
+#ifdef  __cplusplus
 }
 #endif
 

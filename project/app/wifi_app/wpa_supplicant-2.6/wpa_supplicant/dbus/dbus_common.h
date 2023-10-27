@@ -14,7 +14,7 @@
 struct wpas_dbus_priv;
 struct wpa_global;
 
-struct wpas_dbus_priv *wpas_dbus_init(struct wpa_global *global);
+struct wpas_dbus_priv * wpas_dbus_init(struct wpa_global *global);
 void wpas_dbus_deinit(struct wpas_dbus_priv *priv);
 
 #endif /* DBUS_COMMON_H */

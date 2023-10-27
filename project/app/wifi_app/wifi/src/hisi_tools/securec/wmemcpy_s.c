@@ -6,9 +6,8 @@
  */
 /*
  * [Standardize-exceptions] Use unsafe function: Portability
- * [reason] Use unsafe function to implement security function to maintain
- * platform compatibility. And sufficient input validation is performed before
- * calling
+ * [reason] Use unsafe function to implement security function to maintain platform compatibility.
+ *          And sufficient input validation is performed before calling
  */
 
 #include "securecutil.h"
@@ -29,36 +28,37 @@
  *
  * <RETURN VALUE>
  *    EOK                    Success
- *    EINVAL                 dest is  NULL  and destMax != 0 and count <=
- * destMax and destMax <= SECUREC_WCHAR_MEM_MAX_LEN EINVAL_AND_RESET       dest
- * != NULL and src is NULLL and destMax != 0 and destMax <=
- * SECUREC_WCHAR_MEM_MAX_LEN and count <= destMax ERANGE                 destMax
- * > SECUREC_WCHAR_MEM_MAX_LEN or destMax is 0 or (count > destMax and dest is
- * NULL and destMax != 0 and destMax <= SECUREC_WCHAR_MEM_MAX_LEN)
+ *    EINVAL                 dest is  NULL  and destMax != 0 and count <= destMax
+ *                           and destMax <= SECUREC_WCHAR_MEM_MAX_LEN
+ *    EINVAL_AND_RESET       dest != NULL and src is NULLL and destMax != 0
+ *                           and destMax <= SECUREC_WCHAR_MEM_MAX_LEN and count <= destMax
+ *    ERANGE                 destMax > SECUREC_WCHAR_MEM_MAX_LEN or destMax is 0 or
+ *                           (count > destMax and dest is  NULL and destMax != 0
+ *                            and destMax <= SECUREC_WCHAR_MEM_MAX_LEN)
  *    ERANGE_AND_RESET       count > destMax and dest  !=  NULL and destMax != 0
  *                           and destMax <= SECUREC_WCHAR_MEM_MAX_LEN
  *    EOVERLAP_AND_RESET     dest buffer and source buffer are overlapped and
- *                           count <= destMax destMax != 0 and destMax <=
- * SECUREC_WCHAR_MEM_MAX_LEN and dest  !=  NULL  and src != NULL and dest != src
+ *                           count <= destMax destMax != 0 and destMax <= SECUREC_WCHAR_MEM_MAX_LEN
+ *                           and dest  !=  NULL  and src != NULL and dest != src
  *
- *    if an error occured, dest will be filled with 0 when dest and destMax
- * valid . If the source and destination overlap, the behavior of wmemcpy_s is
- * undefined. Use wmemmove_s to handle overlapping regions.
+ *    if an error occured, dest will be filled with 0 when dest and destMax valid .
+ *    If the source and destination overlap, the behavior of wmemcpy_s is undefined.
+ *    Use wmemmove_s to handle overlapping regions.
  */
-errno_t wmemcpy_s(wchar_t *dest, size_t destMax, const wchar_t *src,
-                  size_t count) {
-  if (destMax == 0 || destMax > SECUREC_WCHAR_MEM_MAX_LEN) {
-    SECUREC_ERROR_INVALID_PARAMTER("wmemcpy_s");
-    return ERANGE;
-  }
-  if (count > destMax) {
-    SECUREC_ERROR_INVALID_PARAMTER("wmemcpy_s");
-    if (dest != NULL) {
-      (void)memset(dest, 0, destMax * sizeof(wchar_t));
-      return ERANGE_AND_RESET;
+errno_t wmemcpy_s(wchar_t *dest, size_t destMax, const wchar_t *src, size_t count)
+{
+    if (destMax == 0 || destMax > SECUREC_WCHAR_MEM_MAX_LEN) {
+        SECUREC_ERROR_INVALID_PARAMTER("wmemcpy_s");
+        return ERANGE;
     }
-    return ERANGE;
-  }
-  return memcpy_s(dest, destMax * sizeof(wchar_t), src,
-                  count * sizeof(wchar_t));
+    if (count > destMax) {
+        SECUREC_ERROR_INVALID_PARAMTER("wmemcpy_s");
+        if (dest != NULL) {
+            (void)memset(dest, 0, destMax * sizeof(wchar_t));
+            return ERANGE_AND_RESET;
+        }
+        return ERANGE;
+    }
+    return memcpy_s(dest, destMax * sizeof(wchar_t), src, count * sizeof(wchar_t));
 }
+

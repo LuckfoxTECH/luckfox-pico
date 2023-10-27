@@ -17,12 +17,13 @@
 
 struct ikev2_keys;
 
-int eap_ikev2_derive_keymat(int prf, struct ikev2_keys *keys, const u8 *i_nonce,
-                            size_t i_nonce_len, const u8 *r_nonce,
-                            size_t r_nonce_len, u8 *keymat);
-struct wpabuf *eap_ikev2_build_frag_ack(u8 id, u8 code);
+int eap_ikev2_derive_keymat(int prf, struct ikev2_keys *keys,
+			    const u8 *i_nonce, size_t i_nonce_len,
+			    const u8 *r_nonce, size_t r_nonce_len,
+			    u8 *keymat);
+struct wpabuf * eap_ikev2_build_frag_ack(u8 id, u8 code);
 int eap_ikev2_validate_icv(int integ_alg, struct ikev2_keys *keys,
-                           int initiator, const struct wpabuf *msg,
-                           const u8 *pos, const u8 *end);
+			   int initiator, const struct wpabuf *msg,
+			   const u8 *pos, const u8 *end);
 
 #endif /* EAP_IKEV2_COMMON_H */

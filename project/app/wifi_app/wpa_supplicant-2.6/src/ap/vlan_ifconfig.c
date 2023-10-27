@@ -15,51 +15,55 @@
 #include "utils/common.h"
 #include "vlan_util.h"
 
-int ifconfig_helper(const char *if_name, int up) {
-  int fd;
-  struct ifreq ifr;
 
-  if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-    wpa_printf(MSG_ERROR,
-               "VLAN: %s: socket(AF_INET,SOCK_STREAM) "
-               "failed: %s",
-               __func__, strerror(errno));
-    return -1;
-  }
+int ifconfig_helper(const char *if_name, int up)
+{
+	int fd;
+	struct ifreq ifr;
 
-  os_memset(&ifr, 0, sizeof(ifr));
-  os_strlcpy(ifr.ifr_name, if_name, IFNAMSIZ);
+	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		wpa_printf(MSG_ERROR, "VLAN: %s: socket(AF_INET,SOCK_STREAM) "
+			   "failed: %s", __func__, strerror(errno));
+		return -1;
+	}
 
-  if (ioctl(fd, SIOCGIFFLAGS, &ifr) != 0) {
-    wpa_printf(MSG_ERROR,
-               "VLAN: %s: ioctl(SIOCGIFFLAGS) failed "
-               "for interface %s: %s",
-               __func__, if_name, strerror(errno));
-    close(fd);
-    return -1;
-  }
+	os_memset(&ifr, 0, sizeof(ifr));
+	os_strlcpy(ifr.ifr_name, if_name, IFNAMSIZ);
 
-  if (up)
-    ifr.ifr_flags |= IFF_UP;
-  else
-    ifr.ifr_flags &= ~IFF_UP;
+	if (ioctl(fd, SIOCGIFFLAGS, &ifr) != 0) {
+		wpa_printf(MSG_ERROR, "VLAN: %s: ioctl(SIOCGIFFLAGS) failed "
+			   "for interface %s: %s",
+			   __func__, if_name, strerror(errno));
+		close(fd);
+		return -1;
+	}
 
-  if (ioctl(fd, SIOCSIFFLAGS, &ifr) != 0) {
-    wpa_printf(MSG_ERROR,
-               "VLAN: %s: ioctl(SIOCSIFFLAGS) failed "
-               "for interface %s (up=%d): %s",
-               __func__, if_name, up, strerror(errno));
-    close(fd);
-    return -1;
-  }
+	if (up)
+		ifr.ifr_flags |= IFF_UP;
+	else
+		ifr.ifr_flags &= ~IFF_UP;
 
-  close(fd);
-  return 0;
+	if (ioctl(fd, SIOCSIFFLAGS, &ifr) != 0) {
+		wpa_printf(MSG_ERROR, "VLAN: %s: ioctl(SIOCSIFFLAGS) failed "
+			   "for interface %s (up=%d): %s",
+			   __func__, if_name, up, strerror(errno));
+		close(fd);
+		return -1;
+	}
+
+	close(fd);
+	return 0;
 }
 
-int ifconfig_up(const char *if_name) {
-  wpa_printf(MSG_DEBUG, "VLAN: Set interface %s up", if_name);
-  return ifconfig_helper(if_name, 1);
+
+int ifconfig_up(const char *if_name)
+{
+	wpa_printf(MSG_DEBUG, "VLAN: Set interface %s up", if_name);
+	return ifconfig_helper(if_name, 1);
 }
 
-int iface_exists(const char *ifname) { return if_nametoindex(ifname); }
+
+int iface_exists(const char *ifname)
+{
+	return if_nametoindex(ifname);
+}

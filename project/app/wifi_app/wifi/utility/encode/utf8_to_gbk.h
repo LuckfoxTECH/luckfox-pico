@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-int utf8_to_gbk(unsigned char *src, int len, unsigned char *dst);
+int utf8_to_gbk(unsigned char* src, int len, unsigned char* dst);
 
 #ifdef __cplusplus
 }

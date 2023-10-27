@@ -27,11 +27,11 @@
 
 #include "Rk_wifi.h"
 
-#include "Rk_wifi.h"
 #include "atbm_ioctl_ext.h"
 #include "atbm_tool.h"
-#include "rk_wifi_hal.h"
 #include "tools.h"
+#include "rk_wifi_hal.h"
+#include "Rk_wifi.h"
 
 #if defined(SUPPORT_EASY_ATBM)
 #include "tools.h"
@@ -41,8 +41,7 @@
 #define ATBM_POWER_SET _IOW(ATBM_POWER, 0, char)
 
 #if 1
-#define DEBUG_PRINTF(fmt, args...)                                             \
-  printf("[%s|%d]:" fmt, __FUNCTION__, __LINE__, ##args)
+#define DEBUG_PRINTF(fmt, args...) printf("[%s|%d]:" fmt, __FUNCTION__, __LINE__, ##args)
 #else
 // #define DEBUG_PRINTF(fmt, args...) printf(fmt, ##args)
 #define DEBUG_PRINTF(fmt, args...)
@@ -56,17 +55,12 @@
 #define ATBM_WAKEUP_REASON_EVENT "wake up reason is "
 #define ATBM_PIR_DETECT_EVENT "after resume,pir detect cnt is "
 
-static key_long_press_event_func key_long_press_func_cb =
-    NULL; /* 复位键长按事件处理函数 */
-static key_short_press_event_func key_short_press_func_cb =
-    NULL; /* 门铃事件处理函数 */
-static wakeup_event_func wakeup_event_func_cb = NULL; /* 唤醒原因事件处理函数 */
-static battery_level_event_func battery_level_event_func_cb =
-    NULL; /* 电池电量事件处理函数 */
-static pir_detect_event_func pir_detect_event_func_cb =
-    NULL; /* pir事件处理函数 */
-static wifi_connect_result_event_func wifi_connect_result_event_func_cb =
-    NULL; /* WiFi连接结果事件处理函数 */
+static key_long_press_event_func key_long_press_func_cb = NULL;                 /* 复位键长按事件处理函数 */
+static key_short_press_event_func key_short_press_func_cb = NULL;               /* 门铃事件处理函数 */
+static wakeup_event_func wakeup_event_func_cb = NULL;                           /* 唤醒原因事件处理函数 */
+static battery_level_event_func battery_level_event_func_cb = NULL;			        /* 电池电量事件处理函数 */
+static pir_detect_event_func pir_detect_event_func_cb = NULL;			              /* pir事件处理函数 */
+static wifi_connect_result_event_func wifi_connect_result_event_func_cb = NULL;	/* WiFi连接结果事件处理函数 */
 
 static struct ap_cfg ap_cfg_set;
 static struct etf_cfg etf_cfg_set;
@@ -83,6 +77,7 @@ static struct status_async status;
 static struct connect_info networkinfo;
 //保存WiFi全局状态
 static RK_WIFI_INFO_Connection_s g_wifi_Info;
+
 
 static struct transform ps_trans[PS_TYPE_MAX] = {
     {"NO_SLEEP", PS_TYPE_NO_SLEEP},
@@ -460,7 +455,8 @@ err:
   return -1;
 }
 
-int atbm_enable_network(char *ssid, char *key) {
+int atbm_enable_network(char *ssid, char *key)
+{
   if (wifi_mode) {
     DEBUG_PRINTF("please switch wifi mode to STA.\n");
     goto err;
@@ -523,171 +519,177 @@ int clear_network_cmd(int fp, int argc, char *argv[]) {
   return 0;
 }
 
-int atbm_get_status(RK_WIFI_INFO_Connection_s *pInfo) {
-  int ret = 0;
-  struct status_info status_info;
-  struct in_addr addr;
+int atbm_get_status(RK_WIFI_INFO_Connection_s *pInfo)
+{
+	int ret = 0;
+	struct status_info status_info;
+	struct in_addr addr;
 
-  memset(&status_info, 0, sizeof(struct status_info));
-  memset(pInfo, 0, sizeof(struct RK_WIFI_INFO_Connection_s));
-  ret = ioctl(g_fp, ATBM_STATUS, (unsigned int)(&status_info));
-  if (ret) {
-    goto err;
-  }
+	memset(&status_info, 0, sizeof(struct status_info));
+	memset(pInfo, 0, sizeof(struct RK_WIFI_INFO_Connection_s));
+	ret = ioctl(g_fp, ATBM_STATUS, (unsigned int)(&status_info));
+	if (ret) {
+		goto err;
+	}
 
-  wifi_mode = status_info.wifimode;
-  DEBUG_PRINTF("[WIFI_MODE] %s\n", wifi_mode ? "AP" : "STA");
-  if (status_info.wifimode) {
-    DEBUG_PRINTF("please switch wifi mode to STA.\n");
-    goto err;
-  }
+	wifi_mode = status_info.wifimode;
+	DEBUG_PRINTF("[WIFI_MODE] %s\n", wifi_mode ? "AP" : "STA");
+	if (status_info.wifimode) {
+		DEBUG_PRINTF("please switch wifi mode to STA.\n");
+		goto err;
+	}
 
-  if (status_info.bconnect) {
-    // wpa_state
-    if (pInfo)
-      memcpy(pInfo->wpa_state, "CONNECTED", strlen("CONNECTED"));
-    DEBUG_PRINTF("wpa_state=%s\n", pInfo->wpa_state);
+	if (status_info.bconnect) {
+		//wpa_state
+		if (pInfo)
+			memcpy(pInfo->wpa_state, "CONNECTED", strlen("CONNECTED"));
+		DEBUG_PRINTF("wpa_state=%s\n", pInfo->wpa_state);
 
-    // ssid
-    DEBUG_PRINTF("ssid=%s\n", status_info.con_event.ssid);
-    if (pInfo)
-      memcpy(pInfo->ssid, status_info.con_event.ssid,
-             strlen(status_info.con_event.ssid));
+		//ssid
+		DEBUG_PRINTF("ssid=%s\n", status_info.con_event.ssid);
+		if (pInfo)
+			memcpy(pInfo->ssid, status_info.con_event.ssid, strlen(status_info.con_event.ssid));
 
-    // ipaddr
-    addr.s_addr = status_info.con_event.ipaddr;
-    DEBUG_PRINTF("ip_address=%s\n", inet_ntoa(addr));
-    if (pInfo)
-      memcpy(pInfo->ip_address, inet_ntoa(addr), strlen(inet_ntoa(addr)));
+		//ipaddr
+		addr.s_addr = status_info.con_event.ipaddr;
+		DEBUG_PRINTF("ip_address=%s\n", inet_ntoa(addr));
+		if (pInfo)
+			memcpy(pInfo->ip_address, inet_ntoa(addr), strlen(inet_ntoa(addr)));
 
-    // bssid
-    if (pInfo)
-      sprintf(pInfo->bssid, "%02x:%02x:%02x:%02x:%02x:%02x",
-              status_info.con_event.bssid[0], status_info.con_event.bssid[1],
-              status_info.con_event.bssid[2], status_info.con_event.bssid[3],
-              status_info.con_event.bssid[4], status_info.con_event.bssid[5]);
-    DEBUG_PRINTF("ap_address=%s\n", pInfo->bssid);
+		//bssid
+		if (pInfo)
+			sprintf(pInfo->bssid, "%02x:%02x:%02x:%02x:%02x:%02x",
+				status_info.con_event.bssid[0],
+				status_info.con_event.bssid[1],
+				status_info.con_event.bssid[2],
+				status_info.con_event.bssid[3],
+				status_info.con_event.bssid[4],
+				status_info.con_event.bssid[5]);
+		DEBUG_PRINTF("ap_address=%s\n", pInfo->bssid);
 
-    // ipmask
-    addr.s_addr = status_info.con_event.ipmask;
-    DEBUG_PRINTF("ip_mask=%s\n", inet_ntoa(addr));
+		//ipmask
+		addr.s_addr = status_info.con_event.ipmask;
+		DEBUG_PRINTF("ip_mask=%s\n", inet_ntoa(addr));
 
-    // dns
-    addr.s_addr = status_info.con_event.dnsaddr[0];
-    DEBUG_PRINTF("dns=%s\n", inet_ntoa(addr));
-    if (pInfo) {
-      memcpy(pInfo->dns, inet_ntoa(addr), strlen(inet_ntoa(addr)));
-    }
+		//dns
+		addr.s_addr = status_info.con_event.dnsaddr[0];
+		DEBUG_PRINTF("dns=%s\n", inet_ntoa(addr));
+		if (pInfo) {
+			memcpy(pInfo->dns, inet_ntoa(addr), strlen(inet_ntoa(addr)));
+		}
 
-    // gw
-    addr.s_addr = status_info.con_event.gwaddr;
-    DEBUG_PRINTF("gate_way=%s\n", inet_ntoa(addr));
-    if (pInfo) {
-      memcpy(pInfo->gw, inet_ntoa(addr), strlen(inet_ntoa(addr)));
-    }
-  } else {
-    if (pInfo)
-      memcpy(pInfo->wpa_state, "DISCONNECTED", strlen("DISCONNECTED"));
-    DEBUG_PRINTF("wpa_state=INACTIVE\n");
-  }
+		//gw
+		addr.s_addr = status_info.con_event.gwaddr;
+		DEBUG_PRINTF("gate_way=%s\n", inet_ntoa(addr));
+		if (pInfo) {
+			memcpy(pInfo->gw, inet_ntoa(addr), strlen(inet_ntoa(addr)));
+		}
+	} else {
+		if (pInfo)
+			memcpy(pInfo->wpa_state, "DISCONNECTED", strlen("DISCONNECTED"));
+		DEBUG_PRINTF("wpa_state=INACTIVE\n");
+	}
 
-  return 1;
+	return 1;
 err:
-  return -1;
+	return -1;
 }
 
-static int atbm_init_status(void) {
-  int ret = 0;
-  struct status_info status_info;
-  struct in_addr addr;
+static int atbm_init_status(void)
+{
+	int ret = 0;
+	struct status_info status_info;
+	struct in_addr addr;
 
-  memset(&status_info, 0, sizeof(struct status_info));
-  ret = ioctl(g_fp, ATBM_STATUS, (unsigned int)(&status_info));
-  if (ret) {
-    goto err;
-  }
+	memset(&status_info, 0, sizeof(struct status_info));
+	ret = ioctl(g_fp, ATBM_STATUS, (unsigned int)(&status_info));
+	if (ret) {
+		goto err;
+	}
 
-  wifi_mode = status_info.wifimode;
-  DEBUG_PRINTF("[WIFI_MODE] %s\n", wifi_mode ? "AP" : "STA");
-  if (status_info.wifimode) {
-    DEBUG_PRINTF("please switch wifi mode to STA.\n");
-    goto err;
-  }
+	wifi_mode = status_info.wifimode;
+	DEBUG_PRINTF("[WIFI_MODE] %s\n", wifi_mode ? "AP" : "STA");
+	if (status_info.wifimode) {
+		DEBUG_PRINTF("please switch wifi mode to STA.\n");
+		goto err;
+	}
 
-  if (status_info.bconnect) {
-    memset(&g_wifi_Info, 0, sizeof(RK_WIFI_INFO_Connection_s));
-    // wpa_state
-    memcpy(g_wifi_Info.wpa_state, "CONNECTED", strlen("CONNECTED"));
+	if (status_info.bconnect) {
+		memset(&g_wifi_Info, 0, sizeof(RK_WIFI_INFO_Connection_s));
+		//wpa_state
+		memcpy(g_wifi_Info.wpa_state, "CONNECTED", strlen("CONNECTED"));
 
-    // ssid
-    DEBUG_PRINTF("wpa_state=%s\n", g_wifi_Info.wpa_state);
-    DEBUG_PRINTF("ssid=%s\n", status_info.con_event.ssid);
-    memcpy(g_wifi_Info.ssid, status_info.con_event.ssid,
-           strlen(status_info.con_event.ssid));
+		//ssid
+		DEBUG_PRINTF("wpa_state=%s\n", g_wifi_Info.wpa_state);
+		DEBUG_PRINTF("ssid=%s\n", status_info.con_event.ssid);
+		memcpy(g_wifi_Info.ssid, status_info.con_event.ssid, strlen(status_info.con_event.ssid));
 
-    // ipaddr
-    addr.s_addr = status_info.con_event.ipaddr;
-    DEBUG_PRINTF("ip_address=%s\n", inet_ntoa(addr));
-    memcpy(g_wifi_Info.ip_address, inet_ntoa(addr), strlen(inet_ntoa(addr)));
+		//ipaddr
+		addr.s_addr = status_info.con_event.ipaddr;
+		DEBUG_PRINTF("ip_address=%s\n", inet_ntoa(addr));
+		memcpy(g_wifi_Info.ip_address, inet_ntoa(addr), strlen(inet_ntoa(addr)));
 
-    // bssid
-    if (status_info.wifimode) {
-      MAC_printf(status_info.macaddr);
-    } else {
-      MAC_printf(status_info.con_event.bssid);
-    }
-    sprintf(g_wifi_Info.bssid, "%02x:%02x:%02x:%02x:%02x:%02x",
-            status_info.con_event.bssid[0], status_info.con_event.bssid[1],
-            status_info.con_event.bssid[2], status_info.con_event.bssid[3],
-            status_info.con_event.bssid[4], status_info.con_event.bssid[5]);
-    DEBUG_PRINTF("ap_address=%s\n", g_wifi_Info.bssid);
+		//bssid
+		if (status_info.wifimode) {
+			MAC_printf(status_info.macaddr);
+		} else {
+			MAC_printf(status_info.con_event.bssid);
+		}
+		sprintf(g_wifi_Info.bssid, "%02x:%02x:%02x:%02x:%02x:%02x",
+			status_info.con_event.bssid[0],
+			status_info.con_event.bssid[1],
+			status_info.con_event.bssid[2],
+			status_info.con_event.bssid[3],
+			status_info.con_event.bssid[4],
+			status_info.con_event.bssid[5]);
+		DEBUG_PRINTF("ap_address=%s\n", g_wifi_Info.bssid);
 
-    // gw_dns
-    addr.s_addr = status_info.con_event.ipmask;
-    DEBUG_PRINTF("\nip_mask=%s\n", inet_ntoa(addr));
-    addr.s_addr = status_info.con_event.gwaddr;
-    DEBUG_PRINTF("gate_way=%s\n", inet_ntoa(addr));
-    memcpy(g_wifi_Info.gw, inet_ntoa(addr), strlen(inet_ntoa(addr)));
-    addr.s_addr = status_info.con_event.dnsaddr[0];
-    DEBUG_PRINTF("dns=%s\n", inet_ntoa(addr));
-    memcpy(g_wifi_Info.dns, inet_ntoa(addr), strlen(inet_ntoa(addr)));
+		//gw_dns
+		addr.s_addr = status_info.con_event.ipmask;
+		DEBUG_PRINTF("\nip_mask=%s\n", inet_ntoa(addr));
+		addr.s_addr = status_info.con_event.gwaddr;
+		DEBUG_PRINTF("gate_way=%s\n", inet_ntoa(addr));
+		memcpy(g_wifi_Info.gw, inet_ntoa(addr), strlen(inet_ntoa(addr)));
+		addr.s_addr = status_info.con_event.dnsaddr[0];
+		DEBUG_PRINTF("dns=%s\n", inet_ntoa(addr));
+		memcpy(g_wifi_Info.dns, inet_ntoa(addr), strlen(inet_ntoa(addr)));
 
-    // INIT STATE
-    char cmd[64];
-    struct in_addr ip_addr;
-    ip_addr.s_addr = status_info.con_event.ipaddr;
-    sprintf(cmd, "ifconfig wlan0 %s", inet_ntoa(ip_addr));
-    DEBUG_PRINTF("cmd:%s\n", cmd);
-    system(cmd);
+		//INIT STATE
+		char cmd[64];
+		struct in_addr ip_addr;
+		ip_addr.s_addr = status_info.con_event.ipaddr;
+		sprintf(cmd, "ifconfig wlan0 %s", inet_ntoa(ip_addr));
+		DEBUG_PRINTF("cmd:%s\n", cmd);
+		system(cmd);
 
-    ip_addr.s_addr = status_info.con_event.gwaddr;
-    sprintf(cmd, "echo \"nameserver %s\" > /etc/resolv.conf",
-            inet_ntoa(ip_addr));
-    DEBUG_PRINTF("cmd:%s\n", cmd);
-    system(cmd);
+		ip_addr.s_addr = status_info.con_event.gwaddr;
+		sprintf(cmd, "echo \"nameserver %s\" > /etc/resolv.conf",
+				inet_ntoa(ip_addr));
+		DEBUG_PRINTF("cmd:%s\n", cmd);
+		system(cmd);
+		
+		system("ifconfig wlan0 up");
+		
+		ip_addr.s_addr = status_info.con_event.gwaddr;
+		sprintf(cmd, "route add default gw %s", inet_ntoa(ip_addr));
+		DEBUG_PRINTF("cmd:%s\n", cmd);
+		system(cmd);
 
-    system("ifconfig wlan0 up");
+		if (NULL != m_wifi_cb) {
+			m_wifi_cb(RK_WIFI_State_CONNECTED, &g_wifi_Info);
+			m_wifi_cb(RK_WIFI_State_DHCP_OK, &g_wifi_Info);
+		}
+	} else {
+		memcpy(g_wifi_Info.wpa_state, "DISCONNECTED", strlen("DISCONNECTED"));
+		DEBUG_PRINTF("wpa_state=INACTIVE\n");
+		if (NULL != m_wifi_cb) {
+			m_wifi_cb(RK_WIFI_State_DISCONNECTED, &g_wifi_Info);
+		}
+	}
 
-    ip_addr.s_addr = status_info.con_event.gwaddr;
-    sprintf(cmd, "route add default gw %s", inet_ntoa(ip_addr));
-    DEBUG_PRINTF("cmd:%s\n", cmd);
-    system(cmd);
-
-    if (NULL != m_wifi_cb) {
-      m_wifi_cb(RK_WIFI_State_CONNECTED, &g_wifi_Info);
-      m_wifi_cb(RK_WIFI_State_DHCP_OK, &g_wifi_Info);
-    }
-  } else {
-    memcpy(g_wifi_Info.wpa_state, "DISCONNECTED", strlen("DISCONNECTED"));
-    DEBUG_PRINTF("wpa_state=INACTIVE\n");
-    if (NULL != m_wifi_cb) {
-      m_wifi_cb(RK_WIFI_State_DISCONNECTED, &g_wifi_Info);
-    }
-  }
-
-  return 0;
+	return 0;
 err:
-  return -1;
+	return -1;
 }
 
 int get_status_send(int fp, int argc, char *argv[]) {
@@ -731,17 +733,18 @@ err:
  *
  * @return sta模式下已连接返回1，否则返回0，失败返回负数
  */
-int atbm_clear_wifi_cfg(void) {
+int atbm_clear_wifi_cfg(void)
+{
   int ret = 0;
-  ret = ioctl(g_fp, ATBM_CLEAR_WIFI_CFG, NULL);
-  if (0 != ret) {
-    DEBUG_PRINTF("clear wifi config fail\n");
-    return -1;
-  }
+	ret = ioctl(g_fp, ATBM_CLEAR_WIFI_CFG, NULL);
+	if (0 != ret) {
+		DEBUG_PRINTF("clear wifi config fail\n");
+		return -1;
+	}
 
-  system("ifconfig wlan0 0.0.0.0");
-  DEBUG_PRINTF("clear wifi config success\n");
-  return 0;
+	system("ifconfig wlan0 0.0.0.0");
+	DEBUG_PRINTF("clear wifi config success\n");
+	return 0;
 }
 
 /**
@@ -1069,17 +1072,18 @@ int scan_cmd(int fp, int argc, char *argv[]) {
   return ret;
 }
 
-int atbm_scan(void) {
-  int ret = 0;
+int atbm_scan(void)
+{
+	int ret = 0;
 
-  if (wifi_mode) {
-    DEBUG_PRINTF("please switch wifi mode to STA.\n");
-    ret = -1;
-  } else {
-    ret = ioctl(g_fp, ATBM_SCAN, NULL);
-  }
+	if (wifi_mode) {
+		DEBUG_PRINTF("please switch wifi mode to STA.\n");
+		ret = -1;
+	} else {
+		ret = ioctl(g_fp, ATBM_SCAN, NULL);
+	}
 
-  return ret;
+	return ret;
 }
 
 int scan_results_cmd(int fp, int argc, char *argv[]) {
@@ -1119,7 +1123,8 @@ int scan_results_cmd(int fp, int argc, char *argv[]) {
   return ret;
 }
 
-int atbm_scan_results(void) {
+int atbm_scan_results(void)
+{
   int ret = 0;
   struct scan_result scan_info;
   int start = 1;
@@ -1860,22 +1865,22 @@ err:
   return -1;
 }
 
-int atbm_get_rssi_cmd(void) {
-  int ret = 0;
-  struct rssi_info rssi;
+int atbm_get_rssi_cmd(void)
+{
+	int ret = 0;
+	struct rssi_info rssi;
 
-  ret = ioctl(g_fp, ATBM_RSSI, &rssi);
-  if (ret) {
-    goto err;
-  }
+	ret = ioctl(g_fp, ATBM_RSSI, &rssi);
+	if (ret) {
+		goto err;
+	}
 
-  DEBUG_PRINTF("current rssi: %d\n", rssi.rssi);
+	DEBUG_PRINTF("current rssi: %d\n", rssi.rssi);
 
-  return rssi.rssi;
-  ;
+	return rssi.rssi;;
 
 err:
-  return -1;
+	return -1;
 }
 
 int get_rssi_cmd(int fp, int argc, char *argv[]) {
@@ -2569,7 +2574,8 @@ int atbm_set_port_filter(int port, int enable) {
   return ret;
 }
 
-void atbm_driver_go_sleep(void) {
+void atbm_driver_go_sleep(void)
+{
   if (is_insmod_driver) {
     char is_empty = 0;
     sem_wait(&sem);
@@ -2770,28 +2776,28 @@ int cmd_parse(int fp, char *arg) {
   return -1;
 }
 
-static int insmod_driver(int test_insmod) {
-  int ret = 0;
-  int flags = 0;
-  int ip_set = 0;
-  struct status_info status_info;
-  g_fp = -1;
+static int insmod_driver(int test_insmod)
+{
+	int ret = 0;
+	int flags = 0;
+	int ip_set = 0;
+	struct status_info status_info;
+	g_fp = -1;
 
-  sem_wait(&sem_status);
-  g_fp = open("/dev/atbm_ioctl", O_RDWR);
-  while (g_fp < 0) {
-    DEBUG_PRINTF(
-        "open /dev/atbm_ioctl fail, maybe prefetch bit is not cleared\n");
-    g_fp = open("/dev/atbm_ioctl", O_RDWR);
-    usleep(10 * 1000);
-  }
-  sem_post(&sem_status);
-  is_insmod_driver = 1;
-  driver_can_rmmod = 0;
+	sem_wait(&sem_status);
+	g_fp = open("/dev/atbm_ioctl", O_RDWR);
+	while (g_fp < 0) {
+		DEBUG_PRINTF("open /dev/atbm_ioctl fail, maybe prefetch bit is not cleared\n");
+		g_fp = open("/dev/atbm_ioctl", O_RDWR);
+		usleep(10 * 1000);
+	}
+	sem_post(&sem_status);
+	is_insmod_driver = 1;
+	driver_can_rmmod = 0;
 
-  fcntl(g_fp, F_SETOWN, getpid());
-  flags = fcntl(g_fp, F_GETFL);
-  fcntl(g_fp, F_SETFL, flags | FASYNC);
+	fcntl(g_fp, F_SETOWN, getpid());
+	flags = fcntl(g_fp, F_GETFL);
+	fcntl(g_fp, F_SETFL, flags | FASYNC);
 
 #if 0
 	memset(&status_info, 0, sizeof(struct status_info));
@@ -2835,11 +2841,12 @@ static int insmod_driver(int test_insmod) {
 		}
 	}
 #endif
-  driver_switch = 1;
-  return 0;
+	driver_switch = 1;
+	return 0;
 }
 
-int rmmod_driver(void) {
+int rmmod_driver(void)
+{
   system("ifconfig wlan0 down");
   close(g_fp);
   g_fp = -1;
@@ -2946,365 +2953,370 @@ void *get_command_func(void *arg) {
   return NULL;
 }
 
-static atbm_con_msg(void) {
-  int reason;
+static atbm_con_msg(void)
+{
+	int reason;
 
-  if (status.is_connected) {
-    struct in_addr ip_addr;
-    ip_addr.s_addr = status.event.ipaddr;
-    if (wifi_mode) {
-      DEBUG_PRINTF("AP Mode.\n");
-    } else {
-      DEBUG_PRINTF("CTRL-EVENT-STATE-CONNECTED - Connection to ");
-      MAC_printf(status.event.bssid);
-      DEBUG_PRINTF(" completed done\n");
-      if (NULL != m_wifi_cb) {
-        m_wifi_cb(RK_WIFI_State_CONNECTED, NULL);
-      }
-    }
+	if (status.is_connected) {
+		struct in_addr ip_addr;
+		ip_addr.s_addr = status.event.ipaddr;
+		if (wifi_mode) {
+			DEBUG_PRINTF("AP Mode.\n");
+		} else {
+			DEBUG_PRINTF("CTRL-EVENT-STATE-CONNECTED - Connection to ");
+			MAC_printf(status.event.bssid);
+			DEBUG_PRINTF(" completed done\n");
+			if (NULL != m_wifi_cb) {
+				m_wifi_cb(RK_WIFI_State_CONNECTED, NULL);
+			}
+		}
 
-    DEBUG_PRINTF("ip addr:%s\n", inet_ntoa(ip_addr));
-    DEBUG_PRINTF("ip_set_auto:%d\n", ip_set_auto);
+		DEBUG_PRINTF("ip addr:%s\n", inet_ntoa(ip_addr));
+		DEBUG_PRINTF("ip_set_auto:%d\n", ip_set_auto);
 
-    if (ip_set_auto) {
-      char cmd[64];
-      struct in_addr ip_addr;
+		if (ip_set_auto) {
+			char cmd[64];
+			struct in_addr ip_addr;
+	
+			ip_addr.s_addr = status.event.ipaddr;
+			sprintf(cmd, "ifconfig wlan0 %s", inet_ntoa(ip_addr));
+			DEBUG_PRINTF("cmd:%s\n", cmd);
+			system(cmd);
 
-      ip_addr.s_addr = status.event.ipaddr;
-      sprintf(cmd, "ifconfig wlan0 %s", inet_ntoa(ip_addr));
-      DEBUG_PRINTF("cmd:%s\n", cmd);
-      system(cmd);
-
-      ip_addr.s_addr = status.event.gwaddr;
-      sprintf(cmd, "echo \"nameserver %s\" > /etc/resolv.conf",
-              inet_ntoa(ip_addr));
-      DEBUG_PRINTF("cmd:%s\n", cmd);
-      system(cmd);
-
-      system("ifconfig wlan0 up");
-
-      ip_addr.s_addr = status.event.gwaddr;
-      sprintf(cmd, "route add default gw %s", inet_ntoa(ip_addr));
-      DEBUG_PRINTF("cmd:%s\n", cmd);
-      system(cmd);
-      if (NULL != m_wifi_cb) {
-        m_wifi_cb(RK_WIFI_State_DHCP_OK, NULL);
-      }
-    }
-
-  } else {
-    if (!wifi_mode) {
-      DEBUG_PRINTF("CTRL-EVENT-STATE-DISCONNECTED\n");
-    }
-    if (NULL != m_wifi_cb) {
-      m_wifi_cb(RK_WIFI_State_DISCONNECTED, NULL);
-    }
-    // system("ifconfig wlan0 down");
-  }
+			ip_addr.s_addr = status.event.gwaddr;
+			sprintf(cmd, "echo \"nameserver %s\" > /etc/resolv.conf", inet_ntoa(ip_addr));
+			DEBUG_PRINTF("cmd:%s\n", cmd);
+			system(cmd);
+	
+			system("ifconfig wlan0 up");
+	
+			ip_addr.s_addr = status.event.gwaddr;
+			sprintf(cmd, "route add default gw %s", inet_ntoa(ip_addr));
+			DEBUG_PRINTF("cmd:%s\n", cmd);
+			system(cmd);
+			if (NULL != m_wifi_cb) {
+				m_wifi_cb(RK_WIFI_State_DHCP_OK, NULL);
+			}
+		}
+	
+	} else {
+		if (!wifi_mode) {
+			DEBUG_PRINTF("CTRL-EVENT-STATE-DISCONNECTED\n");
+		}
+		if (NULL != m_wifi_cb) {
+			m_wifi_cb(RK_WIFI_State_DISCONNECTED, NULL);
+		}
+		//system("ifconfig wlan0 down");
+	}
 }
 
-static void atbm_rmmod_msg(void) {
-  if (status.driver_mode) {
-    driver_can_rmmod = 0;
-    DEBUG_PRINTF(">> linux driver can not rmmod ...\n");
-  } else {
-    driver_can_rmmod = 1;
-    DEBUG_PRINTF(">> linux driver can rmmod ...\n");
-    if (rmmod_auto && driver_can_rmmod) {
-      atbm_driver_go_sleep();
-    }
-  }
+static void atbm_rmmod_msg(void)
+{
+	if (status.driver_mode) {
+		driver_can_rmmod = 0;
+		DEBUG_PRINTF(">> linux driver can not rmmod ...\n");
+	} else {
+		driver_can_rmmod = 1;
+		DEBUG_PRINTF(">> linux driver can rmmod ...\n");
+		if (rmmod_auto && driver_can_rmmod) {
+			atbm_driver_go_sleep();
+		}
+	}
 }
 
-static void atbm_scan_r_msg(void) {
-  DEBUG_PRINTF("Scan Completed...\n");
-  DEBUG_PRINTF("CTRL-EVENT-SCAN-RESULTS\n");
+static void atbm_scan_r_msg(void)
+{
+	DEBUG_PRINTF("Scan Completed...\n");
+	DEBUG_PRINTF("CTRL-EVENT-SCAN-RESULTS\n");
 }
 
-static void atbm_wake_host_msg(void) {
-  RK_WIFI_RUNNING_State_e reason;
+static void atbm_wake_host_msg(void)
+{
+	RK_WIFI_RUNNING_State_e reason;
 
-  switch (status.driver_mode) {
-  case WAKEUP_IO:
-    reason = RK_WIFI_WAKEUP_IO;
-    DEBUG_PRINTF("[WAKEUP] IO wakeup\n");
-    break;
-  case WAKEUP_NETWORK:
-    reason = RK_WIFI_WAKEUP_NETWORK;
-    DEBUG_PRINTF("[WAKEUP] NETWORK wakeup\n");
-    break;
-  case WAKEUP_CONNECT:
-    reason = RK_WIFI_WAKEUP_CONNECT;
-    DEBUG_PRINTF("[WAKEUP] AP RECONNECT wakeup\n");
-    break;
-  case WAKEUP_KEEPALIVE:
-    reason = RK_WIFI_WAKEUP_KEEPALIVE;
-    DEBUG_PRINTF("[WAKEUP] KEEPALIVE wakeup\n");
-    break;
-  case WAKEUP_DETECT_PIR:
-    reason = RK_WIFI_WAKEUP_DETECT_PIR;
-    DEBUG_PRINTF("[WAKEUP] PIR DETECT wakeup\n");
-    break;
-  default:
-    DEBUG_PRINTF("[WAKEUP] UNKNOWN wakeup\n");
-    break;
-  }
+	switch (status.driver_mode) {
+	case WAKEUP_IO:
+		reason = RK_WIFI_WAKEUP_IO;
+		DEBUG_PRINTF("[WAKEUP] IO wakeup\n");
+		break;
+	case WAKEUP_NETWORK:
+		reason = RK_WIFI_WAKEUP_NETWORK;
+		DEBUG_PRINTF("[WAKEUP] NETWORK wakeup\n");
+		break;
+	case WAKEUP_CONNECT:
+		reason = RK_WIFI_WAKEUP_CONNECT;
+		DEBUG_PRINTF("[WAKEUP] AP RECONNECT wakeup\n");
+		break;
+	case WAKEUP_KEEPALIVE:
+		reason = RK_WIFI_WAKEUP_KEEPALIVE;
+		DEBUG_PRINTF("[WAKEUP] KEEPALIVE wakeup\n");
+		break;
+	case WAKEUP_DETECT_PIR:
+		reason = RK_WIFI_WAKEUP_DETECT_PIR;
+		DEBUG_PRINTF("[WAKEUP] PIR DETECT wakeup\n");
+		break;
+	default:
+		DEBUG_PRINTF("[WAKEUP] UNKNOWN wakeup\n");
+		break;
+	}
 
-  /* 回调唤醒原因 */
-  if (NULL != m_wifi_cb) {
-    m_wifi_cb(reason, NULL);
-  }
+	/* 回调唤醒原因 */
+	if (NULL != m_wifi_cb) {
+		m_wifi_cb(reason, NULL);
+	}
 }
 
-static void atbm_disconnect_msg(void) {
-  RK_WIFI_RUNNING_State_e reason;
+static void atbm_disconnect_msg(void)
+{
+	RK_WIFI_RUNNING_State_e reason;
 
-  switch (status.driver_mode) {
-  case DISCONN_BSS_LOST:
-    reason = RK_WIFI_State_DISCONNECTED_LOST_BEACON;
-    DEBUG_PRINTF("[DISCONN] BSS lost\n");
-    break;
-  case DISCONN_HOST_DONE:
-    reason = RK_WIFI_State_DISCONNECTED_BY_HOST;
-    DEBUG_PRINTF("[DISCONN] Host call disconnect\n");
-    break;
-  case DISCONN_AP_DEAUTH:
-    reason = RK_WIFI_State_DISCONNECTED_BY_ROUTER;
-    DEBUG_PRINTF("[DISCONN] AP deauth\n");
-    break;
-  default:
-    reason = RK_WIFI_State_DISCONNECTED;
-    DEBUG_PRINTF("[DISCONN] UNKNOWN disconn\n");
-    break;
-  }
+	switch (status.driver_mode) {
+	case DISCONN_BSS_LOST:
+		reason = RK_WIFI_State_DISCONNECTED_LOST_BEACON;
+		DEBUG_PRINTF("[DISCONN] BSS lost\n");
+		break;
+	case DISCONN_HOST_DONE:
+		reason = RK_WIFI_State_DISCONNECTED_BY_HOST;
+		DEBUG_PRINTF("[DISCONN] Host call disconnect\n");
+		break;
+	case DISCONN_AP_DEAUTH:
+		reason = RK_WIFI_State_DISCONNECTED_BY_ROUTER;
+		DEBUG_PRINTF("[DISCONN] AP deauth\n");
+		break;
+	default:
+		reason = RK_WIFI_State_DISCONNECTED;
+		DEBUG_PRINTF("[DISCONN] UNKNOWN disconn\n");
+		break;
+	}
 
-  /* 回调连接掉线原因 */
-  if (NULL != m_wifi_cb) {
-    m_wifi_cb(reason, NULL);
-  }
+	/* 回调连接掉线原因 */
+	if (NULL != m_wifi_cb) {
+		m_wifi_cb(reason, NULL);
+	}
 }
 
-static void atbm_connect_fail_msg(void) {
-  RK_WIFI_RUNNING_State_e reason;
+static void atbm_connect_fail_msg(void)
+{
+	RK_WIFI_RUNNING_State_e reason;
 
-  switch (status.driver_mode) {
-  case CONN_NOT_FOUND_SSID:
-    reason = RK_WIFI_State_CONNECTFAILED_NOT_FOUND;
-    DEBUG_PRINTF("[CONN] Not found SSID\n");
-    break;
-  case CONN_JOIN_FAIL:
-    reason = RK_WIFI_State_CONNECTFAILED;
-    DEBUG_PRINTF("[CONN] Join auth fail\n");
-    break;
-  case CONN_NOT_GET_IP:
-    reason = RK_WIFI_State_DHCP_ERR;
-    DEBUG_PRINTF("[CONN] Not get ip by DHCP\n");
-    break;
-  default:
-    reason = RK_WIFI_State_UNKNOW_ERR;
-    DEBUG_PRINTF("[CONN] UNKNOWN conn\n");
-    break;
-  }
-
-  /* 回调连接错误原因 */
-  if (NULL != m_wifi_cb) {
-    m_wifi_cb(reason, NULL);
-  }
+	switch (status.driver_mode) {
+	case CONN_NOT_FOUND_SSID:
+		reason = RK_WIFI_State_CONNECTFAILED_NOT_FOUND;
+		DEBUG_PRINTF("[CONN] Not found SSID\n");
+		break;
+	case CONN_JOIN_FAIL:
+		reason = RK_WIFI_State_CONNECTFAILED;
+		DEBUG_PRINTF("[CONN] Join auth fail\n");
+		break;
+	case CONN_NOT_GET_IP:
+		reason = RK_WIFI_State_DHCP_ERR;
+		DEBUG_PRINTF("[CONN] Not get ip by DHCP\n");
+		break;
+	default:
+		reason = RK_WIFI_State_UNKNOW_ERR;
+		DEBUG_PRINTF("[CONN] UNKNOWN conn\n");
+		break;
+	}
+	
+	/* 回调连接错误原因 */
+	if (NULL != m_wifi_cb) {
+		m_wifi_cb(reason, NULL);
+	}
 }
 
-static void atbm_customer_msg(void) {
-  RK_WIFI_RUNNING_State_e reason;
-  RK_WIFI_INFO_Connection_s wifi_info;
+static void atbm_customer_msg(void)
+{
+	RK_WIFI_RUNNING_State_e reason;
+	RK_WIFI_INFO_Connection_s wifi_info;
 
-  wifi_info = g_wifi_Info;
+	wifi_info = g_wifi_Info;
 
-  memset(&wifi_info.lp_data, 0, 32);
-  DEBUG_PRINTF("status.event_buffer: %s\n", status.event_buffer);
+	memset(&wifi_info.lp_data, 0, 32);
+	DEBUG_PRINTF("status.event_buffer: %s\n", status.event_buffer);
 
-  reason = RK_WIFI_State_LP_EVENT_TYPE;
+	reason = RK_WIFI_State_LP_EVENT_TYPE;
 
-  if (0 == strncmp(ATBM_RESET_KEY_LONG_PRESS_EVENT, status.event_buffer,
-                   strlen(status.event_buffer))) {
-    wifi_info.lp_event_type = RK_WIFI_LP_LONG_PRESS;
-  }
+	if (0 == strncmp(ATBM_RESET_KEY_LONG_PRESS_EVENT, status.event_buffer,
+			 strlen(status.event_buffer))) {
+		wifi_info.lp_event_type = RK_WIFI_LP_LONG_PRESS;
+	}
 
-  if (0 == strncmp(ATBM_RESET_KEY_SHORT_PRESS_EVENT, status.event_buffer,
-                   strlen(status.event_buffer))) {
-    wifi_info.lp_event_type = RK_WIFI_LP_SHORT_PRESS;
-  }
+	if (0 == strncmp(ATBM_RESET_KEY_SHORT_PRESS_EVENT, status.event_buffer,
+					 strlen(status.event_buffer))) {
+		wifi_info.lp_event_type = RK_WIFI_LP_SHORT_PRESS;
+	} 
 
-  if (0 == strncmp(ATBM_START_KEEPALIVE_SUCCESS_EVENT, status.event_buffer,
-                   strlen(status.event_buffer))) {
-    DEBUG_PRINTF("congratulations, start keepalive success!\n");
-    wifi_info.lp_event_type = RK_WIFI_LP_KEEPALIVE_OK;
-    /*
-    int ret = 0;
-    ret = fw_at("AT+WIFI_LISTEN_ITVL 10");
-    DEBUG_PRINTF("fw_at AT+WIFI_LISTEN_ITVL ret is %d\n", ret);
-    ret = fw_at("AT+LIGHT_SLEEP 1");
-    DEBUG_PRINTF("fw_at AT+LIGHT_SLEEP ret is %d\n", ret);
-    atbm_driver_go_sleep();
-    DEBUG_PRINTF("atbm_driver_go_sleep\n");
-    */
-  }
+	if (0 == strncmp(ATBM_START_KEEPALIVE_SUCCESS_EVENT,
+						status.event_buffer,
+						strlen(status.event_buffer))) {
+		DEBUG_PRINTF("congratulations, start keepalive success!\n");
+		wifi_info.lp_event_type = RK_WIFI_LP_KEEPALIVE_OK;
+		/*
+		int ret = 0;
+		ret = fw_at("AT+WIFI_LISTEN_ITVL 10");
+		DEBUG_PRINTF("fw_at AT+WIFI_LISTEN_ITVL ret is %d\n", ret);
+		ret = fw_at("AT+LIGHT_SLEEP 1");
+		DEBUG_PRINTF("fw_at AT+LIGHT_SLEEP ret is %d\n", ret);
+		atbm_driver_go_sleep();
+		DEBUG_PRINTF("atbm_driver_go_sleep\n");
+		*/
+	}
 
-  if (0 == strncmp(ATBM_START_KEEPALIVE_FAILED_EVENT, status.event_buffer,
-                   strlen(status.event_buffer))) {
-    DEBUG_PRINTF("sorry, start keepalive failed...\n");
-    // TODO:起保活服务失败时的处理
-    wifi_info.lp_event_type = RK_WIFI_LP_KEEPALIVE_FAILED;
-  }
+	if (0 == strncmp(ATBM_START_KEEPALIVE_FAILED_EVENT,
+					 status.event_buffer,
+					 strlen(status.event_buffer))) {
+		DEBUG_PRINTF("sorry, start keepalive failed...\n");
+		// TODO:起保活服务失败时的处理
+		wifi_info.lp_event_type = RK_WIFI_LP_KEEPALIVE_FAILED;
+	}
 
-  if (NULL != strstr(status.event_buffer, ATBM_BATTERY_LEVEL_EVENT)) {
+	if (NULL != strstr(status.event_buffer, ATBM_BATTERY_LEVEL_EVENT)) {
 
-    /* 电池电量解析，上报 */
-    char *battery_level_start = NULL;
-    int battery_level_value = 0;
-    battery_level_start =
-        status.event_buffer + strlen(ATBM_BATTERY_LEVEL_EVENT);
-    battery_level_value = atoi(battery_level_start);
-    DEBUG_PRINTF("get battery level:%s, value: %d\n", battery_level_start,
-                 atoi(battery_level_start));
+		/* 电池电量解析，上报 */
+		char *battery_level_start = NULL;
+		int battery_level_value = 0;
+		battery_level_start = status.event_buffer + strlen(ATBM_BATTERY_LEVEL_EVENT);
+		battery_level_value = atoi(battery_level_start);
+		DEBUG_PRINTF("get battery level:%s, value: %d\n", battery_level_start, atoi(battery_level_start));
 
-    wifi_info.lp_event_type = RK_WIFI_LP_BAT_LEVEL;
-    wifi_info.lp_data[0] = battery_level_value;
-  }
 
-  if (NULL != strstr(status.event_buffer, ATBM_WAKEUP_REASON_EVENT)) {
-    /* 唤醒原因解析，上报 */
-    char *wakeup_reason_start = NULL;
-    int wakeup_reason_value = 0;
-    wakeup_reason_start =
-        status.event_buffer + strlen(ATBM_WAKEUP_REASON_EVENT);
-    wakeup_reason_value = atoi(wakeup_reason_start);
-    DEBUG_PRINTF("get wake up reason:%s, value: %d\n", wakeup_reason_start,
-                 atoi(wakeup_reason_start));
+		wifi_info.lp_event_type = RK_WIFI_LP_BAT_LEVEL;
+		wifi_info.lp_data[0] = battery_level_value;
+	}
 
-    wifi_info.lp_event_type = RK_WIFI_LP_WAKEUP_REASON;
-    wifi_info.lp_data[0] = wakeup_reason_value;
-  }
+	if (NULL != strstr(status.event_buffer, ATBM_WAKEUP_REASON_EVENT)) {
+		/* 唤醒原因解析，上报 */
+		char *wakeup_reason_start = NULL;
+		int wakeup_reason_value = 0;
+		wakeup_reason_start = status.event_buffer + strlen(ATBM_WAKEUP_REASON_EVENT);
+		wakeup_reason_value = atoi(wakeup_reason_start);
+		DEBUG_PRINTF("get wake up reason:%s, value: %d\n", wakeup_reason_start, atoi(wakeup_reason_start));
 
-  if (NULL != strstr(status.event_buffer, ATBM_PIR_DETECT_EVENT)) {
-    reason = RK_WIFI_LP_PIR_DETECT;
-    /* pir事件解析，上报 */
-    char *pir_detect_start = NULL;
-    int pir_detect_value = 0;
-    pir_detect_start = status.event_buffer + strlen(ATBM_PIR_DETECT_EVENT);
-    pir_detect_value = atoi(pir_detect_start);
-    DEBUG_PRINTF("get pir detect:%s, value: %d\n", pir_detect_start,
-                 atoi(pir_detect_start));
-    wifi_info.lp_event_type = RK_WIFI_LP_PIR_DETECT;
-    wifi_info.lp_data[0] = pir_detect_value;
-  }
+		wifi_info.lp_event_type = RK_WIFI_LP_WAKEUP_REASON;
+		wifi_info.lp_data[0] = wakeup_reason_value;
+	}
 
-  /* 回调连接错误原因 */
-  if (NULL != m_wifi_cb) {
-    m_wifi_cb(reason, &wifi_info);
-  }
+	if (NULL != strstr(status.event_buffer, ATBM_PIR_DETECT_EVENT)) {
+		reason = RK_WIFI_LP_PIR_DETECT;
+		/* pir事件解析，上报 */
+		char *pir_detect_start = NULL;
+		int pir_detect_value = 0;
+		pir_detect_start = status.event_buffer + strlen(ATBM_PIR_DETECT_EVENT);
+		pir_detect_value = atoi(pir_detect_start);
+		DEBUG_PRINTF("get pir detect:%s, value: %d\n", pir_detect_start, atoi(pir_detect_start));
+		wifi_info.lp_event_type = RK_WIFI_LP_PIR_DETECT;
+		wifi_info.lp_data[0] = pir_detect_value;
+	}
+
+	/* 回调连接错误原因 */
+	if (NULL != m_wifi_cb) {
+		m_wifi_cb(reason, &wifi_info);
+	}
 }
 
-void ioctl_msg_func(int sig_num) {
-  int len = 0;
-  DEBUG_PRINTF("----msg enter-------\n");
+void ioctl_msg_func(int sig_num)
+{
+	int len = 0;
+	DEBUG_PRINTF("----msg enter-------\n");
+  
+	sem_wait(&sem_status);
+	while (1) {
+		DEBUG_PRINTF("read ... ...\n");
+		len = read(g_fp, &status, sizeof(status));
 
-  sem_wait(&sem_status);
-  while (1) {
-    DEBUG_PRINTF("read ... ...\n");
-    len = read(g_fp, &status, sizeof(status));
+		if (len < (int)(sizeof(status))) {
+			DEBUG_PRINTF("read(read_len:%d) connect stat error, err:(%d, %s)\n", len,
+			           errno, strerror(errno));
+			break;
+		} 
+		DEBUG_PRINTF("recv type: %d, read_len: %d, len_check_ok: %d\n", status.type, len, len == sizeof(status));
 
-    if (len < (int)(sizeof(status))) {
-      DEBUG_PRINTF("read(read_len:%d) connect stat error, err:(%d, %s)\n", len,
-                   errno, strerror(errno));
-      break;
-    }
-    DEBUG_PRINTF("recv type: %d, read_len: %d, len_check_ok: %d\n", status.type,
-                 len, len == sizeof(status));
+		/* 0: connect msg;
+		 * 1: rmmod;
+		 * 2: scan complet,
+		 * 3: wakeup host reason,
+		 * 4: disconnect reason,
+		 * 5: connect fail reason,
+		 * 6: customer event
+		 */
+		if (status.type == 0) {
+			atbm_con_msg();
+		} else if (status.type == 1) {
+			atbm_rmmod_msg();
+		} else if (status.type == 2) {
+			atbm_scan_r_msg();
+		} else if (status.type == 3) {
+			atbm_wake_host_msg();
+		} else if (status.type == 4) {
+			atbm_disconnect_msg();
+		} else if (status.type == 5) {
+			atbm_connect_fail_msg();
+		} else if (status.type == 6) {
+			atbm_customer_msg();
+		}
 
-    /* 0: connect msg;
-     * 1: rmmod;
-     * 2: scan complet,
-     * 3: wakeup host reason,
-     * 4: disconnect reason,
-     * 5: connect fail reason,
-     * 6: customer event
-     */
-    if (status.type == 0) {
-      atbm_con_msg();
-    } else if (status.type == 1) {
-      atbm_rmmod_msg();
-    } else if (status.type == 2) {
-      atbm_scan_r_msg();
-    } else if (status.type == 3) {
-      atbm_wake_host_msg();
-    } else if (status.type == 4) {
-      atbm_disconnect_msg();
-    } else if (status.type == 5) {
-      atbm_connect_fail_msg();
-    } else if (status.type == 6) {
-      atbm_customer_msg();
-    }
+		if (status.list_empty) {
+			break;
+		}
+	}
 
-    if (status.list_empty) {
-      break;
-    }
-  }
-
-  sem_post(&sem_status);
-  DEBUG_PRINTF("----msg exit-------\n");
+	sem_post(&sem_status);
+	DEBUG_PRINTF("----msg exit-------\n");
 }
 
-int atbm_init() {
-  memset(&status, 0, sizeof(status));
-  memset(&networkinfo, 0, sizeof(networkinfo));
-  memset(&ap_cfg_set, 0, sizeof(ap_cfg_set));
-  memset(&etf_cfg_set, 0, sizeof(etf_cfg_set));
-  memset(&power_save_set, 0, sizeof(power_save_set));
-  memset(&tcp_filter_set, 0, sizeof(tcp_filter_set));
-  memset(&ipc_data_set, 0, sizeof(ipc_data_set));
-  memset(&fast_cfg_recv_set, 0, sizeof(fast_cfg_recv_set));
-  memset(&fast_cfg_send_set, 0, sizeof(fast_cfg_send_set));
+int atbm_init()
+{
+	memset(&status, 0, sizeof(status));
+	memset(&networkinfo, 0, sizeof(networkinfo));
+	memset(&ap_cfg_set, 0, sizeof(ap_cfg_set));
+	memset(&etf_cfg_set, 0, sizeof(etf_cfg_set));
+	memset(&power_save_set, 0, sizeof(power_save_set));
+	memset(&tcp_filter_set, 0, sizeof(tcp_filter_set));
+	memset(&ipc_data_set, 0, sizeof(ipc_data_set));
+	memset(&fast_cfg_recv_set, 0, sizeof(fast_cfg_recv_set));
+	memset(&fast_cfg_send_set, 0, sizeof(fast_cfg_send_set));
 
-  ssid_set = 0;
-  key_set = 0;
-  key_id_set = 0;
-  key_mgmt_set = 0;
-  ap_ssid_set = 0;
-  ap_key_set = 0;
-  ap_key_id_set = 0;
-  ap_key_mgmt_set = 0;
-  ipc_server_set = 0;
-  ipc_port_set = 0;
+	ssid_set = 0;
+	key_set = 0;
+	key_id_set = 0;
+	key_mgmt_set = 0;
+	ap_ssid_set = 0;
+	ap_key_set = 0;
+	ap_key_id_set = 0;
+	ap_key_mgmt_set = 0;
+	ipc_server_set = 0;
+	ipc_port_set = 0;
 
-  DEBUG_PRINTF("*** Welcome to use atbm_iot_supplicant ***\n\n");
-  DEBUG_PRINTF("VER: %s.\n\n", PRIV_VERSION);
+	DEBUG_PRINTF("*** Welcome to use atbm_iot_supplicant ***\n\n");
+	DEBUG_PRINTF("VER: %s.\n\n", PRIV_VERSION);
 
-  sem_init(&sem, 0, 1);
-  sem_init(&sem_status, 0, 1);
-  sem_init(&sem_sock_sync, 0, 0);
+	sem_init(&sem, 0, 1);
+	sem_init(&sem_status, 0, 1);
+	sem_init(&sem_sock_sync, 0, 0);
 
-  signal(SIGIO, ioctl_msg_func);
-  signal(SIGTERM, atbm_reboot_handle);
-  /* test if driver has insmod */
-  insmod_driver(1);
+	signal(SIGIO, ioctl_msg_func);
+	signal(SIGTERM, atbm_reboot_handle);
+	/* test if driver has insmod */
+	insmod_driver(1);
 
-  thread_run = 1;
+	thread_run = 1;
 
-  DEBUG_PRINTF("%s init finish\n", __FUNCTION__);
+	DEBUG_PRINTF("%s init finish\n", __FUNCTION__);
 
-  if (NULL != m_wifi_cb) {
-    m_wifi_cb(RK_WIFI_State_OPEN, NULL);
-  }
+	if (NULL != m_wifi_cb) {
+		m_wifi_cb(RK_WIFI_State_OPEN, NULL);
+	}
 
-  atbm_init_status();
+	atbm_init_status();
 
-  return 0;
+	return 0;
 }
 
 int atbm_deinit() {
 
-  // DEBUG_PRINTF("to make atbm driver go sleep...\n");
-  // atbm_driver_go_sleep();
-  // DEBUG_PRINTF("make driver go sleep finish...\n");
+  //DEBUG_PRINTF("to make atbm driver go sleep...\n");
+  //atbm_driver_go_sleep();
+  //DEBUG_PRINTF("make driver go sleep finish...\n");
 
   thread_run = 0;
   sem_destroy(&sem);
@@ -3325,8 +3337,7 @@ int atbm_deinit() {
  * @param long_press_func_ptr 复位键长按事件处理函数
  * @return int
  */
-int key_long_press_func_cb_register(
-    key_long_press_event_func long_press_func_ptr) {
+int key_long_press_func_cb_register(key_long_press_event_func long_press_func_ptr) {
   DEBUG_PRINTF("to register cb(%p)\n", long_press_func_ptr);
   key_long_press_func_cb = long_press_func_ptr;
   return 0;
@@ -3338,8 +3349,7 @@ int key_long_press_func_cb_register(
  * @param short_press_func_ptr 复位键长按事件处理函数
  * @return int
  */
-int key_short_press_func_cb_register(
-    key_short_press_event_func short_press_func_ptr) {
+int key_short_press_func_cb_register(key_short_press_event_func short_press_func_ptr) {
   DEBUG_PRINTF("to register cb(%p)\n", short_press_func_ptr);
   key_short_press_func_cb = short_press_func_ptr;
   return 0;
@@ -3359,43 +3369,46 @@ int wakeup_event_func_cb_register(wakeup_event_func wakeup_event_func_ptr) {
 
 /**
  * @brief 注册电池电量事件处理函数
- *
+ * 
  * @param battery_level_event_func_ptr 电池电量事件处理函数
- * @return int
+ * @return int 
  */
-int battery_level_event_func_cb_register(
-    battery_level_event_func battery_level_event_func_ptr) {
-  DEBUG_PRINTF("to register cb(%p)\n", battery_level_event_func_ptr);
-  battery_level_event_func_cb = battery_level_event_func_ptr;
-  return 0;
+int battery_level_event_func_cb_register(battery_level_event_func battery_level_event_func_ptr)
+{
+	DEBUG_PRINTF("to register cb(%p)\n", battery_level_event_func_ptr);
+	battery_level_event_func_cb = battery_level_event_func_ptr;
+	return 0;
 }
 
 /**
  * @brief 注册pir事件处理函数
- *
+ * 
  * @param pir_detect_event_func_ptr pir事件处理函数
- * @return int
+ * @return int 
  */
-int pir_detect_event_func_cb_register(
-    pir_detect_event_func pir_detect_event_func_ptr) {
-  DEBUG_PRINTF("to register cb(%p)\n", pir_detect_event_func_ptr);
-  pir_detect_event_func_cb = pir_detect_event_func_ptr;
-  return 0;
+int pir_detect_event_func_cb_register(pir_detect_event_func pir_detect_event_func_ptr)
+{
+	DEBUG_PRINTF("to register cb(%p)\n", pir_detect_event_func_ptr);
+	pir_detect_event_func_cb = pir_detect_event_func_ptr;
+	return 0;
 }
 
 /**
  * @brief 注册wifi连接结果事件处理函数
- *
+ * 
  * @param wifi_connect_result_event_func_ptr wifi连接结果事件处理函数
- * @return int
+ * @return int 
  */
-int wifi_connect_result_event_cb_register(
-    wifi_connect_result_event_func wifi_connect_result_event_func_ptr) {
-  DEBUG_PRINTF("to register cb(%p)\n", wifi_connect_result_event_func_ptr);
-  wifi_connect_result_event_func_cb = wifi_connect_result_event_func_ptr;
-  return 0;
+int wifi_connect_result_event_cb_register(wifi_connect_result_event_func wifi_connect_result_event_func_ptr)
+{
+	DEBUG_PRINTF("to register cb(%p)\n", wifi_connect_result_event_func_ptr);
+	wifi_connect_result_event_func_cb = wifi_connect_result_event_func_ptr;
+	return 0;
 }
 
-int wifi_fw_ota(char *fw) { return update_fw_cmd(g_fp, 1, &fw); }
+int wifi_fw_ota(char *fw)
+{
+  return update_fw_cmd(g_fp, 1, &fw);
+}
 
 #pragma GCC diagnostic pop

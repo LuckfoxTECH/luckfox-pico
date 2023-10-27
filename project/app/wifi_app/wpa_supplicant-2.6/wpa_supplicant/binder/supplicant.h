@@ -14,8 +14,7 @@
 #include "fi/w1/wpa_supplicant/IIface.h"
 #include "fi/w1/wpa_supplicant/ISupplicantCallbacks.h"
 
-extern "C"
-{
+extern "C" {
 #include "utils/common.h"
 #include "utils/includes.h"
 #include "../wpa_supplicant_i.h"

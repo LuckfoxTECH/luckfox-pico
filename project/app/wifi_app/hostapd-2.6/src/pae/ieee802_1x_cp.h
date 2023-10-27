@@ -16,7 +16,7 @@ struct ieee802_1x_cp_sm;
 struct ieee802_1x_kay;
 struct ieee802_1x_mka_ki;
 
-struct ieee802_1x_cp_sm *ieee802_1x_cp_sm_init(struct ieee802_1x_kay *kay);
+struct ieee802_1x_cp_sm * ieee802_1x_cp_sm_init(struct ieee802_1x_kay *kay);
 void ieee802_1x_cp_sm_deinit(struct ieee802_1x_cp_sm *sm);
 void ieee802_1x_cp_sm_step(void *cp_ctx);
 void ieee802_1x_cp_connect_pending(void *cp_ctx);
@@ -30,7 +30,7 @@ void ieee802_1x_cp_set_ciphersuite(void *cp_ctx, u64 cs);
 void ieee802_1x_cp_set_offset(void *cp_ctx, enum confidentiality_offset offset);
 void ieee802_1x_cp_signal_newsak(void *cp_ctx);
 void ieee802_1x_cp_set_distributedki(void *cp_ctx,
-                                     const struct ieee802_1x_mka_ki *dki);
+				     const struct ieee802_1x_mka_ki *dki);
 void ieee802_1x_cp_set_distributedan(void *cp_ctx, u8 an);
 void ieee802_1x_cp_set_usingreceivesas(void *cp_ctx, Boolean status);
 void ieee802_1x_cp_set_allreceiving(void *cp_ctx, Boolean status);

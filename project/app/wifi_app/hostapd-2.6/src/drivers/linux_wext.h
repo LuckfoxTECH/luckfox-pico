@@ -19,8 +19,8 @@
 #define _LINUX_SOCKET_H
 #define _LINUX_IF_H
 
-#include <net/if.h>
 #include <stdint.h>
+#include <net/if.h>
 typedef uint32_t __u32;
 typedef int32_t __s32;
 typedef uint16_t __u16;

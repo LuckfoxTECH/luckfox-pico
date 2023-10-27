@@ -11,41 +11,56 @@
 
 #include "eap_common/eap_defs.h"
 
-const struct eap_method *eap_peer_get_eap_method(int vendor, EapType method);
-const struct eap_method *eap_peer_get_methods(size_t *count);
+const struct eap_method * eap_peer_get_eap_method(int vendor, EapType method);
+const struct eap_method * eap_peer_get_methods(size_t *count);
 
-struct eap_method *eap_peer_method_alloc(int version, int vendor,
-                                         EapType method, const char *name);
+struct eap_method * eap_peer_method_alloc(int version, int vendor,
+					  EapType method, const char *name);
 int eap_peer_method_register(struct eap_method *method);
+
 
 #ifdef IEEE8021X_EAPOL
 
 EapType eap_peer_get_type(const char *name, int *vendor);
-const char *eap_get_name(int vendor, EapType type);
+const char * eap_get_name(int vendor, EapType type);
 size_t eap_get_names(char *buf, size_t buflen);
-char **eap_get_names_as_string_array(size_t *num);
+char ** eap_get_names_as_string_array(size_t *num);
 void eap_peer_unregister_methods(void);
 
 #else /* IEEE8021X_EAPOL */
 
-static inline EapType eap_peer_get_type(const char *name, int *vendor) {
-  *vendor = EAP_VENDOR_IETF;
-  return EAP_TYPE_NONE;
+static inline EapType eap_peer_get_type(const char *name, int *vendor)
+{
+	*vendor = EAP_VENDOR_IETF;
+	return EAP_TYPE_NONE;
 }
 
-static inline const char *eap_get_name(int vendor, EapType type) {
-  return NULL;
+static inline const char * eap_get_name(int vendor, EapType type)
+{
+	return NULL;
 }
 
-static inline size_t eap_get_names(char *buf, size_t buflen) { return 0; }
+static inline size_t eap_get_names(char *buf, size_t buflen)
+{
+	return 0;
+}
 
-static inline int eap_peer_register_methods(void) { return 0; }
+static inline int eap_peer_register_methods(void)
+{
+	return 0;
+}
 
-static inline void eap_peer_unregister_methods(void) {}
+static inline void eap_peer_unregister_methods(void)
+{
+}
 
-static inline char **eap_get_names_as_string_array(size_t *num) { return NULL; }
+static inline char ** eap_get_names_as_string_array(size_t *num)
+{
+	return NULL;
+}
 
 #endif /* IEEE8021X_EAPOL */
+
 
 #ifdef CONFIG_DYNAMIC_EAP_METHODS
 
@@ -54,10 +69,14 @@ int eap_peer_method_unload(struct eap_method *method);
 
 #else /* CONFIG_DYNAMIC_EAP_METHODS */
 
-static inline int eap_peer_method_load(const char *so) { return 0; }
+static inline int eap_peer_method_load(const char *so)
+{
+	return 0;
+}
 
-static inline int eap_peer_method_unload(struct eap_method *method) {
-  return 0;
+static inline int eap_peer_method_unload(struct eap_method *method)
+{
+	return 0;
 }
 
 #endif /* CONFIG_DYNAMIC_EAP_METHODS */

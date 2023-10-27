@@ -10,31 +10,32 @@
 #define EAP_TTLS_H
 
 struct ttls_avp {
-  be32 avp_code;
-  be32 avp_length; /* 8-bit flags, 24-bit length;
-                    * length includes AVP header */
-                   /* optional 32-bit Vendor-ID */
-                   /* Data */
+	be32 avp_code;
+	be32 avp_length; /* 8-bit flags, 24-bit length;
+			  * length includes AVP header */
+	/* optional 32-bit Vendor-ID */
+	/* Data */
 };
 
 struct ttls_avp_vendor {
-  be32 avp_code;
-  be32 avp_length; /* 8-bit flags, 24-bit length;
-                    * length includes AVP header */
-  be32 vendor_id;
-  /* Data */
+	be32 avp_code;
+	be32 avp_length; /* 8-bit flags, 24-bit length;
+			  * length includes AVP header */
+	be32 vendor_id;
+	/* Data */
 };
 
 #define AVP_FLAGS_VENDOR 0x80
 #define AVP_FLAGS_MANDATORY 0x40
 
-#define AVP_PAD(start, pos)                                                    \
-  do {                                                                         \
-    int __pad;                                                                 \
-    __pad = (4 - (((pos) - (start)) & 3)) & 3;                                 \
-    os_memset((pos), 0, __pad);                                                \
-    pos += __pad;                                                              \
-  } while (0)
+#define AVP_PAD(start, pos) \
+do { \
+	int __pad; \
+	__pad = (4 - (((pos) - (start)) & 3)) & 3; \
+	os_memset((pos), 0, __pad); \
+	pos += __pad; \
+} while (0)
+
 
 /* RFC 2865 */
 #define RADIUS_ATTR_USER_NAME 1

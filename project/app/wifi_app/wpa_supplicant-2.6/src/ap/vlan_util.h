@@ -22,7 +22,8 @@ int ifconfig_up(const char *if_name);
 int iface_exists(const char *ifname);
 int vlan_if_remove(struct hostapd_data *hapd, struct hostapd_vlan *vlan);
 
-struct full_dynamic_vlan *full_dynamic_vlan_init(struct hostapd_data *hapd);
+struct full_dynamic_vlan *
+full_dynamic_vlan_init(struct hostapd_data *hapd);
 void full_dynamic_vlan_deinit(struct full_dynamic_vlan *priv);
 void vlan_newlink(const char *ifname, struct hostapd_data *hapd);
 void vlan_dellink(const char *ifname, struct hostapd_data *hapd);

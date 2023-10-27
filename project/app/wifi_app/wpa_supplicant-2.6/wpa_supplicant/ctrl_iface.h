@@ -28,8 +28,8 @@
  * 1 = send "FAIL\n" response, 2 = send "OK\n" response. If *resp_len has any
  * other value, no response is sent.
  */
-char *wpa_supplicant_ctrl_iface_process(struct wpa_supplicant *wpa_s, char *buf,
-                                        size_t *resp_len);
+char * wpa_supplicant_ctrl_iface_process(struct wpa_supplicant *wpa_s,
+					 char *buf, size_t *resp_len);
 
 /**
  * wpa_supplicant_global_ctrl_iface_process - Process global ctrl_iface command
@@ -45,8 +45,9 @@ char *wpa_supplicant_ctrl_iface_process(struct wpa_supplicant *wpa_s, char *buf,
  * two special values: 1 = send "FAIL\n" response, 2 = send "OK\n" response. If
  * *resp_len has any other value, no response is sent.
  */
-char *wpa_supplicant_global_ctrl_iface_process(struct wpa_global *global,
-                                               char *buf, size_t *resp_len);
+char * wpa_supplicant_global_ctrl_iface_process(struct wpa_global *global,
+						char *buf, size_t *resp_len);
+
 
 /* Functions that each ctrl_iface backend must implement */
 
@@ -110,36 +111,48 @@ wpa_supplicant_global_ctrl_iface_init(struct wpa_global *global);
  * Required to be implemented in each control interface backend.
  */
 void wpa_supplicant_global_ctrl_iface_deinit(
-    struct ctrl_iface_global_priv *priv);
+	struct ctrl_iface_global_priv *priv);
 
 void wpas_ctrl_radio_work_flush(struct wpa_supplicant *wpa_s);
 
 #else /* CONFIG_CTRL_IFACE */
 
 static inline struct ctrl_iface_priv *
-wpa_supplicant_ctrl_iface_init(struct wpa_supplicant *wpa_s) {
-  return (void *)-1;
+wpa_supplicant_ctrl_iface_init(struct wpa_supplicant *wpa_s)
+{
+	return (void *) -1;
 }
 
 static inline void
-wpa_supplicant_ctrl_iface_deinit(struct ctrl_iface_priv *priv) {}
-
-static inline void wpa_supplicant_ctrl_iface_send(struct ctrl_iface_priv *priv,
-                                                  int level, char *buf,
-                                                  size_t len) {}
+wpa_supplicant_ctrl_iface_deinit(struct ctrl_iface_priv *priv)
+{
+}
 
 static inline void
-wpa_supplicant_ctrl_iface_wait(struct ctrl_iface_priv *priv) {}
+wpa_supplicant_ctrl_iface_send(struct ctrl_iface_priv *priv, int level,
+			       char *buf, size_t len)
+{
+}
+
+static inline void
+wpa_supplicant_ctrl_iface_wait(struct ctrl_iface_priv *priv)
+{
+}
 
 static inline struct ctrl_iface_global_priv *
-wpa_supplicant_global_ctrl_iface_init(struct wpa_global *global) {
-  return (void *)1;
+wpa_supplicant_global_ctrl_iface_init(struct wpa_global *global)
+{
+	return (void *) 1;
 }
 
 static inline void
-wpa_supplicant_global_ctrl_iface_deinit(struct ctrl_iface_global_priv *priv) {}
+wpa_supplicant_global_ctrl_iface_deinit(struct ctrl_iface_global_priv *priv)
+{
+}
 
-static inline void wpas_ctrl_radio_work_flush(struct wpa_supplicant *wpa_s) {}
+static inline void wpas_ctrl_radio_work_flush(struct wpa_supplicant *wpa_s)
+{
+}
 
 #endif /* CONFIG_CTRL_IFACE */
 
