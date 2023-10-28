@@ -22,7 +22,7 @@ export RK_UBOOT_DEFCONFIG_FRAGMENT=rk-sfc.config
 export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_defconfig
 
 # Kernel dts
-export RK_KERNEL_DTS=rv1106g-luckfox-pico-max.dts
+export RK_KERNEL_DTS=rv1106g-luckfox-pico-pro-max.dts
 
 #misc image
 export RK_MISC=wipe_all-misc.img

@@ -7,7 +7,7 @@
 
 #include "rv1106.dtsi"
 #include "rv1106-evb.dtsi"
-#include "rv1106-luckfox-pico-max-ipc.dtsi"
+#include "rv1106-luckfox-pico-pro-max-ipc.dtsi"
 
 / {
 	model = "Luckfox Pico Max";
