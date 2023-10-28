@@ -1,22 +1,19 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * Copyright (c) 2022 Rockchip Electronics Co., Ltd.
+ * Copyright (c) 2023 Luckfox Electronics Co., Ltd.
  */
 
 /dts-v1/;
 
-#include "rv1106.dtsi"
+#include "rv1103.dtsi"
 #include "rv1106-evb.dtsi"
-#include "rv1106-luckfox-pico-max-ipc.dtsi"
+#include "rv1103-luckfox-pico-mini-ipc.dtsi"
 
 / {
-	model = "Luckfox Pico Max";
-	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1106";
+	model = "Luckfox Pico Mini B";
+	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1103";
 };
 
-
-
-/**********FLASH**********/
 &sfc {
 	status = "okay";
 	flash@0 {
@@ -26,9 +23,7 @@
 		spi-rx-bus-width = <4>;
 		spi-tx-bus-width = <1>;
 	};
-	
 };
-
 /**********SDMMC**********/
 &sdmmc {
 	max-frequency = <50000000>;
@@ -42,38 +37,29 @@
 	pinctrl-0 = <&sdmmc0_clk &sdmmc0_cmd &sdmmc0_det &sdmmc0_bus4>;
 	status = "okay";
 };
-
-/**********SDIO**********/
-// &sdio {
-// 	max-frequency = <50000000>;
-// 	no-sdio;
-// 	no-mmc;
-// 	bus-width = <4>;
-// 	cap-mmc-highspeed;
-// 	cap-sd-highspeed;
-// 	disable-wp;
-// 	pinctrl-names = "default";
-// 	pinctrl-0 = <&sdmmc1m0_cmd &sdmmc1m0_clk &sdmmc1m0_bus4 &clk_32k>;
-// 	status = "okay";
-// };
-
-/**********ETH**********/
+// /**********ETH**********/
 &gmac {
-	status = "okay";
+	status = "disabled";
 };
 
 /**********USB**********/
-&usbdrd_dwc3 {
-	status = "okay";
-	dr_mode = "peripheral";
-};
+//&usbdrd {
+//	status = "disabled";
+//};
 
-/**********I2C**********/
-// &i2c1 {
-// 	status = "okay";
-// 	pinctrl-0 = <&i2c1m1_xfer>;
-// 	clock-frequency = <100000>;
-// };
+//&usbdrd_dwc3 {
+//	status = "disabled";
+//};
+
+//&u2phy {
+//	status = "disabled";
+//};
+
+//&u2phy_otg {
+//	status = "disabled";
+//};
+
+// /**********I2C**********/
 &i2c3 {
 	status = "okay";
 	pinctrl-0 = <&i2c3m1_xfer>;
@@ -86,32 +72,17 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&spi0m0_pins>;
 	cs-gpios = <&gpio1 RK_PC0 1>;
-	// cs-gpios = <&gpio1 26 1>;
+	// cs-gpios = <&gpio1 RK_PD3 1>;
 	#address-cells = <1>;
 	#size-cells = <0>;
 	spidev@0 {
 		compatible = "rockchip,spidev";
-		spi-max-frequency = <50000000>;
+		spi-max-frequency = <1000000000>;
 		reg = <0>;
 	};
 };
 
-
-
 /**********UART**********/
-
-// &uart0 {
-// 	status = "okay";
-// 	pinctrl-names = "default";
-// 	pinctrl-0 = <&uart0m1_xfer>;
-// };
-
-// &uart1 {
-// 	status = "okay";
-// 	pinctrl-names = "default";
-// 	pinctrl-0 = <&uart1m1_xfer>;
-// };
-
 &uart3 {
 	status = "okay";
 	pinctrl-names = "default";
@@ -124,7 +95,7 @@
 };
 
 
-// /**********PWM**********/
+/**********PWM**********/
 
 // &pwm0 {
 // 	status = "okay";
@@ -138,7 +109,6 @@
 // 	pinctrl-0 = <&pwm1m0_pins>;
 // 	// pinctrl-0 = <&pwm1m1_pins>;
 // };
-
 //&pwm2 {
 //	status = "okay";
 //	pinctrl-names = "active";
@@ -154,18 +124,16 @@
 //	pinctrl-names = "active";
 //	pinctrl-0 = <&pwm4m2_pins>;
 //};
-&pwm5 {
-	status = "okay";
-	pinctrl-names = "active";
-	pinctrl-0 = <&pwm5m1_pins>;
-	// pinctrl-0 = <&pwm5m2_pins>;
-};
-&pwm6 {
-	status = "okay";
-	pinctrl-names = "active";
-	pinctrl-0 = <&pwm6m1_pins>;
-	// pinctrl-0 = <&pwm6m2_pins>;
-};
+//&pwm5 {
+//	status = "okay";
+//	pinctrl-names = "active";
+//	pinctrl-0 = <&pwm5m2_pins>;
+//};
+//&pwm6 {
+//	status = "okay";
+//	pinctrl-names = "active";
+//	pinctrl-0 = <&pwm6m2_pins>;
+//};
 //&pwm7 {
 //	status = "okay";
 //	pinctrl-names = "active";
@@ -199,9 +167,5 @@
 	// pinctrl-0 = <&pwm11m0_pins>;
 };
 
-
-&rtc {
-	status = "okay";
-};
 
 
