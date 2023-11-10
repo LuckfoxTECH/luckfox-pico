@@ -24,6 +24,9 @@ export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_defconfig
 # Kernel dts
 export RK_KERNEL_DTS=rv1103g-luckfox-pico.dts
 
+# Buildroot defconfig
+export RK_BUILDROOT_DEFCONFIG=luckfox_pico_defconfig
+
 #misc image
 export RK_MISC=wipe_all-misc.img
 
@@ -45,7 +48,7 @@ export RK_BOOTARGS_CMA_SIZE="24M"
 #       <partdef> := <size>[@<offset>](part-name)
 # Note:
 #   If the first partition offset is not 0x0, it must be added. Otherwise, it needn't adding.
-export RK_PARTITION_CMD_IN_ENV="32K(env),512K@32K(idblock),256K(uboot),32M(boot),2G(rootfs),1G(oem),2G(userdata),-(media)"
+export RK_PARTITION_CMD_IN_ENV="32K(env),512K@32K(idblock),256K(uboot),32M(boot),2G(rootfs),1G(oem),1G(userdata),-(media)"
 
 # config partition's filesystem type (squashfs is readonly)
 # emmc:    squashfs/ext4
@@ -56,7 +59,7 @@ export RK_PARTITION_CMD_IN_ENV="32K(env),512K@32K(idblock),256K(uboot),32M(boot)
 #         AAAA ----------> partition name
 #         /BBBB/CCCC ----> partition mount point
 #         ext4 ----------> partition filesystem type
-export RK_PARTITION_FS_TYPE_CFG=rootfs@IGNORE@ext4,userdata@/userdata@ext4,oem@/oem@ext4
+export RK_PARTITION_FS_TYPE_CFG=rootfs@/@ext4,userdata@/userdata@ext4,oem@/oem@ext4
 
 # config filesystem compress (Just for squashfs or ubifs)
 # squashfs: lz4/lzo/lzma/xz/gzip, default xz
@@ -66,6 +69,9 @@ export RK_PARTITION_FS_TYPE_CFG=rootfs@IGNORE@ext4,userdata@/userdata@ext4,oem@/
 
 # app config
 export RK_APP_TYPE=RKIPC_RV1103
+
+# specify post.sh for delete/overlay files
+export RK_PRE_BUILD_OEM_SCRIPT=rv1103-spi_nor-post.sh
 
 # build ipc web backend
 # export RK_APP_IPCWEB_BACKEND=y

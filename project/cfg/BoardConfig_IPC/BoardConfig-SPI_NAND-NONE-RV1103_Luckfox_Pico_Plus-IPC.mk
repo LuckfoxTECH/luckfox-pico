@@ -24,6 +24,9 @@ export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_defconfig
 # Kernel dts
 export RK_KERNEL_DTS=rv1103g-luckfox-pico-plus.dts
 
+# Buildroot defconfig
+export RK_BUILDROOT_DEFCONFIG=luckfox_pico_defconfig
+
 #misc image
 export RK_MISC=wipe_all-misc.img
 
@@ -48,7 +51,7 @@ export RK_BOOTARGS_CMA_SIZE="24M"
 #       <partdef> := <size>[@<offset>](part-name)
 # Note:
 #   If the first partition offset is not 0x0, it must be added. Otherwise, it needn't adding.
-export RK_PARTITION_CMD_IN_ENV="256K(env),256K@256K(idblock),512K(uboot),4M(boot),32M(rootfs),48M(oem),32M(userdata)"
+export RK_PARTITION_CMD_IN_ENV="256K(env),256K@256K(idblock),512K(uboot),4M(boot),80M(rootfs),30M(oem),10M(userdata)"
 #export RK_PARTITION_CMD_IN_ENV="256K(env),256K@256K(idblock),256K(uboot),8M(boot),32M(rootfs),48M(oem),32M(userdata),-(media)"
 
 # config partition's filesystem type (squashfs is readonly)
@@ -72,6 +75,9 @@ export RK_PARTITION_FS_TYPE_CFG=rootfs@IGNORE@ubifs,oem@/oem@ubifs,userdata@/use
 # app config
 export RK_APP_TYPE=RKIPC_RV1103
 # export RK_APP_TYPE=RKIPC_RV1106
+
+# specify post.sh for delete/overlay files
+export RK_PRE_BUILD_OEM_SCRIPT=rv1103-spi_nor-post.sh
 
 # build ipc web backend
 # export RK_APP_IPCWEB_BACKEND=y

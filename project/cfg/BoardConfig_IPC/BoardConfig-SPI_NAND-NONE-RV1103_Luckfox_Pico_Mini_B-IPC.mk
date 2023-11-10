@@ -24,6 +24,9 @@ export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_defconfig
 # Kernel dts
 export RK_KERNEL_DTS=rv1103g-luckfox-pico-mini-b.dts
 
+# Buildroot defconfig
+export RK_BUILDROOT_DEFCONFIG=luckfox_pico_defconfig
+
 #misc image
 export RK_MISC=wipe_all-misc.img
 
@@ -32,15 +35,12 @@ export RK_MISC=wipe_all-misc.img
 #     "iqfile1 iqfile2 iqfile3 ..."
 # ./build.sh media and copy <SDK root dir>/output/out/media_out/isp_iqfiles/$RK_CAMERA_SENSOR_IQFILES
 export RK_CAMERA_SENSOR_IQFILES="sc4336_OT01_40IRC_F16.json sc3336_CMK-OT2119-PC1_30IRC-F16.json"
-#export RK_CAMERA_SENSOR_IQFILES="sc4336_OT01_40IRC_F16.json sc3336_CMK-OT2119-PC1_30IRC-F16.json sc530ai_CMK-OT2115-PC1_30IRC-F16.json"
 
 # Config sensor lens CAC calibrattion bin files
 export RK_CAMERA_SENSOR_CAC_BIN="CAC_sc4336_OT01_40IRC_F16"
-#export RK_CAMERA_SENSOR_CAC_BIN="CAC_sc4336_OT01_40IRC_F16 CAC_sc530ai_CMK-OT2115-PC1_30IRC-F16"
 
 # Config CMA size in environment
 export RK_BOOTARGS_CMA_SIZE="24M"
-#export RK_BOOTARGS_CMA_SIZE="66M"
 
 # config partition in environment
 # RK_PARTITION_CMD_IN_ENV format:
@@ -48,8 +48,7 @@ export RK_BOOTARGS_CMA_SIZE="24M"
 #       <partdef> := <size>[@<offset>](part-name)
 # Note:
 #   If the first partition offset is not 0x0, it must be added. Otherwise, it needn't adding.
-export RK_PARTITION_CMD_IN_ENV="256K(env),256K@256K(idblock),512K(uboot),4M(boot),32M(rootfs),48M(oem),32M(userdata)"
-#export RK_PARTITION_CMD_IN_ENV="256K(env),256K@256K(idblock),256K(uboot),8M(boot),32M(rootfs),48M(oem),32M(userdata),-(media)"
+export RK_PARTITION_CMD_IN_ENV="256K(env),256K@256K(idblock),512K(uboot),4M(boot),80M(rootfs),30M(oem),10M(userdata)"
 
 # config partition's filesystem type (squashfs is readonly)
 # emmc:    squashfs/ext4
