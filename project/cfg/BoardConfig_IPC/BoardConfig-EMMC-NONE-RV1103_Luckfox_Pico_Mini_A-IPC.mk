@@ -22,7 +22,10 @@ export RK_UBOOT_DEFCONFIG_FRAGMENT=rk-emmc.config
 export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_defconfig
 
 # Kernel dts
-export RK_KERNEL_DTS=rv1103g-luckfox-pico-mini-b.dts
+export RK_KERNEL_DTS=rv1103g-luckfox-pico-mini-a.dts
+
+# Buildroot defconfig
+export RK_BUILDROOT_DEFCONFIG=luckfox_pico_defconfig
 
 #misc image
 export RK_MISC=wipe_all-misc.img

@@ -1,0 +1,46 @@
+#!/bin/sh
+
+TARGET_IP="172.32.0.93"
+
+MAX_RETRIES=10
+retries=0
+
+usb0_config()
+{
+current_ip=`ifconfig usb0 | grep -o 'inet addr:[^ ]*' | awk -F ':' '{print $2}'`
+
+echo "current_ip = $current_ip"
+
+echo "TARGET_IP = $TARGET_IP"
+
+while [[ "$current_ip" != "$TARGET_IP" && $retries -lt $MAX_RETRIES ]]; do
+        sleep .5
+
+        echo "luckfox : set usb0 ip"
+        ifconfig usb0 "$TARGET_IP"
+
+        current_ip=`ifconfig usb0 | grep -o 'inet addr:[^ ]*' | awk -F ':' '{print $2}'`
+        echo $current_ip
+
+        retries=$((retries + 1))
+done
+
+if [[ "$current_ip" != "$TARGET_IP" ]]; then
+        echo "usb0 config error"
+else
+        echo "usb0 config success"
+fi
+}
+
+case $1 in
+        start)
+                usb0_config
+                ;;
+        stop)
+
+                ;;
+        *)
+                exit 1
+                ;;
+esac
+

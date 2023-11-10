@@ -1,0 +1,13 @@
+[global]
+	workgroup = WORKGROUP
+	server string = luckfox samba server
+	security = user  
+	passdb backend = smbpasswd
+	smb passwd file = /etc/samba/smbpasswd
+[public]
+	comment = public share
+	path = /
+	read only = no
+	user = root
+	create mask = 0755
+	directory mask = 0755
