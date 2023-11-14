@@ -273,18 +273,6 @@
 	vref-supply = <&vcc_1v8>;
 };
 
-// &sfc {
-// 	status = "okay";
-
-// 	flash@0 {
-// 		compatible = "jedec,spi-nor";
-// 		reg = <0>;
-// 		spi-max-frequency = <80000000>;
-// 		spi-rx-bus-width = <4>;
-// 		spi-tx-bus-width = <1>;
-// 	};
-// };
-
 &sdmmc {
 	max-frequency = <50000000>;
 	no-sdio;
@@ -302,18 +290,3 @@
 	status = "okay";
 };
 
-// &u2phy {
-//	status = "disabled";
-// };
-
-// &u2phy_otg {
-//	status = "disabled";
-// };
-
-// &usbdrd {
-//	status = "disabled";
-// };
-
-// &usbdrd_dwc3 {
-//	status = "disabled";
-// };
