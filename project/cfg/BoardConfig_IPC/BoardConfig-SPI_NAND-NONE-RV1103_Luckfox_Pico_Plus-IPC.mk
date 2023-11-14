@@ -51,7 +51,7 @@ export RK_BOOTARGS_CMA_SIZE="24M"
 #       <partdef> := <size>[@<offset>](part-name)
 # Note:
 #   If the first partition offset is not 0x0, it must be added. Otherwise, it needn't adding.
-export RK_PARTITION_CMD_IN_ENV="256K(env),256K@256K(idblock),512K(uboot),4M(boot),80M(rootfs),30M(oem),10M(userdata)"
+export RK_PARTITION_CMD_IN_ENV="256K(env),256K@256K(idblock),512K(uboot),4M(boot),30M(oem),10M(userdata),80M(rootfs)"
 #export RK_PARTITION_CMD_IN_ENV="256K(env),256K@256K(idblock),256K(uboot),8M(boot),32M(rootfs),48M(oem),32M(userdata),-(media)"
 
 # config partition's filesystem type (squashfs is readonly)
