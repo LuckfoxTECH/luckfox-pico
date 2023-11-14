@@ -1312,6 +1312,18 @@ function parse_partition_file()
 		echo "ln -sf /dev/${storage_dev_prefix}${part_num} ${part_name}" >> $RK_PROJECT_FILE_ROOTFS_SCRIPT
 		part_num=$(( part_num + 1 ))
 	done
+	cat >> $RK_PROJECT_FILE_ROOTFS_SCRIPT <<EOF
+for i in \$(seq 5 8); do
+	det_partition="/dev/mmcblk1p\$i"
+	mount_point=\$(mount | grep "\$det_partition" | awk '{print \$3}')
+	if [ -n "\$mount_point" ]; then
+	echo "Unmounting : \$det_partition (\$mount_point)"
+	umount "\$det_partition"
+	else
+	echo "Partition is not mounted: \$det_partition"
+	fi
+done
+EOF
 	IFS=
 	echo "fi }" >> $RK_PROJECT_FILE_ROOTFS_SCRIPT
 
