@@ -444,7 +444,10 @@ buildroot: prepare
 		rm $(BUILDROOT_DIR)/$(BUILDROOT_VER) -rf ;\
 		mkdir -p $(BUILDROOT_DIR) ;\
 		tar xzf $(SYSDRV_DIR)/tools/board/buildroot/$(BUILDROOT_VER).tar.gz -C $(BUILDROOT_DIR) ;\
+		cp $(SYSDRV_DIR)/tools/board/buildroot/luckfox_pico_cn_defconfig  $(BUILDROOT_DIR)/$(BUILDROOT_VER)/configs/ ;\
+		cp $(SYSDRV_DIR)/tools/board/buildroot/luckfox_pico_defconfig $(BUILDROOT_DIR)/$(BUILDROOT_VER)/configs/ ;\
 	);
+
 	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) $(BUILDROOT_DEFCONFIG) -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
 	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) source -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
 	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -j$(SYSDRV_JOBS) -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
