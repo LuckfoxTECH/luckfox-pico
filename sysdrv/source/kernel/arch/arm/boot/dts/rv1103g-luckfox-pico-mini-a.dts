@@ -14,7 +14,21 @@
 	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1103";
 };
 
-// /**********ETH**********/
+/**********SDMMC**********/
+&sdmmc {
+	max-frequency = <50000000>;
+	no-sdio;
+	no-mmc;
+	bus-width = <4>;
+	cap-mmc-highspeed;
+	cap-sd-highspeed;
+	disable-wp;
+	pinctrl-names = "default";
+	pinctrl-0 = <&sdmmc0_clk &sdmmc0_cmd &sdmmc0_det &sdmmc0_bus4>;
+	status = "okay";
+};
+
+/**********ETH**********/
 &gmac {
 	status = "disabled";
 };

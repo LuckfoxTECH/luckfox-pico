@@ -222,9 +222,6 @@
 	};
 };
 
-//&pwm0 {
-//	status = "okay";
-//};
 
 &rkcif {
 	status = "okay";
@@ -272,31 +269,6 @@
 	status = "okay";
 	vref-supply = <&vcc_1v8>;
 };
-
-//&sfc {
-//	status = "okay";
-
-//	flash@0 {
-//		compatible = "spi-nand";
-//		reg = <0>;
-//		spi-max-frequency = <80000000>;
-//		spi-rx-bus-width = <4>;
-//		spi-tx-bus-width = <1>;
-//	};
-//};
-
-//&sdmmc {
-//	max-frequency = <50000000>;
-//	no-sdio;
-//	no-mmc;
-//	bus-width = <4>;
-//	cap-mmc-highspeed;
-//	cap-sd-highspeed;
-//	disable-wp;
-//	pinctrl-names = "default";
-//	pinctrl-0 = <&sdmmc0_clk &sdmmc0_cmd &sdmmc0_det &sdmmc0_bus4>;
-//	status = "okay";
-//};
 
 &tsadc {
 	status = "okay";
