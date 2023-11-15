@@ -1,1 +1,0 @@
-project/readme_cn.txt

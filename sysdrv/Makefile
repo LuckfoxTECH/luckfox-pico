@@ -432,6 +432,8 @@ rootfs_prepare: prepare
 
 ##########################################################################################
 #   build buildroot
+#   author :luckfox team
+#	date:2023-11-11
 ##########################################################################################
 buildroot_menuconfig:
 	$(MAKE) menuconfig -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
