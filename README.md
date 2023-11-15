@@ -3,7 +3,28 @@
 * This SDK is modified based on the SDK provided by RK officially
 * It provides a customized SDK specifically for Luckfox Pico series development boards
 * Aimed at providing developers with a better programming experience
-
+## SDK Introduction
+* The current main branch uses buildroot to build the rootfs, which makes it easier to add or remove applications.
+* The original rootfs built directly with busybox has been moved to the busybox branch.
+### Default Applications
+The default SDK includes or installs the following applications (but not limited to):
+1. python3
+    * The following libraries are enabled by default:
+    1. PERIPHERY
+    2. PILLOW (font loading is temporarily unavailable)
+    3. SERIAL
+    4. SMBUS
+    5. SPIDEV
+2. ssh
+   1. Automatically starts at boot
+   2. Username: root
+   3. Password: luckfox
+3. samba
+   1. Automatically starts at boot
+   2. Username: root
+   3. Password: luckfox
+4. adb
+   1. Automatically starts at boot
 ## SDK Usage Instructions
 * recommended operating system : Ubuntu 22.04 
 ### Installing Dependencies
