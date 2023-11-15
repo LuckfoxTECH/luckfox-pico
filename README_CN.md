@@ -3,9 +3,32 @@
 * 本SDK基于RK官方提供的SDK修改而来
 * 专为Luckfox Pico系列开发板提供客制化的SDK
 * 旨在为开发者提供更好的编程体验
+## SDK 介绍
+* 当前main分支，rootfs使用buildroot构建，可以更加轻松的添加或者删除应用程序
+* 原先使用busybox直接构建rootfs，被移动到busybox分支
+### 默认应用
+默认SDK中开启或者装有应用（包括但不限于）
+1. python3
+   * 默认开启以下库
+   1. PERIPHERY
+   2. PILLOW（暂时无法加载字体）
+   3. SERIAL
+   4. SMBUS
+   5. SPIDEV
+2. ssh
+   1. 默认开机自启
+   2. 账号为root
+   3. 密码为luckfox
+3. samba
+   1. 默认开机自启
+   2. 账号为root
+   3. 密码为luckfox
+4. adb
+   1. 默认开机自启
 
 ## SDK 使用说明
 * 推荐使用系统为Ubuntu 22.04
+
 ### 安装依赖
 ```shell
 sudo apt-get install repo git ssh make gcc gcc-multilib g++-multilib module-assistant expect g++ gawk texinfo libssl-dev bison flex fakeroot cmake unzip gperf autoconf device-tree-compiler libncurses5-dev pkg-config
