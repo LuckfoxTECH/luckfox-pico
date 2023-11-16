@@ -1,202 +1,50 @@
-# Luckfox Pico SDK
-[中文版](./README_CN.md)
-* This SDK is modified based on the SDK provided by RK officially
-* It provides a customized SDK specifically for Luckfox Pico series development boards
-* Aimed at providing developers with a better programming experience
-## SDK Introduction
-* The current main branch uses buildroot to build the rootfs, which makes it easier to add or remove applications.
-* The original rootfs built directly with busybox has been moved to the busybox branch.
-### Default Applications
-The default SDK includes or installs the following applications (but not limited to):
-1. python3
-    * The following libraries are enabled by default:
-    1. PERIPHERY
-    2. PILLOW (font loading is temporarily unavailable)
-    3. SERIAL
-    4. SMBUS
-    5. SPIDEV
-2. ssh
-   1. Automatically starts at boot
-   2. Username: root
-   3. Password: luckfox
-3. samba
-   1. Automatically starts at boot
-   2. Username: root
-   3. Password: luckfox
-4. adb
-   1. Automatically starts at boot
-## SDK Usage Instructions
-* recommended operating system : Ubuntu 22.04 
-### Installing Dependencies
-```shell
-sudo apt-get install -y git ssh make gcc gcc-multilib g++-multilib module-assistant expect g++ gawk texinfo libssl-dev bison flex fakeroot cmake unzip gperf autoconf device-tree-compiler libncurses5-dev pkg-config bc python-is-python3 passwd openssl openssh-server openssh-client vim file cpio rsync
-```
-### Get SDK
-```
-git clone https://github.com/LuckfoxTECH/luckfox-pico.git
-```
-### Environment Variables
-* The cross-compilation toolchain needs to be set Environment Variables
-```
-cd {SDK_PATH}/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/
-source env_install_toolchain.sh
-```
-### Instructions for build.sh
-* The build.sh script is used to automate the compilation process. 
-* Most of the compilation operations can be completed automatically through build.sh.
-#### Options for build.sh
-```shell
-Usage: build.sh [OPTIONS]
-Available options:
-lunch              -Select Board Configure
-env                -build env
-meta               -build meta (optional)
-uboot              -build uboot
-kernel             -build kernel
-rootfs             -build rootfs
-driver             -build kernel's drivers
-sysdrv             -build uboot, kernel, rootfs
-media              -build rockchip media libraries
-app                -build app
-recovery           -build recovery
-tool               -build tool
-updateimg          -build update image
-unpackimg          -unpack update image
-factory            -build factory image
-all                -build uboot, kernel, rootfs, recovery image
-allsave            -build all & firmware & save
+# Embedded Linux based LoraWan Balloon design
 
-clean              -clean all
-clean uboot        -clean uboot
-clean kernel       -clean kernel
-clean driver       -clean driver
-clean rootfs       -clean rootfs
-clean sysdrv       -clean uboot/kernel/rootfs
-clean media        -clean rockchip media libraries
-clean app          -clean app
-clean recovery     -clean recovery
+## Introduction
 
-firmware           -pack all the image we need to boot up system
-ota                -pack update_ota.tar
-save               -save images, patches, commands used to debug
-check              -check the environment of building
-info               -see the current board building information
-```
-#### Select the referenced board configuration
-```shell
-./build.sh lunch
-```
-* It will display the corresponding board configuration options. Enter the number corresponding to the board configuration to switch to it.
-```shell
-You're building on Linux
-Lunch menu...pick a combo:
+This project is designed to build a linux based LoraWan HAB balloon. The idea of the project is to make an advancement of the current PicoBalloon communities. 
 
-BoardConfig-*.mk naming rules:
-BoardConfig-"启动介质"-"电源方案"-"硬件版本"-"应用场景".mk
-BoardConfig-"boot medium"-"power solution"-"hardware version"-"applicaton".mk
+## Hardware design desisions
 
-----------------------------------------------------------------
-1. BoardConfig_IPC/BoardConfig-EMMC-NONE-RV1103_Luckfox_Pico-IPC.mk
-                            boot medium(启动介质): EMMC
-                        power solution(电源方案): NONE
-                        hardware version(硬件版本): RV1103_Luckfox_Pico
-                            applicaton(应用场景): IPC
-----------------------------------------------------------------
+The hardware design is modular based, rather than a complete homegrown design to simplify development, and also ease of access to the project. (It's easy to reproduce at home!)
 
-----------------------------------------------------------------
-2. BoardConfig_IPC/BoardConfig-EMMC-NONE-RV1103_Luckfox_Pico_Mini_A-IPC.mk
-                            boot medium(启动介质): EMMC
-                        power solution(电源方案): NONE
-                        hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_A
-                            applicaton(应用场景): IPC
-----------------------------------------------------------------
+If significant advantages arise from a home developed board then it might be considered in the future. The weight difference, while lower is insignificant enough to not warrant the extra overhead and difficulty of access. Previous attempts of an in house designed circuit board using the F1C200S as a base design added complexity beyond what made the project enjoyable. (But easyeda.com I would recommend)
 
-----------------------------------------------------------------
-3. BoardConfig_IPC/BoardConfig-SPI_NAND-NONE-RV1103_Luckfox_Pico_Mini_B-IPC.mk
-                            boot medium(启动介质): SPI_NAND
-                        power solution(电源方案): NONE
-                        hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_B
-                            applicaton(应用场景): IPC
-----------------------------------------------------------------
+The hardware chosen has been based on multiple factors:
+* Form size 
+* Power consumption
+* Ease of interface (The components should be able to work with each other without having to design an interface board in the middle to aid communication)
 
-----------------------------------------------------------------
-4. BoardConfig_IPC/BoardConfig-SPI_NAND-NONE-RV1103_Luckfox_Pico_Plus-IPC.mk
-                            boot medium(启动介质): SPI_NAND
-                        power solution(电源方案): NONE
-                        hardware version(硬件版本): RV1103_Luckfox_Pico_Plus
-                            applicaton(应用场景): IPC
-----------------------------------------------------------------
+### Hardware chosen
 
-----------------------------------------------------------------
-5. BoardConfig_IPC/BoardConfig-SPI_NAND-NONE-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
-                            boot medium(启动介质): SPI_NAND
-                        power solution(电源方案): NONE
-                        hardware version(硬件版本): RV1106_Luckfox_Pico_Pro_Max
-                            applicaton(应用场景): IPC
-----------------------------------------------------------------
+#### Main CPU Board
+The Luckyfox Pico Mini B board was chosen as the main CPU interface board. (https://www.aliexpress.com/item/1005006175964407.html?spm=a2g0o.productlist.main.5.23e65e7fajW5dU&algo_pvid=d7ac3b67-3060-4390-9949-0ae884c76ab1&algo_exp_id=d7ac3b67-3060-4390-9949-0ae884c76ab1-2&pdp_npi=4%40dis%21GBP%216.24%215.62%21%21%217.52%21%21%402103080617001519217352442e2997%2112000036136791338%21sea%21UK%212760040230%21&curPageLogUid=gNBLw8xFaTQN)
 
-Which would you like? [0]:
-```
+This decision was made for the following reasons:
+
+* It's absolutely tiny. (28.14mm x 21.00mm)
+* It has a CSI connector (Allowing close to plug and play with adding a camera to the device)
+* It's low power.
+* It has an excellent SDK, which is now buildroot based complete with python3.
+* If I attempted to build the circuit design myself it would take 20 attempts, and the project would just never get finished.
+
+#### LoraWan communication module
+A random Semtec SX1276 based module has been chosen from AliExpress. (https://www.aliexpress.com/item/1005002603901624.html?spm=a2g0o.order_list.order_list_main.5.5e371802KeFoSQ)
+
+This design decision has been made for the following reasons:
+* The SX1276 module has extremely good support
+* The fact that it is a "Random" module doesn't matter, it has a SPI interface, and one would hope the board is tested - because it's a SX1276 board, any other board with the same chip should be pretty much one-to-one replaceable.
+* If I attempted to build the circuit design myself it would take 20 attempts, and the project would just never get finished.
+
+#### GPS Module
+
+Generally modern GPS modules are simply UART based, use similar chipsets and have essentially all become unified since they became integrated into smartphones. I didn't take much bother into researching this one. They should in theory neary all just be hotswappable.
+
+#### Camera Module
+
+This one needs research. I just picked the smallest, lightest camera I had on hand (It came from a ESP32 kit). Might not be the best solution power wise. This section might need an update.
 
 
-#### One-click Automatic Compilation
-```shell
-./build.sh lunch   # Select the reference board configuration
-./build.sh         # One-click automatic compilation
-```
-#### Build U-Boot
-```shell
-./build.sh clean uboot
-./build.sh uboot
-```
-The path of the generated files:
-```
-output/image/MiniLoaderAll.bin
-output/image/uboot.img
-```
-#### Build kernel
-```shell
-./build.sh clean kernel
-./build.sh kernel
-```
-The path of the generated files:
-```
-output/image/boot.img
-```
-#### Build rootfs
-```shell
-./build.sh clean rootfs
-./build.sh rootfs
-```
-* Note : After compilation, use the command ./build.sh firmware to repackage.
+## Notes on Source code.
 
-#### Build media
-```shell
-./build.sh clean media
-./build.sh media
-```
-The path of the generated files:
-```
-output/out/media_out
-```
-* Note : After compilation, use the command ./build.sh firmware to repackage.
-#### Build Reference Applications
-```shell
-./build.sh clean app
-./build.sh app
-```
-* Note 1: The app depends on media.
-* Note 2: After compilation, use the command ./build.sh firmware to repackage.
-#### Firmware Packaging
-```shell
-./build.sh firmware
-```
-The path of the generated files:
-```
-output/image
-```
-
-
-## Notices
-When copying the source code package under Windows, the executable file under Linux may become a non-executable file, or the soft link fails and cannot be compiled and used.
-Therefore, please be careful not to copy the source code package under Windows.
+The linux module used as the central processor is based on the LuckyFox Pico Mini B. Hence the basis of this git repository is a fork of their SDK for ease of updating any bug fixes for the board. Where there have been significant code changes, the README.md from LuckyFox have been renamed with a _luckyfox.md appendage. 
