@@ -1,7 +1,7 @@
 # Luckfox Pico SDK
 [中文版](./README_CN.md)
-* This SDK is modified based on the SDK provided by RK officially
-* It provides a customized SDK specifically for Luckfox Pico series development boards
+* This SDK is modified based on the SDK provided by Rockchip
+* It provides a customized SDK specifically for Luckfox Pico series development boards 
 * Aimed at providing developers with a better programming experience
 ## SDK Introduction
 * The current main branch uses buildroot to build the rootfs, which makes it easier to add or remove applications.
