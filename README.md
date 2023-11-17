@@ -1,3 +1,4 @@
+![luckfox](https://github.com/LuckfoxTECH/luckfox-pico/assets/144299491/cec5c4a5-22b9-4a9a-abb1-704b11651e88)
 # Luckfox Pico SDK
 [中文版](./README_CN.md)
 * This SDK is modified based on the SDK provided by Rockchip
