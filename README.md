@@ -74,6 +74,7 @@ The initial prototype can be seen in the image below.
 
 # Project status
 
-* It boots into linux and doesn't blow up. 
-* Devices attached currently non-functional
+* It boots into linux and doesn't blow up.
+* DTS Updated for correct pin attribution 
+* GPS Works
 * Basically the entire code base is missing.
