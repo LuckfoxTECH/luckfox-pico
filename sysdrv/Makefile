@@ -31,6 +31,9 @@ endif
 ifneq ($(RK_BUILDROOT_DEFCONFIG),)
 BUILDROOT_DEFCONFIG := $(RK_BUILDROOT_DEFCONFIG)
 endif
+ifeq ($(BUILDROOT_DEFCONFIG),)
+BUILDROOT_DEFCONFIG := luckfox_pico_defconfig
+endif
 
 SYSDRV_ROOTFS_FS_TYPE ?= $(fs_type)
 ifneq ($(RK_ROOTFS_FS_TPYE),)
@@ -438,7 +441,9 @@ rootfs_prepare: prepare
 buildroot_menuconfig:
 	$(MAKE) menuconfig -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
 	$(MAKE) source -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
-
+	
+buildroot_savedefconfig:
+	$(MAKE) savedefconfig -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
     
 buildroot: prepare
 	@echo -e "$(C_GREEN) ==sysdrv== build buildroot   $(C_NORMAL)" 
