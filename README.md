@@ -71,3 +71,9 @@ I have placed design thoughts within the ./doc directory within this repository.
 The initial prototype can be seen in the image below.
 
 ![Prototype](./docs/images/prototype.jpg)
+
+# Project status
+
+* It boots into linux and doesn't blow up. 
+* Devices attached currently non-functional
+* Basically the entire code base is missing.
