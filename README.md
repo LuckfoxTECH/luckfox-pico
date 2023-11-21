@@ -65,3 +65,9 @@ The linux module used as the central processor is based on the LuckyFox Pico Min
 As the base design of this project is a fork of the Luckyfox Pico SDK (https://github.com/LuckfoxTECH/luckfox-pico) a lot of the project gets hidden within their design of how an embedded SDK design should look like (Which, actually, to be fair is pretty decent IMHO).
 
 I have placed design thoughts within the ./doc directory within this repository. 
+
+## Initial Prototype
+
+The initial prototype can be seen in the image below.
+
+![Prototype](./docs/images/prototype.jpg)
