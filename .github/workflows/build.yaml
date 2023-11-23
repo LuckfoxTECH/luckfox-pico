@@ -33,15 +33,14 @@ jobs:
         asset_path: ./balloon/output/update.img
         asset_name: rootfs.img
         asset_content_type: application/img
-    # # BIGGER THAN 2G if not zipped!
-    # - name: Upload Release Asset edl.zip
-    #   id: upload-release-asset-debian-edl
-    #   uses: actions/upload-release-asset@v1
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #   with:
-    #     upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-    #     asset_path: ./edl.zip
-    #     asset_name: edl.zip
-    #     asset_content_type: application/zip
+    - name: Upload Release Asset output.zip
+      id: upload-release-asset-output
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./output.zip
+        asset_name: output.zip
+        asset_content_type: application/zip
     
