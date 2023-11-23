@@ -1312,7 +1312,9 @@ function parse_partition_file()
 		echo "ln -sf /dev/${storage_dev_prefix}${part_num} ${part_name}" >> $RK_PROJECT_FILE_ROOTFS_SCRIPT
 		part_num=$(( part_num + 1 ))
 	done
-	cat >> $RK_PROJECT_FILE_ROOTFS_SCRIPT <<EOF
+	case $RK_BOOT_MEDIUM in
+		emmc)
+			cat >> $RK_PROJECT_FILE_ROOTFS_SCRIPT <<EOF
 for i in \$(seq 5 8); do
 	det_partition="/dev/mmcblk1p\$i"
 	mount_point=\$(mount | grep "\$det_partition" | awk '{print \$3}')
@@ -1324,6 +1326,10 @@ for i in \$(seq 5 8); do
 	fi
 done
 EOF
+	;;
+	*)
+	;;
+	esac
 	IFS=
 	echo "fi }" >> $RK_PROJECT_FILE_ROOTFS_SCRIPT
 
