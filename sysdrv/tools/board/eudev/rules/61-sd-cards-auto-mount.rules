@@ -15,7 +15,7 @@ ACTION=="add", ENV{ID_FS_TYPE}=="ntfs", RUN+="/bin/mount -t ntfs-3g -o %E{mount_
 
 ACTION=="add", ENV{mount_options_exfat}="rw,uid=1000,gid=1000,dmask=022,fmask=133,noatime"
 
-ACTION=="add", ENV{ID_FS_TYPE}=="exfat", RUN+="/bin/mount -t exfat-fuse -o %E{mount_options_exfat} /dev/%k '/mnt/sdcard'"
+ACTION=="add", ENV{ID_FS_TYPE}=="exfat", RUN+="/bin/mount -t exfat -o %E{mount_options_exfat} /dev/%k '/mnt/sdcard'"
 
 ACTION=="add", ENV{mount_options_ext2}="users,exec,noatime"
 
