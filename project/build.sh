@@ -2043,5 +2043,3 @@ do
 done
 
 eval "${option:-build_allsave}"
-
-ls -al
