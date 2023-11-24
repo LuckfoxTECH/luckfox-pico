@@ -1,8 +1,7 @@
-ls
+ls -al
 
-/balloon/build.sh
+# /balloon/build.sh
 
-ls
+# ls -al
 
-
-zip /balloon/output.zip /balloon/output
+# zip /balloon/output.zip /balloon/output
