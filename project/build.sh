@@ -1051,9 +1051,17 @@ EOF
 function __PACKAGE_ROOTFS()
 {
 	local rootfs_tarball _target_dir _install_dir
-	rootfs_tarball="$RK_PROJECT_PATH_SYSDRV/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}.tar"
 	if [ -f $rootfs_tarball ]; then
-		tar xf $rootfs_tarball -C $RK_PROJECT_OUTPUT
+		if [ -z $RK_CUSTOM_ROOTFS ]; then
+			rootfs_tarball="$RK_PROJECT_PATH_SYSDRV/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}.tar"
+			tar xf $rootfs_tarball -C $RK_PROJECT_OUTPUT
+		else
+			rootfs_tarball="$RK_CUSTOM_ROOTFS"
+			if [ ! -d $RK_PROJECT_PACKAGE_ROOTFS_DIR ]; then
+				mkdir $RK_PROJECT_PACKAGE_ROOTFS_DIR
+			fi
+			tar xf $rootfs_tarball -C $RK_PROJECT_PACKAGE_ROOTFS_DIR
+		fi
 	else
 		msg_error "Not found rootfs tarball: $rootfs_tarball"
 		exit 1
