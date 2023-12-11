@@ -143,10 +143,17 @@ Which would you like? [0]:
 输入对应的序号选择对应的参考板级。
 
 #### 一键自动编译
+* 编译busybox/buildroot
 ```shell
 ./build.sh lunch   # 选择参考板级
 ./build.sh         # 一键自动编译
 ```
+* 编译ubuntu
+```shell
+sudo ./build.sh lunch   # 选择参考板级
+sudo ./build.sh         # 一键自动编译
+```
+* 编译ubuntu时需要注意使用sudo，否则会报错
 #### 单独编译U-Boot
 ```shell
 ./build.sh clean uboot
