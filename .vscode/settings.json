@@ -1,5 +1,7 @@
 {
     "files.associations": {
         "luckfox_spi.h": "c"
-    }
+    },
+    "Codegeex.SidebarUI.LanguagePreference": "中文",
+    "cmake.configureOnOpen": false
 }

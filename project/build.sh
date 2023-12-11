@@ -33,7 +33,12 @@ GLOBAL_INITRAMFS_BOOT_NAME=""
 GLOBAL_PARTITIONS=""
 GLOBAL_SDK_VERSION=""
 
-export RK_JOBS=$((`getconf _NPROCESSORS_ONLN` - 1 ))
+if [ `getconf _NPROCESSORS_ONLN` -eq 1 ]; then
+	export RK_JOBS=1
+else
+	export RK_JOBS=$((`getconf _NPROCESSORS_ONLN` - 1 ))
+fi
+
 export RK_BUILD_VERSION_TYPE=RELEASE
 
 export SDK_ROOT_DIR=$SDK_ROOT_DIR
@@ -133,14 +138,14 @@ function choose_target_board()
 	echo ""
 
 	echo 'BoardConfig-*.mk naming rules:'
-	echo 'BoardConfig-"启动介质"-"电源方案"-"硬件版本"-"应用场景".mk'
-	echo 'BoardConfig-"boot medium"-"power solution"-"hardware version"-"applicaton".mk'
+	echo 'BoardConfig-"启动介质"-"系统版本"-"硬件版本"-"应用场景".mk'
+	echo 'BoardConfig-"boot medium"-"system version"-"hardware version"-"applicaton".mk'
 	echo ""
 
 	local cnt=0 space8="        "
 	for item in ${RK_TARGET_BOARD_ARRAY[@]}
 	do
-		local f0 boot_medium ddr pmic hardware_version product_name
+		local f0 boot_medium ddr sys_ver hardware_version product_name
 		echo "----------------------------------------------------------------"
 		echo -e "${C_GREEN}$cnt. $item${C_NORMAL}"
 		cnt=$(( cnt + 1 ))
@@ -148,7 +153,7 @@ function choose_target_board()
 		boot_medium=${f0%%-*}
 
 		f0=${f0#*-}
-		pmic=${f0%%-*}
+		sys_ver=${f0%%-*}
 
 		f0=${f0#*-}
 		hardware_version=${f0%%-*}
@@ -157,7 +162,7 @@ function choose_target_board()
 		product_name=${f0%%-*}
 		product_name=${product_name%%.mk}
 		echo "${space8}${space8}             boot medium(启动介质): ${boot_medium}"
-		echo "${space8}${space8}          power solution(电源方案): ${pmic}"
+		echo "${space8}${space8}          system version(系统版本): ${sys_ver}"
 		echo "${space8}${space8}        hardware version(硬件版本): ${hardware_version}"
 		echo "${space8}${space8}              applicaton(应用场景): ${product_name}"
 		echo "----------------------------------------------------------------"
@@ -187,7 +192,7 @@ function build_select_board()
 	fi
 
 	choose_target_board
-
+	rm -f $BOARD_CONFIG
 	ln -rfs $TARGET_PRODUCT_DIR/$RK_BUILD_TARGET_BOARD $BOARD_CONFIG
 	msg_info "switching to board: `realpath $BOARD_CONFIG`"
 
@@ -539,7 +544,7 @@ function build_kernel(){
 }
 
 function build_rootfs(){
-	check_config RK_BOOT_MEDIUM || return 0
+	check_config RK_BOOT_MEDIUM || check_config RK_TARGET_ROOTFS || return 0
 
 	make rootfs -C ${SDK_SYSDRV_DIR}
 
@@ -902,9 +907,11 @@ chmod a+x $coredump2sdcard
 
 	cat > $tmp_path <<EOF
 #!/bin/sh
+if [ "\$(id -u)" = "0" ]; then
 ulimit -c unlimited
 echo "/data/core-%p-%e" > /proc/sys/kernel/core_pattern
 echo "| /usr/bin/coredump2sdcard.sh %p %e" > /proc/sys/kernel/core_pattern
+fi
 EOF
 	chmod u+x $tmp_path
 }
