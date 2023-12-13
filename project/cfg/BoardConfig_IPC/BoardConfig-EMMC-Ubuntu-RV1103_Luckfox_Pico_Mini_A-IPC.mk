@@ -27,7 +27,7 @@ export RK_BOOT_MEDIUM=emmc
 export RK_UBOOT_DEFCONFIG_FRAGMENT=rk-emmc.config
 
 # specify post.sh for delete/overlay files
-export RK_PRE_BUILD_OEM_SCRIPT=rv1103-spi_nor-post.sh
+# export RK_PRE_BUILD_OEM_SCRIPT=rv1103-spi_nor-post.sh
 
 # config partition in environment
 # RK_PARTITION_CMD_IN_ENV format:
