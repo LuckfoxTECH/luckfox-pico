@@ -1845,6 +1845,7 @@ function build_firmware(){
 
 	if [ "$RK_BUILD_APP_TO_OEM_PARTITION" = "y" ];then
 		rm -rf $RK_PROJECT_PACKAGE_ROOTFS_DIR/oem/*
+		mkdir -p $RK_PROJECT_PACKAGE_ROOTFS_DIR/oem
 		build_mkimg $GLOBAL_OEM_NAME $RK_PROJECT_PACKAGE_OEM_DIR
 	else
 		mkdir -p $RK_PROJECT_PACKAGE_ROOTFS_DIR/oem
