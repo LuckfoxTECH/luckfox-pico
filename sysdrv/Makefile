@@ -542,13 +542,7 @@ ifeq ($(SYSDRV_BUILD_RAMDISK_FLAG),YES)
 			$(BUILDROOT_DIR)/$(BUILDROOT_VER)/output/target)
 	endif
 else
-	test -f $(SYSDRV_DIR_OUT_ROOTFS)/userdata/.buildroot  || (\
-		rm -rf $(SYSDRV_DIR_OUT_ROOTFS) ;\
-		mkdir -p $(SYSDRV_DIR_OUT_ROOTFS) ;\
-	);
 	tar xf $(BUILDROOT_DIR)/$(BUILDROOT_VER)/output/images/rootfs.tar -C $(SYSDRV_DIR_OUT_ROOTFS)
-	mkdir -p $(SYSDRV_DIR_OUT_ROOTFS)/userdata
-	touch $(SYSDRV_DIR_OUT_ROOTFS)/userdata/.buildroot
 	cp $(SYSDRV_DIR)/tools/board/buildroot/shadow_defconfig $(SYSDRV_DIR_OUT_ROOTFS)/etc/shadow
 	cp $(SYSDRV_DIR)/tools/board/buildroot/sshd_defconfig $(SYSDRV_DIR_OUT_ROOTFS)/etc/ssh/sshd_config
 	cp $(SYSDRV_DIR)/tools/board/buildroot/samba_defconfig $(SYSDRV_DIR_OUT_ROOTFS)/etc/samba/smb.conf
@@ -581,7 +575,7 @@ ubuntu: prepare
 		tar xzf $(SYSDRV_DIR)/tools/board/ubuntu/$(UBUNTU_VER).tar.gz -C $(SYSDRV_DIR_OUT_ROOTFS) ;\
 	);
 ubuntu_clean:
-	$(AT)rm -rf $(UBUNTU_DIR)/$(UBUNTU_VER) 
+	$(AT)rm -rf $(SYSDRV_DIR_OUT_ROOTFS)
 
 ##########################################################################################
 #	build pc tools
