@@ -1985,6 +1985,19 @@ fi
 export RK_PROJECT_TOOLCHAIN_CROSS=$RK_TOOLCHAIN_CROSS
 export PATH="${SDK_ROOT_DIR}/tools/linux/toolchain/${RK_PROJECT_TOOLCHAIN_CROSS}/bin":$PATH
 
+if [[ "$LF_TARGET_ROOTFS" = "ubuntu" ]];then
+    if [[ "$LF_SUBMODULES_BY" = "github" ]];then
+        cp ${SDK_ROOT_DIR}/.gitmodules.github ${SDK_ROOT_DIR}/.gitmodules
+    else 
+        if [[ "$LF_SUBMODULES_BY" = "gitee" ]];then
+            cp ${SDK_ROOT_DIR}/.gitmodules.gitee ${SDK_ROOT_DIR}/.gitmodules
+        else
+            exit 0
+        fi
+    fi
+    git submodule update --init --recursive
+fi
+
 if echo $@|grep -wqE "help|-h"; then
 	if [ -n "$2" -a "$(type -t usage$2)" == function ]; then
 		echo "###Current Configure [ $2 ] Build Command###"
