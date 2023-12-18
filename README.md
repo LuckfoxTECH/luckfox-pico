@@ -4,28 +4,13 @@
 * This SDK is modified based on the SDK provided by Rockchip
 * It provides a customized SDK specifically for Luckfox Pico series development boards 
 * Aimed at providing developers with a better programming experience
-## SDK Introduction
-* The current main branch uses buildroot to build the rootfs, which makes it easier to add or remove applications.
-* The original rootfs built directly with busybox has been moved to the busybox branch.
-### Default Applications
-The default SDK includes or installs the following applications (but not limited to):
-1. python3
-    * The following libraries are enabled by default:
-    1. PERIPHERY
-    2. PILLOW (font loading is temporarily unavailable)
-    3. SERIAL
-    4. SMBUS
-    5. SPIDEV
-2. ssh
-   1. Automatically starts at boot
-   2. Username: root
-   3. Password: luckfox
-3. samba
-   1. Automatically starts at boot
-   2. Username: root
-   3. Password: luckfox
-4. adb
-   1. Automatically starts at boot
+## SDK Updatelog
+* Current version V1.2
+1. Added compatibility for Ubuntu system
+2. Restored support for busybox, allowing users to choose between busybox, buildroot, and Ubuntu according to their needs
+3. Added Ubuntu root file submodule and support for switching between GitHub and Gitee sources
+4. Added support for exFAT file system
+5. Partial bug fixes
 ## SDK Usage Instructions
 * recommended operating system : Ubuntu 22.04 
 ### Installing Dependencies
@@ -42,6 +27,20 @@ git clone https://github.com/LuckfoxTECH/luckfox-pico.git
 cd {SDK_PATH}/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/
 source env_install_toolchain.sh
 ```
+### Get the SDK
+* GitHub
+    ```
+    git clone <https://github.com/LuckfoxTECH/luckfox-pico.git>
+    ```
+* Gitee
+    ```
+    git clone <https://gitee.com/LuckfoxTECH/luckfox-pico.git>
+    ```
+   * If you need to compile the Ubuntu system and use the Gitee source
+   * Please modify the corresponding board mk file LF_SUBMODULES_BY to gitee, for example
+        ```
+        LF_SUBMODULES_BY=gitee
+        ```
 ### Instructions for build.sh
 * The build.sh script is used to automate the compilation process. 
 * Most of the compilation operations can be completed automatically through build.sh.
@@ -93,47 +92,79 @@ You're building on Linux
 Lunch menu...pick a combo:
 
 BoardConfig-*.mk naming rules:
-BoardConfig-"启动介质"-"电源方案"-"硬件版本"-"应用场景".mk
-BoardConfig-"boot medium"-"power solution"-"hardware version"-"applicaton".mk
+BoardConfig-"启动介质"-"系统版本"-"硬件版本"-"应用场景".mk
+BoardConfig-"boot medium"-"system version"-"hardware version"-"applicaton".mk
 
 ----------------------------------------------------------------
-1. BoardConfig_IPC/BoardConfig-EMMC-NONE-RV1103_Luckfox_Pico-IPC.mk
-                            boot medium(启动介质): EMMC
-                        power solution(电源方案): NONE
+0. BoardConfig_IPC/BoardConfig-EMMC-Buildroot-RV1103_Luckfox_Pico-IPC.mk
+                             boot medium(启动介质): EMMC
+                          system version(系统版本): Buildroot
                         hardware version(硬件版本): RV1103_Luckfox_Pico
-                            applicaton(应用场景): IPC
+                              applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-2. BoardConfig_IPC/BoardConfig-EMMC-NONE-RV1103_Luckfox_Pico_Mini_A-IPC.mk
-                            boot medium(启动介质): EMMC
-                        power solution(电源方案): NONE
+1. BoardConfig_IPC/BoardConfig-EMMC-Buildroot-RV1103_Luckfox_Pico_Mini_A-IPC.mk
+                             boot medium(启动介质): EMMC
+                          system version(系统版本): Buildroot
                         hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_A
-                            applicaton(应用场景): IPC
+                              applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-3. BoardConfig_IPC/BoardConfig-SPI_NAND-NONE-RV1103_Luckfox_Pico_Mini_B-IPC.mk
-                            boot medium(启动介质): SPI_NAND
-                        power solution(电源方案): NONE
-                        hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_B
-                            applicaton(应用场景): IPC
+2. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1103_Luckfox_Pico-IPC.mk
+                             boot medium(启动介质): EMMC
+                          system version(系统版本): Ubuntu
+                        hardware version(硬件版本): RV1103_Luckfox_Pico
+                              applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-4. BoardConfig_IPC/BoardConfig-SPI_NAND-NONE-RV1103_Luckfox_Pico_Plus-IPC.mk
-                            boot medium(启动介质): SPI_NAND
-                        power solution(电源方案): NONE
+3. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1103_Luckfox_Pico_Mini_A-IPC.mk
+                             boot medium(启动介质): EMMC
+                          system version(系统版本): Ubuntu
+                        hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_A
+                              applicaton(应用场景): IPC
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+4. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1103_Luckfox_Pico_Plus-IPC.mk
+                             boot medium(启动介质): EMMC
+                          system version(系统版本): Ubuntu
                         hardware version(硬件版本): RV1103_Luckfox_Pico_Plus
-                            applicaton(应用场景): IPC
+                              applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-5. BoardConfig_IPC/BoardConfig-SPI_NAND-NONE-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
-                            boot medium(启动介质): SPI_NAND
-                        power solution(电源方案): NONE
+5. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
+                             boot medium(启动介质): EMMC
+                          system version(系统版本): Ubuntu
                         hardware version(硬件版本): RV1106_Luckfox_Pico_Pro_Max
-                            applicaton(应用场景): IPC
+                              applicaton(应用场景): IPC
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+6. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Mini_B-IPC.mk
+                             boot medium(启动介质): SPI_NAND
+                          system version(系统版本): Buildroot
+                        hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_B
+                              applicaton(应用场景): IPC
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+7. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Plus-IPC.mk
+                             boot medium(启动介质): SPI_NAND
+                          system version(系统版本): Buildroot
+                        hardware version(硬件版本): RV1103_Luckfox_Pico_Plus
+                              applicaton(应用场景): IPC
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+8. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
+                             boot medium(启动介质): SPI_NAND
+                          system version(系统版本): Buildroot
+                        hardware version(硬件版本): RV1106_Luckfox_Pico_Pro_Max
+                              applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 Which would you like? [0]:
@@ -145,6 +176,18 @@ Which would you like? [0]:
 ./build.sh lunch   # Select the reference board configuration
 ./build.sh         # One-click automatic compilation
 ```
+* Compile busybox/buildroot    
+    ```
+    ./build.sh lunch   # Select the reference board
+    ./build.sh         # One-click automatic compilation  
+    ``` 
+* Compile Ubuntu
+    ```
+    sudo ./build.sh lunch   # Select the reference board
+    sudo ./build.sh         # One-click automatic compilation  
+    ```
+    * Note that when compiling Ubuntu, make sure to use sudo, otherwise it may cause file system errors
+    * The following text will not distinguish between the two sets of instructions, please choose accordingly based on the situation
 #### Build U-Boot
 ```shell
 ./build.sh clean uboot
