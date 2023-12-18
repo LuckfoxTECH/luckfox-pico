@@ -4,46 +4,39 @@
 * 本SDK基于RK官方提供的SDK修改而来
 * 专为Luckfox Pico系列开发板提供客制化的SDK
 * 旨在为开发者提供更好的编程体验
-## SDK 介绍
-* 当前main分支，rootfs使用buildroot构建，可以更加轻松的添加或者删除应用程序
-* 原先使用busybox直接构建rootfs，被移动到busybox分支
-### 默认应用
-默认SDK中开启或者装有应用（包括但不限于）
-1. python3
-   * 默认开启以下库
-   1. PERIPHERY
-   2. PILLOW（暂时无法加载字体）
-   3. SERIAL
-   4. SMBUS
-   5. SPIDEV
-2. ssh
-   1. 默认开机自启
-   2. 账号为root
-   3. 密码为luckfox
-3. samba
-   1. 默认开机自启
-   2. 账号为root
-   3. 密码为luckfox
-4. adb
-   1. 默认开机自启
-
+## SDK 更新日志
+* 当前版本 V1.2
+1. 添加ubuntu系统兼容
+2. 恢复对busybox的支持，使用户可以根据自身需求busybox、buildroot和ubuntu
+3. 添加ubuntu根文件子库，并且支持github与gitee源切换
+4. 添加exfat文件系统的支持
+5. 部分bug修复
 ## SDK 使用说明
 * 推荐使用系统为Ubuntu 22.04
-
 ### 安装依赖
 ```shell
 sudo apt-get install repo git ssh make gcc gcc-multilib g++-multilib module-assistant expect g++ gawk texinfo libssl-dev bison flex fakeroot cmake unzip gperf autoconf device-tree-compiler libncurses5-dev pkg-config
 ```
 ### 获取SDK
-```
-git clone https://github.com/LuckfoxTECH/luckfox-pico.git
-```
+* github
+    ```
+    git clone https://github.com/LuckfoxTECH/luckfox-pico.git
+    ```
+* gitee
+    ```
+    git clone https://gitee.com/LuckfoxTECH/luckfox-pico.git
+    ```
+   * 如果你需要需要编译ubuntu系统，并且使用gitee源
+   * 请修改对应的板型mk文件中LF_SUBMODULES_BY改为gitee，如
+        ```
+        LF_SUBMODULES_BY=gitee
+        ```
 ### 环境变量
 * 需要将交叉编译工具链设置
-```
-cd {SDK_PATH}/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/
-source env_install_toolchain.sh
-```
+    ```
+    cd {SDK_PATH}/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/
+    source env_install_toolchain.sh
+    ```
 ### build.sh使用说明
 * SDK使用build.sh脚本实现自动编译，大部分编译操作均可以通过build.sh自动完成.
 #### build.sh全部可用选项
@@ -94,47 +87,79 @@ You're building on Linux
 Lunch menu...pick a combo:
 
 BoardConfig-*.mk naming rules:
-BoardConfig-"启动介质"-"电源方案"-"硬件版本"-"应用场景".mk
-BoardConfig-"boot medium"-"power solution"-"hardware version"-"applicaton".mk
+BoardConfig-"启动介质"-"系统版本"-"硬件版本"-"应用场景".mk
+BoardConfig-"boot medium"-"system version"-"hardware version"-"applicaton".mk
 
 ----------------------------------------------------------------
-1. BoardConfig_IPC/BoardConfig-EMMC-NONE-RV1103_Luckfox_Pico-IPC.mk
-                            boot medium(启动介质): EMMC
-                        power solution(电源方案): NONE
+0. BoardConfig_IPC/BoardConfig-EMMC-Buildroot-RV1103_Luckfox_Pico-IPC.mk
+                             boot medium(启动介质): EMMC
+                          system version(系统版本): Buildroot
                         hardware version(硬件版本): RV1103_Luckfox_Pico
-                            applicaton(应用场景): IPC
+                              applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-2. BoardConfig_IPC/BoardConfig-EMMC-NONE-RV1103_Luckfox_Pico_Mini_A-IPC.mk
-                            boot medium(启动介质): EMMC
-                        power solution(电源方案): NONE
+1. BoardConfig_IPC/BoardConfig-EMMC-Buildroot-RV1103_Luckfox_Pico_Mini_A-IPC.mk
+                             boot medium(启动介质): EMMC
+                          system version(系统版本): Buildroot
                         hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_A
-                            applicaton(应用场景): IPC
+                              applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-3. BoardConfig_IPC/BoardConfig-SPI_NAND-NONE-RV1103_Luckfox_Pico_Mini_B-IPC.mk
-                            boot medium(启动介质): SPI_NAND
-                        power solution(电源方案): NONE
-                        hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_B
-                            applicaton(应用场景): IPC
+2. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1103_Luckfox_Pico-IPC.mk
+                             boot medium(启动介质): EMMC
+                          system version(系统版本): Ubuntu
+                        hardware version(硬件版本): RV1103_Luckfox_Pico
+                              applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-4. BoardConfig_IPC/BoardConfig-SPI_NAND-NONE-RV1103_Luckfox_Pico_Plus-IPC.mk
-                            boot medium(启动介质): SPI_NAND
-                        power solution(电源方案): NONE
+3. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1103_Luckfox_Pico_Mini_A-IPC.mk
+                             boot medium(启动介质): EMMC
+                          system version(系统版本): Ubuntu
+                        hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_A
+                              applicaton(应用场景): IPC
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+4. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1103_Luckfox_Pico_Plus-IPC.mk
+                             boot medium(启动介质): EMMC
+                          system version(系统版本): Ubuntu
                         hardware version(硬件版本): RV1103_Luckfox_Pico_Plus
-                            applicaton(应用场景): IPC
+                              applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-5. BoardConfig_IPC/BoardConfig-SPI_NAND-NONE-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
-                            boot medium(启动介质): SPI_NAND
-                        power solution(电源方案): NONE
+5. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
+                             boot medium(启动介质): EMMC
+                          system version(系统版本): Ubuntu
                         hardware version(硬件版本): RV1106_Luckfox_Pico_Pro_Max
-                            applicaton(应用场景): IPC
+                              applicaton(应用场景): IPC
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+6. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Mini_B-IPC.mk
+                             boot medium(启动介质): SPI_NAND
+                          system version(系统版本): Buildroot
+                        hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_B
+                              applicaton(应用场景): IPC
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+7. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Plus-IPC.mk
+                             boot medium(启动介质): SPI_NAND
+                          system version(系统版本): Buildroot
+                        hardware version(硬件版本): RV1103_Luckfox_Pico_Plus
+                              applicaton(应用场景): IPC
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+8. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
+                             boot medium(启动介质): SPI_NAND
+                          system version(系统版本): Buildroot
+                        hardware version(硬件版本): RV1106_Luckfox_Pico_Pro_Max
+                              applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 Which would you like? [0]:
@@ -144,16 +169,17 @@ Which would you like? [0]:
 
 #### 一键自动编译
 * 编译busybox/buildroot
-```shell
-./build.sh lunch   # 选择参考板级
-./build.sh         # 一键自动编译
-```
+    ```shell
+    ./build.sh lunch   # 选择参考板级
+    ./build.sh         # 一键自动编译
+    ```
 * 编译ubuntu
-```shell
-sudo ./build.sh lunch   # 选择参考板级
-sudo ./build.sh         # 一键自动编译
-```
-* 编译ubuntu时需要注意使用sudo，否则会报错
+    ```shell
+    sudo ./build.sh lunch   # 选择参考板级
+    sudo ./build.sh         # 一键自动编译
+    ```
+    * 注意编译ubuntu时需要注意使用sudo，否则会导致文件系统错误
+    * 下文就不一一区分两者指令区别，请自行根据情况选择
 #### 单独编译U-Boot
 ```shell
 ./build.sh clean uboot
