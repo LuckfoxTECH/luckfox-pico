@@ -30,6 +30,9 @@
 #include "fbtft.h"
 #include "internal.h"
 
+#include <linux/gpio.h> 
+#include <linux/of_gpio.h> 
+
 static unsigned long debug;
 module_param(debug, ulong, 0000);
 MODULE_PARM_DESC(debug, "override device debug level");
@@ -75,16 +78,37 @@ static int fbtft_request_one_gpio(struct fbtft_par *par,
 				  struct gpio_desc **gpiop)
 {
 	struct device *dev = par->info->device;
+	struct device_node *node = dev->of_node;
+	int gpio, flags, ret = 0;
+	enum of_gpio_flags of_flags;
+	if (of_find_property(node, name, NULL)) {
+		gpio = of_get_named_gpio_flags(node, name, index, &of_flags);
+		if (gpio == -ENOENT)
+			return 0;
+		if (gpio == -EPROBE_DEFER)
+			return gpio;
+		if (gpio < 0) {
+			dev_err(dev,
+				"failed to get '%s' from DT\n", name);
+			return gpio;
+		}
+		 //active low translates to initially low
+		flags = (of_flags & OF_GPIO_ACTIVE_LOW) ? GPIOF_OUT_INIT_LOW :
+							GPIOF_OUT_INIT_HIGH;
+		ret = devm_gpio_request_one(dev, gpio, flags,
+						dev->driver->name);
+		if (ret) {
+			dev_err(dev,
+				"gpio_request_one('%s'=%d) failed with %d\n",
+				name, gpio, ret);
+			return ret;
+		}
 
-	*gpiop = devm_gpiod_get_index_optional(dev, name, index,
-					       GPIOD_OUT_LOW);
-	if (IS_ERR(*gpiop))
-		return dev_err_probe(dev, PTR_ERR(*gpiop), "Failed to request %s GPIO\n", name);
+		*gpiop = gpio_to_desc(gpio);
+		fbtft_par_dbg(DEBUG_REQUEST_GPIOS, par, "%s: '%s' = GPIO%d\n",__func__, name, gpio);
+	}
 
-	fbtft_par_dbg(DEBUG_REQUEST_GPIOS, par, "%s: '%s' GPIO\n",
-		      __func__, name);
-
-	return 0;
+	return ret;
 }
 
 static int fbtft_request_gpios(struct fbtft_par *par)
@@ -219,12 +243,12 @@ static void fbtft_reset(struct fbtft_par *par)
 
 	fbtft_par_dbg(DEBUG_RESET, par, "%s()\n", __func__);
 
-	gpiod_set_value_cansleep(par->gpio.reset, 1);
-	usleep_range(20, 40);
 	gpiod_set_value_cansleep(par->gpio.reset, 0);
+	usleep_range(20, 40);
+	gpiod_set_value_cansleep(par->gpio.reset, 1);
 	msleep(120);
 
-	gpiod_set_value_cansleep(par->gpio.cs, 1);  /* Activate chip */
+	gpiod_set_value_cansleep(par->gpio.cs, 0);  /* Activate chip */
 }
 
 static void fbtft_update_display(struct fbtft_par *par, unsigned int start_line,
