@@ -125,6 +125,39 @@ int PICO_GPIOS[] = {
 
 };
 
+int PICO_ULTRA_GPIOS[] = {
+    LUCKFOX_PICO_ULTRA_GPIO0,
+    LUCKFOX_PICO_ULTRA_GPIO1,
+    LUCKFOX_PICO_ULTRA_GPIO2,
+    LUCKFOX_PICO_ULTRA_GPIO3,
+    LUCKFOX_PICO_ULTRA_GPIO4,
+    LUCKFOX_PICO_ULTRA_GPIO5,
+    LUCKFOX_PICO_ULTRA_GPIO6,
+    LUCKFOX_PICO_ULTRA_GPIO7,
+    LUCKFOX_PICO_ULTRA_GPIO8,
+    LUCKFOX_PICO_ULTRA_GPIO9,
+    LUCKFOX_PICO_ULTRA_GPIO10,
+    LUCKFOX_PICO_ULTRA_GPIO11,
+    LUCKFOX_PICO_ULTRA_GPIO12,
+    LUCKFOX_PICO_ULTRA_GPIO13,
+    LUCKFOX_PICO_ULTRA_GPIO14,
+    LUCKFOX_PICO_ULTRA_GPIO15,
+    LUCKFOX_PICO_ULTRA_GPIO16,
+    LUCKFOX_PICO_ULTRA_GPIO17,
+    LUCKFOX_PICO_ULTRA_GPIO18,
+    LUCKFOX_PICO_ULTRA_GPIO19,
+    LUCKFOX_PICO_ULTRA_GPIO20,
+    LUCKFOX_PICO_ULTRA_GPIO21,
+    LUCKFOX_PICO_ULTRA_GPIO22,
+    LUCKFOX_PICO_ULTRA_GPIO23,
+    LUCKFOX_PICO_ULTRA_GPIO24,
+    LUCKFOX_PICO_ULTRA_GPIO25,
+    LUCKFOX_PICO_ULTRA_GPIO26,
+    LUCKFOX_PICO_ULTRA_GPIO27,
+    LUCKFOX_PICO_ULTRA_GPIO28,
+    LUCKFOX_PICO_ULTRA_GPIO29,
+};
+
 void Delay_ms(uint32_t xms)
 {
     uint32_t i;
@@ -158,12 +191,13 @@ int main(int argc, char *argv[])
     printf("* 1. LUCKFOX PICO\r\n");
     printf("* 2. LUCKFOX PICO PLUS\r\n");
     printf("* 3. LUCKFOX PICO MAX\r\n");
+    printf("* 4. LUCKFOX PICO MAX\r\n");
     printf("-----------------------------\r\n");
     while (1)
     {
         printf("Which would you like? :");
         input_char = getchar();
-        if (input_char >= '1' && input_char <= '3')
+        if (input_char >= '1' && input_char <= '4')
         {
             break;
         }
@@ -186,6 +220,12 @@ int main(int argc, char *argv[])
         GPIO_BEGIN_PIN = 16;
         GPIO_END_PIN = 22;
         TEST_PIN = PICO_MAX_GPIOS;
+    }
+    else if (input_char == '4')
+    {
+        GPIO_BEGIN_PIN = 2;
+        GPIO_END_PIN = 27;
+        TEST_PIN = PICO_ULTRA_GPIOS;
     }
     else
     {
@@ -230,14 +270,12 @@ int main(int argc, char *argv[])
 
         for (int x = GPIO_BEGIN_PIN; x <= GPIO_END_PIN; x++)
         {
-
             luckfox_gpio_set_value(TEST_PIN[x], 1);
             printf("GP%d : GPIO%d set \r\n", x, TEST_PIN[x]);
             Delay_ms(delay_time);
         }
         for (int x = GPIO_BEGIN_PIN; x <= GPIO_END_PIN; x++)
         {
-
             luckfox_gpio_set_value(TEST_PIN[x], 0);
             printf("GP%d : GPIO%d reset \r\n", x, TEST_PIN[x]);
             Delay_ms(delay_time);
