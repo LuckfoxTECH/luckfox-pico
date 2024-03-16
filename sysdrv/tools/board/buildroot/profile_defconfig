@@ -1,0 +1,15 @@
+export PATH="/bin:/sbin:/usr/bin:/usr/sbin"
+
+export EDITOR='/bin/vi'
+
+export PS1='[\u@\h \W]$ '
+
+# Source configuration files from /etc/profile.d
+for i in /etc/profile.d/*.sh ; do
+        if [ -r "$i" ]; then
+                . $i
+        fi
+done
+unset i
+
+

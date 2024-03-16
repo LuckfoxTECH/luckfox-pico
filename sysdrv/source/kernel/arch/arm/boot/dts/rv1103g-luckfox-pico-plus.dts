@@ -7,115 +7,16 @@
 
 #include "rv1103.dtsi"
 #include "rv1106-evb.dtsi"
-#include "rv1103-luckfox-pico-plus-ipc.dtsi"
+#include "rv1103-luckfox-pico-ipc.dtsi"
 
 / {
 	model = "Luckfox Pico Plus";
 	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1103";
-	gpio3pa1:gpio3pa1 {
-		compatible = "regulator-fixed";
-		pinctrl-names = "default";
-		pinctrl-0 = <&gpio3_pa1>;
-		regulator-name = "gpio3_pa1";
-		regulator-always-on;
-	};
-
-	gpio3pa2:gpio3pa2 {
-		compatible = "regulator-fixed";
-		pinctrl-names = "default";
-		pinctrl-0 = <&gpio3_pa2>;
-		regulator-name = "gpio3_pa2";
-		regulator-always-on;
-	};
-
-	gpio3pa3:gpio3pa3 {
-		compatible = "regulator-fixed";
-		pinctrl-names = "default";
-		pinctrl-0 = <&gpio3_pa3>;
-		regulator-name = "gpio3_pa3";
-		regulator-always-on;
-	};
-
-	gpio3pa4:gpio3pa4 {
-		compatible = "regulator-fixed";
-		pinctrl-names = "default";
-		pinctrl-0 = <&gpio3_pa4>;
-		regulator-name = "gpio3_pa4";
-		regulator-always-on;
-	};
-
-	gpio3pa5:gpio3pa5 {
-		compatible = "regulator-fixed";
-		pinctrl-names = "default";
-		pinctrl-0 = <&gpio3_pa5>;
-		regulator-name = "gpio3_pa5";
-		regulator-always-on;
-	};
-
-	gpio3pa6:gpio3pa6 {
-		compatible = "regulator-fixed";
-		pinctrl-names = "default";
-		pinctrl-0 = <&gpio3_pa6>;
-		regulator-name = "gpio3_pa6";
-		regulator-always-on;
-	};
-
-	gpio3pa7:gpio3pa7 {
-		compatible = "regulator-fixed";
-		pinctrl-names = "default";
-		pinctrl-0 = <&gpio3_pa7>;
-		regulator-name = "gpio3_pa7";
-		regulator-always-on;
-	};
-};
-/**********GPIO**********/
-&pinctrl {
-	gpio3-pa1 {
-		gpio3_pa1:gpio3-pa1 {
-			rockchip,pins =	<3 RK_PA1 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
-	gpio3-pa2 {
-		gpio3_pa2:gpio3-pa2 {
-			rockchip,pins =	<3 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
-	gpio3-pa3 {
-		gpio3_pa3:gpio3-pa3 {
-			rockchip,pins =	<3 RK_PA3 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
-	gpio3-pa4 {
-		gpio3_pa4:gpio3-pa4 {
-			rockchip,pins =	<3 RK_PA4 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
-	gpio3-pa5 {
-		gpio3_pa5:gpio3-pa5 {
-			rockchip,pins =	<3 RK_PA5 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
-	gpio3-pa6 {
-		gpio3_pa6:gpio3-pa6 {
-			rockchip,pins =	<3 RK_PA6 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
-	gpio3-pa7 {
-		gpio3_pa7:gpio3-pa7 {
-			rockchip,pins =	<3 RK_PA7 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
 };
 
+/**********SFC**********/
 &sfc {
 	status = "okay";
-
 	flash@0 {
 		compatible = "spi-nand";
 		reg = <0>;
@@ -125,144 +26,72 @@
 	};
 };
 
+/**********SDMMC**********/
+&sdmmc {
+	max-frequency = <50000000>;
+	no-sdio;
+	no-mmc;
+	bus-width = <4>;
+	cap-mmc-highspeed;
+	cap-sd-highspeed;
+	disable-wp;
+	pinctrl-names = "default";
+	pinctrl-0 = <&sdmmc0_clk &sdmmc0_cmd &sdmmc0_det &sdmmc0_bus4>;
+	status = "okay";
+};
+
 /**********ETH**********/
 &gmac {
 	status = "okay";
 };
 
 /**********USB**********/
-//&usbdrd {
-//	status = "disabled";
-//};
-
-//&usbdrd_dwc3 {
-//	status = "disabled";
-//};
-
-//&u2phy {
-//	status = "disabled";
-//};
-
-//&u2phy_otg {
-//	status = "disabled";
-//};
-
-/**********I2C**********/
-// &i2c0 {
-// 	status = "okay";
-// 	pinctrl-0 = <&i2c0m2_xfer>;
-// 	clock-frequency = <100000>;
-// };
-&i2c3 {
+&usbdrd_dwc3 {
 	status = "okay";
-	pinctrl-0 = <&i2c3m1_xfer>;
-	clock-frequency = <100000>;
+	dr_mode = "peripheral";
 };
 
 /**********SPI**********/
+/* SPI0_M0 */
 &spi0 {
 	status = "okay";
-	pinctrl-names = "default";
-	pinctrl-0 = <&spi0m0_pins>;
-	cs-gpios = <&gpio1 RK_PC0 1>;
-	// cs-gpios = <&gpio1 26 1>;
 	#address-cells = <1>;
 	#size-cells = <0>;
 	spidev@0 {
 		compatible = "rockchip,spidev";
-		spi-max-frequency = <1000000000>;
+		spi-max-frequency = <50000000>;
 		reg = <0>;
 	};
 };
 
+/**********I2C**********/
+/* I2C3_M1 */
+&i2c3 {
+	status = "disabled";
+	clock-frequency = <100000>;
+};
+
+/* I2C0_M2 */
+&i2c0 {
+	status = "disabled";
+	clock-frequency = <100000>;
+};
+
 /**********UART**********/
+/* UART3_M1 */
 &uart3 {
-	status = "okay";
-	pinctrl-names = "default";
-	pinctrl-0 = <&uart3m1_xfer>;
+	status = "disabled";
 };
+
+/* UART4_M1 */
 &uart4 {
-	status = "okay";
-	pinctrl-names = "default";
-	pinctrl-0 = <&uart4m1_xfer>;
+	status = "disabled";
 };
-//&uart5 {
-//	status = "okay";
-//	pinctrl-names = "default";
-//	pinctrl-0 = <&uart5m0_xfer>;
-//};
 
 /**********PWM**********/
-
-&pwm0 {
-	status = "okay";
-	pinctrl-names = "active";
-	pinctrl-0 = <&pwm0m0_pins>;
-	// pinctrl-0 = <&pwm0m1_pins>;
-};
+/* PWM1_M0 */
 &pwm1 {
-	status = "okay";
-	pinctrl-names = "active";
-	pinctrl-0 = <&pwm1m0_pins>;
-	// pinctrl-0 = <&pwm1m1_pins>;
-};
-
-//&pwm2 {
-//	status = "okay";
-//	pinctrl-names = "active";
-//	pinctrl-0 = <&pwm2m2_pins>;
-//};
-//&pwm3 {
-//	status = "okay";
-//	pinctrl-names = "active";
-//	pinctrl-0 = <&pwm3m2_pins>;
-//};
-//&pwm4 {
-//	status = "okay";
-//	pinctrl-names = "active";
-//	pinctrl-0 = <&pwm4m2_pins>;
-//};
-//&pwm5 {
-//	status = "okay";
-//	pinctrl-names = "active";
-//	pinctrl-0 = <&pwm5m2_pins>;
-//};
-//&pwm6 {
-//	status = "okay";
-//	pinctrl-names = "active";
-//	pinctrl-0 = <&pwm6m2_pins>;
-//};
-//&pwm7 {
-//	status = "okay";
-//	pinctrl-names = "active";
-//	pinctrl-0 = <&pwm7m2_pins>;
-//};
-//&pwm8 {
-//	status = "okay";
-//	pinctrl-names = "active";
-//	// pinctrl-0 = <&pwm8m1_pins>;
-//	pinctrl-0 = <&pwm8m0_pins>;
-//};
-//&pwm9 {
-//	status = "okay";
-//	pinctrl-names = "active";
-//	// pinctrl-0 = <&pwm9m1_pins>;
-//	pinctrl-0 = <&pwm9m0_pins>;
-//};
-
-&pwm10 {
-	status = "okay";
-	pinctrl-names = "active";
-	pinctrl-0 = <&pwm10m1_pins>;
-	// pinctrl-0 = <&pwm10m2_pins>;
-	// pinctrl-0 = <&pwm10m0_pins>;
-};
-&pwm11 {
-	status = "okay";
-	pinctrl-names = "active";
-	pinctrl-0 = <&pwm11m1_pins>;
-	// pinctrl-0 = <&pwm11m2_pins>;
-	// pinctrl-0 = <&pwm11m0_pins>;
+	status = "disabled";
 };
 
 

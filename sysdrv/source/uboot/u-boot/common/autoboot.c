@@ -220,7 +220,7 @@ static int __abortboot(int bootdelay)
 #endif
 
 #ifdef CONFIG_ARCH_ROCKCHIP
-	if (!IS_ENABLED(CONFIG_CONSOLE_DISABLE_CLI) && ctrlc()) {	/* we press ctrl+c ? */
+	if ((!IS_ENABLED(CONFIG_CONSOLE_DISABLE_CLI) && ctrlc()) || env_get("cli")) {	/* we press ctrl+c ? */
 #else
 	/*
 	 * Check if key already pressed

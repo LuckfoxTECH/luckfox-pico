@@ -1,0 +1,67 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2022 Rockchip Electronics Co., Ltd.
+ */
+
+/dts-v1/;
+#include "rv1106.dtsi"
+#include "rv1106-luckfox-pico-ultra-ipc.dtsi"
+#include "rv1106-thunder-boot-emmc.dtsi"
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/display/media-bus-format.h>
+
+/ {
+	model = "Luckfox Pico Ultra";
+	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1106";
+
+	restart-poweroff {
+		compatible = "restart-poweroff";
+	};
+
+	sdio_pwrseq: sdio-pwrseq {
+		compatible = "mmc-pwrseq-simple";
+		pinctrl-names = "default";
+		reset-gpios = <&gpio1 RK_PA2 GPIO_ACTIVE_LOW>;
+	};
+};
+
+/**********EMMC**********/
+&emmc {
+	memory-region-ecsd = <&mmc_ecsd>;
+	post-power-on-delay-ms = <0>;
+	status = "okay";
+};
+
+&fiq_debugger {
+	rockchip,irq-mode-enable = <1>;
+	status = "okay";
+};
+
+/**********ETH**********/
+&gmac {
+	status = "okay";
+};
+
+/**********USB**********/
+&usbdrd_dwc3 {
+	status = "okay";
+	dr_mode = "peripheral";
+};
+
+/**********RTC**********/
+&rtc {
+	status = "okay";
+};
+
+/**********TP**********/
+&i2c3 {
+    status = "disabled";
+};
+
+/**********SPI**********/
+&spi0 {
+	status = "disabled";
+	spidev@0 {
+		spi-max-frequency = <50000000>;
+	};
+};

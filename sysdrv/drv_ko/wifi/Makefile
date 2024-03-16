@@ -66,6 +66,10 @@ ifneq ($(findstring $(RK_ENABLE_WIFI_CHIP),"AP6XXX"),)
 	#@make -C bcmdhd_chipalive/
 endif
 
+ifneq ($(findstring $(RK_ENABLE_WIFI_CHIP),"AIC8800DC"),)
+	@make -C aic8800dc/
+endif
+
 else
 
 build-usb:
@@ -78,6 +82,7 @@ build-sdio:
 	@make -C atbm/
 	@make -C atbm6441/
 	#@make -C bcmdhd_chipalive/
+	@make -C aic8800dc/
 
 endif
 
@@ -87,6 +92,7 @@ build-sdio-clean:
 	@make -C hichannel/ clean
 	@make -C atbm/ clean
 	@make -C atbm6441/ clean
+	@make -C aic8800dc/ clean
 
 build-usb-clean:
 	@make -C rtl8188ftv clean

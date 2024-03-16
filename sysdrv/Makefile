@@ -35,6 +35,7 @@ ifeq ($(BUILDROOT_DEFCONFIG),)
 BUILDROOT_DEFCONFIG := luckfox_pico_defconfig
 endif
 
+
 SYSDRV_ROOTFS_FS_TYPE ?= $(fs_type)
 ifneq ($(RK_ROOTFS_FS_TPYE),)
 SYSDRV_ROOTFS_FS_TYPE := $(RK_ROOTFS_FS_TPYE)
@@ -99,6 +100,10 @@ ifneq ($(OUTPUT_SYSDRV_RAMDISK_DIR),)
 SYSDRV_BUILD_RAMDISK_FLAG := YES
 endif
 
+ifeq ($(RK_BOOT_MEDIUM),emmc)
+ENABLE_EMMC := YES
+endif
+
 ################################################################################
 ##   rootfs Select
 ################################################################################
@@ -113,6 +118,8 @@ endif
 
 ifneq ($(findstring $(TARGET_ROOTFS),custom),)
    ROOTFS_BUILD_ENV := 
+else ifneq ($(findstring $(TARGET_ROOTFS),alpine),)
+   ROOTFS_BUILD_ENV := alpine
 else ifneq ($(findstring $(TARGET_ROOTFS),ubuntu),)
    ROOTFS_BUILD_ENV := ubuntu
 else ifneq ($(findstring $(TARGET_ROOTFS),buildroot),)
@@ -174,6 +181,15 @@ SYSDRV_ROOTFS_FS_TYPE := ext4
 endif
 KERNEL_CMDLINE_FRAGMENT += rootfstype=$(SYSDRV_ROOTFS_FS_TYPE) \
 						   root=/dev/mmcblk0p$(ROOTFS_PART_NUM)
+endif
+
+ifeq ($(BOOT_MEDIUM), sd_card)
+SYSDRV_ROOTFS_BUILD_TARGET := rootfs_ext4
+ifeq ($(SYSDRV_ROOTFS_FS_TYPE),)
+SYSDRV_ROOTFS_FS_TYPE := ext4
+endif
+KERNEL_CMDLINE_FRAGMENT += rootfstype=$(SYSDRV_ROOTFS_FS_TYPE) \
+						   root=/dev/mmcblk1p$(ROOTFS_PART_NUM)
 endif
 
 ifeq ($(BOOT_MEDIUM), spi_nor)
@@ -283,11 +299,15 @@ SYSDRV_KERNEL_MOD_PATH:=$(SYSDRV_DIR)/out/kernel_drv_ko
 SYSDRV_ROOTFS_OUT_IMAGE := $(SYSDRV_DIR_OUT_IMAGE)/rootfs_base.img
 SYSDRV_UBOOT_ENV_CFG_FILE :=$(SYSDRV_DIR_OUT_IMAGE)/.env.txt
 
+HCITOOL_TOOL_PATH :=$(SYSDRV_DIR)/tools/board/buildroot/hcitool_patch
+MPV_PATCH_PATH :=$(SYSDRV_DIR)/tools/board/buildroot/mpv_patch
+
 export SYSDRV_DIR_OUT_PC
 export SYSDRV_DIR_OUT_BOARD
 export SYSDRV_DIR_OUT_ROOTFS
 
 export SYSDRV_KERNEL_MOD_PATH
+
 ################################################################################
 ##   Check Configuraton
 ################################################################################
@@ -389,11 +409,20 @@ uboot: prepare
 		$(SYSDRV_DIR_OUT_IMAGE)/$(DOWNLOAD_BIN))
 
 uboot_clean:
+	rm -rf $(UBOOT_DIR)/fit
 	pushd $(UBOOT_DIR);$(MAKE) CROSS_COMPILE=$(CROSS_COMPILE) distclean >/dev/null;popd
 
 ##########################################################################################
 #	build kernel
 ##########################################################################################
+kernel_menuconfig:
+	cp  $(KERNEL_DIR)/arch/arm/configs/$(KERNEL_CFG)  $(KERNEL_DIR)/.config
+	$(MAKE) -C $(KERNEL_DIR) ARCH=$(ARCH) menuconfig
+	$(MAKE) -C $(KERNEL_DIR) ARCH=$(ARCH) savedefconfig
+
+kernel_savedefconfig:
+	cp  $(KERNEL_DIR)/defconfig $(KERNEL_DIR)/arch/arm/configs/$(KERNEL_CFG)
+
 kernel: prepare
 	@echo -e "$(C_GREEN) ==sysdrv== build kernel  $(C_NORMAL)"
 ifeq ($(RK_ENABLE_FASTBOOT), y)
@@ -445,6 +474,8 @@ kernel_clean:
 ##########################################################################################
 rootfs_prepare: prepare
 	@echo -e "$(C_GREEN) ==sysdrv== prepare rootfs   $(C_NORMAL)"
+	rm -rf $(SYSDRV_DIR_OUT_ROOTFS)
+	mkdir -p $(SYSDRV_DIR_OUT_ROOTFS)
 	tar xf $(SYSDRV_DIR)/tools/board/rootfs_script.tar -C $(SYSDRV_DIR_OUT_ROOTFS)
 	tar xjf $(TOOLCHAIN_DIR)/$(TOOLCHAIN_RUNTIME_LIB)/$(TOOLCHAIN_RUNTIME_LIB_C) -C $(SYSDRV_DIR_OUT_ROOTFS)
 	pushd $(SYSDRV_DIR_OUT_ROOTFS)/lib/ ; mv -fv \
@@ -509,24 +540,46 @@ busybox_clean:
 #   author :luckfox team
 #	date:2023-11-11
 ##########################################################################################
+
 buildroot_menuconfig:
-	$(MAKE) menuconfig -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
-	$(MAKE) source -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
-	
+	@echo -e "$(C_GREEN) ==sysdrv== buildroot memnuconfig   $(C_NORMAL)"
+	$(MAKE) $(BUILDROOT_DEFCONFIG) -C $(BUILDROOT_DIR)/$(BUILDROOT_VER)
+	$(MAKE) menuconfig -C $(BUILDROOT_DIR)/$(BUILDROOT_VER)
+#	$(MAKE) source -C $(BUILDROOT_DIR)/$(BUILDROOT_VER)
+
 buildroot_savedefconfig:
+	@echo -e "$(C_GREEN) ==sysdrv== buildroot savedefconfig   $(C_NORMAL)"
 	$(MAKE) savedefconfig -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
-    
+
+buildroot_create:
+	@echo -e "$(C_GREEN) ==sysdrv== buildroot create   $(C_NORMAL)"
+	rm $(BUILDROOT_DIR)/$(BUILDROOT_VER) -rf ;\
+	mkdir -p $(BUILDROOT_DIR)
+	tar xzf $(SYSDRV_DIR)/tools/board/buildroot/$(BUILDROOT_VER).tar.gz -C $(BUILDROOT_DIR)
+	cp $(SYSDRV_DIR)/tools/board/buildroot/luckfox_pico_defconfig $(BUILDROOT_DIR)/$(BUILDROOT_VER)/configs/
+	cp $(SYSDRV_DIR)/tools/board/buildroot/luckfox_pico_w_defconfig $(BUILDROOT_DIR)/$(BUILDROOT_VER)/configs/
+	cp $(SYSDRV_DIR)/tools/board/buildroot/busybox.config $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/
+	cp ${HCITOOL_TOOL_PATH}/0001-Fixed-header-file-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/
+	cp ${HCITOOL_TOOL_PATH}/0002-Fix-build-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/
+	cp ${HCITOOL_TOOL_PATH}/0003-fix-compat-wordexp.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/
+	cp ${MPV_PATCH_PATH}/0002-change-j1.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/mpv/
+
 buildroot: prepare
-	@echo -e "$(C_GREEN) ==sysdrv== build buildroot   $(C_NORMAL)" 
-	test -f $(BUILDROOT_DIR)/$(BUILDROOT_VER)/output/target/bin/busybox  || (\
-		rm $(BUILDROOT_DIR)/$(BUILDROOT_VER) -rf ;\
+	@echo -e "$(C_GREEN) ==sysdrv== build buildroot   $(C_NORMAL)"
+	test -d $(BUILDROOT_DIR)/$(BUILDROOT_VER) || (\
 		mkdir -p $(BUILDROOT_DIR) ;\
 		tar xzf $(SYSDRV_DIR)/tools/board/buildroot/$(BUILDROOT_VER).tar.gz -C $(BUILDROOT_DIR) ;\
 		cp $(SYSDRV_DIR)/tools/board/buildroot/luckfox_pico_defconfig $(BUILDROOT_DIR)/$(BUILDROOT_VER)/configs/ ;\
+		cp $(SYSDRV_DIR)/tools/board/buildroot/luckfox_pico_w_defconfig $(BUILDROOT_DIR)/$(BUILDROOT_VER)/configs/ ;\
 		cp $(SYSDRV_DIR)/tools/board/buildroot/busybox.config $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\
+		cp ${HCITOOL_TOOL_PATH}/0001-Fixed-header-file-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/ ;\
+		cp ${HCITOOL_TOOL_PATH}/0002-Fix-build-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/ ;\
+		cp ${HCITOOL_TOOL_PATH}/0003-fix-compat-wordexp.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/ ;\
+		cp ${MPV_PATCH_PATH}/0002-change-j1.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/mpv/ ;\
 	);
 
 	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) $(BUILDROOT_DEFCONFIG) -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
+	$(SYSDRV_DIR)/tools/board/mirror_select/buildroot_mirror_select.sh $(BUILDROOT_DIR)/$(BUILDROOT_VER)/.config
 	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) source -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
 	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -j$(SYSDRV_JOBS) -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
 
@@ -547,10 +600,14 @@ else
 	cp $(SYSDRV_DIR)/tools/board/buildroot/sshd_defconfig $(SYSDRV_DIR_OUT_ROOTFS)/etc/ssh/sshd_config
 	cp $(SYSDRV_DIR)/tools/board/buildroot/samba_defconfig $(SYSDRV_DIR_OUT_ROOTFS)/etc/samba/smb.conf
 	cp $(SYSDRV_DIR)/tools/board/buildroot/smbpasswd_defconfig $(SYSDRV_DIR_OUT_ROOTFS)/etc/samba/smbpasswd
+	cp $(SYSDRV_DIR)/tools/board/buildroot/profile_defconfig $(SYSDRV_DIR_OUT_ROOTFS)/etc/profile
+	cp $(SYSDRV_DIR)/tools/board/buildroot/iomux $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/
+	cp $(SYSDRV_DIR)/tools/board/buildroot/S99hciinit $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
 	cp $(SYSDRV_DIR)/tools/board/buildroot/S50sshd $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
 	cp $(SYSDRV_DIR)/tools/board/buildroot/S99python $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
+	cp $(SYSDRV_DIR)/tools/board/luckfox_config/S99luckfoxconfigload $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
+	cp $(SYSDRV_DIR)/tools/board/luckfox_config/luckfox-config  $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/
 	cp $(SYSDRV_DIR)/tools/board/android-tools/S90usb0config $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
-	
 endif
 
 buildroot_clean:
@@ -563,7 +620,7 @@ buildroot_clean:
 ##########################################################################################
 ubuntu: prepare
 	@echo -e "$(C_GREEN) ==sysdrv== build ubuntu   $(C_NORMAL)" 
-	echo "====$(LF_TARGET_ROOTFS)===="
+	@echo -e "$(C_GREEN) ==$(LF_TARGET_ROOTFS)== $(C_NORMAL)"
 	test -f $(SYSDRV_DIR)/tools/board/ubuntu/$(UBUNTU_VER).tar.gz || (\
 		pushd  $(SYSDRV_DIR)/tools/board/ubuntu/ ;\
 		./split_and_check_md5.sh merge ./$(UBUNTU_VER).tar.gz ;\
@@ -574,6 +631,12 @@ ubuntu: prepare
 		rm $(SYSDRV_DIR_OUT_ROOTFS)/* -rf ;\
 		tar xzf $(SYSDRV_DIR)/tools/board/ubuntu/$(UBUNTU_VER).tar.gz -C $(SYSDRV_DIR_OUT_ROOTFS) ;\
 	);
+ifeq ($(ENABLE_EMMC),YES)
+	cp $(SYSDRV_DIR)/tools/board/emmc/emmc_fstab $(SYSDRV_DIR_OUT_ROOTFS)/etc/fstab
+	cp $(SYSDRV_DIR)/tools/board/emmc/emmc_filesystem_resize.sh $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/filesystem_resize.sh
+	cp $(SYSDRV_DIR)/tools/board/emmc/emmc_rc.local $(SYSDRV_DIR_OUT_ROOTFS)/etc/rc.local
+endif
+
 ubuntu_clean:
 	$(AT)rm -rf $(SYSDRV_DIR_OUT_ROOTFS)
 
@@ -676,6 +739,10 @@ rootfs_initramfs:
 
 rootfs_clean:
 	$(AT)rm $(SYSDRV_DIR_OUT_ROOTFS)/ -rf
+	test ! -d $(BUILDROOT_DIR)/$(BUILDROOT_VER)/output/target  || (\
+		rm -rf $(BUILDROOT_DIR)/$(BUILDROOT_VER)/output/target ;\
+		find $(BUILDROOT_DIR)/$(BUILDROOT_VER) -name ".stamp_target_installed" -exec rm {} \; ;\
+	);
 
 ##########################################################################################
 #	build env.img
@@ -686,6 +753,11 @@ ifeq ($(BOOT_MEDIUM),emmc)
 	@echo "blkdevparts=mmcblk0:$(CONFIG_SYSDRV_PARTITION)" > $(SYSDRV_UBOOT_ENV_CFG_FILE)
 	@test "$(ROOTFS_PART_NUM)" = "FAIL" || \
 		echo "sys_bootargs=root=/dev/mmcblk0p$(ROOTFS_PART_NUM)" >> $(SYSDRV_UBOOT_ENV_CFG_FILE)
+endif
+ifeq ($(BOOT_MEDIUM),sd_card)
+	@echo "blkdevparts=mmcblk1:$(CONFIG_SYSDRV_PARTITION)" > $(SYSDRV_UBOOT_ENV_CFG_FILE)
+	@test "$(ROOTFS_PART_NUM)" = "FAIL" || \
+		echo "sys_bootargs=root=/dev/mmcblk1p$(ROOTFS_PART_NUM)" >> $(SYSDRV_UBOOT_ENV_CFG_FILE)
 endif
 ifeq ($(BOOT_MEDIUM),spi_nor)
 	@echo "mtdparts=sfc_nor:$(CONFIG_SYSDRV_PARTITION)" > $(SYSDRV_UBOOT_ENV_CFG_FILE)

@@ -126,7 +126,7 @@ function get_partition_names()
 	local part_file part_lines boot_mediums
 
 	part_file=$IMAGE_PATH/$PARTITION_FILE
-	boot_mediums="blkdevparts=mmcblk1,mtdparts=sfc_nor,mtdparts=spi-nand0,mtdparts=rk-nand"
+	boot_mediums="blkdevparts=mmcblk0,blkdevparts=mmcblk1,mtdparts=sfc_nor,mtdparts=spi-nand0,mtdparts=rk-nand"
 
 	IFS=,
 	for medium in $boot_mediums;

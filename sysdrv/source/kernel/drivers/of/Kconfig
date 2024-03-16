@@ -121,4 +121,11 @@ config OF_DMA_DEFAULT_COHERENT
 	# arches should select this if DMA is coherent by default for OF devices
 	bool
 
+config OF_DTBO
+  bool "Device Tree DTBO"
+  select OF_DYNAMIC
+  select OF_FLATTREE
+  select OF_RESOLVE
+  help
+    Device Tree DTBO
 endif # OF

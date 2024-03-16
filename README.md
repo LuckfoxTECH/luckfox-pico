@@ -81,6 +81,9 @@ ota                -pack update_ota.tar
 save               -save images, patches, commands used to debug
 check              -check the environment of building
 info               -see the current board building information
+
+buildrootconfig    -config buildroot and save defconfig"
+kernelconfig       -config kernel and save defconfig"
 ```
 #### Select the referenced board configuration
 ```shell
@@ -96,55 +99,87 @@ BoardConfig-"启动介质"-"系统版本"-"硬件版本"-"应用场景".mk
 BoardConfig-"boot medium"-"system version"-"hardware version"-"applicaton".mk
 
 ----------------------------------------------------------------
-0. BoardConfig_IPC/BoardConfig-EMMC-Buildroot-RV1103_Luckfox_Pico-IPC.mk
+0. BoardConfig_IPC/BoardConfig-EMMC-Buildroot-RV1106_Luckfox_Pico_Ultra-IPC.mk
                              boot medium(启动介质): EMMC
+                          system version(系统版本): Buildroot
+                        hardware version(硬件版本): RV1106_Luckfox_Pico_Ultra
+                              applicaton(应用场景): IPC
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+1. BoardConfig_IPC/BoardConfig-EMMC-Buildroot-RV1106_Luckfox_Pico_Ultra_W-IPC.mk
+                             boot medium(启动介质): EMMC
+                          system version(系统版本): Buildroot
+                        hardware version(硬件版本): RV1106_Luckfox_Pico_Ultra_W
+                              applicaton(应用场景): IPC
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+2. BoardConfig_IPC/BoardConfig-SD_CARD-Buildroot-RV1103_Luckfox_Pico-IPC.mk
+                             boot medium(启动介质): SD_CARD
                           system version(系统版本): Buildroot
                         hardware version(硬件版本): RV1103_Luckfox_Pico
                               applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-1. BoardConfig_IPC/BoardConfig-EMMC-Buildroot-RV1103_Luckfox_Pico_Mini_A-IPC.mk
-                             boot medium(启动介质): EMMC
+3. BoardConfig_IPC/BoardConfig-SD_CARD-Buildroot-RV1103_Luckfox_Pico_Mini_A-IPC.mk
+                             boot medium(启动介质): SD_CARD
                           system version(系统版本): Buildroot
                         hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_A
                               applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-2. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1103_Luckfox_Pico-IPC.mk
-                             boot medium(启动介质): EMMC
+4. BoardConfig_IPC/BoardConfig-SD_CARD-Buildroot-RV1103_Luckfox_Pico_Plus-IPC.mk
+                             boot medium(启动介质): SD_CARD
+                          system version(系统版本): Buildroot
+                        hardware version(硬件版本): RV1103_Luckfox_Pico_Plus
+                              applicaton(应用场景): IPC
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+5. BoardConfig_IPC/BoardConfig-SD_CARD-Buildroot-RV1106_Luckfox_Pico_Max-IPC.mk
+                             boot medium(启动介质): SD_CARD
+                          system version(系统版本): Buildroot
+                        hardware version(硬件版本): RV1106_Luckfox_Pico_Max
+                              applicaton(应用场景): IPC
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+6. BoardConfig_IPC/BoardConfig-SD_CARD-Ubuntu-RV1103_Luckfox_Pico-IPC.mk
+                             boot medium(启动介质): SD_CARD
                           system version(系统版本): Ubuntu
                         hardware version(硬件版本): RV1103_Luckfox_Pico
                               applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-3. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1103_Luckfox_Pico_Mini_A-IPC.mk
-                             boot medium(启动介质): EMMC
+7. BoardConfig_IPC/BoardConfig-SD_CARD-Ubuntu-RV1103_Luckfox_Pico_Mini_A-IPC.mk
+                             boot medium(启动介质): SD_CARD
                           system version(系统版本): Ubuntu
                         hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_A
                               applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-4. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1103_Luckfox_Pico_Plus-IPC.mk
-                             boot medium(启动介质): EMMC
+8. BoardConfig_IPC/BoardConfig-SD_CARD-Ubuntu-RV1103_Luckfox_Pico_Plus-IPC.mk
+                             boot medium(启动介质): SD_CARD
                           system version(系统版本): Ubuntu
                         hardware version(硬件版本): RV1103_Luckfox_Pico_Plus
                               applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-5. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
-                             boot medium(启动介质): EMMC
+9. BoardConfig_IPC/BoardConfig-SD_CARD-Ubuntu-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
+                             boot medium(启动介质): SD_CARD
                           system version(系统版本): Ubuntu
                         hardware version(硬件版本): RV1106_Luckfox_Pico_Pro_Max
                               applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-6. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Mini_B-IPC.mk
+10. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Mini_B-IPC.mk
                              boot medium(启动介质): SPI_NAND
                           system version(系统版本): Buildroot
                         hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_B
@@ -152,7 +187,7 @@ BoardConfig-"boot medium"-"system version"-"hardware version"-"applicaton".mk
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-7. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Plus-IPC.mk
+11. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Plus-IPC.mk
                              boot medium(启动介质): SPI_NAND
                           system version(系统版本): Buildroot
                         hardware version(硬件版本): RV1103_Luckfox_Pico_Plus
@@ -160,7 +195,7 @@ BoardConfig-"boot medium"-"system version"-"hardware version"-"applicaton".mk
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-8. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
+12. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
                              boot medium(启动介质): SPI_NAND
                           system version(系统版本): Buildroot
                         hardware version(硬件版本): RV1106_Luckfox_Pico_Pro_Max
@@ -168,9 +203,19 @@ BoardConfig-"boot medium"-"system version"-"hardware version"-"applicaton".mk
 ----------------------------------------------------------------
 
 Which would you like? [0]:
+
 ```
-
-
+#### Custom Board-level WIFI Configuration
+* Navigate to the board-level configuration directory
+    ```shell
+    cd {SDK_PATH}/project/cfg/BoardConfig_IPC/
+    ```
+* Open the corresponding board-level configuration file
+* Modify the parameters LF_WIFI_PASSWD and LF_WIFI_SSID
+    ```shell
+    export LF_WIFI_SSID="Your wifi ssid"
+    export LF_WIFI_PSK="Your wifi password"
+    ```
 #### One-click Automatic Compilation
 ```shell
 ./build.sh lunch   # Select the reference board configuration
@@ -239,7 +284,17 @@ The path of the generated files:
 ```
 output/image
 ```
-
+#### Kernel Config
+```shell
+./build.sh kernelconfig
+```
+Open the menuconfig interface for the kernel.
+#### Buildroot Config
+```shell
+./build.sh buildrootconfig
+```
+Open the menuconfig interface for buildroot.
+* Note: This is only applicable when selecting buildroot as the root file system.
 
 ## Notices
 When copying the source code package under Windows, the executable file under Linux may become a non-executable file, or the soft link fails and cannot be compiled and used.

@@ -1,0 +1,97 @@
+--- a/android/compat/wordexp.h	2024-05-13 13:59:50.667347786 +0800
++++ b/android/compat/wordexp.h	2024-05-13 14:11:43.377135089 +0800
+@@ -1,31 +1,78 @@
+-/* SPDX-License-Identifier: LGPL-2.1-or-later */
+-/*
++/*-
++ * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+  *
+- *  BlueZ - Bluetooth protocol stack for Linux
++ * Copyright (c) 2002 Tim J. Robbins.
++ * All rights reserved.
+  *
+- *  Copyright (C) 1991-2013 Free Software Foundation, Inc.
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
+  *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
+  *
++ * $FreeBSD$
+  */
+
+ #ifndef _WORDEXP_H_
+-#define _WORDEXP_H_
++#define	_WORDEXP_H_
+
+-#define WRDE_NOCMD 0
++#include <sys/types.h>
++#include <stdlib.h>
+
+ typedef struct {
+-	size_t we_wordc;
+-	char **we_wordv;
+-	size_t we_offs;
++	size_t	we_wordc;	/* count of words matched */
++	char		**we_wordv;	/* pointer to list of words */
++	size_t	we_offs;	/* slots to reserve in we_wordv */
++	char		*we_strings;	/* storage for wordv strings */
++	size_t	we_nbytes;	/* size of we_strings */
+ } wordexp_t;
+
+-static inline int wordexp(const char *c, wordexp_t *w, int _i)
+-{
+-	return -1;
+-}
++/*
++ * Flags for wordexp().
++ */
++#define	WRDE_APPEND	0x1		/* append to previously generated */
++#define	WRDE_DOOFFS	0x2		/* we_offs member is valid */
++#define	WRDE_NOCMD	0x4		/* disallow command substitution */
++#define	WRDE_REUSE	0x8		/* reuse wordexp_t */
++#define	WRDE_SHOWERR	0x10		/* don't redirect stderr to /dev/null */
++#define	WRDE_UNDEF	0x20		/* disallow undefined shell vars */
+
+-static inline void wordfree(wordexp_t *__wordexp)
+-{
+-}
++/*
++ * Return values from wordexp().
++ */
++#define	WRDE_BADCHAR	1		/* unquoted special character */
++#define	WRDE_BADVAL	2		/* undefined variable */
++#define	WRDE_CMDSUB	3		/* command substitution not allowed */
++#define	WRDE_NOSPACE	4		/* no memory for result */
++#if __XSI_VISIBLE
++#define	WRDE_NOSYS	5		/* obsolete, reserved */
++#endif
++#define	WRDE_SYNTAX	6		/* shell syntax error */
++
++#ifdef	__cplusplus
++extern "C" {
++#endif
+
++int	wordexp(const char * __restrict, wordexp_t * __restrict, int);
++void	wordfree(wordexp_t *);
++
++#ifdef	__cplusplus
++}
+ #endif
++
++#endif /* !_WORDEXP_H_ */
