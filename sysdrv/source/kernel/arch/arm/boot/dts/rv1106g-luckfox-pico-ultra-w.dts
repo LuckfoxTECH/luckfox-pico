@@ -1,0 +1,116 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2022 Rockchip Electronics Co., Ltd.
+ */
+
+/dts-v1/;
+#include "rv1106.dtsi"
+#include "rv1106-luckfox-pico-ultra-ipc.dtsi"
+#include "rv1106-thunder-boot-emmc.dtsi"
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/display/media-bus-format.h>
+
+/ {
+	model = "Luckfox Pico Ultra W";
+	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1106";
+
+	restart-poweroff {
+		compatible = "restart-poweroff";
+	};
+
+	sdio_pwrseq: sdio-pwrseq {
+		compatible = "mmc-pwrseq-simple";
+		pinctrl-names = "default";
+		reset-gpios = <&gpio1 RK_PA2 GPIO_ACTIVE_LOW>;
+	};
+
+};
+
+/**********EMMC**********/
+&emmc {
+	memory-region-ecsd = <&mmc_ecsd>;
+	post-power-on-delay-ms = <0>;
+	status = "okay";
+};
+
+&fiq_debugger {
+	rockchip,irq-mode-enable = <1>;
+	status = "okay";
+};
+
+/**********SDIO-WIFI**********/
+&sdmmc {
+        max-frequency = <50000000>;
+        bus-width = <4>;
+        cap-sd-highspeed;
+        cap-sdio-irq;
+        keep-power-in-suspend;
+        non-removable;
+        rockchip,default-sample-phase = <90>;
+        // no-sd;
+        // no-mmc;
+        supports-sdio;
+        mmc-pwrseq = <&sdio_pwrseq>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&sdmmc0_clk &sdmmc0_cmd &sdmmc0_bus4 &sdmmc0_det>;
+        status = "okay";
+};
+
+&pinctrl{
+	sdmmc0{
+		sdmmc0_det: sdmmc0-det {
+			rockchip,pins =
+				/* sdmmc0_det */
+				<3 RK_PA1 1 &pcfg_pull_down>;
+		};
+  };
+};
+
+
+/**********ETH**********/
+&gmac {
+	status = "okay";
+};
+
+/**********USB**********/
+&usbdrd_dwc3 {
+	status = "okay";
+	dr_mode = "peripheral";
+  #dr_mode = "host";
+};
+
+/**********RTC**********/
+&rtc {
+	status = "okay";
+};
+
+/**********BT**********/
+&uart1 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart1m0_xfer &uart1m0_ctsn &uart1m0_rtsn>;
+};
+
+&pinctrl {
+  uart1 {
+    uart1m0_ctsn: uart1m0-ctsn{
+      rockchip,pins = <0 RK_PA6 2 &pcfg_pull_down>;
+    };
+    uart1m0_rtsn: uart1m0-rtsn{
+      rockchip,pins = <0 RK_PA5 2 &pcfg_pull_down>;
+    };
+  };
+};
+
+/**********TP**********/
+&i2c3 {
+  status = "disabled";
+};
+
+/**********SPI**********/
+&spi0 {
+	status = "disabled";
+	spidev@0 {
+		spi-max-frequency = <50000000>;
+	};
+};

@@ -57,6 +57,26 @@
 			default-state = "on";
 		};	
 	};
+
+	// DHT11
+	dht11_sensor {
+        compatible = "dht11";
+        pinctrl-names = "default";
+        pinctrl-0 = <&gpio1_pc7>;
+
+        dht11@1 {
+            gpios = <&gpio1 RK_PC7 GPIO_ACTIVE_HIGH>;
+            label = "dht11";
+            linux,default-trigger = "humidity";
+        };
+    };
+
+};
+
+/***************************** AUDIO ********************************/
+&i2s0_8ch {
+	#sound-dai-cells = <0>;
+	status = "okay";
 };
 
 &acodec {
@@ -64,11 +84,22 @@
 	pa-ctl-gpios = <&gpio1 RK_PA1 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
-
+/***************************** CPU ********************************/
 &cpu0 {
 	cpu-supply = <&vdd_arm>;
 };
 
+/***************************** ADC ********************************/
+&saradc {
+	status = "okay";
+	vref-supply = <&vcc_1v8>;
+};
+
+&tsadc {
+	status = "okay";
+};
+
+/***************************** CSI ********************************/
 &csi2_dphy_hw {
 	status = "okay";
 };
@@ -187,11 +218,6 @@
 	};
 };
 
-&i2s0_8ch {
-	#sound-dai-cells = <0>;
-	status = "okay";
-};
-
 &mipi0_csi2 {
 	status = "okay";
 
@@ -265,14 +291,99 @@
 	};
 };
 
-&saradc {
-	status = "okay";
-	vref-supply = <&vcc_1v8>;
+
+/*****************************PINCTRL********************************/
+// SPI
+&spi0 {
+  pinctrl-0 = <&spi0m0_clk &spi0m0_miso &spi0m0_mosi &spi0m0_cs0>;
+};
+// I2C
+&i2c0 {
+	pinctrl-0 = <&i2c0m2_xfer>;
 };
 
+&i2c1 {
+	pinctrl-0 = <&i2c1m1_xfer>;
+};
 
-&tsadc {
-	status = "okay";
+&i2c3 {
+	pinctrl-0 = <&i2c3m1_xfer &i2c3m0_xfer>;
+};
+
+&i2c4 {
+	pinctrl-0 = <&i2c4m0_xfer>;
+};
+
+// UART
+&uart0 {
+	pinctrl-0 = <&uart0m0_xfer &uart0m1_xfer>;
+};
+&uart1 {
+	pinctrl-0 = <&uart1m1_xfer>;
+};
+&uart3 {
+	pinctrl-0 = <&uart3m1_xfer>;
+};
+&uart4 {
+	pinctrl-0 = <&uart4m1_xfer>;
+};
+&uart5 {
+	pinctrl-0 = <&uart5m0_xfer>;
+};
+
+// PWM
+&pwm0 {
+	pinctrl-0 = <&pwm0m1_pins>;
+};
+&pwm2 {
+	pinctrl-0 = <&pwm2m2_pins>;
+};
+&pwm3 {
+	pinctrl-0 = <&pwm3m2_pins>;
+};
+&pwm4 {
+	pinctrl-0 = <&pwm4m2_pins>;
+};
+&pwm5 {
+	pinctrl-0 = <&pwm5m2_pins>;
+};
+&pwm6 {
+	pinctrl-0 = <&pwm6m1_pins &pwm6m2_pins>;
+};
+&pwm8 {
+	pinctrl-0 = <&pwm8m1_pins>;
+};
+&pwm9 {
+	pinctrl-0 = <&pwm9m1_pins>;
+};
+&pwm10 {
+	pinctrl-0 = <&pwm10m2_pins>;
+};
+&pwm11 {
+	pinctrl-0 = <&pwm11m1_pins>;
+};
+
+&pinctrl {
+	spi0 {
+		spi0m0_clk: spi0m0-clk {
+			rockchip,pins = <1 RK_PC1 4 &pcfg_pull_none>;
+		};
+		spi0m0_mosi: spi0m0-mosi {
+			rockchip,pins = <1 RK_PC2 6 &pcfg_pull_none>;
+		};
+		spi0m0_miso: spi0m0-miso {
+			rockchip,pins = <1 RK_PC3 6 &pcfg_pull_none>;
+		};
+		spi0m0_cs0: spi0m0-cs0 {
+			rockchip,pins = <1 RK_PC0 4 &pcfg_pull_none>;
+		};
+	};
+
+    gpio1-pc7 {
+        gpio1_pc7:gpio1-pc7 {
+            rockchip,pins = <1 RK_PC7 RK_FUNC_GPIO &pcfg_pull_none>;
+    };
+	};
 };
 
 

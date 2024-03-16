@@ -1,4 +1,11 @@
 # 更新日志
+## V1.3 更新日志
+1. 添加对Luckfox-pico Ultra/Luckfox-pico Ultra W的支持
+2. 修改了板级支持文件的结构，在Luckfox-pico Ultra W板级支持文件添加了Wifi设置
+3. 添加了./build.sh的kernelconfig和buildrootconfig命令，可以直接打开menuconfig，设置后自动修改，替换对应的defconfig文件
+4. 添加了设备树文件，内核设置文件和buildroot设置文件的软链接，可以直接再conifg文件夹下进行编辑
+5. 添加了buildroot源自动切换功能，可以在构建buildroot根文件系统前根据网络情况选择仓库源
+6. 部分bug修复
 ## V1.2 更新日志
 1. 添加ubuntu系统兼容
 2. 恢复对busybox的支持，使用户可以根据自身需求busybox、buildroot和ubuntu

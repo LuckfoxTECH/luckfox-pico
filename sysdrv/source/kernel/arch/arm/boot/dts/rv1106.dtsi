@@ -359,6 +359,7 @@
 			mode-ums = <BOOT_UMS>;
 			mode-panic = <BOOT_PANIC>;
 			mode-watchdog = <BOOT_WATCHDOG>;
+			mode-uboot = <BOOT_TO_UBOOT>;
 		};
 
 		rgb: rgb {

@@ -4,10 +4,9 @@ set -eE
 export LC_ALL=C
 export LD_LIBRARY_PATH=
 
-function unset_env_config_rk()
-{
-	local tmp_file=`mktemp`
-	env | grep -oh "^RK_.*=" > $tmp_file || true
+function unset_env_config_rk() {
+	local tmp_file=$(mktemp)
+	env | grep -oh "^RK_.*=" >$tmp_file || true
 	source $tmp_file
 	rm -f $tmp_file
 }
@@ -17,8 +16,8 @@ unset_env_config_rk
 # Global Variable Configure
 ################################################################################
 _FDS="\\ \n"
-cmd=`realpath $0`
-COMMON_DIR=`dirname $cmd`
+cmd=$(realpath $0)
+COMMON_DIR=$(dirname $cmd)
 PROJECT_TOP_DIR=$(realpath $COMMON_DIR/)
 SDK_ROOT_DIR=$(realpath $COMMON_DIR/..)
 SDK_SYSDRV_DIR=${SDK_ROOT_DIR}/sysdrv
@@ -32,11 +31,19 @@ GLOBAL_FS_TYPE_SUFFIX=_fs_type
 GLOBAL_INITRAMFS_BOOT_NAME=""
 GLOBAL_PARTITIONS=""
 GLOBAL_SDK_VERSION=""
+WIFI_NEW_CONF=${SDK_APP_DIR}/wifi_app/wpa_supplicant_new.conf
+WIFI_CONF=${SDK_APP_DIR}/wifi_app/wpa_supplicant.conf
+BUILDROOT_PATH=${SDK_SYSDRV_DIR}/source/buildroot/buildroot-2023.02.6
+BUILDROOT_CONFIG_FILE=${BUILDROOT_PATH}/.config
+SDK_CONFIG_DIR=${SDK_ROOT_DIR}/config
+DTS_CONFIG=${SDK_CONFIG_DIR}/dts_config
+KERNEL_DEFCONFIG=${SDK_CONFIG_DIR}/kernel_defconfig
+BUILDROOT_DEFCONFIG=${SDK_CONFIG_DIR}/buildroot_defconfig
 
-if [ `getconf _NPROCESSORS_ONLN` -eq 1 ]; then
+if [ $(getconf _NPROCESSORS_ONLN) -eq 1 ]; then
 	export RK_JOBS=1
 else
-	export RK_JOBS=$((`getconf _NPROCESSORS_ONLN` - 1 ))
+	export RK_JOBS=$(($(getconf _NPROCESSORS_ONLN) - 1))
 fi
 
 export RK_BUILD_VERSION_TYPE=RELEASE
@@ -86,18 +93,15 @@ C_CYAN="\e[36;1m"
 C_WHITE="\e[37;1m"
 C_NORMAL="\033[0m"
 
-function msg_info()
-{
+function msg_info() {
 	echo -e "${C_GREEN}[$(basename $0):info] $1${C_NORMAL}"
 }
 
-function msg_warn()
-{
+function msg_warn() {
 	echo -e "${C_YELLOW}[$(basename $0):warn] $1${C_NORMAL}"
 }
 
-function msg_error()
-{
+function msg_error() {
 	echo -e "${C_RED}[$(basename $0):error] $1${C_NORMAL}"
 }
 
@@ -111,12 +115,12 @@ err_handler() {
 	exit $ret
 }
 
-function finish_build(){
+function finish_build() {
 	msg_info "Running ${FUNCNAME[1]} succeeded."
 	cd $PROJECT_TOP_DIR
 }
 
-function check_config(){
+function check_config() {
 	unset missing
 	for var in $@; do
 		eval [ \$$var ] && continue
@@ -130,60 +134,166 @@ function check_config(){
 	return 1
 }
 
-function choose_target_board()
-{
-	echo
-	echo "You're building on Linux"
-	echo "Lunch menu...pick a combo:"
-	echo ""
-
-	echo 'BoardConfig-*.mk naming rules:'
-	echo 'BoardConfig-"启动介质"-"系统版本"-"硬件版本"-"应用场景".mk'
-	echo 'BoardConfig-"boot medium"-"system version"-"hardware version"-"applicaton".mk'
-	echo ""
-
+function choose_target_board() {
+	local LF_HARDWARE=("RV1103_Luckfox_Pico"
+		"RV1103_Luckfox_Pico_Mini_A"
+		"RV1103_Luckfox_Pico_Mini_B"
+		"RV1103_Luckfox_Pico_Plus"
+		"RV1106_Luckfox_Pico_Pro_Max"
+		"RV1106_Luckfox_Pico_Ultra"
+		"RV1106_Luckfox_Pico_Ultra_W")
+	local LF_BOOT_MEDIA=("SD_CARD" "SPI_NAND" "EMMC")
+	local LF_SYSTEM=("Buildroot" "Ubuntu" "Alpine")
 	local cnt=0 space8="        "
-	for item in ${RK_TARGET_BOARD_ARRAY[@]}
-	do
-		local f0 boot_medium ddr sys_ver hardware_version product_name
-		echo "----------------------------------------------------------------"
-		echo -e "${C_GREEN}$cnt. $item${C_NORMAL}"
-		cnt=$(( cnt + 1 ))
-		f0=${item#BoardConfig*-}
-		boot_medium=${f0%%-*}
 
-		f0=${f0#*-}
-		sys_ver=${f0%%-*}
+	# Get Hardware Version
+	local HW_INDEX
+	echo "You're building on Linux"
+	echo -e "${C_GREEN} "${space8}Lunch menu...pick the Luckfox Pico hardware version:"${C_NORMAL}"
+	echo -e "${C_GREEN} "${space8}选择 Luckfox Pico 硬件版本:"${C_NORMAL}"
+	echo "${space8}${space8}[0] RV1103_Luckfox_Pico"
+	echo "${space8}${space8}[1] RV1103_Luckfox_Pico_Mini_A"
+	echo "${space8}${space8}[2] RV1103_Luckfox_Pico_Mini_B"
+	echo "${space8}${space8}[3] RV1103_Luckfox_Pico_Plus"
+	echo "${space8}${space8}[4] RV1106_Luckfox_Pico_Pro_Max"
+	echo "${space8}${space8}[5] RV1106_Luckfox_Pico_Ultra"
+	echo "${space8}${space8}[6] RV1106_Luckfox_Pico_Ultra_W"
+	echo "${space8}${space8}[7] custom"
+	read -p "Which would you like? [0~7]: " HW_INDEX
 
-		f0=${f0#*-}
-		hardware_version=${f0%%-*}
+	if [ -z "$HW_INDEX" ] ;then
+		HW_INDEX=0
+	fi
 
-		f0=${f0#*-}
-		product_name=${f0%%-*}
-		product_name=${product_name%%.mk}
-		echo "${space8}${space8}             boot medium(启动介质): ${boot_medium}"
-		echo "${space8}${space8}          system version(系统版本): ${sys_ver}"
-		echo "${space8}${space8}        hardware version(硬件版本): ${hardware_version}"
-		echo "${space8}${space8}              applicaton(应用场景): ${product_name}"
-		echo "----------------------------------------------------------------"
-		echo ""
-	done
-
-	local INDEX
-	read -p "Which would you like? [0]: " INDEX
-	INDEX=$((${INDEX:-0}))
-
-	if echo $INDEX | grep -vq [^0-9]; then
-		RK_BUILD_TARGET_BOARD="${RK_TARGET_BOARD_ARRAY[$INDEX]}"
+	if ! [[ "$HW_INDEX" =~ ^[0-9]+$ ]]; then
+		msg_error "Error: HW_INDEX is not a number."
+		exit 1
 	else
-		RK_BUILD_TARGET_BOARD="${RK_TARGET_BOARD_ARRAY[0]}"
+		if (($HW_INDEX < 0 || $HW_INDEX > 8)); then
+			msg_error "Error: HW_INDEX is not in the range 0-7."
+			exit 1
+		elif [ $HW_INDEX == 7 ]; then
+			for item in ${RK_TARGET_BOARD_ARRAY[@]}; do
+				local f0 boot_medium ddr sys_ver hardware_version product_name
+				echo "----------------------------------------------------------------"
+				echo -e "${C_GREEN}$cnt. $item${C_NORMAL}"
+				cnt=$((cnt + 1))
+				f0=${item#BoardConfig*-}
+				boot_medium=${f0%%-*}
+
+				f0=${f0#*-}
+				sys_ver=${f0%%-*}
+
+				f0=${f0#*-}
+				hardware_version=${f0%%-*}
+
+				f0=${f0#*-}
+				product_name=${f0%%-*}
+				product_name=${product_name%%.mk}
+				echo "${space8}${space8}             boot medium(启动介质): ${boot_medium}"
+				echo "${space8}${space8}          system version(系统版本): ${sys_ver}"
+				echo "${space8}${space8}        hardware version(硬件版本): ${hardware_version}"
+				echo "${space8}${space8}              applicaton(应用场景): ${product_name}"
+				echo "----------------------------------------------------------------"
+				echo ""
+			done
+
+			local INDEX
+			read -p "Which would you like? [0]: " INDEX
+			INDEX=$((${INDEX:-0}))
+
+			if echo $INDEX | grep -vq [^0-9]; then
+				RK_BUILD_TARGET_BOARD="${RK_TARGET_BOARD_ARRAY[$INDEX]}"
+			else
+				RK_BUILD_TARGET_BOARD="${RK_TARGET_BOARD_ARRAY[0]}"
+				msg_info "Lunching for Default ${RK_BUILD_TARGET_BOARD} boards..."
+				return
+			fi
+			return
+		fi
+	fi
+
+	# Get Boot Medium Version
+	local BM_INDEX MAX_BM_INDEX
+	echo -e "${C_GREEN} "${space8}Lunch menu...pick the boot medium:"${C_NORMAL}"
+	echo -e "${C_GREEN} "${space8}选择启动媒介:"${C_NORMAL}"
+	if (("$HW_INDEX" >= 0 && "$HW_INDEX" < 2)); then
+		echo "${space8}${space8}[0] SD_CARD"
+		read -p "Which would you like? [0]: " BM_INDEX
+		MAX_BM_INDEX=0
+	elif (("$HW_INDEX" >= 2 && "$HW_INDEX" < 5)); then
+		echo "${space8}${space8}[0] SD_CARD"
+		echo "${space8}${space8}[1] SPI_NAND"
+		read -p "Which would you like? [0~1]: " BM_INDEX
+		MAX_BM_INDEX=1
+	elif (("$HW_INDEX" >= 5 && "$HW_INDEX" < 8)); then
+		echo "${space8}${space8}[0] EMMC"
+		read -p "Which would you like? [0]: " BM_INDEX
+		MAX_BM_INDEX=0
+	fi
+
+	if [ -z "$BM_INDEX" ] ;then
+		BM_INDEX=0
+	fi
+
+	if ! [[ "$BM_INDEX" =~ ^[0-9]+$ ]]; then
+		msg_error "Error: BM_INDEX is not a number."
+		exit 1
+	else
+		if (($BM_INDEX < 0 || $BM_INDEX > $MAX_BM_INDEX)); then
+			msg_error "Error: BM_INDEX is not in the range ."
+			exit 1
+		fi
+
+		if (("$HW_INDEX" >= 5 && "$HW_INDEX" < 8)); then
+			BM_INDEX=$BM_INDEX+2
+		fi
+	fi
+
+	# Get System Version
+	local SYS_INDEX
+	echo -e "${C_GREEN} "${space8}Lunch menu...pick the system version:"${C_NORMAL}"
+	echo -e "${C_GREEN} "${space8}选择系统版本:"${C_NORMAL}"
+	echo "${space8}${space8}[0] Buildroot(Support Rockchip official features) "
+	echo "${space8}${space8}[1] Ubuntu(Support for the apt package management tool)"
+	#echo "${space8}${space8}[2] Alpine(Supports the APK package management tool and is relatively streamlined)"
+	echo ""
+
+
+	read -p "Which would you like? [0~1]: " SYS_INDEX
+	
+	if [ -z "$SYS_INDEX" ] ;then 
+		SYS_INDEX=0
+	fi
+
+	if ! [[ "$SYS_INDEX" =~ ^[0-9]+$ ]]; then
+		msg_error "Error: SYS_INDEX is not a number."
+		exit 1
+	else
+		if (($SYS_INDEX < 0 || $SYS_INDEX > 2)); then
+			msg_error "Error: SYS_INDEX is not in the range 0-1."
+			exit 1
+		fi
+	fi
+
+	RK_BUILD_TARGET_BOARD="BoardConfig_IPC/BoardConfig-${LF_BOOT_MEDIA[$BM_INDEX]}-${LF_SYSTEM[$SYS_INDEX]}-${LF_HARDWARE[$HW_INDEX]}-IPC.mk"
+	if [ -f "$TARGET_PRODUCT_DIR/$RK_BUILD_TARGET_BOARD" ]; then
 		msg_info "Lunching for Default ${RK_BUILD_TARGET_BOARD} boards..."
+	else
+		msg_error "${RK_BUILD_TARGET_BOARD} is not currently supported"
+		exit 0
 	fi
 }
 
-function build_select_board()
-{
-	RK_TARGET_BOARD_ARRAY=( $(cd ${TARGET_PRODUCT_DIR}/; ls BoardConfig*.mk BoardConfig_*/BoardConfig*.mk | sort) )
+function build_select_board() {
+	RK_TARGET_BOARD_ARRAY=($(
+		cd ${TARGET_PRODUCT_DIR}/
+		ls BoardConfig*.mk BoardConfig_*/BoardConfig*.mk | sort
+	))
+	RK_TARGET_BOARD_ARRAY=($(
+		cd ${TARGET_PRODUCT_DIR}/
+		ls BoardConfig*.mk BoardConfig_*/BoardConfig*.mk | sort
+	))
 
 	RK_TARGET_BOARD_ARRAY_LEN=${#RK_TARGET_BOARD_ARRAY[@]}
 	if [ $RK_TARGET_BOARD_ARRAY_LEN -eq 0 ]; then
@@ -192,9 +302,10 @@ function build_select_board()
 	fi
 
 	choose_target_board
-	rm -f $BOARD_CONFIG
+	if [ -n $BOARD_CONFIG ]; then
+		rm -f $BOARD_CONFIG
+	fi
 	ln -rfs $TARGET_PRODUCT_DIR/$RK_BUILD_TARGET_BOARD $BOARD_CONFIG
-	msg_info "switching to board: `realpath $BOARD_CONFIG`"
 
 	if [ "$1" = "LUNCH-FORCE" ]; then
 		finish_build
@@ -202,16 +313,14 @@ function build_select_board()
 	fi
 }
 
-function unset_board_config_all()
-{
-	local tmp_file=`mktemp`
-	grep -oh "^export.*RK_.*=" `find cfg -name "BoardConfig*.mk"` > $tmp_file
+function unset_board_config_all() {
+	local tmp_file=$(mktemp)
+	grep -oh "^export.*RK_.*=" $(find cfg -name "BoardConfig*.mk") >$tmp_file
 	source $tmp_file
 	rm -f $tmp_file
 }
 
-function usagemedia()
-{
+function usagemedia() {
 	check_config RK_KERNEL_DTS RK_KERNEL_DEFCONFIG || return 0
 
 	echo -e "make -C ${SDK_MEDIA_DIR}"
@@ -219,8 +328,7 @@ function usagemedia()
 	finish_build
 }
 
-function usagesysdrv()
-{
+function usagesysdrv() {
 	check_config RK_KERNEL_DTS RK_KERNEL_DEFCONFIG || return 0
 
 	echo -e "make -C ${SDK_SYSDRV_DIR}"
@@ -228,8 +336,7 @@ function usagesysdrv()
 	finish_build
 }
 
-function usagekernel()
-{
+function usagekernel() {
 	check_config RK_KERNEL_DTS RK_KERNEL_DEFCONFIG || return 0
 
 	echo -e "make kernel -C ${SDK_SYSDRV_DIR} ${_FDS} \
@@ -240,8 +347,7 @@ function usagekernel()
 	finish_build
 }
 
-function usageuboot()
-{
+function usageuboot() {
 	check_config RK_UBOOT_DEFCONFIG || return 0
 
 	echo -e "make uboot -C ${SDK_SYSDRV_DIR} ${_FDS}  \
@@ -251,16 +357,14 @@ function usageuboot()
 	finish_build
 }
 
-function usagerootfs()
-{
+function usagerootfs() {
 	# check_config RK_ROOTFS_IMG || return 0
 	echo -e "make rootfs -C ${SDK_SYSDRV_DIR} "
 
 	finish_build
 }
 
-function usage()
-{
+function usage() {
 	echo "Usage: build.sh [OPTIONS]"
 	echo "Available options:"
 	echo "lunch              -Select Board Configure"
@@ -297,26 +401,29 @@ function usage()
 	echo "check              -check the environment of building"
 	echo "info               -see the current board building information"
 	echo ""
+	echo "buildrootconfig    -config buildroot and save defconfig"
+	echo "kernelconfig       -config kernel and save defconfig"
+	echo ""
 	echo "Default option is 'allsave'."
 	finish_build
 	exit 0
 }
 
-function build_get_sdk_version(){
+function build_get_sdk_version() {
 	if [ -f ${SDK_ROOT_DIR}/.repo/manifest.xml ]; then
 		local sdk_ver=""
-		sdk_ver=`grep "include name" ${SDK_ROOT_DIR}/.repo/manifest.xml | awk -F\" '{print $2}'`
-		sdk_ver=`realpath ${SDK_ROOT_DIR}/.repo/manifests/${sdk_ver}`
-		echo "Build SDK version: `basename ${sdk_ver}`"
-		GLOBAL_SDK_VERSION="`basename ${sdk_ver}`"
+		sdk_ver=$(grep "include name" ${SDK_ROOT_DIR}/.repo/manifest.xml | awk -F\" '{print $2}')
+		sdk_ver=$(realpath ${SDK_ROOT_DIR}/.repo/manifests/${sdk_ver})
+		echo "Build SDK version: $(basename ${sdk_ver})"
+		GLOBAL_SDK_VERSION="$(basename ${sdk_ver})"
 	else
 		echo "Not found ${SDK_ROOT_DIR}/.repo/manifest.xml [ignore] !!!"
 		GLOBAL_SDK_VERSION="NONE"
 	fi
 }
 
-function build_info(){
-	if [ ! -L $BOARD_CONFIG ];then
+function build_info() {
+	if [ ! -L $BOARD_CONFIG ]; then
 		echo "No found target board config!!!"
 	fi
 
@@ -333,9 +440,9 @@ function build_info(){
 	# fi
 
 	echo "Current Building Information:"
-	echo "Target cfg: `realpath $BOARD_CONFIG`"
+	echo "Target cfg: $(realpath $BOARD_CONFIG)"
 	echo "Target Misc config:"
-	echo "`env |grep "^RK_" | grep -v "=$" | sort`"
+	echo "$(env | grep "^RK_" | grep -v "=$" | sort)"
 
 	make info -C ${SDK_SYSDRV_DIR}
 	make info -C ${SDK_MEDIA_DIR}
@@ -344,7 +451,7 @@ function build_info(){
 	build_check_power_domain
 }
 
-function build_check_power_domain(){
+function build_check_power_domain() {
 	local dump_kernel_dtb_file
 	local tmp_phandle_file
 	local tmp_io_domain_file
@@ -362,42 +469,40 @@ function build_check_power_domain(){
 	dump_kernel_dtb_file=${kernel_file_dtb_dts}.dump.dts
 
 	dtc -I dtb -O dts -o ${dump_kernel_dtb_file} ${kernel_file_dtb_dts}.dtb 2>/dev/null
-	tmp_grep_file=`mktemp`
+	tmp_grep_file=$(mktemp)
 	if ! grep -Pzo "io-domains\s*{(\n|\w|-|;|=|<|>|\"|_|\s|,)*};" $dump_kernel_dtb_file 1>$tmp_grep_file 2>/dev/null; then
 		rm -f $dump_kernel_dtb_file
 		rm -f $tmp_grep_file
 		return 0
 	fi
-	tmp_regulator_microvolt_file=`mktemp`
-	tmp_io_domain_file=`mktemp`
-	tmp_final_target=`mktemp`
-	tmp_phandle_file=`mktemp`
-	grep -a supply $tmp_grep_file > $tmp_io_domain_file
+	tmp_regulator_microvolt_file=$(mktemp)
+	tmp_io_domain_file=$(mktemp)
+	tmp_final_target=$(mktemp)
+	tmp_phandle_file=$(mktemp)
+	grep -a supply $tmp_grep_file >$tmp_io_domain_file
 	rm -f $tmp_grep_file
-	awk '{print "phandle = " $3}' $tmp_io_domain_file > $tmp_phandle_file
+	awk '{print "phandle = " $3}' $tmp_io_domain_file >$tmp_phandle_file
 
-	while IFS= read -r item_phandle && IFS= read -u 3 -r item_domain
-	do
-		echo "${item_domain% *}" >> $tmp_regulator_microvolt_file
+	while IFS= read -r item_phandle && IFS= read -u 3 -r item_domain; do
+		echo "${item_domain% *}" >>$tmp_regulator_microvolt_file
 		tmp_none_item=${item_domain% *}
 		cmds="grep -Pzo \"{(\\n|\w|-|;|=|<|>|\\\"|_|\s)*"$item_phandle\"
 
-		eval "$cmds $dump_kernel_dtb_file | strings | grep "regulator-m..-microvolt" >> $tmp_regulator_microvolt_file" || \
+		eval "$cmds $dump_kernel_dtb_file | strings | grep "regulator-m..-microvolt" >> $tmp_regulator_microvolt_file" ||
 			eval "sed -i \"/${tmp_none_item}/d\" $tmp_regulator_microvolt_file" && continue
 
-		echo >> $tmp_regulator_microvolt_file
-	done < $tmp_phandle_file 3<$tmp_io_domain_file
+		echo >>$tmp_regulator_microvolt_file
+	done <$tmp_phandle_file 3<$tmp_io_domain_file
 
-	while read -r regulator_val
-	do
+	while read -r regulator_val; do
 		if echo ${regulator_val} | grep supply &>/dev/null; then
-			echo -e "\n\n\e[1;33m${regulator_val%*=}\e[0m" >> $tmp_final_target
+			echo -e "\n\n\e[1;33m${regulator_val%*=}\e[0m" >>$tmp_final_target
 		else
 			tmp_none_item=${regulator_val##*<}
 			tmp_none_item=${tmp_none_item%%>*}
-			echo -e "${regulator_val%%<*} \e[1;31m$(( $tmp_none_item / 1000 ))mV\e[0m" >> $tmp_final_target
+			echo -e "${regulator_val%%<*} \e[1;31m$(($tmp_none_item / 1000))mV\e[0m" >>$tmp_final_target
 		fi
-	done < $tmp_regulator_microvolt_file
+	done <$tmp_regulator_microvolt_file
 
 	echo -e "\e[41;1;30m PLEASE CHECK BOARD GPIO POWER DOMAIN CONFIGURATION !!!!!\e[0m"
 	echo -e "\e[41;1;30m <<< ESPECIALLY Wi-Fi/Flash/Ethernet IO power domain >>> !!!!!\e[0m"
@@ -415,7 +520,7 @@ function build_check_power_domain(){
 	rm -f $tmp_final_target
 }
 
-function build_tool(){
+function build_tool() {
 	test -d ${SDK_SYSDRV_DIR} && make pctools -C ${SDK_SYSDRV_DIR}
 	cp -fa $PROJECT_TOP_DIR/scripts/mk-fitimage.sh $RK_PROJECT_PATH_PC_TOOLS
 	cp -fa $PROJECT_TOP_DIR/scripts/compress_tool $RK_PROJECT_PATH_PC_TOOLS
@@ -423,37 +528,59 @@ function build_tool(){
 	finish_build
 }
 
-function build_check(){
+function build_check() {
 	common_product_build_tools="${PROJECT_TOP_DIR}/scripts/build-depend-tools.txt"
-	cat $common_product_build_tools 2>/dev/null | while read chk_item
-		do
-			chk_item=${chk_item###*}
-			if [ -z "$chk_item" ]; then
-				continue
-			fi
+	cat $common_product_build_tools 2>/dev/null | while read chk_item; do
+		chk_item=${chk_item###*}
+		if [ -z "$chk_item" ]; then
+			continue
+		fi
 
-			dst=${chk_item%%,*}
-			src=${chk_item##*,}
-			echo "**************************************"
-			if eval $dst &>/dev/null;then
-				echo "Check [OK]: $dst"
-			else
-				echo "Please install ${dst%% *} first"
-				echo "    sudo apt-get install $src"
-			fi
-		done
+		dst=${chk_item%%,*}
+		src=${chk_item##*,}
+		echo "**************************************"
+		if eval $dst &>/dev/null; then
+			echo "Check [OK]: $dst"
+		else
+			echo "Please install ${dst%% *} first"
+			echo "    sudo apt-get install $src"
+		fi
+	done
 }
 
 function build_app() {
 	check_config RK_APP_TYPE || return 0
 
+	if [ "$RK_ENABLE_WIFI" = "y" ]; then
+		echo "Set Wifi SSID and PASSWD"
+		check_config LF_WIFI_PSK LF_WIFI_SSID || return 0
+		touch $WIFI_NEW_CONF
+		cat >$WIFI_NEW_CONF <<EOF
+ctrl_interface=/var/run/wpa_supplicant
+ap_scan=1
+update_config=1
+
+network={
+	ssid="$LF_WIFI_SSID"
+	psk="$LF_WIFI_PSK"
+	key_mgmt=WPA-PSK
+}
+EOF
+		mv $WIFI_NEW_CONF $WIFI_CONF
+	fi
+
+	echo "============Start building app============"
+	echo "TARGET_APP_CONFIG=$RK_APP_DEFCONFIG $RK_APP_DEFCONFIG_FRAGMENT $RK_APP_TYPE"
+	echo "========================================="
+
 	build_meta --export # export meta header files
+	#build_meta --export --media_dir $RK_PROJECT_PATH_MEDIA # for rtl8723bs
 	test -d ${SDK_APP_DIR} && make -C ${SDK_APP_DIR}
 
 	finish_build
 }
 
-function build_uboot(){
+function build_uboot() {
 	check_config RK_UBOOT_DEFCONFIG || return 0
 
 	echo "============Start building uboot============"
@@ -465,17 +592,17 @@ function build_uboot(){
 	finish_build
 }
 
-function build_meta(){
+function build_meta() {
 	msg_info "============Start building meta============"
-	if [ -n "$RK_META_SIZE" ];then
-		if [ -d "${RK_PROJECT_TOP_DIR}/make_meta" ];then
+	if [ -n "$RK_META_SIZE" ]; then
+		if [ -d "${RK_PROJECT_TOP_DIR}/make_meta" ]; then
 			${RK_PROJECT_TOP_DIR}/make_meta/build_meta.sh $@
 		fi
 	fi
 	finish_build
 }
 
-function build_env(){
+function build_env() {
 	msg_info "============Start building env============"
 	msg_info "$RK_PARTITION_CMD_IN_ENV"
 
@@ -485,12 +612,12 @@ function build_env(){
 	local env_cfg_img
 	env_cfg_img=$RK_PROJECT_OUTPUT_IMAGE/env.img
 
-	if [ ! -f $RK_PROJECT_PATH_PC_TOOLS/mkenvimage ];then
+	if [ ! -f $RK_PROJECT_PATH_PC_TOOLS/mkenvimage ]; then
 		build_tool
 	fi
 
-	echo "$SYS_BOOTARGS" >> $ENV_CFG_FILE
-	echo "sd_parts=mmcblk0:16K@512(env),512K@32K(idblock),4M(uboot)" >> $ENV_CFG_FILE
+	echo "$SYS_BOOTARGS" >>$ENV_CFG_FILE
+	echo "sd_parts=mmcblk0:16K@512(env),512K@32K(idblock),4M(uboot)" >>$ENV_CFG_FILE
 	# build env.img
 	$RK_PROJECT_PATH_PC_TOOLS/mkenvimage -s $ENV_SIZE -p 0x0 -o $env_cfg_img $ENV_CFG_FILE
 	chmod +r $env_cfg_img
@@ -498,7 +625,7 @@ function build_env(){
 	finish_build
 }
 
-function build_media(){
+function build_media() {
 	echo "============Start building media============"
 
 	make -C ${SDK_MEDIA_DIR}
@@ -506,7 +633,7 @@ function build_media(){
 	finish_build
 }
 
-function build_driver(){
+function build_driver() {
 	echo "============Start building kernel's drivers============"
 
 	mkdir -p ${RK_PROJECT_OUTPUT_IMAGE}
@@ -516,16 +643,34 @@ function build_driver(){
 	finish_build
 }
 
-function build_sysdrv(){
+function build_sysdrv() {
 	echo "============Start building sysdrv============"
 
 	mkdir -p ${RK_PROJECT_OUTPUT_IMAGE}
 	make -C ${SDK_SYSDRV_DIR}
 
+	rootfs_tarball="$RK_PROJECT_PATH_SYSDRV/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}.tar"
+	rootfs_out_dir="$RK_PROJECT_OUTPUT/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}"
+
+	if ! [ -d $RK_PROJECT_OUTPUT ]; then
+		mkdir -p $RK_PROJECT_OUTPUT
+	fi
+
+	if [ -f $rootfs_tarball ]; then
+		if [ -d $rootfs_out_dir ]; then
+			rm -rf $rootfs_out_dir
+		fi
+		tar xf $rootfs_tarball -C $RK_PROJECT_OUTPUT
+	else
+		msg_error "Not found rootfs tarball: $rootfs_tarball"
+		exit 1
+	fi
+
+	msg_info "If you need to add custom files, please upload them to <Luckfox Sdk>/output/out/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}."
 	finish_build
 }
 
-function build_kernel(){
+function build_kernel() {
 	check_config RK_KERNEL_DTS RK_KERNEL_DEFCONFIG || return 0
 
 	echo "============Start building kernel============"
@@ -543,15 +688,34 @@ function build_kernel(){
 	finish_build
 }
 
-function build_rootfs(){
+function build_rootfs() {
 	check_config RK_BOOT_MEDIUM || check_config RK_TARGET_ROOTFS || return 0
 
 	make rootfs -C ${SDK_SYSDRV_DIR}
 
+	local rootfs_tarball rootfs_out_dir
+	rootfs_tarball="$RK_PROJECT_PATH_SYSDRV/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}.tar"
+	rootfs_out_dir="$RK_PROJECT_OUTPUT/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}"
+
+	if ! [ -d $RK_PROJECT_OUTPUT ]; then
+		mkdir -p $RK_PROJECT_OUTPUT
+	fi
+
+	if [ -f $rootfs_tarball ]; then
+		if [ -d $rootfs_out_dir ]; then
+			rm -rf $rootfs_out_dir
+		fi
+		tar xf $rootfs_tarball -C $RK_PROJECT_OUTPUT
+	else
+		msg_error "Not found rootfs tarball: $rootfs_tarball"
+		exit 1
+	fi
+
+	msg_info "If you need to add custom files, please upload them to <Luckfox Sdk>/output/out/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}."
 	finish_build
 }
 
-function build_recovery(){
+function build_recovery() {
 	check_config RK_ENABLE_RECOVERY || return 0
 
 	local kernel_image
@@ -572,14 +736,14 @@ function build_recovery(){
 	# copy tools
 	mkdir -p $RK_PROJECT_PATH_PC_TOOLS
 	if [ ! -f $RK_PROJECT_PATH_PC_TOOLS/mk-fitimage.sh \
-		-o ! -f $RK_PROJECT_PATH_PC_TOOLS/mkimage ];then
+		-o ! -f $RK_PROJECT_PATH_PC_TOOLS/mkimage ]; then
 		build_tool
 	fi
 	cp -fa $PROJECT_TOP_DIR/scripts/RkLunch-recovery.sh $RK_PROJECT_PATH_RAMDISK_TINY_ROOTFS/usr/bin/RkLunch.sh
 	cp -fa $PROJECT_TOP_DIR/scripts/boot4recovery.its $RK_PROJECT_PATH_RAMDISK
 
 	mkdir -p $(dirname $RK_PROJECT_FILE_RECOVERY_LUNCH_SCRIPT)
-	cat > $RK_PROJECT_FILE_RECOVERY_LUNCH_SCRIPT <<EOF
+	cat >$RK_PROJECT_FILE_RECOVERY_LUNCH_SCRIPT <<EOF
 #!/bin/sh
 case \$1 in
 	start)
@@ -596,70 +760,73 @@ EOF
 	chmod a+x $RK_PROJECT_FILE_RECOVERY_LUNCH_SCRIPT
 
 	mkdir -p $(dirname $erase_misc_script)
-	echo "#!/bin/sh" > $erase_misc_script
-	echo "set -e" >> $erase_misc_script
-	echo "COMMON_DIR=\`dirname \$(realpath \$0)\`" >> $erase_misc_script
-	echo "TOP_DIR=\$(realpath \$COMMON_DIR/../..)" >> $erase_misc_script
-	echo "cd \$TOP_DIR" >> $erase_misc_script
-	echo "echo \"Erase misc partition\"" >> $erase_misc_script
+	echo "#!/bin/sh" >$erase_misc_script
+	echo "set -e" >>$erase_misc_script
+	echo "COMMON_DIR=\`dirname \$(realpath \$0)\`" >>$erase_misc_script
+	echo "TOP_DIR=\$(realpath \$COMMON_DIR/../..)" >>$erase_misc_script
+	echo "cd \$TOP_DIR" >>$erase_misc_script
+	echo "echo \"Erase misc partition\"" >>$erase_misc_script
 
 	case $RK_BOOT_MEDIUM in
-		emmc|spi_nor)
-			echo "dd if=/dev/zero of=/dev/block/by-name/misc bs=32 count=1 seek=512" >> $erase_misc_script
-			echo "if [ \$? -ne 0 ];then" >> $erase_misc_script
-			echo "	echo \"Error: Erase misc partition failed.\"" >> $erase_misc_script
-			echo "	exit 2" >> $erase_misc_script
-			echo "fi" >> $erase_misc_script
-			;;
-		spi_nand|slc_nand)
-			echo "flash_eraseall /dev/block/by-name/misc" >> $erase_misc_script
-			echo "if [ \$? -ne 0 ];then" >> $erase_misc_script
-			echo "	echo \"Error: Erase misc partition failed.\"" >> $erase_misc_script
-			echo "	exit 2" >> $erase_misc_script
-			echo "fi" >> $erase_misc_script
-			;;
-		*)
-			echo "Not support storage medium type: $RK_BOOT_MEDIUM"
-			finish_build
-			exit 1
-			;;
+	emmc | spi_nor | sd_card)
+		echo "dd if=/dev/zero of=/dev/block/by-name/misc bs=32 count=1 seek=512" >>$erase_misc_script
+		echo "if [ \$? -ne 0 ];then" >>$erase_misc_script
+		echo "	echo \"Error: Erase misc partition failed.\"" >>$erase_misc_script
+		echo "	exit 2" >>$erase_misc_script
+		echo "fi" >>$erase_misc_script
+		;;
+	spi_nand | slc_nand)
+		echo "flash_eraseall /dev/block/by-name/misc" >>$erase_misc_script
+		echo "if [ \$? -ne 0 ];then" >>$erase_misc_script
+		echo "	echo \"Error: Erase misc partition failed.\"" >>$erase_misc_script
+		echo "	exit 2" >>$erase_misc_script
+		echo "fi" >>$erase_misc_script
+		;;
+	*)
+		echo "Not support storage medium type: $RK_BOOT_MEDIUM"
+		finish_build
+		exit 1
+		;;
 	esac
 
 	chmod a+x $erase_misc_script
 
 	case "$RK_ARCH" in
-		arm)
-			kernel_image="$RK_PROJECT_PATH_RAMDISK/zImage"
-			;;
-		arm64)
-			kernel_image="$RK_PROJECT_PATH_RAMDISK/Image"
-			;;
-		*)
-			echo "No such kernel image. ($RK_ARCH)"
-			;;
+	arm)
+		kernel_image="$RK_PROJECT_PATH_RAMDISK/zImage"
+		;;
+	arm64)
+		kernel_image="$RK_PROJECT_PATH_RAMDISK/Image"
+		;;
+	*)
+		echo "No such kernel image. ($RK_ARCH)"
+		;;
 	esac
 
 	# package rootfs in cpio
-	(cd $RK_PROJECT_PATH_RAMDISK/tiny_rootfs; find . | cpio --quiet -o -H newc > $RK_PROJECT_PATH_RAMDISK/$ramdisk_file )
-	gzip -9 -c $RK_PROJECT_PATH_RAMDISK/$ramdisk_file > $RK_PROJECT_PATH_RAMDISK/${ramdisk_file}.gz
+	(
+		cd $RK_PROJECT_PATH_RAMDISK/tiny_rootfs
+		find . | cpio --quiet -o -H newc >$RK_PROJECT_PATH_RAMDISK/$ramdisk_file
+	)
+	gzip -9 -c $RK_PROJECT_PATH_RAMDISK/$ramdisk_file >$RK_PROJECT_PATH_RAMDISK/${ramdisk_file}.gz
 
 	# build recovery for fastboot
 	if [ "$RK_ENABLE_FASTBOOT" = "y" ]; then
 		ramdisk_file="recovery_erofs.img"
 		case "$RK_ARCH" in
-			arm)
-				kernel_image="$RK_PROJECT_PATH_RAMDISK/Image.gz"
-				;;
-			*)
-				echo "No such kernel image for fastboot. ($RK_ARCH)"
-				exit 1
-				;;
+		arm)
+			kernel_image="$RK_PROJECT_PATH_RAMDISK/Image.gz"
+			;;
+		*)
+			echo "No such kernel image for fastboot. ($RK_ARCH)"
+			exit 1
+			;;
 		esac
 		cp -fa $PROJECT_TOP_DIR/scripts/$RK_CHIP-boot-tb.its $RK_PROJECT_PATH_RAMDISK/boot4recovery.its
 
 		# package rootfs in erofs for fastboot if necessary
 		$RK_PROJECT_TOOLS_MKFS_EROFS $RK_PROJECT_PATH_RAMDISK/tiny_rootfs $RK_PROJECT_PATH_RAMDISK/$ramdisk_file
-		cat $RK_PROJECT_PATH_RAMDISK/$ramdisk_file | gzip -n -f -9 > $RK_PROJECT_PATH_RAMDISK/${ramdisk_file}.gz
+		cat $RK_PROJECT_PATH_RAMDISK/$ramdisk_file | gzip -n -f -9 >$RK_PROJECT_PATH_RAMDISK/${ramdisk_file}.gz
 	fi
 
 	# package recovery.img
@@ -670,59 +837,59 @@ EOF
 	__RELEASE_FILESYSTEM_FILES $RK_PROJECT_PATH_RAMDISK_TINY_ROOTFS
 
 	mkdir -p $(dirname $ota_script)
-	echo "#!/bin/sh" > $ota_script
-	echo "set -e" >> $ota_script
-	echo "COMMON_DIR=\`dirname \$(realpath \$0)\`" >> $ota_script
-	echo "TOP_DIR=\$(realpath \$COMMON_DIR/../..)" >> $ota_script
-	echo "cd \$TOP_DIR" >> $ota_script
-	echo "echo \"Start to write partitions\"" >> $ota_script
+	echo "#!/bin/sh" >$ota_script
+	echo "set -e" >>$ota_script
+	echo "COMMON_DIR=\`dirname \$(realpath \$0)\`" >>$ota_script
+	echo "TOP_DIR=\$(realpath \$COMMON_DIR/../..)" >>$ota_script
+	echo "cd \$TOP_DIR" >>$ota_script
+	echo "echo \"Start to write partitions\"" >>$ota_script
 
 	case $RK_BOOT_MEDIUM in
-		emmc|spi_nor)
-			echo "for image in \$(ls /dev/block/by-name)" >> $ota_script
-			echo "do" >> $ota_script
-			echo "	if [ -f \$COMMON_DIR/\${image}.img ];then" >> $ota_script
-			echo "		echo \"Writing \$image...\"" >> $ota_script
-			echo "		dd if=\$COMMON_DIR/\${image}.img of=/dev/block/by-name/\$image" >> $ota_script
-			echo "		if [ \$? -ne 0 ];then" >> $ota_script
-			echo "			echo \"Error: \$image write failed.\"" >> $ota_script
-			echo "			exit 1" >> $ota_script
-			echo "		fi" >> $ota_script
-			echo "	fi" >> $ota_script
-			echo "done" >> $ota_script
-			echo "echo \"Erase misc partition\"" >> $ota_script
-			echo "dd if=/dev/zero of=/dev/block/by-name/misc bs=32 count=1 seek=512" >> $ota_script
-			echo "if [ \$? -ne 0 ];then" >> $ota_script
-			echo "	echo \"Error: Erase misc partition failed.\"" >> $ota_script
-			echo "	exit 2" >> $ota_script
-			echo "fi" >> $ota_script
-			;;
-		spi_nand|slc_nand)
-			echo "for image in \$(ls /dev/block/by-name)" >> $ota_script
-			echo "do" >> $ota_script
-			echo "	if [ -f \$COMMON_DIR/\${image}.img ];then" >> $ota_script
-			echo "		echo \"Writing \$image...\"" >> $ota_script
-			echo "		mtd_path=\$(realpath /dev/block/by-name/\${image})" >> $ota_script
-			echo "		flash_eraseall \$mtd_path" >> $ota_script
-			echo "		nandwrite -p \$mtd_path \$COMMON_DIR/\${image}.img" >> $ota_script
-			echo "		if [ \$? -ne 0 ];then" >> $ota_script
-			echo "			echo \"Error: \$image write failed.\"" >> $ota_script
-			echo "			exit 1" >> $ota_script
-			echo "		fi" >> $ota_script
-			echo "	fi" >> $ota_script
-			echo "done" >> $ota_script
-			echo "echo \"Erase misc partition\"" >> $ota_script
-			echo "flash_eraseall /dev/block/by-name/misc" >> $ota_script
-			echo "if [ \$? -ne 0 ];then" >> $ota_script
-			echo "	echo \"Error: Erase misc partition failed.\"" >> $ota_script
-			echo "	exit 2" >> $ota_script
-			echo "fi" >> $ota_script
-			;;
-		*)
-			echo "Not support storage medium type: $RK_BOOT_MEDIUM"
-			finish_build
-			exit 1
-			;;
+	emmc | spi_nor | sd_card)
+		echo "for image in \$(ls /dev/block/by-name)" >>$ota_script
+		echo "do" >>$ota_script
+		echo "	if [ -f \$COMMON_DIR/\${image}.img ];then" >>$ota_script
+		echo "		echo \"Writing \$image...\"" >>$ota_script
+		echo "		dd if=\$COMMON_DIR/\${image}.img of=/dev/block/by-name/\$image" >>$ota_script
+		echo "		if [ \$? -ne 0 ];then" >>$ota_script
+		echo "			echo \"Error: \$image write failed.\"" >>$ota_script
+		echo "			exit 1" >>$ota_script
+		echo "		fi" >>$ota_script
+		echo "	fi" >>$ota_script
+		echo "done" >>$ota_script
+		echo "echo \"Erase misc partition\"" >>$ota_script
+		echo "dd if=/dev/zero of=/dev/block/by-name/misc bs=32 count=1 seek=512" >>$ota_script
+		echo "if [ \$? -ne 0 ];then" >>$ota_script
+		echo "	echo \"Error: Erase misc partition failed.\"" >>$ota_script
+		echo "	exit 2" >>$ota_script
+		echo "fi" >>$ota_script
+		;;
+	spi_nand | slc_nand)
+		echo "for image in \$(ls /dev/block/by-name)" >>$ota_script
+		echo "do" >>$ota_script
+		echo "	if [ -f \$COMMON_DIR/\${image}.img ];then" >>$ota_script
+		echo "		echo \"Writing \$image...\"" >>$ota_script
+		echo "		mtd_path=\$(realpath /dev/block/by-name/\${image})" >>$ota_script
+		echo "		flash_eraseall \$mtd_path" >>$ota_script
+		echo "		nandwrite -p \$mtd_path \$COMMON_DIR/\${image}.img" >>$ota_script
+		echo "		if [ \$? -ne 0 ];then" >>$ota_script
+		echo "			echo \"Error: \$image write failed.\"" >>$ota_script
+		echo "			exit 1" >>$ota_script
+		echo "		fi" >>$ota_script
+		echo "	fi" >>$ota_script
+		echo "done" >>$ota_script
+		echo "echo \"Erase misc partition\"" >>$ota_script
+		echo "flash_eraseall /dev/block/by-name/misc" >>$ota_script
+		echo "if [ \$? -ne 0 ];then" >>$ota_script
+		echo "	echo \"Error: Erase misc partition failed.\"" >>$ota_script
+		echo "	exit 2" >>$ota_script
+		echo "fi" >>$ota_script
+		;;
+	*)
+		echo "Not support storage medium type: $RK_BOOT_MEDIUM"
+		finish_build
+		exit 1
+		;;
 	esac
 
 	chmod a+x $ota_script
@@ -730,14 +897,13 @@ EOF
 	finish_build
 }
 
-function build_ota(){
+function build_ota() {
 	check_config RK_ENABLE_RECOVERY || check_config RK_ENABLE_OTA || return 0
 
 	local update_img update_script tar_cmd
 
 	if [ -z "$RK_OTA_RESOURCE" ]; then
-		for img in uboot.img boot.img rootfs.img;
-		do
+		for img in uboot.img boot.img rootfs.img; do
 			if [ -f "$RK_PROJECT_OUTPUT_IMAGE/$img" ]; then
 				update_img="$update_img $img"
 			else
@@ -758,19 +924,23 @@ function build_ota(){
 	finish_build
 }
 
-function build_tftp_sd_update(){
+function build_tftp_sd_update() {
 	# copy tools
 	mkdir -p $RK_PROJECT_PATH_PC_TOOLS
-	if [ ! -f $RK_PROJECT_PATH_PC_TOOLS/mk-tftp_sd_update.sh ];then
+	if [ ! -f $RK_PROJECT_PATH_PC_TOOLS/mk-tftp_sd_update.sh ]; then
 		build_tool
 	fi
 
-	$RK_PROJECT_PATH_PC_TOOLS/mk-tftp_sd_update.sh $GLOBAL_PARTITIONS $RK_PROJECT_OUTPUT_IMAGE $RK_BOOT_MEDIUM
+	if [ "$RK_BOOT_MEDIUM" = "sd_card" ]; then
+		$RK_PROJECT_PATH_PC_TOOLS/mk-tftp_sd_update.sh $GLOBAL_PARTITIONS $RK_PROJECT_OUTPUT_IMAGE emmc
+	else
+		$RK_PROJECT_PATH_PC_TOOLS/mk-tftp_sd_update.sh $GLOBAL_PARTITIONS $RK_PROJECT_OUTPUT_IMAGE $RK_BOOT_MEDIUM
+	fi
 
 	finish_build
 }
 
-function build_updateimg(){
+function build_updateimg() {
 	# Enable building if env partition is no exist
 	check_config ENV_SIZE || return 0
 
@@ -783,7 +953,7 @@ function build_updateimg(){
 	finish_build
 }
 
-function build_unpack_updateimg(){
+function build_unpack_updateimg() {
 	IMAGE_PATH=$RK_PROJECT_OUTPUT_IMAGE/update.img
 	UNPACK_FILE_DIR=$RK_PROJECT_OUTPUT_IMAGE/unpack
 	PACK_TOOL_PATH=$SDK_ROOT_DIR/tools/linux/Linux_Pack_Firmware
@@ -795,7 +965,7 @@ function build_unpack_updateimg(){
 	finish_build
 }
 
-function build_factory(){
+function build_factory() {
 	IMAGE_PATH=$RK_PROJECT_OUTPUT_IMAGE/update.img
 	FACTORY_FILE_DIR=$RK_PROJECT_OUTPUT_IMAGE/factory
 	PROGRAMMER_TOOL_PATH=$SDK_ROOT_DIR/tools/linux/SocToolKit/bin/linux
@@ -803,30 +973,30 @@ function build_factory(){
 	# run programmer image tool
 	mkdir -p $FACTORY_FILE_DIR
 	case $RK_BOOT_MEDIUM in
-		emmc)
-			$PROGRAMMER_TOOL_PATH/programmer_image_tool -i $IMAGE_PATH -o $FACTORY_FILE_DIR -t emmc
-			;;
-		spi_nor)
-			$PROGRAMMER_TOOL_PATH/programmer_image_tool -i $IMAGE_PATH -o $FACTORY_FILE_DIR -t spinor
-			;;
-		spi_nand)
-			msg_info "spi_nand default: block_size = 128KB, page_size = 2KB"
-			$PROGRAMMER_TOOL_PATH/programmer_image_tool -i $IMAGE_PATH -o $FACTORY_FILE_DIR -t spinand -b 128 -p 2
-			;;
-		slc_nand)
-			msg_info "slc_nand default: block_size = 128KB, page_size = 2KB, oob_size = 128B"
-			$PROGRAMMER_TOOL_PATH/programmer_image_tool -i $IMAGE_PATH -o $FACTORY_FILE_DIR -t slc -b 128 -p 2 -s 128
-			;;
-		*)
-			echo "Not support storage medium type: $RK_BOOT_MEDIUM"
-			exit 1
-			;;
+	emmc | sd_card)
+		$PROGRAMMER_TOOL_PATH/programmer_image_tool -i $IMAGE_PATH -o $FACTORY_FILE_DIR -t emmc
+		;;
+	spi_nor)
+		$PROGRAMMER_TOOL_PATH/programmer_image_tool -i $IMAGE_PATH -o $FACTORY_FILE_DIR -t spinor
+		;;
+	spi_nand)
+		msg_info "spi_nand default: block_size = 128KB, page_size = 2KB"
+		$PROGRAMMER_TOOL_PATH/programmer_image_tool -i $IMAGE_PATH -o $FACTORY_FILE_DIR -t spinand -b 128 -p 2
+		;;
+	slc_nand)
+		msg_info "slc_nand default: block_size = 128KB, page_size = 2KB, oob_size = 128B"
+		$PROGRAMMER_TOOL_PATH/programmer_image_tool -i $IMAGE_PATH -o $FACTORY_FILE_DIR -t slc -b 128 -p 2 -s 128
+		;;
+	*)
+		echo "Not support storage medium type: $RK_BOOT_MEDIUM"
+		exit 1
+		;;
 	esac
 
 	finish_build
 }
 
-function build_all(){
+function build_all() {
 	echo "============================================"
 	echo "TARGET_ARCH=$RK_ARCH"
 	echo "TARGET_UBOOT_CONFIG=$RK_UBOOT_DEFCONFIG $RK_UBOOT_DEFCONFIG_FRAGMENT"
@@ -846,66 +1016,66 @@ function build_all(){
 	finish_build
 }
 
-function build_clean(){
+function build_clean() {
 	param="${1:-all}"
 	msg_info "clean ${param}"
 	case $param in
-		uboot)
-			make uboot_clean -C ${SDK_SYSDRV_DIR}
-			;;
-		kernel)
-			make kernel_clean -C ${SDK_SYSDRV_DIR}
-			;;
-		rootfs)
-			make rootfs_clean -C ${SDK_SYSDRV_DIR}
-			rm -rf $RK_PROJECT_PACKAGE_ROOTFS_DIR
-			;;
-		driver)
-			make drv_clean -C ${SDK_SYSDRV_DIR}
-			;;
-		sysdrv)
-			make distclean -C ${SDK_SYSDRV_DIR}
-			rm -rf $RK_PROJECT_PATH_SYSDRV
-			;;
-		media)
-			make distclean -C ${SDK_MEDIA_DIR}
-			rm -rf $RK_PROJECT_PATH_MEDIA
-			;;
-		app)
-			make distclean -C ${SDK_APP_DIR}
-			rm -rf $RK_PROJECT_PATH_APP
-			;;
-		recovery)
-			msg_warn "TODO !!!"
-			;;
-		all)
-			make distclean -C ${SDK_SYSDRV_DIR}
-			make distclean -C ${SDK_MEDIA_DIR}
-			make distclean -C ${SDK_APP_DIR}
-			rm -rf ${RK_PROJECT_OUTPUT_IMAGE} ${RK_PROJECT_OUTPUT}
-			;;
-		*)
-			msg_warn "clean [$1] not support, ignore"
-			;;
+	uboot)
+		make uboot_clean -C ${SDK_SYSDRV_DIR}
+		;;
+	kernel)
+		make kernel_clean -C ${SDK_SYSDRV_DIR}
+		;;
+	rootfs)
+		make rootfs_clean -C ${SDK_SYSDRV_DIR}
+		rm -rf $RK_PROJECT_PACKAGE_ROOTFS_DIR
+		;;
+	driver)
+		make drv_clean -C ${SDK_SYSDRV_DIR}
+		;;
+	sysdrv)
+		make distclean -C ${SDK_SYSDRV_DIR}
+		rm -rf $RK_PROJECT_PATH_SYSDRV
+		;;
+	media)
+		make distclean -C ${SDK_MEDIA_DIR}
+		rm -rf $RK_PROJECT_PATH_MEDIA
+		;;
+	app)
+		make distclean -C ${SDK_APP_DIR}
+		rm -rf $RK_PROJECT_PATH_APP
+		;;
+	recovery)
+		msg_warn "TODO !!!"
+		;;
+	all)
+		make distclean -C ${SDK_SYSDRV_DIR}
+		make distclean -C ${SDK_MEDIA_DIR}
+		make distclean -C ${SDK_APP_DIR}
+		rm -rf ${RK_PROJECT_OUTPUT_IMAGE} ${RK_PROJECT_OUTPUT}
+		rm -rf ${DTS_CONFIG} ${KERNEL_DEFCONFIG} ${BUILDROOT_DEFCONFIG}
+		;;
+	*)
+		msg_warn "clean [$1] not support, ignore"
+		;;
 	esac
 
 	finish_build
 }
 
-function __BUILD_ENABLE_COREDUMP_SCRIPT()
-{
+function __BUILD_ENABLE_COREDUMP_SCRIPT() {
 	local tmp_path coredump2sdcard
 	rm -f $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc/profile.d/enable_coredump.sh
 
 	tmp_path=$RK_PROJECT_PACKAGE_ROOTFS_DIR/etc/profile.d/enable_coredump.sh
 	coredump2sdcard="$RK_PROJECT_PACKAGE_ROOTFS_DIR/usr/bin/coredump2sdcard.sh"
-	cat > $coredump2sdcard <<EOF
+	cat >$coredump2sdcard <<EOF
 #!/bin/sh
 exec cat -  > "/mnt/sdcard/core-\$1-\$2"
 EOF
-chmod a+x $coredump2sdcard
+	chmod a+x $coredump2sdcard
 
-	cat > $tmp_path <<EOF
+	cat >$tmp_path <<EOF
 #!/bin/sh
 if [ "\$(id -u)" = "0" ]; then
 ulimit -c unlimited
@@ -916,9 +1086,8 @@ EOF
 	chmod u+x $tmp_path
 }
 
-function __RELEASE_FILESYSTEM_FILES()
-{
-	if [ "$RK_BUILD_VERSION_TYPE" = "DEBUG" ];then
+function __RELEASE_FILESYSTEM_FILES() {
+	if [ "$RK_BUILD_VERSION_TYPE" = "DEBUG" ]; then
 		msg_info "RK_BUILD_VERSION_TYPE is DEBUG, ignore strip symbols"
 		return
 	fi
@@ -927,17 +1096,16 @@ function __RELEASE_FILESYSTEM_FILES()
 	msg_info "start to strip $_target_dir"
 	if [ -d "$_target_dir" -a -n "${RK_PROJECT_TOOLCHAIN_CROSS}" ]; then
 		find "$_target_dir" \( -name "lib*.la" -o -name "lib*.a" \) | xargs rm -rf {}
-		rm -rf `find "$_target_dir" -name pkgconfig`
+		rm -rf $(find "$_target_dir" -name pkgconfig)
 		find "$_target_dir" -type f \( -perm /111 -o -name '*.so*' \) \
-			-not \( -name 'libpthread*.so*' -o -name 'ld-*.so*' -o -name '*.ko' \) -print0 | \
+			-not \( -name 'libpthread*.so*' -o -name 'ld-*.so*' -o -name '*.ko' \) -print0 |
 			xargs -0 ${RK_PROJECT_TOOLCHAIN_CROSS}-strip 2>/dev/null || true
 	else
 		msg_warn "not found target dir: $_target_dir, ignore"
 	fi
 }
 
-function __COPY_FILES()
-{
+function __COPY_FILES() {
 	mkdir -p "$2"
 	if [ -d "$1" ]; then
 		cp -rfa $1/* $2
@@ -946,11 +1114,10 @@ function __COPY_FILES()
 	fi
 }
 
-function __PACKAGE_RESOURCES()
-{
+function __PACKAGE_RESOURCES() {
 	local _iqfiles_dir _install_dir _target_dir _avs_calib_install_dir _avs_calib_src
 	_target_dir="$1"
-	if [ ! -d $_target_dir ];then
+	if [ ! -d $_target_dir ]; then
 		msg_error "Not found target dir: $_target_dir"
 		exit 1
 	fi
@@ -973,62 +1140,65 @@ function __PACKAGE_RESOURCES()
 
 	if [ -n "$RK_AVS_CALIB" ]; then
 		_avs_calib_src=$(find $RK_PROJECT_PATH_MEDIA -name $RK_AVS_CALIB -type f)
-		if [ -n "$_avs_calib_src" ];then
+		if [ -n "$_avs_calib_src" ]; then
 			_avs_calib_install_dir=$_install_dir/share/avs_calib
 			mkdir -p $_avs_calib_install_dir
-			cp -rfa $_avs_calib_src  $_avs_calib_install_dir/calib_file.pto
+			cp -rfa $_avs_calib_src $_avs_calib_install_dir/calib_file.pto
 		fi
 	fi
 
 	if [ -n "$RK_AVS_LUT" ]; then
 		_avs_lut_src=$(find $RK_PROJECT_PATH_MEDIA -name $RK_AVS_LUT)
-		if [ -n "$_avs_lut_src" ];then
+		if [ -n "$_avs_lut_src" ]; then
 			_avs_lut_install_dir=$_install_dir/share/middle_lut
 			mkdir -p $_avs_lut_install_dir
-			cp -rfa $_avs_lut_src  $_avs_lut_install_dir/
+			cp -rfa $_avs_lut_src $_avs_lut_install_dir/
 		fi
 	fi
 
-	mkdir -p  $_iqfiles_dir
-	if [ -n "$RK_CAMERA_SENSOR_IQFILES" ];then
-		IFS=" ";for item in `echo $RK_CAMERA_SENSOR_IQFILES`
-		do
-			if [ -f "$RK_PROJECT_PATH_MEDIA/isp_iqfiles/$item" ];then
+	mkdir -p $_iqfiles_dir
+	if [ -n "$RK_CAMERA_SENSOR_IQFILES" ]; then
+		IFS=" "
+		for item in $(echo $RK_CAMERA_SENSOR_IQFILES); do
+			if [ -f "$RK_PROJECT_PATH_MEDIA/isp_iqfiles/$item" ]; then
 				cp -rfa $RK_PROJECT_PATH_MEDIA/isp_iqfiles/$item $_iqfiles_dir
 			fi
-		done; IFS=
+		done
+		IFS=
 	else
-		msg_warn "Not found RK_CAMERA_SENSOR_IQFILES on the `realpath $BOARD_CONFIG`, copy all default for emmc or nand"
-		if [ "$RK_BOOT_MEDIUM" != "spi_nor" ];then
+		msg_warn "Not found RK_CAMERA_SENSOR_IQFILES on the $(realpath $BOARD_CONFIG), copy all default for emmc, sd-card or nand"
+		if [ "$RK_BOOT_MEDIUM" != "spi_nor" ]; then
 			cp -rfa $RK_PROJECT_PATH_MEDIA/isp_iqfiles/* $_iqfiles_dir
 		fi
 	fi
 
-	if [ -n "$RK_CAMERA_SENSOR_CAC_BIN" ];then
-		IFS=" "; for item in `echo $RK_CAMERA_SENSOR_CAC_BIN`
-		do
+	if [ -n "$RK_CAMERA_SENSOR_CAC_BIN" ]; then
+		IFS=" "
+		for item in $(echo $RK_CAMERA_SENSOR_CAC_BIN); do
 			if [ -d "$RK_PROJECT_PATH_MEDIA/isp_iqfiles/$item" ]; then
 				cp -rfa $RK_PROJECT_PATH_MEDIA/isp_iqfiles/$item $_iqfiles_dir
 			fi
-		done; IFS=
+		done
+		IFS=
 	fi
 }
 
-function __MAKE_MOUNT_SCRIPT()
-{
-	echo "$1" >> $RK_PROJECT_FILE_ROOTFS_SCRIPT
+function __MAKE_MOUNT_SCRIPT() {
+	echo "$1" >>$RK_PROJECT_FILE_ROOTFS_SCRIPT
 }
 
-function __PACKAGE_OEM()
-{
+function __PACKAGE_OEM() {
 	mkdir -p $RK_PROJECT_PACKAGE_OEM_DIR
 	__PACKAGE_RESOURCES $RK_PROJECT_PACKAGE_OEM_DIR
-	if [ -d "$RK_PROJECT_PACKAGE_OEM_DIR/usr/share/iqfiles" ];then
-		(cd $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc; ln -sf ../oem/usr/share/iqfiles ./)
+	if [ -d "$RK_PROJECT_PACKAGE_OEM_DIR/usr/share/iqfiles" ]; then
+		(
+			cd $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc
+			ln -sf ../oem/usr/share/iqfiles ./
+		)
 	fi
 
 	mkdir -p $(dirname $RK_PROJECT_FILE_OEM_SCRIPT)
-	cat > $RK_PROJECT_FILE_OEM_SCRIPT <<EOF
+	cat >$RK_PROJECT_FILE_OEM_SCRIPT <<EOF
 #!/bin/sh
 [ -f /etc/profile.d/RkEnv.sh ] && source /etc/profile.d/RkEnv.sh
 case \$1 in
@@ -1043,46 +1213,46 @@ case \$1 in
 		;;
 esac
 EOF
-
 	chmod a+x $RK_PROJECT_FILE_OEM_SCRIPT
 	cp -f $RK_PROJECT_FILE_OEM_SCRIPT $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc/init.d
 }
 
-function __PACKAGE_ROOTFS()
-{
-	local rootfs_tarball _target_dir _install_dir
+function __PACKAGE_ROOTFS() {
+	local rootfs_tarball rootfs_out_dir
 	rootfs_tarball="$RK_PROJECT_PATH_SYSDRV/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}.tar"
-	if [ -f $rootfs_tarball ]; then
-		tar xf $rootfs_tarball -C $RK_PROJECT_OUTPUT
-	else
-		msg_error "Not found rootfs tarball: $rootfs_tarball"
-		exit 1
+
+	if [ ! -f $rootfs_tarball ]; then
+		msg_error "Build rootfs is not yet complete, packaging cannot proceed!"
+		exit 0
 	fi
 
 	build_get_sdk_version
 
-	cat > $RK_PROJECT_PACKAGE_ROOTFS_DIR/bin/sdkinfo <<EOF
+	cat >$RK_PROJECT_PACKAGE_ROOTFS_DIR/bin/sdkinfo <<EOF
 #!/bin/sh
-echo Build Time:  `date "+%Y-%m-%d-%T"`
+echo Build Time:  $(date "+%Y-%m-%d-%T")
 echo SDK Version: ${GLOBAL_SDK_VERSION}
 EOF
 	chmod a+x $RK_PROJECT_PACKAGE_ROOTFS_DIR/bin/sdkinfo
 
 	__COPY_FILES $RK_PROJECT_PATH_APP/root $RK_PROJECT_PACKAGE_ROOTFS_DIR
 	__COPY_FILES $RK_PROJECT_PATH_MEDIA/root $RK_PROJECT_PACKAGE_ROOTFS_DIR
+	__COPY_FILES $SDK_ROOT_DIR/external $RK_PROJECT_PACKAGE_ROOTFS_DIR
 
-	if [ -d "$RK_PROJECT_PACKAGE_ROOTFS_DIR/usr/share/iqfiles" ];then
-		(cd $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc; ln -sf ../usr/share/iqfiles ./)
+	if [ -d "$RK_PROJECT_PACKAGE_ROOTFS_DIR/usr/share/iqfiles" ]; then
+		(
+			cd $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc
+			ln -sf ../usr/share/iqfiles ./
+		)
 	fi
 
-	if [ -f $RK_PROJECT_FILE_ROOTFS_SCRIPT ];then
+	if [ -f $RK_PROJECT_FILE_ROOTFS_SCRIPT ]; then
 		chmod a+x $RK_PROJECT_FILE_ROOTFS_SCRIPT
 		cp -f $RK_PROJECT_FILE_ROOTFS_SCRIPT $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc/init.d
 	fi
 }
 
-function parse_partition_env()
-{
+function parse_partition_env() {
 	local part_size part_offset part_name part_final partitions tmp_part_offset tmp_part_offset_b16
 	local part_size_bytes part_offset_bytes size_final_char offset_final_char part_size_bytes_b16
 
@@ -1094,11 +1264,10 @@ function parse_partition_env()
 	# format be like: "4M(uboot),32K(env),32M(boot),1G(rootfs),-(userdata)"
 	IFS=,
 	tmp_part_offset=0
-	for part in $RK_PARTITION_CMD_IN_ENV;
-	do
-		part_size=`echo $part | cut -s -d '(' -f1|cut -d '@' -f1`
-		part_name=`echo $part | cut -s -d '(' -f2|cut -s -d ')' -f1`
-		part_final=`echo $part | cut -s -d '(' -f2|cut -s -d ')' -f2`
+	for part in $RK_PARTITION_CMD_IN_ENV; do
+		part_size=$(echo $part | cut -s -d '(' -f1 | cut -d '@' -f1)
+		part_name=$(echo $part | cut -s -d '(' -f2 | cut -s -d ')' -f1)
+		part_final=$(echo $part | cut -s -d '(' -f2 | cut -s -d ')' -f2)
 
 		if [[ -z $part_size || -z $part_name || -n $part_final ]]; then
 			msg_error "Parse partition failed, exit !!!"
@@ -1108,47 +1277,47 @@ function parse_partition_env()
 
 		# parse offset
 		if [[ $part =~ "@" ]]; then
-			part_offset=`echo $part | cut -s -d '(' -f1|cut -s -d '@' -f2`
+			part_offset=$(echo $part | cut -s -d '(' -f1 | cut -s -d '@' -f2)
 			offset_final_char=${part_offset: -1}
 			case $offset_final_char in
-				K|k)
-					part_offset=$((${part_offset/%${offset_final_char}/}))
-					part_offset_bytes=$[$part_offset*1024]
-					;;
-				M|m)
-					part_offset=$((${part_offset/%${offset_final_char}/}))
-					part_offset_bytes=$[$part_offset*1024*1024]
-					;;
-				G|g)
-					part_offset=$((${part_offset/%${offset_final_char}/}))
-					part_offset_bytes=$[$part_offset*1024*1024*1024]
-					;;
-				T|t)
-					part_offset=$((${part_offset/%${offset_final_char}/}))
-					part_offset_bytes=$[$part_offset*1024*1024*1024*1024]
-					;;
-				P|p)
-					part_offset=$((${part_offset/%${offset_final_char}/}))
-					part_offset_bytes=$[$part_offset*1024*1024*1024*1024*1024]
-					;;
-				E|e)
-					part_offset=$((${part_offset/%${offset_final_char}/}))
-					part_offset_bytes=$[$part_offset*1024*1024*1024*1024*1024*1024]
-					;;
-				-)
-					if [[ ${#part_offset} != 1 ]]; then
-						msg_error "Partition($part_name) offset error, exit !!!"
-						exit 1
-					fi
-					part_offset_bytes=$part_offset
-					;;
-				*)
-					part_offset_bytes=$(($part_offset))
-					if [[ $part_offset_bytes == 0 ]]; then
-						msg_error "Partition($part_name) offset error, exit !!!"
-						exit 1
-					fi
-					;;
+			K | k)
+				part_offset=$((${part_offset/%${offset_final_char}/}))
+				part_offset_bytes=$(($part_offset * 1024))
+				;;
+			M | m)
+				part_offset=$((${part_offset/%${offset_final_char}/}))
+				part_offset_bytes=$(($part_offset * 1024 * 1024))
+				;;
+			G | g)
+				part_offset=$((${part_offset/%${offset_final_char}/}))
+				part_offset_bytes=$(($part_offset * 1024 * 1024 * 1024))
+				;;
+			T | t)
+				part_offset=$((${part_offset/%${offset_final_char}/}))
+				part_offset_bytes=$(($part_offset * 1024 * 1024 * 1024 * 1024))
+				;;
+			P | p)
+				part_offset=$((${part_offset/%${offset_final_char}/}))
+				part_offset_bytes=$(($part_offset * 1024 * 1024 * 1024 * 1024 * 1024))
+				;;
+			E | e)
+				part_offset=$((${part_offset/%${offset_final_char}/}))
+				part_offset_bytes=$(($part_offset * 1024 * 1024 * 1024 * 1024 * 1024 * 1024))
+				;;
+			-)
+				if [[ ${#part_offset} != 1 ]]; then
+					msg_error "Partition($part_name) offset error, exit !!!"
+					exit 1
+				fi
+				part_offset_bytes=$part_offset
+				;;
+			*)
+				part_offset_bytes=$(($part_offset))
+				if [[ $part_offset_bytes == 0 ]]; then
+					msg_error "Partition($part_name) offset error, exit !!!"
+					exit 1
+				fi
+				;;
 			esac
 		else
 			part_offset_bytes=
@@ -1157,40 +1326,40 @@ function parse_partition_env()
 		# parse partition size
 		size_final_char=${part_size: -1}
 		case $size_final_char in
-			K|k)
-				part_size=$((${part_size/%${size_final_char}/}))
-				part_size_bytes=$[$part_size*1024]
-				;;
-			M|m)
-				part_size=$((${part_size/%${size_final_char}/}))
-				part_size_bytes=$[$part_size*1024*1024]
-				;;
-			G|g)
-				part_size=$((${part_size/%${size_final_char}/}))
-				part_size_bytes=$[$part_size*1024*1024*1024]
-				;;
-			T|t)
-				part_size=$((${part_size/%${size_final_char}/}))
-				part_size_bytes=$[$part_size*1024*1024*1024*1024]
-				;;
-			P|p)
-				part_size=$((${part_size/%${size_final_char}/}))
-				part_size_bytes=$[$part_size*1024*1024*1024*1024*1024]
-				;;
-			E|e)
-				part_size=$((${part_size/%${size_final_char}/}))
-				part_size_bytes=$[$part_size*1024*1024*1024*1024*1024*1024]
-				;;
-			-)
-				if [[ ${#part_size} != 1 ]]; then
-					msg_error "Partition($part_name) size error, exit !!!"
-					exit 1
-				fi
-				part_size_bytes=$part_size
-				;;
-			*)
-				part_size_bytes=$(($part_size))
-				;;
+		K | k)
+			part_size=$((${part_size/%${size_final_char}/}))
+			part_size_bytes=$(($part_size * 1024))
+			;;
+		M | m)
+			part_size=$((${part_size/%${size_final_char}/}))
+			part_size_bytes=$(($part_size * 1024 * 1024))
+			;;
+		G | g)
+			part_size=$((${part_size/%${size_final_char}/}))
+			part_size_bytes=$(($part_size * 1024 * 1024 * 1024))
+			;;
+		T | t)
+			part_size=$((${part_size/%${size_final_char}/}))
+			part_size_bytes=$(($part_size * 1024 * 1024 * 1024 * 1024))
+			;;
+		P | p)
+			part_size=$((${part_size/%${size_final_char}/}))
+			part_size_bytes=$(($part_size * 1024 * 1024 * 1024 * 1024 * 1024))
+			;;
+		E | e)
+			part_size=$((${part_size/%${size_final_char}/}))
+			part_size_bytes=$(($part_size * 1024 * 1024 * 1024 * 1024 * 1024 * 1024))
+			;;
+		-)
+			if [[ ${#part_size} != 1 ]]; then
+				msg_error "Partition($part_name) size error, exit !!!"
+				exit 1
+			fi
+			part_size_bytes=$part_size
+			;;
+		*)
+			part_size_bytes=$(($part_size))
+			;;
 		esac
 
 		# Judge the validity of parameters
@@ -1211,12 +1380,12 @@ function parse_partition_env()
 		if [[ $part_size_bytes =~ "-" ]]; then
 			part_size_bytes_b16="-"
 		else
-			part_size_bytes_b16="0x`echo "obase=16;$part_size_bytes"|bc`"
+			part_size_bytes_b16="0x$(echo "obase=16;$part_size_bytes" | bc)"
 		fi
 		if [[ $tmp_part_offset =~ "-" ]]; then
 			tmp_part_offset_b16="-"
 		else
-			tmp_part_offset_b16="0x`echo "obase=16;$tmp_part_offset"|bc`"
+			tmp_part_offset_b16="0x$(echo "obase=16;$tmp_part_offset" | bc)"
 		fi
 		if [ "$tmp_part_offset_b16" = "0x" ]; then
 			tmp_part_offset_b16="0"
@@ -1230,9 +1399,8 @@ function parse_partition_env()
 	echo "GLOBAL_PARTITIONS: $GLOBAL_PARTITIONS"
 }
 
-function parse_partition_file()
-{
-	local  part_size part_offset part_name part_num storage_dev_prefix
+function parse_partition_file() {
+	local part_size part_offset part_name part_num storage_dev_prefix
 	export SYS_BOOTARGS
 	export RK_PARTITION_ARGS
 
@@ -1240,88 +1408,95 @@ function parse_partition_file()
 
 	mkdir -p $RK_PROJECT_OUTPUT_IMAGE
 	case $RK_BOOT_MEDIUM in
-		emmc)
-			storage_dev_prefix=mmcblk1p
-			RK_PARTITION_ARGS="blkdevparts=mmcblk1:$RK_PARTITION_CMD_IN_ENV"
-			part_num=1
-			;;
-		spi_nor)
-			storage_dev_prefix=mtdblock
-			RK_PARTITION_ARGS="mtdparts=sfc_nor:$RK_PARTITION_CMD_IN_ENV"
-			part_num=0
-			;;
-		spi_nand)
-			storage_dev_prefix=mtd
-			RK_PARTITION_ARGS="mtdparts=spi-nand0:$RK_PARTITION_CMD_IN_ENV"
-			part_num=0
-			;;
-		slc_nand)
-			storage_dev_prefix=mtd
-			RK_PARTITION_ARGS="mtdparts=rk-nand:$RK_PARTITION_CMD_IN_ENV"
-			part_num=0
-			;;
-		*)
-			msg_error "Not support storage medium type: $RK_BOOT_MEDIUM"
-			finish_build
-			exit 1
-			;;
+	emmc)
+		storage_dev_prefix=mmcblk0p
+		RK_PARTITION_ARGS="blkdevparts=mmcblk0:$RK_PARTITION_CMD_IN_ENV"
+		part_num=1
+		;;
+	sd_card)
+		storage_dev_prefix=mmcblk1p
+		RK_PARTITION_ARGS="blkdevparts=mmcblk1:$RK_PARTITION_CMD_IN_ENV"
+		part_num=1
+		;;
+	spi_nor)
+		storage_dev_prefix=mtdblock
+		RK_PARTITION_ARGS="mtdparts=sfc_nor:$RK_PARTITION_CMD_IN_ENV"
+		part_num=0
+		;;
+	spi_nand)
+		storage_dev_prefix=mtd
+		RK_PARTITION_ARGS="mtdparts=spi-nand0:$RK_PARTITION_CMD_IN_ENV"
+		part_num=0
+		;;
+	slc_nand)
+		storage_dev_prefix=mtd
+		RK_PARTITION_ARGS="mtdparts=rk-nand:$RK_PARTITION_CMD_IN_ENV"
+		part_num=0
+		;;
+	*)
+		msg_error "Not support storage medium type: $RK_BOOT_MEDIUM"
+		finish_build
+		exit 1
+		;;
 	esac
-	echo "${RK_PARTITION_ARGS}" > $ENV_CFG_FILE
+	echo "${RK_PARTITION_ARGS}" >$ENV_CFG_FILE
 
 	mkdir -p $(dirname $RK_PROJECT_FILE_ROOTFS_SCRIPT)
-	echo "#!/bin/sh" > $RK_PROJECT_FILE_ROOTFS_SCRIPT
-	echo "bootmedium=$RK_BOOT_MEDIUM" >> $RK_PROJECT_FILE_ROOTFS_SCRIPT
-	echo "linkdev(){" >> $RK_PROJECT_FILE_ROOTFS_SCRIPT
-	echo 'if [ ! -d "/dev/block/by-name" ];then' >> $RK_PROJECT_FILE_ROOTFS_SCRIPT
-	echo "mkdir -p /dev/block/by-name" >> $RK_PROJECT_FILE_ROOTFS_SCRIPT
-	echo "cd /dev/block/by-name" >> $RK_PROJECT_FILE_ROOTFS_SCRIPT
+	echo "#!/bin/sh" >$RK_PROJECT_FILE_ROOTFS_SCRIPT
+	echo "bootmedium=$RK_BOOT_MEDIUM" >>$RK_PROJECT_FILE_ROOTFS_SCRIPT
+	echo "linkdev(){" >>$RK_PROJECT_FILE_ROOTFS_SCRIPT
+	echo 'if [ ! -d "/dev/block/by-name" ];then' >>$RK_PROJECT_FILE_ROOTFS_SCRIPT
+	echo "mkdir -p /dev/block/by-name" >>$RK_PROJECT_FILE_ROOTFS_SCRIPT
+	echo "cd /dev/block/by-name" >>$RK_PROJECT_FILE_ROOTFS_SCRIPT
 
 	SYS_BOOTARGS="sys_bootargs="
 	IFS=,
-	for part in $GLOBAL_PARTITIONS;
-	do
-		part_size=`echo $part | cut -d '@' -f1`
-		part_offset=`echo $part | cut -d '(' -f1|cut -d '@' -f2`
-		part_name=`echo $part | cut -d '(' -f2|cut -d ')' -f1`
+	for part in $GLOBAL_PARTITIONS; do
+		part_size=$(echo $part | cut -d '@' -f1)
+		part_offset=$(echo $part | cut -d '(' -f1 | cut -d '@' -f2)
+		part_name=$(echo $part | cut -d '(' -f2 | cut -d ')' -f1)
 
-		if [[ $part_size =~ "-" ]];then
+		if [[ $part_size =~ "-" ]]; then
 			part_name=${part_name%%:*}
 		fi
 
-		if [[ $part_name == "env" ]];then
+		if [[ $part_name == "env" ]]; then
 			export ENV_SIZE="$part_size"
 			export ENV_OFFSET="$part_offset"
 		fi
 
-		if [[ $part_name == "meta" ]];then
+		if [[ $part_name == "meta" ]]; then
 			export RK_META_SIZE="$part_size"
 		fi
 
-		if [[ ${part_name%_[a]} == "rootfs" || ${part_name%_[a]} == "system" ]];then
+		if [[ ${part_name%_[a]} == "rootfs" || ${part_name%_[a]} == "system" ]]; then
 			case $RK_BOOT_MEDIUM in
-				emmc)
-					SYS_BOOTARGS="${SYS_BOOTARGS} root=/dev/mmcblk1p${part_num}"
-					;;
-				spi_nor)
-					SYS_BOOTARGS="${SYS_BOOTARGS} root=/dev/mtdblock${part_num}"
-					;;
-				spi_nand|slc_nand)
-					SYS_BOOTARGS="${SYS_BOOTARGS} ubi.mtd=${part_num}"
-					;;
-				*)
-					msg_error "Not support storage medium type: $RK_BOOT_MEDIUM"
-					finish_build
-					exit 1
-					;;
+			emmc)
+				SYS_BOOTARGS="${SYS_BOOTARGS} root=/dev/mmcblk0p${part_num}"
+				;;
+			sd_card)
+				SYS_BOOTARGS="${SYS_BOOTARGS} root=/dev/mmcblk1p${part_num}"
+				;;
+			spi_nor)
+				SYS_BOOTARGS="${SYS_BOOTARGS} root=/dev/mtdblock${part_num}"
+				;;
+			spi_nand | slc_nand)
+				SYS_BOOTARGS="${SYS_BOOTARGS} ubi.mtd=${part_num}"
+				;;
+			*)
+				msg_error "Not support storage medium type: $RK_BOOT_MEDIUM"
+				finish_build
+				exit 1
+				;;
 			esac
 		fi
 
-		echo "ln -sf /dev/${storage_dev_prefix}${part_num} ${part_name}" >> $RK_PROJECT_FILE_ROOTFS_SCRIPT
-		part_num=$(( part_num + 1 ))
+		echo "ln -sf /dev/${storage_dev_prefix}${part_num} ${part_name}" >>$RK_PROJECT_FILE_ROOTFS_SCRIPT
+		part_num=$((part_num + 1))
 	done
 	case $RK_BOOT_MEDIUM in
-		emmc)
-			cat >> $RK_PROJECT_FILE_ROOTFS_SCRIPT <<EOF
+	sd_card)
+		cat >>$RK_PROJECT_FILE_ROOTFS_SCRIPT <<EOF
 for i in \$(seq 5 8); do
 	det_partition="/dev/mmcblk1p\$i"
 	mount_point=\$(mount | grep "\$det_partition" | awk '{print \$3}')
@@ -1333,20 +1508,19 @@ for i in \$(seq 5 8); do
 	fi
 done
 EOF
-	;;
-	*)
-	;;
+		;;
+	*) ;;
 	esac
 	IFS=
-	echo "fi }" >> $RK_PROJECT_FILE_ROOTFS_SCRIPT
+	echo "fi }" >>$RK_PROJECT_FILE_ROOTFS_SCRIPT
 
-	if [ "$RK_ENABLE_RECOVERY" = "y" ];then
+	if [ "$RK_ENABLE_RECOVERY" = "y" ]; then
 		mkdir -p $(dirname $RK_PROJECT_FILE_RECOVERY_SCRIPT)
 		cp -fa $RK_PROJECT_FILE_ROOTFS_SCRIPT $RK_PROJECT_FILE_RECOVERY_SCRIPT
 		chmod a+x $RK_PROJECT_FILE_RECOVERY_SCRIPT
 	fi
 
-	cat >> $RK_PROJECT_FILE_ROOTFS_SCRIPT <<EOF
+	cat >>$RK_PROJECT_FILE_ROOTFS_SCRIPT <<EOF
 mount_part(){
 if [ -z "\$1" -o -z "\$2" -o -z "\$3" ];then
 	echo "Invalid paramter, exit !!!"
@@ -1359,8 +1533,14 @@ part_dev=/dev/block/by-name/\$1
 mountpt=\$2
 part_fstype=\$3
 part_realdev=\$(realpath \$part_dev)
+
 if [ ! -d \$mountpt ]; then
 	if [ "\$mountpt" = "IGNORE" -a "emmc" = "\$bootmedium" ];then
+		if [ "\$root_dev" = "\$part_realdev" ];then
+			resize2fs \$part_dev
+		fi
+		return 0;
+	elif [ "\$mountpt" = "IGNORE" -a "sd_card" = "\$bootmedium" ];then
 		if [ "\$root_dev" = "\$part_realdev" ];then
 			resize2fs \$part_dev
 		fi
@@ -1370,9 +1550,10 @@ if [ ! -d \$mountpt ]; then
 		return 1;
 	fi
 fi
+
 if test -h \$part_dev; then
 case \$bootmedium in
-	emmc)
+	emmc|sd_card)
 		if [ "\$root_dev" = "\$part_realdev" ];then
 			resize2fs \$part_dev
 		else
@@ -1493,8 +1674,7 @@ fi
 EOF
 }
 
-function get_partition_num()
-{
+function get_partition_num() {
 	local target_part_name partitions
 	target_part_name=$1
 	partitions=${GLOBAL_PARTITIONS}
@@ -1506,21 +1686,20 @@ function get_partition_num()
 	IFS=,
 	local part_size part_name part_size_bytes part_num
 	part_num=0
-	for part in $partitions;
-	do
-		part_size=`echo $part | cut -d '@' -f1`
-		part_name=`echo $part | cut -d '(' -f2|cut -d ')' -f1`
+	for part in $partitions; do
+		part_size=$(echo $part | cut -d '@' -f1)
+		part_name=$(echo $part | cut -d '(' -f2 | cut -d ')' -f1)
 
 		[[ $part_size =~ "-" ]] && continue
 
 		part_size_bytes=$(($part_size))
 
-		if [ "$part_name" = "$target_part_name" ];then
+		if [ "$part_name" = "$target_part_name" ]; then
 			echo "$part_num"
 			IFS=
 			return
 		fi
-		part_num=$(( part_num + 1 ))
+		part_num=$((part_num + 1))
 	done
 	IFS=
 
@@ -1528,8 +1707,7 @@ function get_partition_num()
 	return
 }
 
-function get_partition_size()
-{
+function get_partition_size() {
 	local target_part_name partitions
 	target_part_name=$1
 	partitions=${GLOBAL_PARTITIONS}
@@ -1540,16 +1718,15 @@ function get_partition_size()
 
 	IFS=,
 	local part_size part_name part_size_bytes
-	for part in $partitions;
-	do
-		part_size=`echo $part | cut -d '@' -f1`
-		part_name=`echo $part | cut -d '(' -f2|cut -d ')' -f1`
+	for part in $partitions; do
+		part_size=$(echo $part | cut -d '@' -f1)
+		part_name=$(echo $part | cut -d '(' -f2 | cut -d ')' -f1)
 
 		[[ $part_size =~ "-" ]] && continue
 
 		part_size_bytes=$(($part_size))
 
-		if [ "${part_name%_[ab]}" == "${target_part_name%_[ab]}" ];then
+		if [ "${part_name%_[ab]}" == "${target_part_name%_[ab]}" ]; then
 			echo "$part_size_bytes"
 			IFS=
 			return
@@ -1561,16 +1738,14 @@ function get_partition_size()
 	return
 }
 
-function __GET_TARGET_PARTITION_FS_TYPE()
-{
+function __GET_TARGET_PARTITION_FS_TYPE() {
 	check_config RK_PARTITION_FS_TYPE_CFG || return 0
 	msg_info "Partition Filesystem Type Configure: $RK_PARTITION_FS_TYPE_CFG"
 	__MAKE_MOUNT_SCRIPT "case "\$1" in start) linkdev;"
 
 	local part_fs_type part_name part_mountpoint
 	IFS=,
-	for part in $RK_PARTITION_FS_TYPE_CFG;
-	do
+	for part in $RK_PARTITION_FS_TYPE_CFG; do
 		part_name=${part%%@*}
 		part_fs_type=${part##*@}
 		part_mountpoint=${part%@*}
@@ -1584,55 +1759,54 @@ function __GET_TARGET_PARTITION_FS_TYPE()
 		fi
 
 		case $part_fs_type in
-			ext[234]|jffs2|squashfs|ubifs|cramfs|romfs|erofs)
-				;;
-			initramfs)
-				export OUTPUT_SYSDRV_RAMDISK_DIR=$RK_PROJECT_PATH_RAMDISK
-				[[ $part_name =~ "boot" ]] && GLOBAL_INITRAMFS_BOOT_NAME=$part_name
-				;;
-			*)
-				msg_error "Invalid Parameter,Check `realpath $BOARD_CONFIG`:RK_PARTITION_FS_TYPE_CFG !!!"
-				exit 1
-				;;
+		ext[234] | jffs2 | squashfs | ubifs | cramfs | romfs | erofs) ;;
+		initramfs)
+			export OUTPUT_SYSDRV_RAMDISK_DIR=$RK_PROJECT_PATH_RAMDISK
+			[[ $part_name =~ "boot" ]] && GLOBAL_INITRAMFS_BOOT_NAME=$part_name
+			;;
+		*)
+			msg_error "Invalid Parameter,Check $(realpath $BOARD_CONFIG):RK_PARTITION_FS_TYPE_CFG !!!"
+			exit 1
+			;;
 		esac
 
-		if [[ $part_name =~ "rootfs" || $part_name =~ "system" ]];then
+		if [[ $part_name =~ "rootfs" || $part_name =~ "system" ]]; then
 			GLOBAL_ROOT_FILESYSTEM_NAME=${part_name%_[ab]}
 			export RK_PROJECT_ROOTFS_TYPE=$part_fs_type
 			case $RK_BOOT_MEDIUM in
-				emmc)
-					SYS_BOOTARGS="$SYS_BOOTARGS rootfstype=$part_fs_type"
+			emmc | sd_card)
+				SYS_BOOTARGS="$SYS_BOOTARGS rootfstype=$part_fs_type"
+				;;
+			spi_nor)
+				SYS_BOOTARGS="$SYS_BOOTARGS rootfstype=$part_fs_type"
+				;;
+			spi_nand | slc_nand)
+				case $part_fs_type in
+				erofs)
+					SYS_BOOTARGS="$SYS_BOOTARGS ubi.block=0,$GLOBAL_ROOT_FILESYSTEM_NAME root=/dev/ubiblock0_0 rootfstype=$part_fs_type"
 					;;
-				spi_nor)
-					SYS_BOOTARGS="$SYS_BOOTARGS rootfstype=$part_fs_type"
+				squashfs)
+					SYS_BOOTARGS="$SYS_BOOTARGS ubi.block=0,$GLOBAL_ROOT_FILESYSTEM_NAME root=/dev/ubiblock0_0 rootfstype=$part_fs_type"
 					;;
-				spi_nand|slc_nand)
-					case $part_fs_type in
-						erofs)
-							SYS_BOOTARGS="$SYS_BOOTARGS ubi.block=0,$GLOBAL_ROOT_FILESYSTEM_NAME root=/dev/ubiblock0_0 rootfstype=$part_fs_type"
-							;;
-						squashfs)
-							SYS_BOOTARGS="$SYS_BOOTARGS ubi.block=0,$GLOBAL_ROOT_FILESYSTEM_NAME root=/dev/ubiblock0_0 rootfstype=$part_fs_type"
-							;;
-						ubifs)
-							SYS_BOOTARGS="$SYS_BOOTARGS root=ubi0:$GLOBAL_ROOT_FILESYSTEM_NAME rootfstype=$part_fs_type"
-							;;
-						*)
-							msg_error "Not support rootfs type: $part_fs_type"
-							finish_build
-							exit 1
-							;;
-					esac
+				ubifs)
+					SYS_BOOTARGS="$SYS_BOOTARGS root=ubi0:$GLOBAL_ROOT_FILESYSTEM_NAME rootfstype=$part_fs_type"
 					;;
 				*)
-					msg_error "Not support storage medium type: $RK_BOOT_MEDIUM"
+					msg_error "Not support rootfs type: $part_fs_type"
 					finish_build
 					exit 1
 					;;
+				esac
+				;;
+			*)
+				msg_error "Not support storage medium type: $RK_BOOT_MEDIUM"
+				finish_build
+				exit 1
+				;;
 			esac
 		fi
 
-		if [[ $part_name =~ "oem" ]];then
+		if [[ $part_name =~ "oem" ]]; then
 			GLOBAL_OEM_NAME=${part_name%_[ab]}
 			export RK_PROJECT_OEM_FS_TYPE=$part_fs_type
 			[[ $RK_BUILD_APP_TO_OEM_PARTITION != "y" ]] && continue
@@ -1646,44 +1820,72 @@ function __GET_TARGET_PARTITION_FS_TYPE()
 	__MAKE_MOUNT_SCRIPT ";; stop) printf stop \$0 finished\n ;; *) echo Usage: \$0 {start|stop} exit 1 ;; esac"
 }
 
-__GET_BOOTARGS_FROM_BOARD_CFG()
-{
+__GET_BOOTARGS_FROM_BOARD_CFG() {
 	if [ -n "$RK_BOOTARGS_CMA_SIZE" ]; then
 		SYS_BOOTARGS="$SYS_BOOTARGS rk_dma_heap_cma=$RK_BOOTARGS_CMA_SIZE"
 	fi
 }
 
-function __PREPARE_BOARD_CFG()
-{
+__LINK_DEFCONFIG_FROM_BOARD_CFG() {
+	mkdir -p ${SDK_CONFIG_DIR}
+
+	if [ -n "$RK_KERNEL_DTS" ]; then
+		rm -f $DTS_CONFIG
+		ln -rfs $SDK_SYSDRV_DIR/source/kernel/arch/arm/boot/dts/$RK_KERNEL_DTS $DTS_CONFIG
+		msg_info "switch to DTS: $(realpath $DTS_CONFIG)"
+	fi
+	if [ -n "$RK_KERNEL_DEFCONFIG" ]; then
+		rm -f $KERNEL_DEFCONFIG
+		ln -rfs $SDK_SYSDRV_DIR/source/kernel/arch/arm/configs/$RK_KERNEL_DEFCONFIG $KERNEL_DEFCONFIG
+		msg_info "switch to kernel defconfig: $(realpath $KERNEL_DEFCONFIG)"
+	fi
+
+	if [ "$LF_TARGET_ROOTFS" = "buildroot" ]; then
+		if [ -n "$RK_BUILDROOT_DEFCONFIG" ]; then
+			if [ -f "$BUILDROOT_PATH/configs/$RK_BUILDROOT_DEFCONFIG" ]; then
+				rm -f $BUILDROOT_DEFCONFIG
+				ln -rfs $BUILDROOT_PATH/configs/$RK_BUILDROOT_DEFCONFIG $BUILDROOT_DEFCONFIG
+				msg_info "switch to buildroot defconfig: $(realpath $BUILDROOT_DEFCONFIG)"
+			else
+				msg_info "use \" ./build.sh buildrootconfig\" to create buildroot_defconfig"
+			fi
+		fi
+	else
+		rm -f $BUILDROOT_DEFCONFIG
+		msg_info "The root file system used is not buildroot"
+	fi
+}
+
+function __PREPARE_BOARD_CFG() {
 	parse_partition_file
 	__GET_TARGET_PARTITION_FS_TYPE
 	if [ "$RK_ENABLE_FASTBOOT" = "y" ]; then
 		SYS_BOOTARGS="$SYS_BOOTARGS $RK_PARTITION_ARGS"
 	fi
 	__GET_BOOTARGS_FROM_BOARD_CFG
+	__LINK_DEFCONFIG_FROM_BOARD_CFG
 
 	export RK_KERNEL_CMDLINE_FRAGMENT=${SYS_BOOTARGS#sys_bootargs=}
 }
 
-function build_mkimg()
-{
+function build_mkimg() {
 	local src dst fs_type part_size part_name
 	part_name=$1
-	part_size=`get_partition_size $part_name`
-	if [ $(( part_size )) -lt 1 ]; then
+	part_size=$(get_partition_size $part_name)
+	if [ $((part_size)) -lt 1 ]; then
 		msg_warn "Not found partition named [$part_name]"
 		msg_warn "Please check RK_PARTITION_CMD_IN_ENV in BoardConfig: $BOARD_CONFIG"
 		return
 	fi
 
-	if [ -z "$2" -o ! -d "$2" ];then
+	if [ -z "$2" -o ! -d "$2" ]; then
 		msg_error "Not exist source dir: $2"
 		exit 1
 	fi
 
 	if [ ! -f $RK_PROJECT_PATH_PC_TOOLS/mk-fitimage.sh \
 		-o ! -f $RK_PROJECT_PATH_PC_TOOLS/mkimage \
-		-o ! -f $RK_PROJECT_PATH_PC_TOOLS/compress_tool ];then
+		-o ! -f $RK_PROJECT_PATH_PC_TOOLS/compress_tool ]; then
 		build_tool
 	fi
 
@@ -1692,7 +1894,7 @@ function build_mkimg()
 
 	fs_type=${part_name}$GLOBAL_FS_TYPE_SUFFIX
 	fs_type="\$${fs_type}"
-	fs_type=`eval "echo ${fs_type}"`
+	fs_type=$(eval "echo ${fs_type}")
 
 	__RELEASE_FILESYSTEM_FILES $src
 
@@ -1700,95 +1902,95 @@ function build_mkimg()
 	msg_info "dst=$dst"
 	msg_info "fs_type=$fs_type"
 	msg_info "part_name=$part_name"
-	msg_info "part_size=$(( part_size / 1024 / 1024 ))MB"
+	msg_info "part_size=$((part_size / 1024 / 1024))MB"
 
 	case $fs_type in
-		ext4)
-			$RK_PROJECT_TOOLS_MKFS_EXT4 $src $dst $part_size
-			;;
-		jffs2)
-			$RK_PROJECT_TOOLS_MKFS_JFFS2 $src $dst $part_size
-			;;
-		erofs)
-			if [ $part_name == "boot" ]; then
-				local kernel_dtb_file="$RK_PROJECT_PATH_FASTBOOT/${RK_KERNEL_DTS/%.dts/.dtb}"
+	ext4)
+		$RK_PROJECT_TOOLS_MKFS_EXT4 $src $dst $part_size
+		;;
+	jffs2)
+		$RK_PROJECT_TOOLS_MKFS_JFFS2 $src $dst $part_size
+		;;
+	erofs)
+		if [ $part_name == "boot" ]; then
+			local kernel_dtb_file="$RK_PROJECT_PATH_FASTBOOT/${RK_KERNEL_DTS/%.dts/.dtb}"
 
-				cat $RK_PROJECT_PATH_FASTBOOT/Image | $RK_PROJECT_PATH_PC_TOOLS/compress_tool > $RK_PROJECT_PATH_FASTBOOT/Image.gz
+			cat $RK_PROJECT_PATH_FASTBOOT/Image | $RK_PROJECT_PATH_PC_TOOLS/compress_tool >$RK_PROJECT_PATH_FASTBOOT/Image.gz
 
-				cp -fa $PROJECT_TOP_DIR/scripts/$RK_CHIP-boot-tb.its $RK_PROJECT_PATH_FASTBOOT/boot-tb.its
+			cp -fa $PROJECT_TOP_DIR/scripts/$RK_CHIP-boot-tb.its $RK_PROJECT_PATH_FASTBOOT/boot-tb.its
 
-				$RK_PROJECT_TOOLS_MKFS_EROFS $src $RK_PROJECT_PATH_FASTBOOT/rootfs_erofs.img
-				cat $RK_PROJECT_PATH_FASTBOOT/rootfs_erofs.img | gzip -n -f -9 > $RK_PROJECT_PATH_FASTBOOT/rootfs_erofs.img.gz
+			$RK_PROJECT_TOOLS_MKFS_EROFS $src $RK_PROJECT_PATH_FASTBOOT/rootfs_erofs.img
+			cat $RK_PROJECT_PATH_FASTBOOT/rootfs_erofs.img | gzip -n -f -9 >$RK_PROJECT_PATH_FASTBOOT/rootfs_erofs.img.gz
 
-				$RK_PROJECT_PATH_PC_TOOLS/mk-fitimage.sh $RK_PROJECT_PATH_FASTBOOT/boot-tb.its \
-				`realpath $RK_PROJECT_PATH_FASTBOOT/rootfs_erofs.img.gz` `realpath $RK_PROJECT_PATH_FASTBOOT/Image.gz` \
-				`realpath $kernel_dtb_file` `realpath $RK_PROJECT_PATH_FASTBOOT/resource.img` $dst
+			$RK_PROJECT_PATH_PC_TOOLS/mk-fitimage.sh $RK_PROJECT_PATH_FASTBOOT/boot-tb.its \
+				$(realpath $RK_PROJECT_PATH_FASTBOOT/rootfs_erofs.img.gz) $(realpath $RK_PROJECT_PATH_FASTBOOT/Image.gz) \
+				$(realpath $kernel_dtb_file) $(realpath $RK_PROJECT_PATH_FASTBOOT/resource.img) $dst
+		else
+			if [ "$RK_BOOT_MEDIUM" = "emmc" -o "$RK_BOOT_MEDIUM" = "spi_nor" -o "$RK_BOOT_MEDIUM" = "sd_card" ]; then
+				$RK_PROJECT_TOOLS_MKFS_EROFS $src $dst $RK_EROFS_COMP
 			else
-				if [ "$RK_BOOT_MEDIUM" = "emmc" -o "$RK_BOOT_MEDIUM" = "spi_nor" ];then
-					$RK_PROJECT_TOOLS_MKFS_EROFS $src $dst $RK_EROFS_COMP
-				else
-					$RK_PROJECT_TOOLS_MKFS_UBIFS $src $(dirname $dst) $part_size $part_name $fs_type $RK_EROFS_COMP
-				fi
+				$RK_PROJECT_TOOLS_MKFS_UBIFS $src $(dirname $dst) $part_size $part_name $fs_type $RK_EROFS_COMP
 			fi
-			;;
-		squashfs)
-			if [ "$RK_BOOT_MEDIUM" = "emmc" -o "$RK_BOOT_MEDIUM" = "spi_nor" ];then
-				$RK_PROJECT_TOOLS_MKFS_SQUASHFS $src $dst $RK_SQUASHFS_COMP
-			else
-				$RK_PROJECT_TOOLS_MKFS_UBIFS $src $(dirname $dst) $part_size $part_name $fs_type $RK_SQUASHFS_COMP
-			fi
-			;;
-		ubifs)
-			$RK_PROJECT_TOOLS_MKFS_UBIFS $src $(dirname $dst) $part_size $part_name $fs_type $RK_UBIFS_COMP
-			;;
-		romfs)
-			if [ $part_name == "boot" ]; then
-				local kernel_dtb_file="$RK_PROJECT_PATH_FASTBOOT/${RK_KERNEL_DTS/%.dts/.dtb}"
+		fi
+		;;
+	squashfs)
+		if [ "$RK_BOOT_MEDIUM" = "emmc" -o "$RK_BOOT_MEDIUM" = "spi_nor" -o "$RK_BOOT_MEDIUM" = "sd_card" ]; then
+			$RK_PROJECT_TOOLS_MKFS_SQUASHFS $src $dst $RK_SQUASHFS_COMP
+		else
+			$RK_PROJECT_TOOLS_MKFS_UBIFS $src $(dirname $dst) $part_size $part_name $fs_type $RK_SQUASHFS_COMP
+		fi
+		;;
+	ubifs)
+		$RK_PROJECT_TOOLS_MKFS_UBIFS $src $(dirname $dst) $part_size $part_name $fs_type $RK_UBIFS_COMP
+		;;
+	romfs)
+		if [ $part_name == "boot" ]; then
+			local kernel_dtb_file="$RK_PROJECT_PATH_FASTBOOT/${RK_KERNEL_DTS/%.dts/.dtb}"
 
-				cat $RK_PROJECT_PATH_FASTBOOT/Image | $RK_PROJECT_PATH_PC_TOOLS/compress_tool > $RK_PROJECT_PATH_FASTBOOT/Image.gz
-				cp -fa $PROJECT_TOP_DIR/scripts/$RK_CHIP-boot-tb.its $RK_PROJECT_PATH_FASTBOOT/boot-tb.its
+			cat $RK_PROJECT_PATH_FASTBOOT/Image | $RK_PROJECT_PATH_PC_TOOLS/compress_tool >$RK_PROJECT_PATH_FASTBOOT/Image.gz
+			cp -fa $PROJECT_TOP_DIR/scripts/$RK_CHIP-boot-tb.its $RK_PROJECT_PATH_FASTBOOT/boot-tb.its
 
-				$RK_PROJECT_TOOLS_MKFS_ROMFS $src $RK_PROJECT_PATH_FASTBOOT/rootfs_romfs.img
-				cat $RK_PROJECT_PATH_FASTBOOT/rootfs_romfs.img | gzip -n -f -9 > $RK_PROJECT_PATH_FASTBOOT/rootfs_romfs.img.gz
+			$RK_PROJECT_TOOLS_MKFS_ROMFS $src $RK_PROJECT_PATH_FASTBOOT/rootfs_romfs.img
+			cat $RK_PROJECT_PATH_FASTBOOT/rootfs_romfs.img | gzip -n -f -9 >$RK_PROJECT_PATH_FASTBOOT/rootfs_romfs.img.gz
 
-				$RK_PROJECT_PATH_PC_TOOLS/mk-fitimage.sh $RK_PROJECT_PATH_FASTBOOT/boot-tb.its \
-				`realpath $RK_PROJECT_PATH_FASTBOOT/rootfs_romfs.img.gz` `realpath $RK_PROJECT_PATH_FASTBOOT/Image.gz` \
-				`realpath $kernel_dtb_file` `realpath $RK_PROJECT_PATH_FASTBOOT/resource.img` $dst
-			else
-				$RK_PROJECT_TOOLS_MKFS_ROMFS $src $dst
-			fi
-			;;
-		initramfs)
-			if [[ $part_name =~ "boot" ]]; then
-				local kernel_image
-				local kernel_dtb_file="$RK_PROJECT_PATH_RAMDISK/${RK_KERNEL_DTS/%.dts/.dtb}"
+			$RK_PROJECT_PATH_PC_TOOLS/mk-fitimage.sh $RK_PROJECT_PATH_FASTBOOT/boot-tb.its \
+				$(realpath $RK_PROJECT_PATH_FASTBOOT/rootfs_romfs.img.gz) $(realpath $RK_PROJECT_PATH_FASTBOOT/Image.gz) \
+				$(realpath $kernel_dtb_file) $(realpath $RK_PROJECT_PATH_FASTBOOT/resource.img) $dst
+		else
+			$RK_PROJECT_TOOLS_MKFS_ROMFS $src $dst
+		fi
+		;;
+	initramfs)
+		if [[ $part_name =~ "boot" ]]; then
+			local kernel_image
+			local kernel_dtb_file="$RK_PROJECT_PATH_RAMDISK/${RK_KERNEL_DTS/%.dts/.dtb}"
 
-				cp -fa $PROJECT_TOP_DIR/scripts/boot4recovery.its $RK_PROJECT_PATH_RAMDISK/boot4ramdisk.its
+			cp -fa $PROJECT_TOP_DIR/scripts/boot4recovery.its $RK_PROJECT_PATH_RAMDISK/boot4ramdisk.its
 
-				case "$RK_ARCH" in
-					arm)
-						kernel_image="$RK_PROJECT_PATH_RAMDISK/zImage"
-						;;
-					arm64)
-						kernel_image="$RK_PROJECT_PATH_RAMDISK/Image.lz4"
-						;;
-					*)
-						echo "No such kernel image. ($RK_ARCH)"
-						;;
-				esac
+			case "$RK_ARCH" in
+			arm)
+				kernel_image="$RK_PROJECT_PATH_RAMDISK/zImage"
+				;;
+			arm64)
+				kernel_image="$RK_PROJECT_PATH_RAMDISK/Image.lz4"
+				;;
+			*)
+				echo "No such kernel image. ($RK_ARCH)"
+				;;
+			esac
 
-				$RK_PROJECT_TOOLS_MKFS_INITRAMFS $src $RK_PROJECT_PATH_RAMDISK/initramfs.cpio
-				cat $RK_PROJECT_PATH_RAMDISK/initramfs.cpio | gzip -n -f -9 > $RK_PROJECT_PATH_RAMDISK/initramfs.cpio.gz
+			$RK_PROJECT_TOOLS_MKFS_INITRAMFS $src $RK_PROJECT_PATH_RAMDISK/initramfs.cpio
+			cat $RK_PROJECT_PATH_RAMDISK/initramfs.cpio | gzip -n -f -9 >$RK_PROJECT_PATH_RAMDISK/initramfs.cpio.gz
 
-				$RK_PROJECT_PATH_PC_TOOLS/mk-fitimage.sh $RK_PROJECT_PATH_RAMDISK/boot4ramdisk.its $RK_PROJECT_PATH_RAMDISK/initramfs.cpio.gz \
-					$kernel_image $kernel_dtb_file $RK_PROJECT_PATH_RAMDISK/resource.img $dst
-			else
-				$RK_PROJECT_TOOLS_MKFS_INITRAMFS $src $dst
-			fi
-			;;
-		*)
-			msg_error "Not support fs type: $fs_type"
-			;;
+			$RK_PROJECT_PATH_PC_TOOLS/mk-fitimage.sh $RK_PROJECT_PATH_RAMDISK/boot4ramdisk.its $RK_PROJECT_PATH_RAMDISK/initramfs.cpio.gz \
+				$kernel_image $kernel_dtb_file $RK_PROJECT_PATH_RAMDISK/resource.img $dst
+		else
+			$RK_PROJECT_TOOLS_MKFS_INITRAMFS $src $dst
+		fi
+		;;
+	*)
+		msg_error "Not support fs type: $fs_type"
+		;;
 	esac
 
 	finish_build
@@ -1798,7 +2000,7 @@ function __RUN_POST_BUILD_SCRIPT() {
 	local tmp_path
 	tmp_path=$(realpath $BOARD_CONFIG)
 	tmp_path=$(dirname $tmp_path)
-	if [ -f "$tmp_path/$RK_POST_BUILD_SCRIPT" ];then
+	if [ -f "$tmp_path/$RK_POST_BUILD_SCRIPT" ]; then
 		$tmp_path/$RK_POST_BUILD_SCRIPT
 	fi
 }
@@ -1809,9 +2011,9 @@ function post_overlay() {
 	local tmp_path
 	tmp_path=$(realpath $BOARD_CONFIG)
 	tmp_path=$(dirname $tmp_path)
-	if [ -d "$tmp_path/overlay/$RK_POST_OVERLAY" ];then
+	if [ -d "$tmp_path/overlay/$RK_POST_OVERLAY" ]; then
 		rsync -a --ignore-times --keep-dirlinks --chmod=u=rwX,go=rX --exclude .empty \
-		$tmp_path/overlay/$RK_POST_OVERLAY/* $RK_PROJECT_PACKAGE_ROOTFS_DIR/
+			$tmp_path/overlay/$RK_POST_OVERLAY/* $RK_PROJECT_PACKAGE_ROOTFS_DIR/
 	fi
 }
 
@@ -1819,12 +2021,12 @@ function __RUN_PRE_BUILD_OEM_SCRIPT() {
 	local tmp_path
 	tmp_path=$(realpath $BOARD_CONFIG)
 	tmp_path=$(dirname $tmp_path)
-	if [ -f "$tmp_path/$RK_PRE_BUILD_OEM_SCRIPT" ];then
+	if [ -f "$tmp_path/$RK_PRE_BUILD_OEM_SCRIPT" ]; then
 		$tmp_path/$RK_PRE_BUILD_OEM_SCRIPT
 	fi
 }
 
-function build_firmware(){
+function build_firmware() {
 	check_config RK_PARTITION_CMD_IN_ENV || return 0
 
 	build_env
@@ -1832,7 +2034,7 @@ function build_firmware(){
 
 	mkdir -p ${RK_PROJECT_OUTPUT_IMAGE}
 
-	if [ "$RK_ENABLE_RECOVERY" = "y" -a -f $PROJECT_TOP_DIR/scripts/${RK_MISC:=recovery-misc.img} ];then
+	if [ "$RK_ENABLE_RECOVERY" = "y" -a -f $PROJECT_TOP_DIR/scripts/${RK_MISC:=recovery-misc.img} ]; then
 		cp -fv $PROJECT_TOP_DIR/scripts/$RK_MISC ${RK_PROJECT_OUTPUT_IMAGE}/misc.img
 	fi
 
@@ -1843,7 +2045,7 @@ function build_firmware(){
 
 	__RUN_PRE_BUILD_OEM_SCRIPT
 
-	if [ "$RK_BUILD_APP_TO_OEM_PARTITION" = "y" ];then
+	if [ "$RK_BUILD_APP_TO_OEM_PARTITION" = "y" ]; then
 		rm -rf $RK_PROJECT_PACKAGE_ROOTFS_DIR/oem/*
 		mkdir -p $RK_PROJECT_PACKAGE_ROOTFS_DIR/oem
 		build_mkimg $GLOBAL_OEM_NAME $RK_PROJECT_PACKAGE_OEM_DIR
@@ -1875,11 +2077,26 @@ function build_firmware(){
 	[ "$RK_ENABLE_RECOVERY" = "y" -o "$RK_ENABLE_OTA" = "y" ] && build_ota
 	build_updateimg
 
+	# Spi_nand mklink
+	if [ "${RK_BOOT_MEDIUM}" == "spi_nand" ]; then
+		msg_info "MEDIUM SPI_NAND relink Image"
+		files=("${RK_PROJECT_OUTPUT_IMAGE}/oem.img"
+			"${RK_PROJECT_OUTPUT_IMAGE}/rootfs.img"
+			"${RK_PROJECT_OUTPUT_IMAGE}/userdata.img")
+		for file in "${files[@]}"; do
+			if [ -e "$file" ]; then
+				filename=$(basename "$file")
+				target=$(readlink -f "$file")
+				rm "$file"
+				mv "$target" "$RK_PROJECT_OUTPUT_IMAGE/$filename"
+			fi
+		done
+		find "${RK_PROJECT_OUTPUT_IMAGE}" -type f -name "*.ubi" -exec rm {} +
+	fi
 	finish_build
 }
 
-function __GET_REPO_INFO()
-{
+function __GET_REPO_INFO() {
 	local repo_tool _date _stub_path _stub_patch_path
 
 	_date=$1
@@ -1888,7 +2105,7 @@ function __GET_REPO_INFO()
 
 	repo_tool="$SDK_ROOT_DIR/.repo/repo/repo"
 
-	test -f $repo_tool || (echo "Not found repo... skip" &&  return 0)
+	test -f $repo_tool || (echo "Not found repo... skip" && return 0)
 
 	if ! $repo_tool version &>/dev/null; then
 		repo_tool="repo"
@@ -1904,29 +2121,28 @@ function __GET_REPO_INFO()
 	#Copy stubs
 	$repo_tool manifest -r -o $SDK_ROOT_DIR/manifest_${_date}.xml || return 0
 
-	local tmp_merge=`mktemp` tmp_merge_new=`mktemp` tmp_path tmp_commit
-	find $_stub_patch_path -name git-merge-base.txt > $tmp_merge_new
-	while read line
-	do
+	local tmp_merge=$(mktemp) tmp_merge_new=$(mktemp) tmp_path tmp_commit
+	find $_stub_patch_path -name git-merge-base.txt >$tmp_merge_new
+	while read line; do
 		tmp_path="${line##*PATCHES/}"
 		tmp_path=$(dirname $tmp_path)
-		tmp_commit=$(grep -w "^commit" $line |awk -F ' ' '{print $2}')
-		echo "$tmp_path $tmp_commit" >> $tmp_merge
-	done < $tmp_merge_new
+		tmp_commit=$(grep -w "^commit" $line | awk -F ' ' '{print $2}')
+		echo "$tmp_path $tmp_commit" >>$tmp_merge
+	done <$tmp_merge_new
 	rm -f $tmp_merge_new
 
 	mv $SDK_ROOT_DIR/manifest_${_date}.xml $_stub_path/
 
-	while IFS=' ' read line_project line_commit;do
+	while IFS=' ' read line_project line_commit; do
 		chkcmd="sed -i \"/\<path=\\\"${line_project//\//\\\/}\\\"/s/revision=\\\"\w\{40\}\\\" /revision=\\\"$line_commit\\\" /\"  $_stub_path/manifest_${_date}.xml"
 		eval $chkcmd
-	done < $tmp_merge
+	done <$tmp_merge
 	rm $tmp_merge
 }
 
-function build_save(){
+function build_save() {
 	IMAGE_PATH=$RK_PROJECT_OUTPUT_IMAGE
-	DATE=$(date  +%Y%m%d.%H%M)
+	DATE=$(date +%Y%m%d.%H%M)
 	STUB_PATH=Image/"${RK_BOOT_MEDIUM}_$RK_KERNEL_DTS"_"$DATE"_RELEASE_TEST
 	STUB_PATH="$(echo $STUB_PATH | tr '[:lower:]' '[:upper:]')"
 	export STUB_PATH=$SDK_ROOT_DIR/$STUB_PATH
@@ -1935,31 +2151,29 @@ function build_save(){
 	mkdir -p $STUB_PATH $STUB_PATCH_PATH
 
 	mkdir -p $STUB_PATH/IMAGES/
-	test -d $IMAGE_PATH && \
+	test -d $IMAGE_PATH &&
 		(cp $IMAGE_PATH/* $STUB_PATH/IMAGES/ || msg_warn "Not found images... ignore")
 
 	# __GET_REPO_INFO $DATE $STUB_PATH $STUB_PATCH_PATH
 
 	mkdir -p $STUB_DEBUG_FILES_PATH/kernel
-	test -f $RK_PROJECT_PATH_BOARD_BIN/vmlinux && cd $RK_PROJECT_PATH_BOARD_BIN/ && \
+	test -f $RK_PROJECT_PATH_BOARD_BIN/vmlinux && cd $RK_PROJECT_PATH_BOARD_BIN/ &&
 		tar -cjf $STUB_DEBUG_FILES_PATH/kernel/vmlinux.tar.bz2 vmlinux
 
-	test -d $RK_PROJECT_PATH_MEDIA && (cd $RK_PROJECT_PATH_MEDIA && \
+	test -d $RK_PROJECT_PATH_MEDIA && (cd $RK_PROJECT_PATH_MEDIA &&
 		tar -cf $STUB_DEBUG_FILES_PATH/media_out.lib.tar lib || msg_warn "Not found media_out... ignore")
 
-	test -d $RK_PROJECT_OUTPUT/app_out && cd $RK_PROJECT_OUTPUT && \
+	test -d $RK_PROJECT_OUTPUT/app_out && cd $RK_PROJECT_OUTPUT &&
 		tar -cf $STUB_DEBUG_FILES_PATH/app_out.tar app_out
 
-	#Save build command info
-	echo "BUILD-ID: $(hostname):$(whoami)" >> $STUB_PATH/build_info.txt
-	build_info >> $STUB_PATH/build_info.txt
-
+	# Save build command info
+	echo "BUILD-ID: $(hostname):$(whoami)" >>$STUB_PATH/build_info.txt
+	build_info >>$STUB_PATH/build_info.txt
 	echo "save to $STUB_PATH"
-
 	finish_build
 }
 
-function build_allsave(){
+function build_allsave() {
 	# rm -rf ${RK_PROJECT_OUTPUT_IMAGE} ${RK_PROJECT_OUTPUT}
 	build_all
 	build_save
@@ -1969,36 +2183,87 @@ function build_allsave(){
 	finish_build
 }
 
+function buildroot_config() {
+	if [ "${LF_TARGET_ROOTFS}" == "buildroot" ]; then
+		if [ -d "$BUILDROOT_PATH" ]; then
+			msg_info "Buildroot has been created"
+		else
+			make buildroot_create -C ${SDK_SYSDRV_DIR}
+		fi
+
+		if [ -f $BUILDROOT_CONFIG_FILE ]; then
+			BUILDROOT_CONFIG_FILE_MD5=$(md5sum "$BUILDROOT_CONFIG_FILE")
+			make buildroot_menuconfig -C ${SDK_SYSDRV_DIR}
+			BUILDROOT_CONFIG_FILE_NEW_MD5=$(md5sum "$BUILDROOT_CONFIG_FILE")
+			if [ "$BUILDROOT_CONFIG_FILE_MD5" != "$BUILDROOT_CONFIG_FILE_NEW_MD5" ]; then
+				msg_info "Buildroot Save Defconfig"
+				make buildroot_savedefconfig -C ${SDK_SYSDRV_DIR}
+			fi
+		else
+			make buildroot_menuconfig -C ${SDK_SYSDRV_DIR}
+			msg_info "Buildroot create .config and Save Defconfig"
+			make buildroot_savedefconfig -C ${SDK_SYSDRV_DIR}
+		fi
+	else
+		msg_error "Target rootfs is not buildroot"
+	fi
+	finish_build
+}
+
+function kernel_config() {
+	KERNEL_PATH=${SDK_SYSDRV_DIR}/source/kernel
+	KERNEL_CONFIG_FILE=${KERNEL_PATH}/defconfig
+
+	if [ -f $KERNEL_CONFIG_FILE ]; then
+		KERNEL_CONFIG_FILE_MD5=$(md5sum "$KERNEL_CONFIG_FILE")
+		make kernel_menuconfig -C ${SDK_SYSDRV_DIR}
+		KERNEL_CONFIG_FILE_NEW_MD5=$(md5sum "$KERNEL_CONFIG_FILE")
+		if [ "$KERNEL_CONFIG_FILE_MD5" != "$KERNEL_CONFIG_FILE_NEW_MD5" ]; then
+			msg_info "Kernel Save Defconfig"
+			make kernel_savedefconfig -C ${SDK_SYSDRV_DIR}
+		fi
+	else
+		make kernel_menuconfig -C ${SDK_SYSDRV_DIR}
+		msg_info "Kernel create .config and Save Defconfig"
+		make kernel_savedefconfig -C ${SDK_SYSDRV_DIR}
+	fi
+	finish_build
+}
+
 #=========================
 # build targets
 #=========================
 trap 'err_handler' ERR
 cd $PROJECT_TOP_DIR
 unset_board_config_all
-if [ "$1" = "lunch" ];then
+if [ "$1" = "lunch" ]; then
 	build_select_board LUNCH-FORCE
 fi
-if [ ! -e "$BOARD_CONFIG" ];then
+if [ ! -e "$BOARD_CONFIG" ]; then
 	build_select_board
 fi
 [ -L "$BOARD_CONFIG" ] && source $BOARD_CONFIG
 export RK_PROJECT_TOOLCHAIN_CROSS=$RK_TOOLCHAIN_CROSS
 export PATH="${SDK_ROOT_DIR}/tools/linux/toolchain/${RK_PROJECT_TOOLCHAIN_CROSS}/bin":$PATH
 
-if [[ "$LF_TARGET_ROOTFS" = "ubuntu" ]];then
-    if [[ "$LF_SUBMODULES_BY" = "github" ]];then
-        cp ${SDK_ROOT_DIR}/.gitmodules.github ${SDK_ROOT_DIR}/.gitmodules
-    else 
-        if [[ "$LF_SUBMODULES_BY" = "gitee" ]];then
-            cp ${SDK_ROOT_DIR}/.gitmodules.gitee ${SDK_ROOT_DIR}/.gitmodules
-        else
-            exit 0
-        fi
-    fi
-    git submodule update --init --recursive
+if [[ "$LF_TARGET_ROOTFS" = "ubuntu" ]]; then
+	if [ "$(id -u)" != "0" ]; then
+		msg_error "Error! Please use sudo ./build.sh to build Ubuntu Image!"
+		exit 1
+	fi
+	if [[ "$LF_SUBMODULES_BY" = "github" ]]; then
+		cp ${SDK_ROOT_DIR}/.gitmodules.github ${SDK_ROOT_DIR}/.gitmodules
+	else
+		if [[ "$LF_SUBMODULES_BY" = "gitee" ]]; then
+			cp ${SDK_ROOT_DIR}/.gitmodules.gitee ${SDK_ROOT_DIR}/.gitmodules
+		else
+			exit 0
+		fi
+	fi
+	git submodule update --init --recursive
 fi
 
-if echo $@|grep -wqE "help|-h"; then
+if echo $@ | grep -wqE "help|-h"; then
 	if [ -n "$2" -a "$(type -t usage$2)" == function ]; then
 		echo "###Current Configure [ $2 ] Build Command###"
 		eval usage$2
@@ -2008,7 +2273,7 @@ if echo $@|grep -wqE "help|-h"; then
 	exit 0
 fi
 
-if ! ${RK_PROJECT_TOOLCHAIN_CROSS}-gcc --version &> /dev/null; then
+if ! ${RK_PROJECT_TOOLCHAIN_CROSS}-gcc --version &>/dev/null; then
 	msg_error "Not found toolchain ${RK_PROJECT_TOOLCHAIN_CROSS}-gcc for [$RK_CHIP] !!!"
 	msg_info "Please run these commands to install ${RK_PROJECT_TOOLCHAIN_CROSS}-gcc"
 	echo ""
@@ -2019,10 +2284,10 @@ if ! ${RK_PROJECT_TOOLCHAIN_CROSS}-gcc --version &> /dev/null; then
 fi
 
 case $RK_PROJECT_TOOLCHAIN_CROSS in
-	arm-rockchip830-linux-uclibcgnueabihf)
+arm-rockchip830-linux-uclibcgnueabihf)
 	export RK_LIBC_TPYE=uclibc
 	;;
-	*)
+*)
 	export RK_LIBC_TPYE=glibc
 	;;
 esac
@@ -2036,33 +2301,37 @@ __PREPARE_BOARD_CFG
 
 num=$#
 option=""
-while [ $# -ne 0 ]
-do
+while [ $# -ne 0 ]; do
 	case $1 in
-		DEBUG) export RK_BUILD_VERSION_TYPE=DEBUG;;
-		all) option=build_all ;;
-		save) option=build_save ;;
-		allsave) option=build_allsave ;;
-		check) option=build_check ;;
-		clean) option="build_clean $2";break;;
-		firmware) option=build_firmware ;;
-		ota) option=build_ota ;;
-		updateimg) option=build_updateimg ;;
-		unpackimg) option=build_unpack_updateimg ;;
-		factory) option=build_factory ;;
-		recovery) option=build_recovery ;;
-		env) option=build_env ;;
-		meta) option=build_meta ;;
-		driver) option=build_driver ;;
-		sysdrv) option=build_sysdrv ;;
-		uboot) option=build_uboot ;;
-		kernel) option=build_kernel ;;
-		rootfs) option=build_rootfs ;;
-		media) option=build_media ;;
-		app) option=build_app ;;
-		info) option=build_info ;;
-		tool) option=build_tool ;;
-		*) option=usage ;;
+	DEBUG) export RK_BUILD_VERSION_TYPE=DEBUG ;;
+	all) option=build_all ;;
+	save) option=build_save ;;
+	allsave) option=build_allsave ;;
+	check) option=build_check ;;
+	clean)
+		option="build_clean $2"
+		break
+		;;
+	firmware) option=build_firmware ;;
+	ota) option=build_ota ;;
+	updateimg) option=build_updateimg ;;
+	unpackimg) option=build_unpack_updateimg ;;
+	factory) option=build_factory ;;
+	recovery) option=build_recovery ;;
+	env) option=build_env ;;
+	meta) option=build_meta ;;
+	driver) option=build_driver ;;
+	sysdrv) option=build_sysdrv ;;
+	uboot) option=build_uboot ;;
+	kernel) option=build_kernel ;;
+	rootfs) option=build_rootfs ;;
+	media) option=build_media ;;
+	app) option=build_app ;;
+	info) option=build_info ;;
+	tool) option=build_tool ;;
+	buildrootconfig) option=buildroot_config ;;
+	kernelconfig) option=kernel_config ;;
+	*) option=usage ;;
 	esac
 	if [ $((num)) -gt 0 ]; then
 		shift
