@@ -12,6 +12,32 @@
 / {
 	model = "Luckfox Pico Plus";
 	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1103";
+
+
+
+	spi_gpio: spi-gpio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "spi-gpio";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_spi_gpio>;
+		gpio-mosi = <&gpio1 RK_PC7 1>;
+		gpio_miso = <&gpio1 RK_PC6 1>;
+		gpio_sck = <&gpio1 RK_PC5 1>;
+		num-chipselects = <1>;
+		cs-gpios = < &gpio1 RK_PD3 1>;
+		status = "disabled";
+
+		spi@0 {
+			compatible = "rockchip,spidev";
+			spi-max-frequency = <660000>;
+			reg = <0>;
+		};
+
+	}
+
+
+/*
 	gpio3pa1:gpio3pa1 {
 		compatible = "regulator-fixed";
 		pinctrl-names = "default";
@@ -67,9 +93,22 @@
 		regulator-name = "gpio3_pa7";
 		regulator-always-on;
 	};
+*/
+
 };
 /**********GPIO**********/
 &pinctrl {
+
+	pinctrl-spi-gpio {
+		pinctrl_spi_gpio:pinctrl-spi-gpio {
+			rockchip,pins =	<1 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins =	<1 RK_PC5 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins =	<1 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins =	<1 RK_PC7 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+/*
 	gpio3-pa1 {
 		gpio3_pa1:gpio3-pa1 {
 			rockchip,pins =	<3 RK_PA1 RK_FUNC_GPIO &pcfg_pull_none>;
@@ -111,7 +150,10 @@
 			rockchip,pins =	<3 RK_PA7 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
+
+*/
 };
+
 
 &sfc {
 	status = "okay";
@@ -127,7 +169,7 @@
 
 /**********ETH**********/
 &gmac {
-	status = "okay";
+	status = "disabled";
 };
 
 /**********USB**********/
@@ -181,11 +223,13 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart3m1_xfer>;
 };
-&uart4 {
-	status = "okay";
-	pinctrl-names = "default";
-	pinctrl-0 = <&uart4m1_xfer>;
-};
+
+
+//&uart4 {
+//	status = "disabled";
+//	pinctrl-names = "default";
+//	pinctrl-0 = <&uart4m1_xfer>;
+//};
 //&uart5 {
 //	status = "okay";
 //	pinctrl-names = "default";
@@ -264,6 +308,5 @@
 	// pinctrl-0 = <&pwm11m2_pins>;
 	// pinctrl-0 = <&pwm11m0_pins>;
 };
-
 
 

@@ -1,0 +1,25 @@
+cd From d9089dab1407a6b755394b7893dd0207e4abb5c0 Mon Sep 17 00:00:00 2001
+From: eng33 <eng33@luckfox.com>
+Date: Tue, 30 Jan 2024 16:38:11 +0800
+Subject: [PATCH 2/2] Fix build errors
+
+---
+ src/shared/shell.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/shared/shell.c b/src/shared/shell.c
+index 86eda9d..ed08e9e 100644
+--- a/src/shared/shell.c
++++ b/src/shared/shell.c
+@@ -416,7 +416,7 @@ static int cmd_exec(const struct bt_shell_menu_entry *entry,
+		goto fail;
+	}
+
+-	flags |= WRDE_APPEND;
++	flags |= WRDE_NOCMD;
+	opt = strdup(entry->arg + len + 1);
+
+ optional:
+--
+2.34.1
+

@@ -15,8 +15,15 @@ include $(MAKEFILE_DIR)/Makefile.param
 ################################################################################
 
 app_src := $(wildcard ./*/Makefile)
+app_src += $(component_src)
 app_src := $(dir $(app_src))
 app_src := $(filter-out ./component/,$(app_src))
+
+component_src := $(wildcard ./component/*/Makefile)
+all_src += $(component_src)
+all_src += $(app_src)
+all_src := $(dir $(all_src))
+
 
 ifeq ($(RK_ENABLE_FASTBOOT),y)
 pkg-build := fastboot-build
@@ -32,7 +39,8 @@ fastboot-build:
 distclean: clean
 
 clean:
-	$(foreach target,$(app_src),make clean -C $(target)||exit -1;)
+	$(foreach target,$(all_src),make clean -C $(target)||exit -1;)
+	@rm -rf ./wifi_app/wpa_supplicant.conf
 	@rm -rf $(RK_APP_OUTPUT)
 
 info:

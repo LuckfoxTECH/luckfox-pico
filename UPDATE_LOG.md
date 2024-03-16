@@ -1,4 +1,10 @@
 # Updatelog
+## V1.3 Updatelog
+1. Added support for Luckfox-pico Ultra W
+2. Added `kernelconfig` and `buildrootconfig` commands to `./build.sh`, enabling direct access to menuconfig. After configuration, modifications are automatically applied by replacing the corresponding defconfig file
+3. Created symbolic links for device tree files, kernel configuration files, and buildroot configuration files, facilitating direct editing within the `config` folder
+4. Implemented automatic switching of buildroot sources, enabling selection of repository sources based on network conditions before building the buildroot root file system
+5. Partial bug fixes
 ## V1.2 Updatelog
 1. Added compatibility for Ubuntu system
 2. Restored support for busybox, allowing users to choose between busybox, buildroot, and Ubuntu according to their needs

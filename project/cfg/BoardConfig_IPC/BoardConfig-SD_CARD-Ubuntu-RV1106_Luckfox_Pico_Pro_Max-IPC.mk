@@ -8,20 +8,20 @@
 export RK_CHIP=rv1106
 
 # app config
-export RK_APP_TYPE=RKIPC_RV1103
+export RK_APP_TYPE=RKIPC_RV1106
 
 # Config CMA size in environment
-export RK_BOOTARGS_CMA_SIZE="24M"
+export RK_BOOTARGS_CMA_SIZE="66M"
 
 # Kernel dts
-export RK_KERNEL_DTS=rv1103g-luckfox-pico.dts
+export RK_KERNEL_DTS=rv1106g-luckfox-pico-pro-max.dts
 
 #################################################
 #	BOOT_MEDIUM
 #################################################
 
-# Target boot medium: emmc/spi_nor/spi_nand
-export RK_BOOT_MEDIUM=emmc
+# Target boot medium: sd_card/spi_nor/spi_nand
+export RK_BOOT_MEDIUM=sd_card
 
 # Uboot defconfig fragment
 export RK_UBOOT_DEFCONFIG_FRAGMENT=rk-emmc.config
@@ -58,8 +58,11 @@ export RK_PARTITION_FS_TYPE_CFG=rootfs@IGNORE@ext4,userdata@/userdata@ext4,oem@/
 #	TARGET_ROOTFS
 #################################################
 
-# Target rootfs : ubuntu(only emmc)/buildroot/busybox
-export LF_TARGET_ROOTFS=buildroot
+# Target rootfs : ubuntu(only sd_card)/buildroot/busybox
+export LF_TARGET_ROOTFS=ubuntu
+
+# SUBMODULES : github/gitee
+export LF_SUBMODULES_BY=gitee
 
 # Buildroot defconfig
 export RK_BUILDROOT_DEFCONFIG=luckfox_pico_defconfig

@@ -1,1 +1,1 @@
-project/build.sh
+./project/build.sh

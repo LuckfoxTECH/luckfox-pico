@@ -81,6 +81,9 @@ ota                -pack update_ota.tar
 save               -save images, patches, commands used to debug
 check              -check the environment of building
 info               -see the current board building information
+
+buildrootconfig    -config buildroot and save defconfig"
+kernelconfig       -config kernel and save defconfig"
 ```
 #### Select the referenced board configuration
 ```shell
@@ -239,7 +242,17 @@ The path of the generated files:
 ```
 output/image
 ```
-
+#### Kernel Config
+```shell
+./build.sh kernelconfig
+```
+Open the menuconfig interface for the kernel.
+#### Buildroot Config
+```shell
+./build.sh buildrootconfig
+```
+Open the menuconfig interface for buildroot.
+* Note: This is only applicable when selecting buildroot as the root file system.
 
 ## Notices
 When copying the source code package under Windows, the executable file under Linux may become a non-executable file, or the soft link fails and cannot be compiled and used.

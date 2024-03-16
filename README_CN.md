@@ -76,6 +76,9 @@ ota                -pack update_ota.tar
 save               -save images, patches, commands used to debug
 check              -check the environment of building
 info               -see the current board building information
+
+buildrootconfig    -config buildroot and save defconfig"
+kernelconfig       -config kernel and save defconfig"
 ```
 #### 选择参考的板级配置
 ```shell
@@ -227,8 +230,17 @@ output/out/media_out
 ```
 生成文件的存放目录：
 output/image
-
-
+#### 内核设置
+``` shell
+./build.sh kernelconfig
+```
+打开 kernel 的 menuconfig 界面
+#### buildroot 设置
+```shell
+./build.sh buildrootconfig
+```
+打开 buildroot 的 menuconfig 界面
+* 注：仅在选择 buildroot 作为 rootfs 时才能正常运行
 
 ### 注意事项
     在windows下复制源码包时，linux下的可执行文件可能变为非可执行文件，或者软连接失效导致无法编译使用。
