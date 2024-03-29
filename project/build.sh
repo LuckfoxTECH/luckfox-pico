@@ -35,9 +35,10 @@ WIFI_NEW_CONF=${SDK_APP_DIR}/wifi_app/wpa_supplicant_new.conf
 WIFI_CONF=${SDK_APP_DIR}/wifi_app/wpa_supplicant.conf
 BUILDROOT_PATH=${SDK_SYSDRV_DIR}/source/buildroot/buildroot-2023.02.6
 BUILDROOT_CONFIG_FILE=${BUILDROOT_PATH}/.config
-DTS_CONFIG=${SDK_ROOT_DIR}/config/dts_config
-KERNEL_DEFCONFIG=${SDK_ROOT_DIR}/config/kernel_defconfig
-BUILDROOT_DEFCONFIG=${SDK_ROOT_DIR}/config/buildroot_defconfig
+SDK_CONFIG_DIR=${SDK_ROOT_DIR}/config
+DTS_CONFIG=${SDK_CONFIG_DIR}/dts_config
+KERNEL_DEFCONFIG=${SDK_CONFIG_DIR}/kernel_defconfig
+BUILDROOT_DEFCONFIG=${SDK_CONFIG_DIR}/buildroot_defconfig
 
 if [ $(getconf _NPROCESSORS_ONLN) -eq 1 ]; then
 	export RK_JOBS=1
@@ -445,7 +446,7 @@ function build_app() {
 
 	if [ "$RK_ENABLE_WIFI" = "y" ]; then
 		echo "Set Wifi SSID and PASSWD"
-		check_config RK_WIFI_PSK RK_WIFI_SSID || return 0
+		check_config LF_WIFI_PSK LF_WIFI_SSID || return 0
 		touch $WIFI_NEW_CONF
 		cat >$WIFI_NEW_CONF <<EOF
 ctrl_interface=/var/run/wpa_supplicant
@@ -453,8 +454,8 @@ ap_scan=1
 update_config=1
 
 network={
-	ssid="$RK_WIFI_SSID"
-	psk="$RK_WIFI_PSK"
+	ssid="$LF_WIFI_SSID"
+	psk="$LF_WIFI_PSK"
 	key_mgmt=WPA-PSK
 }
 EOF
@@ -926,6 +927,7 @@ function build_clean() {
 		make distclean -C ${SDK_MEDIA_DIR}
 		make distclean -C ${SDK_APP_DIR}
 		rm -rf ${RK_PROJECT_OUTPUT_IMAGE} ${RK_PROJECT_OUTPUT}
+		rm -rf ${DTS_CONFIG} ${KERNEL_DEFCONFIG} ${BUILDROOT_DEFCONFIG}
 		;;
 	*)
 		msg_warn "clean [$1] not support, ignore"
@@ -1718,6 +1720,8 @@ __GET_BOOTARGS_FROM_BOARD_CFG() {
 }
 
 __LINK_DEFCONFIG_FROM_BOARD_CFG() {
+	mkdir -p ${SDK_CONFIG_DIR}
+
 	if [ -n "$RK_KERNEL_DTS" ]; then
 		rm -f $DTS_CONFIG
 		ln -rfs $SDK_SYSDRV_DIR/source/kernel/arch/arm/boot/dts/$RK_KERNEL_DTS $DTS_CONFIG

@@ -8,13 +8,13 @@
 export RK_CHIP=rv1106
 
 # app config
-export RK_APP_TYPE=RKIPC_RV1103
+export RK_APP_TYPE=RKIPC_RV1106
 
 # Config CMA size in environment
-export RK_BOOTARGS_CMA_SIZE="30M"
+export RK_BOOTARGS_CMA_SIZE="66M"
 
 # Kernel dts
-export RK_KERNEL_DTS=rv1106g-luckfox-pico-w.dts
+export RK_KERNEL_DTS=rv1106g-luckfox-pico-ultra.dts
 
 #################################################
 #	BOOT_MEDIUM
@@ -62,7 +62,7 @@ export RK_PARTITION_FS_TYPE_CFG=rootfs@IGNORE@ext4,userdata@/userdata@ext4,oem@/
 export LF_TARGET_ROOTFS=buildroot
 
 # Buildroot defconfig
-export RK_BUILDROOT_DEFCONFIG=luckfox_pico_w_defconfig
+export RK_BUILDROOT_DEFCONFIG=luckfox_pico_defconfig
 
 #################################################
 # 	Defconfig
@@ -81,7 +81,7 @@ export RK_MISC=wipe_all-misc.img
 export RK_UBOOT_DEFCONFIG=rv1106_defconfig
 
 # Kernel defconfig
-export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_w_defconfig
+export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_defconfig
 
 # Config sensor IQ files
 # RK_CAMERA_SENSOR_IQFILES format:
@@ -103,11 +103,6 @@ export RK_BUILD_APP_TO_OEM_PARTITION=y
 # enable rockchip test
 export RK_ENABLE_ROCKCHIP_TEST=y
 
-export RK_ENABLE_WIFI=y
-export RK_ENABLE_WIFI_CHIP=AIC8800DC
-
-# config wifi ssid and passwd
-export RK_WIFI_SSID="JSBPI"
-export RK_WIFI_PSK="waveshare0755"
-
+# enable rockchip wifi
+#export RK_ENABLE_WIFI=y
 

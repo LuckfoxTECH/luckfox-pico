@@ -5,14 +5,14 @@
 
 /dts-v1/;
 #include "rv1106.dtsi"
-#include "rv1106-luckfox-pico-w-ipc.dtsi"
+#include "rv1106-luckfox-pico-ultra-ipc.dtsi"
 #include "rv1106-thunder-boot-emmc.dtsi"
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/display/media-bus-format.h>
 
 / {
-	model = "Luckfox Pico W";
-	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1103";
+	model = "Luckfox Pico Ultra W";
+	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1106";
 
 	restart-poweroff {
 		compatible = "restart-poweroff";

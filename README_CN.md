@@ -94,55 +94,87 @@ BoardConfig-"启动介质"-"系统版本"-"硬件版本"-"应用场景".mk
 BoardConfig-"boot medium"-"system version"-"hardware version"-"applicaton".mk
 
 ----------------------------------------------------------------
-0. BoardConfig_IPC/BoardConfig-EMMC-Buildroot-RV1103_Luckfox_Pico-IPC.mk
+0. BoardConfig_IPC/BoardConfig-EMMC-Buildroot-RV1106_Luckfox_Pico_Ultra-IPC.mk
                              boot medium(启动介质): EMMC
+                          system version(系统版本): Buildroot
+                        hardware version(硬件版本): RV1106_Luckfox_Pico_Ultra
+                              applicaton(应用场景): IPC
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+1. BoardConfig_IPC/BoardConfig-EMMC-Buildroot-RV1106_Luckfox_Pico_Ultra_W-IPC.mk
+                             boot medium(启动介质): EMMC
+                          system version(系统版本): Buildroot
+                        hardware version(硬件版本): RV1106_Luckfox_Pico_Ultra_W
+                              applicaton(应用场景): IPC
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+2. BoardConfig_IPC/BoardConfig-SD_CARD-Buildroot-RV1103_Luckfox_Pico-IPC.mk
+                             boot medium(启动介质): SD_CARD
                           system version(系统版本): Buildroot
                         hardware version(硬件版本): RV1103_Luckfox_Pico
                               applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-1. BoardConfig_IPC/BoardConfig-EMMC-Buildroot-RV1103_Luckfox_Pico_Mini_A-IPC.mk
-                             boot medium(启动介质): EMMC
+3. BoardConfig_IPC/BoardConfig-SD_CARD-Buildroot-RV1103_Luckfox_Pico_Mini_A-IPC.mk
+                             boot medium(启动介质): SD_CARD
                           system version(系统版本): Buildroot
                         hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_A
                               applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-2. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1103_Luckfox_Pico-IPC.mk
-                             boot medium(启动介质): EMMC
+4. BoardConfig_IPC/BoardConfig-SD_CARD-Buildroot-RV1103_Luckfox_Pico_Plus-IPC.mk
+                             boot medium(启动介质): SD_CARD
+                          system version(系统版本): Buildroot
+                        hardware version(硬件版本): RV1103_Luckfox_Pico_Plus
+                              applicaton(应用场景): IPC
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+5. BoardConfig_IPC/BoardConfig-SD_CARD-Buildroot-RV1106_Luckfox_Pico_Max-IPC.mk
+                             boot medium(启动介质): SD_CARD
+                          system version(系统版本): Buildroot
+                        hardware version(硬件版本): RV1106_Luckfox_Pico_Max
+                              applicaton(应用场景): IPC
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+6. BoardConfig_IPC/BoardConfig-SD_CARD-Ubuntu-RV1103_Luckfox_Pico-IPC.mk
+                             boot medium(启动介质): SD_CARD
                           system version(系统版本): Ubuntu
                         hardware version(硬件版本): RV1103_Luckfox_Pico
                               applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-3. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1103_Luckfox_Pico_Mini_A-IPC.mk
-                             boot medium(启动介质): EMMC
+7. BoardConfig_IPC/BoardConfig-SD_CARD-Ubuntu-RV1103_Luckfox_Pico_Mini_A-IPC.mk
+                             boot medium(启动介质): SD_CARD
                           system version(系统版本): Ubuntu
                         hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_A
                               applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-4. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1103_Luckfox_Pico_Plus-IPC.mk
-                             boot medium(启动介质): EMMC
+8. BoardConfig_IPC/BoardConfig-SD_CARD-Ubuntu-RV1103_Luckfox_Pico_Plus-IPC.mk
+                             boot medium(启动介质): SD_CARD
                           system version(系统版本): Ubuntu
                         hardware version(硬件版本): RV1103_Luckfox_Pico_Plus
                               applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-5. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
-                             boot medium(启动介质): EMMC
+9. BoardConfig_IPC/BoardConfig-SD_CARD-Ubuntu-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
+                             boot medium(启动介质): SD_CARD
                           system version(系统版本): Ubuntu
                         hardware version(硬件版本): RV1106_Luckfox_Pico_Pro_Max
                               applicaton(应用场景): IPC
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-6. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Mini_B-IPC.mk
+10. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Mini_B-IPC.mk
                              boot medium(启动介质): SPI_NAND
                           system version(系统版本): Buildroot
                         hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_B
@@ -150,7 +182,7 @@ BoardConfig-"boot medium"-"system version"-"hardware version"-"applicaton".mk
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-7. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Plus-IPC.mk
+11. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Plus-IPC.mk
                              boot medium(启动介质): SPI_NAND
                           system version(系统版本): Buildroot
                         hardware version(硬件版本): RV1103_Luckfox_Pico_Plus
@@ -158,7 +190,7 @@ BoardConfig-"boot medium"-"system version"-"hardware version"-"applicaton".mk
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
-8. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
+12. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
                              boot medium(启动介质): SPI_NAND
                           system version(系统版本): Buildroot
                         hardware version(硬件版本): RV1106_Luckfox_Pico_Pro_Max
@@ -169,7 +201,17 @@ Which would you like? [0]:
 ```
 
 输入对应的序号选择对应的参考板级。
-
+#### 自定义板级 WIFI 配置
+* 进入板级配置存放目录
+    ```shell
+    cd {SDK_PATH}/project/cfg/BoardConfig_IPC/
+    ```
+* 打开对应的板级配置文件
+* 修改参数LF_WIFI_PASSWD和LF_WIFI_SSID
+    ```shell
+    export LF_WIFI_SSID="Your wifi ssid"
+    export LF_WIFI_PSK="Your wifi password"
+    ```
 #### 一键自动编译
 * 编译busybox/buildroot
     ```shell
