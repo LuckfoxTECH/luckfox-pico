@@ -12,9 +12,22 @@
 / {
 	model = "Luckfox Pico Max";
 	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1106";
+	pps {
+		compatible = "pps-gpio";
+		pinctrl-names = "default";
+		gpios = <&gpio2 RK_PA2 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
 };
 
-
+/**********GPIO**********/
+&pinctrl {
+	gpio2-pa2 {
+		gpio2_pa2:gpio2-pa2 {
+			rockchip,pins = <2 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+};
 
 /**********FLASH**********/
 &sfc {
