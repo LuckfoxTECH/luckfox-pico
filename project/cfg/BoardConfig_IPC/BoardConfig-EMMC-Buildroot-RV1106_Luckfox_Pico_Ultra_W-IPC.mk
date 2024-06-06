@@ -78,10 +78,13 @@ export RK_TOOLCHAIN_CROSS=arm-rockchip830-linux-uclibcgnueabihf
 export RK_MISC=wipe_all-misc.img
 
 # Uboot defconfig
-export RK_UBOOT_DEFCONFIG=rv1106_defconfig
+export RK_UBOOT_DEFCONFIG=luckfox_rv1106_uboot_defconfig
 
 # Kernel defconfig
-export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_w_defconfig
+export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_defconfig
+
+# Kernel defconfig fragment
+export RK_KERNEL_DEFCONFIG_FRAGMENT=rv1106-bt.config
 
 # Config sensor IQ files
 # RK_CAMERA_SENSOR_IQFILES format:

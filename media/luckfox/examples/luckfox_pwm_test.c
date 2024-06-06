@@ -36,6 +36,7 @@
 
 int PICO_PWMS[] = {0, 1, 10, 11};
 int PICO_MAX_PWMS[] = {5, 6, 10, 11};
+int PICO_ULTRA_PWMS[] = {5, 6, 10, 11};
 int *TEST_PWM;
 
 void Delay_ms(uint32_t xms)
@@ -71,6 +72,7 @@ int main(int argc, char *argv[])
   printf("Please select your test borad\r\n");
   printf("* 1. LUCKFOX PICO & LUCKFOX PICO PLUS\r\n");
   printf("* 2. LUCKFOX PICO MAX\r\n");
+  printf("* 3. LUCKFOX PICO ULTRA\r\n");
   printf("-----------------------------\r\n");
   while (1)
   {
@@ -89,6 +91,10 @@ int main(int argc, char *argv[])
   else if (input_char == '2')
   {
     TEST_PWM = PICO_MAX_PWMS;
+  }
+  else if (input_char == '3')
+  {
+    TEST_PWM = PICO_ULTRA_PWMS;
   }
   else
   {

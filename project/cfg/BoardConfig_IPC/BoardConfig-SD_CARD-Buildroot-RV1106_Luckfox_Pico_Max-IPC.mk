@@ -79,6 +79,7 @@ export RK_MISC=wipe_all-misc.img
 
 # Uboot defconfig
 export RK_UBOOT_DEFCONFIG=rv1106_defconfig
+export RK_UBOOT_DEFCONFIG=luckfox_rv1106_uboot_defconfig
 
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_defconfig

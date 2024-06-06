@@ -50,10 +50,20 @@
         // no-sd;
         // no-mmc;
         supports-sdio;
-		mmc-pwrseq = <&sdio_pwrseq>;
+        mmc-pwrseq = <&sdio_pwrseq>;
         pinctrl-names = "default";
-        pinctrl-0 = <&sdmmc0_clk &sdmmc0_cmd &sdmmc0_bus4>;
+        pinctrl-0 = <&sdmmc0_clk &sdmmc0_cmd &sdmmc0_bus4 &sdmmc0_det>;
         status = "okay";
+};
+
+&pinctrl{
+	sdmmc0{
+		sdmmc0_det: sdmmc0-det {
+			rockchip,pins =
+				/* sdmmc0_det */
+				<3 RK_PA1 1 &pcfg_pull_down>;
+		};
+  };
 };
 
 
@@ -66,13 +76,13 @@
 &usbdrd_dwc3 {
 	status = "okay";
 	dr_mode = "peripheral";
-//	dr_mode = "host";
+  #dr_mode = "host";
 };
 
+/**********RTC**********/
 &rtc {
-	status = "disable";
+	status = "okay";
 };
-
 
 /**********BT**********/
 &uart1 {
@@ -90,4 +100,17 @@
       rockchip,pins = <0 RK_PA5 2 &pcfg_pull_down>;
     };
   };
+};
+
+/**********TP**********/
+&i2c3 {
+  status = "disabled";
+};
+
+/**********SPI**********/
+&spi0 {
+	status = "disabled";
+	spidev@0 {
+		spi-max-frequency = <50000000>;
+	};
 };

@@ -56,31 +56,33 @@
 	panel: panel {
 		compatible = "simple-panel";
 		backlight = <&backlight>;
-        enable-gpios = <&gpio0 RK_PA3 GPIO_ACTIVE_HIGH>;
-        enable-delay-ms = <20>;
+		//reset-gpios = <&gpio0 RK_PA1 GPIO_ACTIVE_LOW>;
+		//reset-delay-ms = <200>;
+		enable-gpios = <&gpio0 RK_PA1 GPIO_ACTIVE_HIGH>;
+		enable-delay-ms = <20>;
 		status = "okay";
 
 		bus-format = <MEDIA_BUS_FMT_RGB666_1X18>;
-        width-mm = <85>;
-        height-mm = <85>;
+		width-mm = <85>;
+		height-mm = <85>;
 
 		display-timings {
 			native-mode = <&timing0>;
 
 			timing0: timing0 {
 				clock-frequency = <16500000>;
-				hactive = <480>;
-				vactive = <480>;
-				hback-porch = <43>;
-				hfront-porch = <8>;
-				vback-porch = <15>;
-				vfront-porch = <12>;
-				hsync-len = <4>;
-				vsync-len = <10>; //value range <2~22>
+				hactive = <0>;
+				vactive = <0>;
+				hback-porch = <0>;
+				hfront-porch = <0>;
+				vback-porch = <0>;
+				vfront-porch = <0>;
+				hsync-len = <0>;
+				vsync-len = <0>;
 				hsync-active = <0>;
 				vsync-active = <0>;
 				de-active = <0>;
-				pixelclk-active = <1>;
+				pixelclk-active = <0>;
 			};
 		};
 
@@ -98,6 +100,13 @@
 		drm_logo: drm-logo@00000000 {
 			compatible = "rockchip,drm-logo";
 			reg = <0x0 0x0>;
+		};
+		linux,cma {
+			compatible = "shared-dma-pool";
+			inactive;
+			reusable;
+			size = <0xA00000>;
+			linux,cma-default;
 		};
 	};
 
@@ -157,6 +166,7 @@
 
 		regulator-boot-on;
 	};
+
 	leds: leds {
 		compatible = "gpio-leds";
 		work_led: work{
@@ -167,17 +177,25 @@
 	};
 };
 
+/***************************** audio ********************************/
+&i2s0_8ch {
+	#sound-dai-cells = <0>;
+	status = "okay";
+};
+
 &acodec {
 	#sound-dai-cells = <0>;
 	pa-ctl-gpios = <&gpio3 RK_PD3 GPIO_ACTIVE_HIGH &pcfg_pull_up>;
 	status = "okay";
 };
 
+/************************* FIQ_DUBUGGER ****************************/
 &fiq_debugger {
 	rockchip,irq-mode-enable = <1>;
 	status = "okay";
 };
 
+/***************************** USB *********************************/
 &u2phy {
 	status = "okay";
 };
@@ -195,9 +213,7 @@
 	status = "okay";
 };
 
-
-
-
+/***************************** DSM *********************************/
 &dsm {
 	status = "disabled";
 };
@@ -206,9 +222,7 @@
 	cpu-supply = <&vdd_arm>;
 };
 
-/*********************************************************/
-
-
+/*************************** CSI *********************************/
 &csi2_dphy_hw {
 	status = "okay";
 };
@@ -327,8 +341,6 @@
 	};
 };
 
-
-
 &mipi0_csi2 {
 	status = "okay";
 
@@ -402,34 +414,17 @@
 	};
 };
 
-
-
+/***************************** ADC ********************************/
 &saradc {
 	status = "okay";
 	vref-supply = <&vcc_1v8>;
 };
 
-
 &tsadc {
 	status = "okay";
 };
 
-
-
-/////////////////////////////////////////////////////////////////////////////
-
-// &pinctrl {
-//     ft5606 {
-//         tp_int: tp-int {
-//             rockchip,pins = <&gpio0 RK_PA3 RK_FUNC_GPIO &pcfg_pull_up>;
-//         };
-
-//         tp_rst: tp-rst {
-//             rockchip,pins = <&gpio0 RK_PA4 RK_FUNC_GPIO &pcfg_pull_none>;
-//         };
-//     };
-// };
-
+/**************************** LCD/TP ******************************/
 &pwm1 {
 	status = "okay";
 	pinctrl-names = "active";
@@ -452,10 +447,10 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 
-            rgb_out_panel: endpoint@0 {
-                reg = <0>;
-                remote-endpoint = <&panel_in_rgb>;
-            };
+			rgb_out_panel: endpoint@0 {
+				reg = <0>;
+				remote-endpoint = <&panel_in_rgb>;
+			};
 		};
 	};
 };
@@ -465,11 +460,105 @@
 };
 
 &route_rgb {
-    status = "okay";
+  status = "okay";
 };
 
 &vop {
 	status = "okay";
 };
 
+/**************************** PINCTRL ******************************/
+// SPI
+&spi0 {
+	pinctrl-0 = <&spi0m0_clk &spi0m0_miso &spi0m0_mosi &spi0m0_cs0>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	spidev@0 {
+		compatible = "rockchip,spidev";
+		spi-max-frequency = <50000000>;
+		reg = <0>;
+	};
+};
 
+// I2C
+&i2c1 {
+	pinctrl-0 = <&i2c1m1_xfer>;
+};
+&i2c2 {
+	pinctrl-0 = <&i2c2m0_xfer>;
+};
+&i2c3 {
+	pinctrl-0 = <&i2c3m0_xfer &i2c3m1_xfer &i2c3m2_xfer>;
+};
+// &i2c4 {
+// 	pinctrl-0 = <&i2c4m0_xfer &i2c4m1_xfer &i2c4m2_xfer>;
+// };
+
+// UART
+&uart0 {
+	pinctrl-0 = <&uart0m0_xfer &uart0m1_xfer>;
+};
+&uart1 {
+	pinctrl-0 = <&uart1m1_xfer>;
+};
+&uart3 {
+	pinctrl-0 = <&uart3m0_xfer>;
+};
+&uart4 {
+	pinctrl-0 = <&uart4m0_xfer>;
+};
+&uart5 {
+	pinctrl-0 = <&uart5m1_xfer>;
+};
+
+// PWM
+&pwm0 {
+	pinctrl-0 = <&pwm0m1_pins>;
+};
+&pwm2 {
+	pinctrl-0 = <&pwm2m1_pins &pwm2m2_pins>;
+};
+&pwm3 {
+	pinctrl-0 = <&pwm3m2_pins>;
+};
+&pwm4 {
+	pinctrl-0 = <&pwm4m0_pins &pwm4m1_pins &pwm4m2_pins>;
+};
+&pwm5 {
+	pinctrl-0 = <&pwm5m1_pins &pwm5m2_pins>;
+};
+&pwm6 {
+	pinctrl-0 = <&pwm6m1_pins &pwm6m2_pins>;
+};
+&pwm7 {
+	pinctrl-0 = <&pwm7m0_pins &pwm7m1_pins>;
+};
+&pwm8 {
+	pinctrl-0 = <&pwm8m1_pins>;
+};
+&pwm9 {
+	pinctrl-0 = <&pwm9m1_pins>;
+};
+&pwm10 {
+	pinctrl-0 = <&pwm10m1_pins &pwm10m2_pins>;
+};
+&pwm11 {
+	pinctrl-0 = <&pwm11m1_pins &pwm11m2_pins>;
+};
+
+&pinctrl {
+	spi0 {
+		spi0m0_clk: spi0m0-clk {
+			rockchip,pins = <1 RK_PC1 4 &pcfg_pull_none>;
+		};
+		spi0m0_mosi: spi0m0-mosi {
+			rockchip,pins = <1 RK_PC2 6 &pcfg_pull_none>;
+		};
+		spi0m0_miso: spi0m0-miso {
+			rockchip,pins = <1 RK_PC3 6 &pcfg_pull_none>;
+		};
+		spi0m0_cs0: spi0m0-cs0 {
+			rockchip,pins = <1 RK_PC0 4 &pcfg_pull_none>;
+		};
+	};
+};

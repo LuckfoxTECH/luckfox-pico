@@ -14,8 +14,6 @@
 	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1106";
 };
 
-
-
 /**********FLASH**********/
 &sfc {
 	status = "okay";
@@ -43,20 +41,6 @@
 	status = "okay";
 };
 
-/**********SDIO**********/
-// &sdio {
-// 	max-frequency = <50000000>;
-// 	no-sdio;
-// 	no-mmc;
-// 	bus-width = <4>;
-// 	cap-mmc-highspeed;
-// 	cap-sd-highspeed;
-// 	disable-wp;
-// 	pinctrl-names = "default";
-// 	pinctrl-0 = <&sdmmc1m0_cmd &sdmmc1m0_clk &sdmmc1m0_bus4 &clk_32k>;
-// 	status = "okay";
-// };
-
 /**********ETH**********/
 &gmac {
 	status = "okay";
@@ -68,25 +52,9 @@
 	dr_mode = "peripheral";
 };
 
-/**********I2C**********/
-// &i2c1 {
-// 	status = "okay";
-// 	pinctrl-0 = <&i2c1m1_xfer>;
-// 	clock-frequency = <100000>;
-// };
-&i2c3 {
-	status = "okay";
-	pinctrl-0 = <&i2c3m1_xfer>;
-	clock-frequency = <100000>;
-};
-
-// /**********SPI**********/
+/**********SPI**********/
 &spi0 {
 	status = "okay";
-	pinctrl-names = "default";
-	pinctrl-0 = <&spi0m0_pins>;
-	cs-gpios = <&gpio1 RK_PC0 1>;
-	// cs-gpios = <&gpio1 26 1>;
 	#address-cells = <1>;
 	#size-cells = <0>;
 	spidev@0 {
@@ -96,110 +64,38 @@
 	};
 };
 
+/**********I2C**********/
+/* I2C3_M1 */
+&i2c3 {
+	status = "disabled";
+	clock-frequency = <100000>;
+};
+
+/* I2C1_M1 */
+&i2c1 {
+	status = "disabled";
+	clock-frequency = <100000>;
+};
 
 
 /**********UART**********/
-
-// &uart0 {
-// 	status = "okay";
-// 	pinctrl-names = "default";
-// 	pinctrl-0 = <&uart0m1_xfer>;
-// };
-
-// &uart1 {
-// 	status = "okay";
-// 	pinctrl-names = "default";
-// 	pinctrl-0 = <&uart1m1_xfer>;
-// };
-
+/* UART3_M1 */
 &uart3 {
-	status = "okay";
-	pinctrl-names = "default";
-	pinctrl-0 = <&uart3m1_xfer>;
+	status = "disabled";
 };
+
+/* UART4_M1 */
 &uart4 {
-	status = "okay";
-	pinctrl-names = "default";
-	pinctrl-0 = <&uart4m1_xfer>;
+	status = "disabled";
 };
 
-
-// /**********PWM**********/
-
-// &pwm0 {
-// 	status = "okay";
-// 	pinctrl-names = "active";
-// 	pinctrl-0 = <&pwm0m0_pins>;
-// 	// pinctrl-0 = <&pwm0m1_pins>;
-// };
-// &pwm1 {
-// 	status = "okay";
-// 	pinctrl-names = "active";
-// 	pinctrl-0 = <&pwm1m0_pins>;
-// 	// pinctrl-0 = <&pwm1m1_pins>;
-// };
-
-//&pwm2 {
-//	status = "okay";
-//	pinctrl-names = "active";
-//	pinctrl-0 = <&pwm2m2_pins>;
-//};
-//&pwm3 {
-//	status = "okay";
-//	pinctrl-names = "active";
-//	pinctrl-0 = <&pwm3m2_pins>;
-//};
-//&pwm4 {
-//	status = "okay";
-//	pinctrl-names = "active";
-//	pinctrl-0 = <&pwm4m2_pins>;
-//};
-&pwm5 {
+/**********PWM**********/
+/* PWM5_M1 */
+&pwm1 {
 	status = "okay";
-	pinctrl-names = "active";
-	pinctrl-0 = <&pwm5m1_pins>;
-	// pinctrl-0 = <&pwm5m2_pins>;
-};
-&pwm6 {
-	status = "okay";
-	pinctrl-names = "active";
-	pinctrl-0 = <&pwm6m1_pins>;
-	// pinctrl-0 = <&pwm6m2_pins>;
-};
-//&pwm7 {
-//	status = "okay";
-//	pinctrl-names = "active";
-//	pinctrl-0 = <&pwm7m2_pins>;
-//};
-//&pwm8 {
-//	status = "okay";
-//	pinctrl-names = "active";
-//	// pinctrl-0 = <&pwm8m1_pins>;
-//	pinctrl-0 = <&pwm8m0_pins>;
-//};
-//&pwm9 {
-//	status = "okay";
-//	pinctrl-names = "active";
-//	// pinctrl-0 = <&pwm9m1_pins>;
-//	pinctrl-0 = <&pwm9m0_pins>;
-//};
-
-&pwm10 {
-	status = "okay";
-	pinctrl-names = "active";
-	pinctrl-0 = <&pwm10m1_pins>;
-	// pinctrl-0 = <&pwm10m2_pins>;
-	// pinctrl-0 = <&pwm10m0_pins>;
-};
-&pwm11 {
-	status = "okay";
-	pinctrl-names = "active";
-	pinctrl-0 = <&pwm11m1_pins>;
-	// pinctrl-0 = <&pwm11m2_pins>;
-	// pinctrl-0 = <&pwm11m0_pins>;
 };
 
-
+/**********RTC**********/
 &rtc {
 	status = "okay";
 };

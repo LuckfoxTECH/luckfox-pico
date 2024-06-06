@@ -23,7 +23,6 @@
 		pinctrl-names = "default";
 		reset-gpios = <&gpio1 RK_PA2 GPIO_ACTIVE_LOW>;
 	};
-
 };
 
 /**********EMMC**********/
@@ -47,11 +46,22 @@
 &usbdrd_dwc3 {
 	status = "okay";
 	dr_mode = "peripheral";
-//	dr_mode = "host";
 };
 
+/**********RTC**********/
 &rtc {
-	status = "disable";
+	status = "okay";
 };
 
+/**********TP**********/
+&i2c3 {
+    status = "disabled";
+};
 
+/**********SPI**********/
+&spi0 {
+	status = "disabled";
+	spidev@0 {
+		spi-max-frequency = <50000000>;
+	};
+};

@@ -62,7 +62,7 @@ export RK_PARTITION_FS_TYPE_CFG=rootfs@IGNORE@ext4,userdata@/userdata@ext4,oem@/
 export LF_TARGET_ROOTFS=buildroot
 
 # Buildroot defconfig
-export RK_BUILDROOT_DEFCONFIG=luckfox_pico_defconfig
+export RK_BUILDROOT_DEFCONFIG=luckfox_pico_w_defconfig
 
 #################################################
 # 	Defconfig
@@ -78,7 +78,7 @@ export RK_TOOLCHAIN_CROSS=arm-rockchip830-linux-uclibcgnueabihf
 export RK_MISC=wipe_all-misc.img
 
 # Uboot defconfig
-export RK_UBOOT_DEFCONFIG=rv1106_defconfig
+export RK_UBOOT_DEFCONFIG=luckfox_rv1106_uboot_defconfig
 
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_defconfig

@@ -135,55 +135,161 @@ function check_config() {
 }
 
 function choose_target_board() {
-	echo
-	echo "You're building on Linux"
-	echo "Lunch menu...pick a combo:"
-	echo ""
-
-	echo 'BoardConfig-*.mk naming rules:'
-	echo 'BoardConfig-"启动介质"-"系统版本"-"硬件版本"-"应用场景".mk'
-	echo 'BoardConfig-"boot medium"-"system version"-"hardware version"-"applicaton".mk'
-	echo ""
-
+	local LF_HARDWARE=("RV1103_Luckfox_Pico"
+		"RV1103_Luckfox_Pico_Mini_A"
+		"RV1103_Luckfox_Pico_Mini_B"
+		"RV1103_Luckfox_Pico_Plus"
+		"RV1106_Luckfox_Pico_Pro_Max"
+		"RV1106_Luckfox_Pico_Ultra"
+		"RV1106_Luckfox_Pico_Ultra_W")
+	local LF_BOOT_MEDIA=("SD_CARD" "SPI_NAND" "EMMC")
+	local LF_SYSTEM=("Buildroot" "Ubuntu" "Alpine")
 	local cnt=0 space8="        "
-	for item in ${RK_TARGET_BOARD_ARRAY[@]}; do
-		local f0 boot_medium ddr sys_ver hardware_version product_name
-		echo "----------------------------------------------------------------"
-		echo -e "${C_GREEN}$cnt. $item${C_NORMAL}"
-		cnt=$((cnt + 1))
-		f0=${item#BoardConfig*-}
-		boot_medium=${f0%%-*}
 
-		f0=${f0#*-}
-		sys_ver=${f0%%-*}
+	# Get Hardware Version
+	local HW_INDEX
+	echo "You're building on Linux"
+	echo -e "${C_GREEN} "${space8}Lunch menu...pick the Luckfox Pico hardware version:"${C_NORMAL}"
+	echo -e "${C_GREEN} "${space8}选择 Luckfox Pico 硬件版本:"${C_NORMAL}"
+	echo "${space8}${space8}[0] RV1103_Luckfox_Pico"
+	echo "${space8}${space8}[1] RV1103_Luckfox_Pico_Mini_A"
+	echo "${space8}${space8}[2] RV1103_Luckfox_Pico_Mini_B"
+	echo "${space8}${space8}[3] RV1103_Luckfox_Pico_Plus"
+	echo "${space8}${space8}[4] RV1106_Luckfox_Pico_Pro_Max"
+	echo "${space8}${space8}[5] RV1106_Luckfox_Pico_Ultra"
+	echo "${space8}${space8}[6] RV1106_Luckfox_Pico_Ultra_W"
+	echo "${space8}${space8}[7] custom"
+	read -p "Which would you like? [0~7]: " HW_INDEX
 
-		f0=${f0#*-}
-		hardware_version=${f0%%-*}
+	if [ -z "$HW_INDEX" ] ;then
+		HW_INDEX=0
+	fi
 
-		f0=${f0#*-}
-		product_name=${f0%%-*}
-		product_name=${product_name%%.mk}
-		echo "${space8}${space8}             boot medium(启动介质): ${boot_medium}"
-		echo "${space8}${space8}          system version(系统版本): ${sys_ver}"
-		echo "${space8}${space8}        hardware version(硬件版本): ${hardware_version}"
-		echo "${space8}${space8}              applicaton(应用场景): ${product_name}"
-		echo "----------------------------------------------------------------"
-		echo ""
-	done
-
-	local INDEX
-	read -p "Which would you like? [0]: " INDEX
-	INDEX=$((${INDEX:-0}))
-
-	if echo $INDEX | grep -vq [^0-9]; then
-		RK_BUILD_TARGET_BOARD="${RK_TARGET_BOARD_ARRAY[$INDEX]}"
+	if ! [[ "$HW_INDEX" =~ ^[0-9]+$ ]]; then
+		msg_error "Error: HW_INDEX is not a number."
+		exit 1
 	else
-		RK_BUILD_TARGET_BOARD="${RK_TARGET_BOARD_ARRAY[0]}"
+		if (($HW_INDEX < 0 || $HW_INDEX > 8)); then
+			msg_error "Error: HW_INDEX is not in the range 0-7."
+			exit 1
+		elif [ $HW_INDEX == 7 ]; then
+			for item in ${RK_TARGET_BOARD_ARRAY[@]}; do
+				local f0 boot_medium ddr sys_ver hardware_version product_name
+				echo "----------------------------------------------------------------"
+				echo -e "${C_GREEN}$cnt. $item${C_NORMAL}"
+				cnt=$((cnt + 1))
+				f0=${item#BoardConfig*-}
+				boot_medium=${f0%%-*}
+
+				f0=${f0#*-}
+				sys_ver=${f0%%-*}
+
+				f0=${f0#*-}
+				hardware_version=${f0%%-*}
+
+				f0=${f0#*-}
+				product_name=${f0%%-*}
+				product_name=${product_name%%.mk}
+				echo "${space8}${space8}             boot medium(启动介质): ${boot_medium}"
+				echo "${space8}${space8}          system version(系统版本): ${sys_ver}"
+				echo "${space8}${space8}        hardware version(硬件版本): ${hardware_version}"
+				echo "${space8}${space8}              applicaton(应用场景): ${product_name}"
+				echo "----------------------------------------------------------------"
+				echo ""
+			done
+
+			local INDEX
+			read -p "Which would you like? [0]: " INDEX
+			INDEX=$((${INDEX:-0}))
+
+			if echo $INDEX | grep -vq [^0-9]; then
+				RK_BUILD_TARGET_BOARD="${RK_TARGET_BOARD_ARRAY[$INDEX]}"
+			else
+				RK_BUILD_TARGET_BOARD="${RK_TARGET_BOARD_ARRAY[0]}"
+				msg_info "Lunching for Default ${RK_BUILD_TARGET_BOARD} boards..."
+				return
+			fi
+			return
+		fi
+	fi
+
+	# Get Boot Medium Version
+	local BM_INDEX MAX_BM_INDEX
+	echo -e "${C_GREEN} "${space8}Lunch menu...pick the boot medium:"${C_NORMAL}"
+	echo -e "${C_GREEN} "${space8}选择启动媒介:"${C_NORMAL}"
+	if (("$HW_INDEX" >= 0 && "$HW_INDEX" < 2)); then
+		echo "${space8}${space8}[0] SD_CARD"
+		read -p "Which would you like? [0]: " BM_INDEX
+		MAX_BM_INDEX=0
+	elif (("$HW_INDEX" >= 2 && "$HW_INDEX" < 5)); then
+		echo "${space8}${space8}[0] SD_CARD"
+		echo "${space8}${space8}[1] SPI_NAND"
+		read -p "Which would you like? [0~1]: " BM_INDEX
+		MAX_BM_INDEX=1
+	elif (("$HW_INDEX" >= 5 && "$HW_INDEX" < 8)); then
+		echo "${space8}${space8}[0] EMMC"
+		read -p "Which would you like? [0]: " BM_INDEX
+		MAX_BM_INDEX=0
+	fi
+
+	if [ -z "$BM_INDEX" ] ;then
+		BM_INDEX=0
+	fi
+
+	if ! [[ "$BM_INDEX" =~ ^[0-9]+$ ]]; then
+		msg_error "Error: BM_INDEX is not a number."
+		exit 1
+	else
+		if (($BM_INDEX < 0 || $BM_INDEX > $MAX_BM_INDEX)); then
+			msg_error "Error: BM_INDEX is not in the range ."
+			exit 1
+		fi
+
+		if (("$HW_INDEX" >= 5 && "$HW_INDEX" < 8)); then
+			BM_INDEX=$BM_INDEX+2
+		fi
+	fi
+
+	# Get System Version
+	local SYS_INDEX
+	echo -e "${C_GREEN} "${space8}Lunch menu...pick the system version:"${C_NORMAL}"
+	echo -e "${C_GREEN} "${space8}选择系统版本:"${C_NORMAL}"
+	echo "${space8}${space8}[0] Buildroot(Support Rockchip official features) "
+	echo "${space8}${space8}[1] Ubuntu(Support for the apt package management tool)"
+	#echo "${space8}${space8}[2] Alpine(Supports the APK package management tool and is relatively streamlined)"
+	echo ""
+
+
+	read -p "Which would you like? [0~1]: " SYS_INDEX
+	
+	if [ -z "$SYS_INDEX" ] ;then 
+		SYS_INDEX=0
+	fi
+
+	if ! [[ "$SYS_INDEX" =~ ^[0-9]+$ ]]; then
+		msg_error "Error: SYS_INDEX is not a number."
+		exit 1
+	else
+		if (($SYS_INDEX < 0 || $SYS_INDEX > 2)); then
+			msg_error "Error: SYS_INDEX is not in the range 0-1."
+			exit 1
+		fi
+	fi
+
+	RK_BUILD_TARGET_BOARD="BoardConfig_IPC/BoardConfig-${LF_BOOT_MEDIA[$BM_INDEX]}-${LF_SYSTEM[$SYS_INDEX]}-${LF_HARDWARE[$HW_INDEX]}-IPC.mk"
+	if [ -f "$TARGET_PRODUCT_DIR/$RK_BUILD_TARGET_BOARD" ]; then
 		msg_info "Lunching for Default ${RK_BUILD_TARGET_BOARD} boards..."
+	else
+		msg_error "${RK_BUILD_TARGET_BOARD} is not currently supported"
+		exit 0
 	fi
 }
 
 function build_select_board() {
+	RK_TARGET_BOARD_ARRAY=($(
+		cd ${TARGET_PRODUCT_DIR}/
+		ls BoardConfig*.mk BoardConfig_*/BoardConfig*.mk | sort
+	))
 	RK_TARGET_BOARD_ARRAY=($(
 		cd ${TARGET_PRODUCT_DIR}/
 		ls BoardConfig*.mk BoardConfig_*/BoardConfig*.mk | sort
@@ -196,9 +302,10 @@ function build_select_board() {
 	fi
 
 	choose_target_board
-	rm -f $BOARD_CONFIG
+	if [ -n $BOARD_CONFIG ]; then
+		rm -f $BOARD_CONFIG
+	fi
 	ln -rfs $TARGET_PRODUCT_DIR/$RK_BUILD_TARGET_BOARD $BOARD_CONFIG
-	msg_info "switching to board: $(realpath $BOARD_CONFIG)"
 
 	if [ "$1" = "LUNCH-FORCE" ]; then
 		finish_build
@@ -442,7 +549,7 @@ function build_check() {
 }
 
 function build_app() {
-	check_config RK_APP_TYPE RK_ENABLE_WIFI || return 0
+	check_config RK_APP_TYPE || return 0
 
 	if [ "$RK_ENABLE_WIFI" = "y" ]; then
 		echo "Set Wifi SSID and PASSWD"
@@ -463,7 +570,7 @@ EOF
 	fi
 
 	echo "============Start building app============"
-	echo "TARGET_APP_CONFIG=$RK_APP_DEFCONFIG $RK_APP_DEFCONFIG_FRAGMENT"
+	echo "TARGET_APP_CONFIG=$RK_APP_DEFCONFIG $RK_APP_DEFCONFIG_FRAGMENT $RK_APP_TYPE"
 	echo "========================================="
 
 	build_meta --export # export meta header files
@@ -494,24 +601,6 @@ function build_meta() {
 	fi
 	finish_build
 }
-
-#function build_meta(){
-#    msg_info "============Start building meta============"
-#    if [ -n "$RK_META_SIZE" ];then
-#        if [ -d "${RK_PROJECT_TOP_DIR}/make_meta" ];then
-#            __meta_param="$RK_META_PARAM $RK_CAMERA_PARAM --meta_part_size=$RK_META_SIZE"
-#            ${RK_PROJECT_TOP_DIR}/make_meta/build_meta.sh $@ \
-#                --cam_iqfile ${RK_CAMERA_SENSOR_IQFILES}                            \
-#                --meta_param $__meta_param                   \
-#                --output $RK_PROJECT_OUTPUT_IMAGE            \
-#                --rootfs_dir $RK_PROJECT_PACKAGE_ROOTFS_DIR  \
-#                --media_dir $RK_PROJECT_PATH_MEDIA           \
-#                --pc_tools_dir $RK_PROJECT_PATH_PC_TOOLS     \
-#                --tiny_meta $RK_TINY_META
-#        fi
-#    fi
-#    finish_build
-#}
 
 function build_env() {
 	msg_info "============Start building env============"
@@ -560,6 +649,24 @@ function build_sysdrv() {
 	mkdir -p ${RK_PROJECT_OUTPUT_IMAGE}
 	make -C ${SDK_SYSDRV_DIR}
 
+	rootfs_tarball="$RK_PROJECT_PATH_SYSDRV/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}.tar"
+	rootfs_out_dir="$RK_PROJECT_OUTPUT/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}"
+
+	if ! [ -d $RK_PROJECT_OUTPUT ]; then
+		mkdir -p $RK_PROJECT_OUTPUT
+	fi
+
+	if [ -f $rootfs_tarball ]; then
+		if [ -d $rootfs_out_dir ]; then
+			rm -rf $rootfs_out_dir
+		fi
+		tar xf $rootfs_tarball -C $RK_PROJECT_OUTPUT
+	else
+		msg_error "Not found rootfs tarball: $rootfs_tarball"
+		exit 1
+	fi
+
+	msg_info "If you need to add custom files, please upload them to <Luckfox Sdk>/output/out/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}."
 	finish_build
 }
 
@@ -586,6 +693,25 @@ function build_rootfs() {
 
 	make rootfs -C ${SDK_SYSDRV_DIR}
 
+	local rootfs_tarball rootfs_out_dir
+	rootfs_tarball="$RK_PROJECT_PATH_SYSDRV/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}.tar"
+	rootfs_out_dir="$RK_PROJECT_OUTPUT/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}"
+
+	if ! [ -d $RK_PROJECT_OUTPUT ]; then
+		mkdir -p $RK_PROJECT_OUTPUT
+	fi
+
+	if [ -f $rootfs_tarball ]; then
+		if [ -d $rootfs_out_dir ]; then
+			rm -rf $rootfs_out_dir
+		fi
+		tar xf $rootfs_tarball -C $RK_PROJECT_OUTPUT
+	else
+		msg_error "Not found rootfs tarball: $rootfs_tarball"
+		exit 1
+	fi
+
+	msg_info "If you need to add custom files, please upload them to <Luckfox Sdk>/output/out/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}."
 	finish_build
 }
 
@@ -1074,22 +1200,10 @@ function __PACKAGE_OEM() {
 	mkdir -p $(dirname $RK_PROJECT_FILE_OEM_SCRIPT)
 	cat >$RK_PROJECT_FILE_OEM_SCRIPT <<EOF
 #!/bin/sh
-check_hciconfig() {
-    #hciattach -s 115200 /dev/ttyS1 any 115200 flow nosleep&
-    sleep 2
-    if hciconfig -a | grep -q "hci0"; then
-        hciconfig hci0 up
-    else
-        echo "hci0 not found or not available."
-    fi
-}
-
-
 [ -f /etc/profile.d/RkEnv.sh ] && source /etc/profile.d/RkEnv.sh
 case \$1 in
 	start)
 		sh /oem/usr/bin/RkLunch.sh
-		check_hciconfig
 		;;
 	stop)
 		sh /oem/usr/bin/RkLunch-stop.sh
@@ -1099,24 +1213,17 @@ case \$1 in
 		;;
 esac
 EOF
-
 	chmod a+x $RK_PROJECT_FILE_OEM_SCRIPT
 	cp -f $RK_PROJECT_FILE_OEM_SCRIPT $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc/init.d
 }
 
 function __PACKAGE_ROOTFS() {
-	local rootfs_tarball rootfs_out_dir _target_dir _install_dir
+	local rootfs_tarball rootfs_out_dir
 	rootfs_tarball="$RK_PROJECT_PATH_SYSDRV/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}.tar"
-	rootfs_out_dir="$RK_PROJECT_OUTPUT/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}"
 
-	if [ -f $rootfs_tarball ]; then
-		if [ -d $rootfs_out_dir ]; then
-			rm -rf $rootfs_out_dir
-		fi
-		tar xf $rootfs_tarball -C $RK_PROJECT_OUTPUT
-	else
-		msg_error "Not found rootfs tarball: $rootfs_tarball"
-		exit 1
+	if [ ! -f $rootfs_tarball ]; then
+		msg_error "Build rootfs is not yet complete, packaging cannot proceed!"
+		exit 0
 	fi
 
 	build_get_sdk_version
@@ -1727,7 +1834,6 @@ __LINK_DEFCONFIG_FROM_BOARD_CFG() {
 		ln -rfs $SDK_SYSDRV_DIR/source/kernel/arch/arm/boot/dts/$RK_KERNEL_DTS $DTS_CONFIG
 		msg_info "switch to DTS: $(realpath $DTS_CONFIG)"
 	fi
-
 	if [ -n "$RK_KERNEL_DEFCONFIG" ]; then
 		rm -f $KERNEL_DEFCONFIG
 		ln -rfs $SDK_SYSDRV_DIR/source/kernel/arch/arm/configs/$RK_KERNEL_DEFCONFIG $KERNEL_DEFCONFIG
@@ -1735,10 +1841,14 @@ __LINK_DEFCONFIG_FROM_BOARD_CFG() {
 	fi
 
 	if [ "$LF_TARGET_ROOTFS" = "buildroot" ]; then
-		if [ -n "RK_BUILDROOT_DEFCONFIG" ]; then
-			rm -f $BUILDROOT_DEFCONFIG
-			ln -rfs $SDK_SYSDRV_DIR/tools/board/buildroot/$RK_BUILDROOT_DEFCONFIG $BUILDROOT_DEFCONFIG
-			msg_info "switch to buildroot defconfig: $(realpath $BUILDROOT_DEFCONFIG)"
+		if [ -n "$RK_BUILDROOT_DEFCONFIG" ]; then
+			if [ -f "$BUILDROOT_PATH/configs/$RK_BUILDROOT_DEFCONFIG" ]; then
+				rm -f $BUILDROOT_DEFCONFIG
+				ln -rfs $BUILDROOT_PATH/configs/$RK_BUILDROOT_DEFCONFIG $BUILDROOT_DEFCONFIG
+				msg_info "switch to buildroot defconfig: $(realpath $BUILDROOT_DEFCONFIG)"
+			else
+				msg_info "use \" ./build.sh buildrootconfig\" to create buildroot_defconfig"
+			fi
 		fi
 	else
 		rm -f $BUILDROOT_DEFCONFIG
@@ -2137,6 +2247,10 @@ export RK_PROJECT_TOOLCHAIN_CROSS=$RK_TOOLCHAIN_CROSS
 export PATH="${SDK_ROOT_DIR}/tools/linux/toolchain/${RK_PROJECT_TOOLCHAIN_CROSS}/bin":$PATH
 
 if [[ "$LF_TARGET_ROOTFS" = "ubuntu" ]]; then
+	if [ "$(id -u)" != "0" ]; then
+		msg_error "Error! Please use sudo ./build.sh to build Ubuntu Image!"
+		exit 1
+	fi
 	if [[ "$LF_SUBMODULES_BY" = "github" ]]; then
 		cp ${SDK_ROOT_DIR}/.gitmodules.github ${SDK_ROOT_DIR}/.gitmodules
 	else

@@ -425,6 +425,11 @@ config TOUCHSCREEN_GSLX680_PAD
 config TOUCHSCREEN_GT1X
 	tristate "GT1X touchscreens support"
 
+
+config TOUCHSCREEN_GT9XX
+	tristate "GT9XX touchscreens support"
+
+
 config TOUCHSCREEN_HIDEEP
 	tristate "HiDeep Touch IC"
 	depends on I2C

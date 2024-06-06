@@ -78,7 +78,7 @@ export RK_TOOLCHAIN_CROSS=arm-rockchip830-linux-uclibcgnueabihf
 export RK_MISC=wipe_all-misc.img
 
 # Uboot defconfig
-export RK_UBOOT_DEFCONFIG=rv1106_defconfig
+export RK_UBOOT_DEFCONFIG=luckfox_rv1106_uboot_defconfig
 
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_defconfig
@@ -95,7 +95,7 @@ export RK_CAMERA_SENSOR_CAC_BIN="CAC_sc4336_OT01_40IRC_F16"
 #export RK_CAMERA_SENSOR_CAC_BIN="CAC_sc4336_OT01_40IRC_F16 CAC_sc530ai_CMK-OT2115-PC1_30IRC-F16"
 
 # build ipc web backend
-# export RK_APP_IPCWEB_BACKEND=y
+#export RK_APP_IPCWEB_BACKEND=y
 
 # enable install app to oem partition
 export RK_BUILD_APP_TO_OEM_PARTITION=y
