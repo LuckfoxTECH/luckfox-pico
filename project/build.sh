@@ -261,8 +261,8 @@ function choose_target_board() {
 
 
 	read -p "Which would you like? [0~1]: " SYS_INDEX
-	
-	if [ -z "$SYS_INDEX" ] ;then 
+
+	if [ -z "$SYS_INDEX" ] ;then
 		SYS_INDEX=0
 	fi
 
@@ -277,23 +277,10 @@ function choose_target_board() {
 	fi
 
 	RK_BUILD_TARGET_BOARD="BoardConfig_IPC/BoardConfig-${LF_BOOT_MEDIA[$BM_INDEX]}-${LF_SYSTEM[$SYS_INDEX]}-${LF_HARDWARE[$HW_INDEX]}-IPC.mk"
-	if [ -f "$TARGET_PRODUCT_DIR/$RK_BUILD_TARGET_BOARD" ]; then
-		msg_info "Lunching for Default ${RK_BUILD_TARGET_BOARD} boards..."
-	else
-		msg_error "${RK_BUILD_TARGET_BOARD} is not currently supported"
-		exit 0
-	fi
 }
 
 function build_select_board() {
-	RK_TARGET_BOARD_ARRAY=($(
-		cd ${TARGET_PRODUCT_DIR}/
-		ls BoardConfig*.mk BoardConfig_*/BoardConfig*.mk | sort
-	))
-	RK_TARGET_BOARD_ARRAY=($(
-		cd ${TARGET_PRODUCT_DIR}/
-		ls BoardConfig*.mk BoardConfig_*/BoardConfig*.mk | sort
-	))
+	RK_TARGET_BOARD_ARRAY=( $(cd ${TARGET_PRODUCT_DIR}/; ls BoardConfig_*/BoardConfig*.mk | sort) )
 
 	RK_TARGET_BOARD_ARRAY_LEN=${#RK_TARGET_BOARD_ARRAY[@]}
 	if [ $RK_TARGET_BOARD_ARRAY_LEN -eq 0 ]; then
@@ -302,6 +289,13 @@ function build_select_board() {
 	fi
 
 	choose_target_board
+	if [ -f "$TARGET_PRODUCT_DIR/$RK_BUILD_TARGET_BOARD" ]; then
+		msg_info "Lunching for Default ${RK_BUILD_TARGET_BOARD} boards..."
+	else
+		msg_error "${RK_BUILD_TARGET_BOARD} is not currently supported"
+		exit 0
+	fi
+
 	if [ -n $BOARD_CONFIG ]; then
 		rm -f $BOARD_CONFIG
 	fi
