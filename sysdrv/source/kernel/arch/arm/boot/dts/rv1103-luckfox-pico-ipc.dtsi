@@ -312,7 +312,14 @@
 /***************************** PINCTRL ********************************/
 // SPI
 &spi0 {
-  pinctrl-0 = <&spi0m0_clk &spi0m0_miso &spi0m0_mosi &spi0m0_cs0>;
+	pinctrl-0 = <&spi0m0_clk &spi0m0_miso &spi0m0_mosi &spi0m0_cs0>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	spidev@0 {
+		compatible = "rockchip,spidev";
+		spi-max-frequency = <50000000>;
+		reg = <0>;
+	};
 };
 // I2C
 &i2c3 {

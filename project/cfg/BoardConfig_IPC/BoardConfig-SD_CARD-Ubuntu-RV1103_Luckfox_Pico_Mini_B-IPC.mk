@@ -8,20 +8,20 @@
 export RK_CHIP=rv1106
 
 # app config
-export RK_APP_TYPE=RKIPC_RV1106
+export RK_APP_TYPE=RKIPC_RV1103
 
 # Config CMA size in environment
-export RK_BOOTARGS_CMA_SIZE="66M"
+export RK_BOOTARGS_CMA_SIZE="24M"
 
 # Kernel dts
-export RK_KERNEL_DTS=rv1106g-luckfox-pico-ultra-w.dts
+export RK_KERNEL_DTS=rv1103g-luckfox-pico-mini-b.dts
 
 #################################################
 #	BOOT_MEDIUM
 #################################################
 
-# Target boot medium: emmc/spi_nor/spi_nand
-export RK_BOOT_MEDIUM=emmc
+# Target boot medium: sd_card/spi_nor/spi_nand
+export RK_BOOT_MEDIUM=sd_card
 
 # Uboot defconfig fragment
 export RK_UBOOT_DEFCONFIG_FRAGMENT=rk-emmc.config
@@ -35,7 +35,7 @@ export RK_UBOOT_DEFCONFIG_FRAGMENT=rk-emmc.config
 #       <partdef> := <size>[@<offset>](part-name)
 # Note:
 #   If the first partition offset is not 0x0, it must be added. Otherwise, it needn't adding.
-export RK_PARTITION_CMD_IN_ENV="32K(env),512K@32K(idblock),256K(uboot),32M(boot),512M(oem),256M(userdata),6G(rootfs)"
+export RK_PARTITION_CMD_IN_ENV="32K(env),512K@32K(idblock),256K(uboot),32M(boot),512M(oem),256M(userdata),6G(rootfs),-(media)"
 
 # config partition's filesystem type (squashfs is readonly)
 # emmc:    squashfs/ext4
@@ -58,14 +58,14 @@ export RK_PARTITION_FS_TYPE_CFG=rootfs@IGNORE@ext4,userdata@/userdata@ext4,oem@/
 #	TARGET_ROOTFS
 #################################################
 
-# Target rootfs : ubuntu(only emmc)/buildroot/busybox
+# Target rootfs : ubuntu(only sd_card)/buildroot/busybox
 export LF_TARGET_ROOTFS=ubuntu
 
-# SUBMODULES ： github/gitee
+# SUBMODULES : github/gitee
 export LF_SUBMODULES_BY=github
 
 # Buildroot defconfig
-export RK_BUILDROOT_DEFCONFIG=luckfox_pico_w_defconfig
+export RK_BUILDROOT_DEFCONFIG=luckfox_pico_defconfig
 
 #################################################
 # 	Defconfig
@@ -83,12 +83,8 @@ export RK_MISC=wipe_all-misc.img
 # Uboot defconfig
 export RK_UBOOT_DEFCONFIG=luckfox_rv1106_uboot_defconfig
 
-
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_defconfig
-
-# Kernel defconfig fragment
-export RK_KERNEL_DEFCONFIG_FRAGMENT=rv1106-bt.config
 
 # Config sensor IQ files
 # RK_CAMERA_SENSOR_IQFILES format:
@@ -109,12 +105,3 @@ export RK_BUILD_APP_TO_OEM_PARTITION=y
 
 # enable rockchip test
 export RK_ENABLE_ROCKCHIP_TEST=y
-
-# enable rockchip wifi
-export RK_ENABLE_WIFI=y
-export RK_ENABLE_WIFI_CHIP=AIC8800DC
-
-# config wifi ssid and passwd
-export LF_WIFI_SSID="Your wifi ssid"
-export LF_WIFI_PSK="Your wifi password"
-

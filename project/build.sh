@@ -159,9 +159,9 @@ function choose_target_board() {
 	echo "${space8}${space8}[5] RV1106_Luckfox_Pico_Ultra"
 	echo "${space8}${space8}[6] RV1106_Luckfox_Pico_Ultra_W"
 	echo "${space8}${space8}[7] custom"
-	read -p "Which would you like? [0~7]: " HW_INDEX
+	read -p "Which would you like? [0~7][default:0]: " HW_INDEX
 
-	if [ -z "$HW_INDEX" ] ;then
+	if [ -z "$HW_INDEX" ]; then
 		HW_INDEX=0
 	fi
 
@@ -199,7 +199,7 @@ function choose_target_board() {
 			done
 
 			local INDEX
-			read -p "Which would you like? [0]: " INDEX
+			read -p "Which would you like? [default:0]: " INDEX
 			INDEX=$((${INDEX:-0}))
 
 			if echo $INDEX | grep -vq [^0-9]; then
@@ -219,20 +219,20 @@ function choose_target_board() {
 	echo -e "${C_GREEN} "${space8}选择启动媒介:"${C_NORMAL}"
 	if (("$HW_INDEX" >= 0 && "$HW_INDEX" < 2)); then
 		echo "${space8}${space8}[0] SD_CARD"
-		read -p "Which would you like? [0]: " BM_INDEX
+		read -p "Which would you like? [0][default:0]: " BM_INDEX
 		MAX_BM_INDEX=0
 	elif (("$HW_INDEX" >= 2 && "$HW_INDEX" < 5)); then
 		echo "${space8}${space8}[0] SD_CARD"
 		echo "${space8}${space8}[1] SPI_NAND"
-		read -p "Which would you like? [0~1]: " BM_INDEX
+		read -p "Which would you like? [0~1][default:0]: " BM_INDEX
 		MAX_BM_INDEX=1
 	elif (("$HW_INDEX" >= 5 && "$HW_INDEX" < 8)); then
 		echo "${space8}${space8}[0] EMMC"
-		read -p "Which would you like? [0]: " BM_INDEX
+		read -p "Which would you like? [0][default:0]: " BM_INDEX
 		MAX_BM_INDEX=0
 	fi
 
-	if [ -z "$BM_INDEX" ] ;then
+	if [ -z "$BM_INDEX" ]; then
 		BM_INDEX=0
 	fi
 
@@ -244,25 +244,25 @@ function choose_target_board() {
 			msg_error "Error: BM_INDEX is not in the range ."
 			exit 1
 		fi
-
-		if (("$HW_INDEX" >= 5 && "$HW_INDEX" < 8)); then
-			BM_INDEX=$BM_INDEX+2
-		fi
 	fi
 
 	# Get System Version
-	local SYS_INDEX
+	local SYS_INDEX MAX_SYS_INDEX
 	echo -e "${C_GREEN} "${space8}Lunch menu...pick the system version:"${C_NORMAL}"
 	echo -e "${C_GREEN} "${space8}选择系统版本:"${C_NORMAL}"
-	echo "${space8}${space8}[0] Buildroot(Support Rockchip official features) "
-	echo "${space8}${space8}[1] Ubuntu(Support for the apt package management tool)"
-	#echo "${space8}${space8}[2] Alpine(Supports the APK package management tool and is relatively streamlined)"
-	echo ""
 
+	if (("$BM_INDEX" == 1)); then
+		echo "${space8}${space8}[0] Buildroot(Support Rockchip official features) "
+		read -p "Which would you like? [0~1][default:0]: " SYS_INDEX
+		MAX_SYS_INDEX=0
+	elif (("$BM_INDEX" == 0)); then
+		echo "${space8}${space8}[0] Buildroot(Support Rockchip official features) "
+		echo "${space8}${space8}[1] Ubuntu(Support for the apt package management tool)"
+		read -p "Which would you like? [0~1][default:0]: " SYS_INDEX
+		MAX_SYS_INDEX=1
+	fi
 
-	read -p "Which would you like? [0~1]: " SYS_INDEX
-
-	if [ -z "$SYS_INDEX" ] ;then
+	if [ -z "$SYS_INDEX" ]; then
 		SYS_INDEX=0
 	fi
 
@@ -270,17 +270,25 @@ function choose_target_board() {
 		msg_error "Error: SYS_INDEX is not a number."
 		exit 1
 	else
-		if (($SYS_INDEX < 0 || $SYS_INDEX > 2)); then
+		if (($SYS_INDEX < 0 || $SYS_INDEX > $MAX_SYS_INDEX)); then
 			msg_error "Error: SYS_INDEX is not in the range 0-1."
 			exit 1
 		fi
+	fi
+
+	# EMMC
+	if (("$HW_INDEX" >= 5 && "$HW_INDEX" < 8)); then
+		BM_INDEX=$BM_INDEX+2
 	fi
 
 	RK_BUILD_TARGET_BOARD="BoardConfig_IPC/BoardConfig-${LF_BOOT_MEDIA[$BM_INDEX]}-${LF_SYSTEM[$SYS_INDEX]}-${LF_HARDWARE[$HW_INDEX]}-IPC.mk"
 }
 
 function build_select_board() {
-	RK_TARGET_BOARD_ARRAY=( $(cd ${TARGET_PRODUCT_DIR}/; ls BoardConfig_*/BoardConfig*.mk | sort) )
+	RK_TARGET_BOARD_ARRAY=($(
+		cd ${TARGET_PRODUCT_DIR}/
+		ls BoardConfig_*/BoardConfig*.mk | sort
+	))
 
 	RK_TARGET_BOARD_ARRAY_LEN=${#RK_TARGET_BOARD_ARRAY[@]}
 	if [ $RK_TARGET_BOARD_ARRAY_LEN -eq 0 ]; then
@@ -395,7 +403,7 @@ function usage() {
 	echo "check              -check the environment of building"
 	echo "info               -see the current board building information"
 	echo ""
-	echo "buildrootconfig    -config buildroot and save defconfig"
+	echo "buildrootconfig    -config b	# EMMCuildroot and save defconfig"
 	echo "kernelconfig       -config kernel and save defconfig"
 	echo ""
 	echo "Default option is 'allsave'."
@@ -2333,3 +2341,4 @@ while [ $# -ne 0 ]; do
 done
 
 eval "${option:-build_allsave}"
+

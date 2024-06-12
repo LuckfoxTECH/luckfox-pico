@@ -42,13 +42,9 @@
 /**********SPI**********/
 /* SPI0_M0 */
 &spi0 {
-	status = "okay";
-	#address-cells = <1>;
-	#size-cells = <0>;
+	status = "disabled";
 	spidev@0 {
-		compatible = "rockchip,spidev";
 		spi-max-frequency = <50000000>;
-		reg = <0>;
 	};
 };
 

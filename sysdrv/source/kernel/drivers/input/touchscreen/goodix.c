@@ -963,8 +963,6 @@ static int goodix_read_version(struct goodix_ts_data *ts)
 {
 	int error;
 	u8 buf[6];
-	//u8 reg_data[6];
-	//int i = 0;
 	char id_str[GOODIX_ID_MAX_LEN + 1];
 
 	error = goodix_i2c_read(ts->client, GOODIX_REG_ID, buf, sizeof(buf));
@@ -981,6 +979,7 @@ static int goodix_read_version(struct goodix_ts_data *ts)
 
 	dev_info(&ts->client->dev, "ID %s, version: %04x\n", ts->id,
 		 ts->version);
+
 	return 0;
 }
 
@@ -1060,15 +1059,11 @@ static int goodix_configure_dev(struct goodix_ts_data *ts)
 	input_set_abs_params(ts->input_dev, ABS_MT_WIDTH_MAJOR, 0, 255, 0, 0);
 	input_set_abs_params(ts->input_dev, ABS_MT_TOUCH_MAJOR, 0, 255, 0, 0);
 
-
-
-	dev_dbg(&ts->client->dev, "(%d, %d, %d)", ts->prop.max_x, ts->prop.max_y, ts->max_touch_num);
 	/* Read configuration and apply touchscreen parameters */
 	goodix_read_config(ts);
-	dev_dbg(&ts->client->dev, "(%d, %d, %d)", ts->prop.max_x, ts->prop.max_y, ts->max_touch_num);
+
 	/* Try overriding touchscreen parameters via device properties */
 	touchscreen_parse_properties(ts->input_dev, true, &ts->prop);
-	dev_dbg(&ts->client->dev, "(%d, %d, %d)", ts->prop.max_x, ts->prop.max_y, ts->max_touch_num);
 
 	if (!ts->prop.max_x || !ts->prop.max_y || !ts->max_touch_num) {
 		dev_err(&ts->client->dev,
@@ -1133,17 +1128,9 @@ static void goodix_config_cb(const struct firmware *cfg, void *ctx)
 {
 	struct goodix_ts_data *ts = ctx;
 	int error;
-	int i;
 
 	if (cfg) {
 		/* send device configuration to the firmware */
-
-		while(i < cfg->size)
-		{
-			dev_dbg(&ts->client->dev, "reg %d: %#x\n", i, cfg->data[i]);
-			i ++;
-		}
-
 		error = goodix_send_cfg(ts, cfg->data, cfg->size);
 		if (error)
 			goto err_release_cfg;
@@ -1243,11 +1230,8 @@ reset:
 
 	ts->chip = goodix_get_chip_data(ts->id);
 
-  ts->load_cfg_from_disk = 0;
 	if (ts->load_cfg_from_disk) {
 		/* update device config */
-
-		dev_dbg(&client->dev, "Configure from Disk\n");
 		ts->cfg_name = devm_kasprintf(&client->dev, GFP_KERNEL,
 					      "goodix_%s_cfg.bin", ts->id);
 		if (!ts->cfg_name)
@@ -1265,7 +1249,6 @@ reset:
 
 		return 0;
 	} else {
-		dev_dbg(&client->dev, "Configure from Device\n");
 		error = goodix_configure_dev(ts);
 		if (error)
 			return error;

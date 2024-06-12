@@ -263,8 +263,8 @@ function luckfox_pico_pro_max_pin_diagram_file() {
           -               -      GND |       | GND      -             -
  PWM4_M2  - SPI0_M0_CLK   - GPIO1_C1 |       | GPIO2_A3 -             -
  PWM5_M2  - SPI0_M0_MOSI  - GPIO1_C2 |       | GPIO2_A2 -             -
- PWM6_M2  - SPI0_M0_MISO  - GPIO1_C3 |       | GPIO2_A1 - I2C4_M0_SCL -
- PWM5_M1  - I2C1_M1_SCL   - GPIO2_B0 |       | GPIO2_A0 - I2C4_M0_SDA -
+ PWM6_M2  - SPI0_M0_MISO  - GPIO1_C3 |       | GPIO2_A1 -             -
+ PWM5_M1  - I2C1_M1_SCL   - GPIO2_B0 |       | GPIO2_A0 -             -
           -               -      GND |       | GND      -             -
  PWM3_M2  - UART3_M1_TX   - GPIO1_D0 |       | GPIO2_A5 - UART1_M1_RX -
  PWM10_M2 - UART3_M1_RX   - GPIO1_D1 |       | GPIO2_A4 - UART1_M1_TX -
@@ -691,18 +691,18 @@ function luckfox_fdt_overlay() {
 function luckfox_fdt_clear() {
 	# delete temp file
 	local files=(
-    "$LUCKFOX_FDT_DUMP_TXT"
-    "$LUCKFOX_FDT_DTB"
-    "$LUCKFOX_FDT_OVERLAY_DTS"
-    "$LUCKFOX_FDT_OVERLAY_DTBO"
-    "$LUCKFOX_FDT_HDR_DTB"
-    "$LUCKFOX_FDT_HDR_OVERLAY_DTS"
-    "$LUCKFOX_FDT_HDR_OVERLAY_DTBO"
+		"$LUCKFOX_FDT_DUMP_TXT"
+		"$LUCKFOX_FDT_DTB"
+		"$LUCKFOX_FDT_OVERLAY_DTS"
+		"$LUCKFOX_FDT_OVERLAY_DTBO"
+		"$LUCKFOX_FDT_HDR_DTB"
+		"$LUCKFOX_FDT_HDR_OVERLAY_DTS"
+		"$LUCKFOX_FDT_HDR_OVERLAY_DTBO"
 	)
 
 	for file in "${files[@]}"; do
 		if [ -e "$file" ]; then
-		  rm "$file"
+			rm "$file"
 		fi
 	done
 }
@@ -1300,20 +1300,20 @@ function luckfox_csi_app() {
 	#endregion
 }
 
-function luckfox_rgb_check_params(){
-    local params=("$@")
+function luckfox_rgb_check_params() {
+	local params=("$@")
 
-    for param in "${params[@]}"; do
-        if [[ -z "$param" ]]; then
-            echo "Error: Parameter is empty."
-            return 1
-        fi
+	for param in "${params[@]}"; do
+		if [[ -z "$param" ]]; then
+			echo "Error: Parameter is empty."
+			return 1
+		fi
 
-        if ! [[ "$param" =~ ^[0-9]+$ ]]; then
-            echo "Error: Parameter '$param' is not a number."
-            return 1
-        fi
-    done
+		if ! [[ "$param" =~ ^[0-9]+$ ]]; then
+			echo "Error: Parameter '$param' is not a number."
+			return 1
+		fi
+	done
 }
 
 function luckfox_rgb_app() {
@@ -1334,17 +1334,19 @@ function luckfox_rgb_app() {
 	local rgb_de_active="${14}"
 	local rgb_pclk_active="${15}"
 
-	local rgb_mode_active gpio0_phandle
+	local gpio0_phandle reset_gpio_action enable_gpio_action
 
 	local pre_action
 
 	pre_action=$(luckfox_get_pin_mode "$(luckfox_get_pinctrl_addr "lcd-pins")")
 	# create fdt overlay content
 	if [ "$action" == 1 ]; then
-		if [ "$rgb_mode" == "enable" ] ;then
-			rgb_mode_active=0x1
-		elif [ "$rgb_mode" == "reset"  ] ;then
-			rgb_mode_active=0x0
+		if [ "$rgb_mode" == "enable" ]; then
+			reset_gpio_action=okay
+			enable_gpio_action=disabled
+		elif [ "$rgb_mode" == "reset" ]; then
+			reset_gpio_action=disabled
+			enable_gpio_action=okay
 		else
 			luckfox_result_handle $LF_ERR "Wrong rgb_mode!"
 			return 1
@@ -1354,6 +1356,22 @@ function luckfox_rgb_app() {
 		if [[ $? -ne 0 ]]; then
 			luckfox_result_handle $LF_ERR "Wrong rgb_params!"
 			return 1
+		else
+			# decimal to hex
+			rgb_clk_hex=$(printf '0x%x\n' $rgb_clk)
+			rgb_h_hex=$(printf '0x%x\n' $rgb_h)
+			rgb_v_hex=$(printf '0x%x\n' $rgb_v)
+			rgb_hb_hex=$(printf '0x%x\n' $rgb_hb)
+			rgb_hf_hex=$(printf '0x%x\n' $rgb_hf)
+			rgb_vb_hex=$(printf '0x%x\n' $rgb_vb)
+			rgb_vf_hex=$(printf '0x%x\n' $rgb_vf)
+			rgb_h_len_hex=$(printf '0x%x\n' $rgb_h_len)
+			rgb_v_len_hex=$(printf '0x%x\n' $rgb_v_len)
+			rgb_h_active_hex=$(printf '0x%x\n' $rgb_h_active)
+			rgb_v_active_hex=$(printf '0x%x\n' $rgb_v_active)
+			rgb_de_active_hex=$(printf '0x%x\n' $rgb_de_active)
+			rgb_pclk_active_hex=$(printf '0x%x\n' $rgb_pclk_active)
+
 		fi
 
 		luckfox_check_pin_diagram "GPIO1_D0" "GPIO1_D1" "GPIO1_C2" "GPIO1_C3" "GPIO1_C1" \
@@ -1421,37 +1439,41 @@ function luckfox_rgb_app() {
 };
 "
 	# Get GPIO0 phandle
-	gpio0_phandle=$(luckfox_get_pinctrl_addr  "gpio@ff380000" 11)
+	#gpio0_phandle=$(luckfox_get_pinctrl_addr  "gpio@ff380000" 11)
 
 	local lcd_time_content="
 /dts-v1/;
 /plugin/;
 
-&{/panel}{
-	${rgb_mode}-gpios = <$gpio0_phandle 0x1 $rgb_mode_active>;
-	${rgb_mode}-delay-ms = <100>;
+&{/panel/reset}{
+    status=\"$reset_gpio_action\";
 };
 
-&{/panel/display-timings/timging0}{
-	clock-frequency = <$rgb_clk>;
-	hactive = <$rgb_h>;
-	vactive = <$rgb_v>;
-	hback-porch = <$rgb_hb>;
-	hfront-porch = <$rgb_hf>;
-	vback-porch = <$rgb_vb>;
-	vfront-porch = <$rgb_vf>;
-	hsync-len = <$rgb_h_len>;
-	vsync-len = <$rgb_v_len>;
-	hsync-active = <$rgb_h_active>;
-	vsync-active = <$rgb_v_active>;
-	de-active = <$rgb_de_active>;
-	pixelclk-active = <$rgb_pclk_active>;
+&{/panel/enable}{
+    status=\"$enable_gpio_action\";
+};
+
+
+&{/panel/display-timings/timing0}{
+	clock-frequency = <$rgb_clk_hex>;
+	hactive = <$rgb_h_hex>;
+	vactive = <$rgb_v_hex>;
+	hback-porch = <$rgb_hb_hex>;
+	hfront-porch = <$rgb_hf_hex>;
+	vback-porch = <$rgb_vb_hex>;
+	vfront-porch = <$rgb_vf_hex>;
+	hsync-len = <$rgb_h_len_hex>;
+	vsync-len = <$rgb_v_len_hex>;
+	hsync-active = <$rgb_h_active_hex>;
+	vsync-active = <$rgb_v_active_hex>;
+	de-active = <$rgb_de_active_hex>;
+	pixelclk-active = <$rgb_pclk_active_hex>;
 };
 "
 
 	# fdt overlay
 	luckfox_fdt_overlay "$fdt_content"
-	if [ "$action" == 1 ] ;then
+	if [ "$action" == 1 ]; then
 		luckfox_fdt_overlay "$lcd_time_content"
 	elif [ "$action" == 0 ] && [ "$pre_action" == 1 ]; then
 		luckfox_set_pin_mode "$(luckfox_get_pinctrl_addr "lcd-pins")" 1
@@ -1459,7 +1481,7 @@ function luckfox_rgb_app() {
 
 	# update cfg
 	luckfox_set_pin_cfg "RGB_ENABLE" "$action"
-	if [ "$action" == 1 ] ;then
+	if [ "$action" == 1 ]; then
 		luckfox_set_pin_cfg "RGB_MODE" "$rgb_mode"
 		luckfox_set_pin_cfg "RGB_CLK" "$rgb_clk"
 		luckfox_set_pin_cfg "RGB_HACTIVE" "$rgb_h"
@@ -2005,65 +2027,65 @@ function luckfox_RGB() {
 				2>&1 >/dev/tty)
 			if [ -z "$rgb_enable" ]; then
 				luckfox_advanced_options
-			elif [ "$rgb_mode" == 0 ] ;then
+			elif [ "$rgb_mode" == 0 ]; then
 				rgb_mode_str="reset"
-			elif [ "$rgb_mode" == 1 ] ;then
+			elif [ "$rgb_mode" == 1 ]; then
 				rgb_mode_str="enable"
 			fi
 
-			if [ -f "$LUCKFOX_RGB_PARAMS" ] ;then
+			if [ -f "$LUCKFOX_RGB_PARAMS" ]; then
 				touch "$LUCKFOX_RGB_PARAMS"
 			fi
 
 			# init params
 			init_rgb_clk=$(luckfox_get_pin_cfg "RGB_CLK")
-			init_rgb_h=$(luckfox_get_pin_cfg "RGB_HACTIVE" )
-			init_rgb_v=$(luckfox_get_pin_cfg "RGB_VACTIVE" )
-			init_rgb_hb=$(luckfox_get_pin_cfg "RGB_HBACKPORCH" 	)
-			init_rgb_hf=$(luckfox_get_pin_cfg "RGB_HFRONTPORCH" )
-			init_rgb_vb=$(luckfox_get_pin_cfg "RGB_VBACKPORCH" 	)
-			init_rgb_vf=$(luckfox_get_pin_cfg "RGB_VFRONTPORCH" )
-			init_rgb_h_len=$(luckfox_get_pin_cfg "RGB_HSYNC_LEN" )
-			init_rgb_v_len=$(luckfox_get_pin_cfg "RGB_VSYNC_LEN" )
+			init_rgb_h=$(luckfox_get_pin_cfg "RGB_HACTIVE")
+			init_rgb_v=$(luckfox_get_pin_cfg "RGB_VACTIVE")
+			init_rgb_hb=$(luckfox_get_pin_cfg "RGB_HBACKPORCH")
+			init_rgb_hf=$(luckfox_get_pin_cfg "RGB_HFRONTPORCH")
+			init_rgb_vb=$(luckfox_get_pin_cfg "RGB_VBACKPORCH")
+			init_rgb_vf=$(luckfox_get_pin_cfg "RGB_VFRONTPORCH")
+			init_rgb_h_len=$(luckfox_get_pin_cfg "RGB_HSYNC_LEN")
+			init_rgb_v_len=$(luckfox_get_pin_cfg "RGB_VSYNC_LEN")
 			init_rgb_h_active=$(luckfox_get_pin_cfg "RGB_HSYNC_ACTIVE")
 			init_rgb_v_active=$(luckfox_get_pin_cfg "RGB_VSYNC_ACTIVE")
-			init_rgb_de_active=$(luckfox_get_pin_cfg "RGB_DE_ACTIVE" )
-			init_rgb_pclk_active=$(luckfox_get_pin_cfg "RGB_PCLK_ACTIVE" )
+			init_rgb_de_active=$(luckfox_get_pin_cfg "RGB_DE_ACTIVE")
+			init_rgb_pclk_active=$(luckfox_get_pin_cfg "RGB_PCLK_ACTIVE")
 
 			LUCKFOX_RGB_PARAMS=$(mktemp)
 			dialog --no-cancel --form "Enter RGB Parameters" 15 50 0 \
-			"Clock		 :" 1 1 "$init_rgb_clk" 1 15 10 0 \
-			"Hsync-Active:" 2 1 "$init_rgb_h_active" 2 15 10 0 \
-			"Vsync-Active:" 3 1 "$init_rgb_v_active" 3 15 10 0 \
-			"DE-Active	 :" 4 1 "$init_rgb_de_active" 4 15 10 0 \
-			"PCLK-Active :" 5 1 "$init_rgb_pclk_active" 5 15 10 0 \
-			2> "$LUCKFOX_RGB_PARAMS"
-			IFS=$'\n' read -d '' -r rgb_clk  rgb_h_active rgb_v_active rgb_de_active rgb_pclk_active < "$LUCKFOX_RGB_PARAMS"
+				"Clock		 :" 1 1 "$init_rgb_clk" 1 15 10 0 \
+				"Hsync-Active:" 2 1 "$init_rgb_h_active" 2 15 10 0 \
+				"Vsync-Active:" 3 1 "$init_rgb_v_active" 3 15 10 0 \
+				"DE-Active	 :" 4 1 "$init_rgb_de_active" 4 15 10 0 \
+				"PCLK-Active :" 5 1 "$init_rgb_pclk_active" 5 15 10 0 \
+				2>"$LUCKFOX_RGB_PARAMS"
+			IFS=$'\n' read -d '' -r rgb_clk rgb_h_active rgb_v_active rgb_de_active rgb_pclk_active <"$LUCKFOX_RGB_PARAMS"
 			rm -f "$LUCKFOX_RGB_PARAMS"
 
 			LUCKFOX_RGB_PARAMS=$(mktemp)
 			dialog --no-cancel --form "Enter RGB Parameters" 15 50 0 \
-			"Hactive	 :" 1 1 "$init_rgb_h" 1 15 10 0 \
-			"Vactive	 :" 2 1 "$init_rgb_v" 2 15 10 0 \
-			"HBack-Porch :" 3 1 "$init_rgb_hb" 3 15 10 0 \
-			"HFont-Porch :" 4 1 "$init_rgb_hf" 4 15 10 0 \
-			"VBack-Porch :" 5 1 "$init_rgb_vb" 5 15 10 0 \
-			"VFont-Porch :" 6 1 "$init_rgb_vf" 6 15 10 0 \
-			"Hsync-Len	 :" 7 1 "$init_rgb_h_len" 7 15 10 0 \
-			"Vsync-Len	 :" 8 1 "$init_rgb_v_len" 8 15 10 0 \
-			2> "$LUCKFOX_RGB_PARAMS"
-			IFS=$'\n' read -d '' -r rgb_h rgb_v rgb_hb rgb_hf rgb_vb rgb_vf rgb_h_len rgb_v_len  < "$LUCKFOX_RGB_PARAMS"
+				"Hactive	 :" 1 1 "$init_rgb_h" 1 15 10 0 \
+				"Vactive	 :" 2 1 "$init_rgb_v" 2 15 10 0 \
+				"HBack-Porch :" 3 1 "$init_rgb_hb" 3 15 10 0 \
+				"HFont-Porch :" 4 1 "$init_rgb_hf" 4 15 10 0 \
+				"VBack-Porch :" 5 1 "$init_rgb_vb" 5 15 10 0 \
+				"VFont-Porch :" 6 1 "$init_rgb_vf" 6 15 10 0 \
+				"Hsync-Len	 :" 7 1 "$init_rgb_h_len" 7 15 10 0 \
+				"Vsync-Len	 :" 8 1 "$init_rgb_v_len" 8 15 10 0 \
+				2>"$LUCKFOX_RGB_PARAMS"
+			IFS=$'\n' read -d '' -r rgb_h rgb_v rgb_hb rgb_hf rgb_vb rgb_vf rgb_h_len rgb_v_len <"$LUCKFOX_RGB_PARAMS"
 			rm -f "$LUCKFOX_RGB_PARAMS"
 
 			dialog --msgbox "All parameters are valid." 15 50
 
-			luckfox_rgb_app 1 "$rgb_mode_str" "$rgb_clk"\
-							  "$rgb_h" "$rgb_v" \
-							  "$rgb_hb" "$rgb_hf"\
-							  "$rgb_vb" "$rgb_vf"\
-							  "$rgb_h_len" "$rgb_v_len"\
-							  "$rgb_h_active" "$rgb_v_active"\
-							  "$rgb_de_active" "$rgb_pclk_active"
+			luckfox_rgb_app 1 "$rgb_mode_str" "$rgb_clk" \
+				"$rgb_h" "$rgb_v" \
+				"$rgb_hb" "$rgb_hf" \
+				"$rgb_vb" "$rgb_vf" \
+				"$rgb_h_len" "$rgb_v_len" \
+				"$rgb_h_active" "$rgb_v_active" \
+				"$rgb_de_active" "$rgb_pclk_active"
 			dialog --msgbox "RGB Effective after restart" 10 30
 		else
 			luckfox_result_handle "$RK_ERR" "Only Luckfox Pico Ultra /Luckfox Pico Ultra W is supported"

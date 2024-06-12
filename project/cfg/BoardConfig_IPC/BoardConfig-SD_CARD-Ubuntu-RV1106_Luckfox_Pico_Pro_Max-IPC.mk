@@ -62,7 +62,7 @@ export RK_PARTITION_FS_TYPE_CFG=rootfs@IGNORE@ext4,userdata@/userdata@ext4,oem@/
 export LF_TARGET_ROOTFS=ubuntu
 
 # SUBMODULES : github/gitee
-export LF_SUBMODULES_BY=gitee
+export LF_SUBMODULES_BY=github
 
 # Buildroot defconfig
 export RK_BUILDROOT_DEFCONFIG=luckfox_pico_defconfig
