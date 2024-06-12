@@ -53,11 +53,6 @@
 	status = "okay";
 };
 
-/**********TP**********/
-&i2c3 {
-    status = "disabled";
-};
-
 /**********SPI**********/
 &spi0 {
 	status = "disabled";
