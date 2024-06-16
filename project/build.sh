@@ -39,6 +39,7 @@ SDK_CONFIG_DIR=${SDK_ROOT_DIR}/config
 DTS_CONFIG=${SDK_CONFIG_DIR}/dts_config
 KERNEL_DEFCONFIG=${SDK_CONFIG_DIR}/kernel_defconfig
 BUILDROOT_DEFCONFIG=${SDK_CONFIG_DIR}/buildroot_defconfig
+PREBUILT_ROOTFS_PATH=${SDK_ROOT_DIR}/prebuilt_rootfs.tar.gz
 
 if [ $(getconf _NPROCESSORS_ONLN) -eq 1 ]; then
 	export RK_JOBS=1
@@ -103,6 +104,14 @@ function msg_warn() {
 
 function msg_error() {
 	echo -e "${C_RED}[$(basename $0):error] $1${C_NORMAL}"
+}
+
+function check_prebuilt_rootfs() {
+    if [ -f "$PREBUILT_ROOTFS_PATH" ] && [ $CONFIG_USE_PREBUILT_ROOTFS == "y" ]; then
+        echo "y"
+    else
+        echo "n"
+    fi
 }
 
 err_handler() {
@@ -654,21 +663,35 @@ function build_sysdrv() {
 	rootfs_tarball="$RK_PROJECT_PATH_SYSDRV/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}.tar"
 	rootfs_out_dir="$RK_PROJECT_OUTPUT/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}"
 
-	if ! [ -d $RK_PROJECT_OUTPUT ]; then
-		mkdir -p $RK_PROJECT_OUTPUT
-	fi
+	if [ $(check_prebuilt_rootfs) == "y" ]; then
+		make -C ${SDK_SYSDRV_DIR} uboot
+		make -C ${SDK_SYSDRV_DIR} kernel
+		make -C ${SDK_SYSDRV_DIR} env
 
-	if [ -f $rootfs_tarball ]; then
+		rootfs_tarball=$PREBUILT_ROOTFS_PATH
 		if [ -d $rootfs_out_dir ]; then
 			rm -rf $rootfs_out_dir
 		fi
-		tar xf $rootfs_tarball -C $RK_PROJECT_OUTPUT
+		mkdir -p $rootfs_out_dir
+		tar xf $rootfs_tarball -C $rootfs_out_dir
 	else
-		msg_error "Not found rootfs tarball: $rootfs_tarball"
-		exit 1
+		if ! [ -d $RK_PROJECT_OUTPUT ]; then
+			mkdir -p $RK_PROJECT_OUTPUT
+		fi
+
+		if [ -f $rootfs_tarball ]; then
+			if [ -d $rootfs_out_dir ]; then
+				rm -rf $rootfs_out_dir
+			fi
+			tar xf $rootfs_tarball -C $RK_PROJECT_OUTPUT
+		else
+			msg_error "Not found rootfs tarball: $rootfs_tarball"
+			exit 1
+		fi
+
+		msg_info "If you need to add custom files, please upload them to <Luckfox Sdk>/output/out/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}."
 	fi
 
-	msg_info "If you need to add custom files, please upload them to <Luckfox Sdk>/output/out/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}."
 	finish_build
 }
 
@@ -693,27 +716,37 @@ function build_kernel() {
 function build_rootfs() {
 	check_config RK_BOOT_MEDIUM || check_config RK_TARGET_ROOTFS || return 0
 
-	make rootfs -C ${SDK_SYSDRV_DIR}
-
 	local rootfs_tarball rootfs_out_dir
 	rootfs_tarball="$RK_PROJECT_PATH_SYSDRV/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}.tar"
 	rootfs_out_dir="$RK_PROJECT_OUTPUT/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}"
 
-	if ! [ -d $RK_PROJECT_OUTPUT ]; then
-		mkdir -p $RK_PROJECT_OUTPUT
-	fi
-
-	if [ -f $rootfs_tarball ]; then
+	if [ $(check_prebuilt_rootfs) == "y" ]; then
+		rootfs_tarball=$PREBUILT_ROOTFS_PATH
 		if [ -d $rootfs_out_dir ]; then
 			rm -rf $rootfs_out_dir
 		fi
-		tar xf $rootfs_tarball -C $RK_PROJECT_OUTPUT
+		mkdir -p $rootfs_out_dir
+		tar xf $rootfs_tarball -C $rootfs_out_dir
 	else
-		msg_error "Not found rootfs tarball: $rootfs_tarball"
-		exit 1
+		make rootfs -C ${SDK_SYSDRV_DIR}
+
+		if ! [ -d $RK_PROJECT_OUTPUT ]; then
+			mkdir -p $RK_PROJECT_OUTPUT
+		fi
+
+		if [ -f $rootfs_tarball ]; then
+			if [ -d $rootfs_out_dir ]; then
+				rm -rf $rootfs_out_dir
+			fi
+			tar xf $rootfs_tarball -C $RK_PROJECT_OUTPUT
+		else
+			msg_error "Not found rootfs tarball: $rootfs_tarball"
+			exit 1
+		fi
+
+		msg_info "If you need to add custom files, please upload them to <Luckfox Sdk>/output/out/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}."
 	fi
 
-	msg_info "If you need to add custom files, please upload them to <Luckfox Sdk>/output/out/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}."
 	finish_build
 }
 
@@ -1011,8 +1044,11 @@ function build_all() {
 
 	[[ $RK_ENABLE_RECOVERY = "y" ]] && build_recovery
 	build_sysdrv
-	build_media
-	build_app
+
+	if [ $(check_prebuilt_rootfs) != "y" ]; then
+		build_media
+		build_app
+	fi
 	build_firmware
 
 	finish_build
@@ -1222,6 +1258,10 @@ EOF
 function __PACKAGE_ROOTFS() {
 	local rootfs_tarball rootfs_out_dir
 	rootfs_tarball="$RK_PROJECT_PATH_SYSDRV/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}.tar"
+
+	if [ $(check_prebuilt_rootfs) == "y" ]; then
+		rootfs_tarball=$PREBUILT_ROOTFS_PATH
+	fi
 
 	if [ ! -f $rootfs_tarball ]; then
 		msg_error "Build rootfs is not yet complete, packaging cannot proceed!"
