@@ -658,7 +658,6 @@ function build_sysdrv() {
 	echo "============Start building sysdrv============"
 
 	mkdir -p ${RK_PROJECT_OUTPUT_IMAGE}
-	make -C ${SDK_SYSDRV_DIR}
 
 	rootfs_tarball="$RK_PROJECT_PATH_SYSDRV/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}.tar"
 	rootfs_out_dir="$RK_PROJECT_OUTPUT/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}"
@@ -678,6 +677,8 @@ function build_sysdrv() {
 		if ! [ -d $RK_PROJECT_OUTPUT ]; then
 			mkdir -p $RK_PROJECT_OUTPUT
 		fi
+
+		make -C ${SDK_SYSDRV_DIR}
 
 		if [ -f $rootfs_tarball ]; then
 			if [ -d $rootfs_out_dir ]; then
