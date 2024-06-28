@@ -12,6 +12,7 @@
 / {
 	model = "Luckfox Pico Plus";
 	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1103";
+	};
 };
 
 /**********SFC**********/
@@ -58,6 +59,9 @@
 	spidev@0 {
 		spi-max-frequency = <50000000>;
 	};
+  fbtft@0 {
+    spi-max-frequency = <50000000>;
+  };
 };
 
 /**********I2C**********/
@@ -89,6 +93,4 @@
 &pwm1 {
 	status = "disabled";
 };
-
-
 

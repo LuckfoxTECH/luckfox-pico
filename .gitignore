@@ -4,3 +4,5 @@
 RK-RELEASE-NOTES-V1.4.1.txt
 IMAGE/
 output/
+project/app/wifi_app/wpa_supplicant.conf
+config/
