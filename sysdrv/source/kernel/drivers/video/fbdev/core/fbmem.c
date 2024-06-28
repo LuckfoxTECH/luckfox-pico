@@ -38,7 +38,7 @@
 
 #include <asm/fb.h>
 
-
+#define SHOW_CENTER 1
     /*
      *  Frame buffer device initialization and setup routines
      */
@@ -519,6 +519,11 @@ static int fb_show_logo_line(struct fb_info *info, int rotate,
 		image.dx = 0;
 		image.dy = y;
 	}
+
+#if SHOW_CENTER
+image.dx = (info->var.xres - logo->width) / 2;
+image.dy = (info->var.yres - logo->height) / 2;
+#endif
 
 	image.width = logo->width;
 	image.height = logo->height;

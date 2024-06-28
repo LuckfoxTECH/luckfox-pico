@@ -46,6 +46,9 @@
 	spidev@0 {
 		spi-max-frequency = <50000000>;
 	};
+  fbtft@0 {
+    spi-max-frequency = <50000000>;
+  };
 };
 
 /**********I2C**********/

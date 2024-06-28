@@ -68,7 +68,7 @@ if [ $? -eq 0 ]; then
 fi
 
 #aic8800
-if [ -f /oem/usr/ko/aic8800_fdrv.ko ]; then
+if [ -n "$(cat /proc/device-tree/model | grep "W")" ]; then
 	insmod cfg80211.ko
 	insmod libarc4.ko
 	insmod ctr.ko

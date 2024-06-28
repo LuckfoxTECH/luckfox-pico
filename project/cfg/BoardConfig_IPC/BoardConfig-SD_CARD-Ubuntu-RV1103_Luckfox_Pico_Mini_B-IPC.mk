@@ -8,10 +8,10 @@
 export RK_CHIP=rv1106
 
 # app config
-export RK_APP_TYPE=RKIPC_RV1103
+# export RK_APP_TYPE=RKIPC_RV1103
 
 # Config CMA size in environment
-export RK_BOOTARGS_CMA_SIZE="24M"
+export RK_BOOTARGS_CMA_SIZE="1M"
 
 # Kernel dts
 export RK_KERNEL_DTS=rv1103g-luckfox-pico-mini-b.dts

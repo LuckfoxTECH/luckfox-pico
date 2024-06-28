@@ -39,6 +39,7 @@ SDK_CONFIG_DIR=${SDK_ROOT_DIR}/config
 DTS_CONFIG=${SDK_CONFIG_DIR}/dts_config
 KERNEL_DEFCONFIG=${SDK_CONFIG_DIR}/kernel_defconfig
 BUILDROOT_DEFCONFIG=${SDK_CONFIG_DIR}/buildroot_defconfig
+UBUNTU_DIR=${SDK_SYSDRV_DIR}/tools/board/ubuntu
 
 if [ $(getconf _NPROCESSORS_ONLN) -eq 1 ]; then
 	export RK_JOBS=1
@@ -551,8 +552,6 @@ function build_check() {
 }
 
 function build_app() {
-	check_config RK_APP_TYPE || return 0
-
 	if [ "$RK_ENABLE_WIFI" = "y" ]; then
 		echo "Set Wifi SSID and PASSWD"
 		check_config LF_WIFI_PSK LF_WIFI_SSID || return 0
@@ -570,6 +569,8 @@ network={
 EOF
 		mv $WIFI_NEW_CONF $WIFI_CONF
 	fi
+
+	check_config RK_APP_TYPE || return 0
 
 	echo "============Start building app============"
 	echo "TARGET_APP_CONFIG=$RK_APP_DEFCONFIG $RK_APP_DEFCONFIG_FRAGMENT $RK_APP_TYPE"
@@ -1056,6 +1057,9 @@ function build_clean() {
 		make distclean -C ${SDK_APP_DIR}
 		rm -rf ${RK_PROJECT_OUTPUT_IMAGE} ${RK_PROJECT_OUTPUT}
 		rm -rf ${DTS_CONFIG} ${KERNEL_DEFCONFIG} ${BUILDROOT_DEFCONFIG}
+		rm -rf ${SDK_ROOT_DIR}/output ${SDK_ROOT_DIR}/config
+		rm -rf ${SDK_ROOT_DIR}/sysdrv/source/kernel/out
+		rm -rf ${BOARD_CONFIG}
 		;;
 	*)
 		msg_warn "clean [$1] not support, ignore"
@@ -1236,6 +1240,10 @@ echo Build Time:  $(date "+%Y-%m-%d-%T")
 echo SDK Version: ${GLOBAL_SDK_VERSION}
 EOF
 	chmod a+x $RK_PROJECT_PACKAGE_ROOTFS_DIR/bin/sdkinfo
+
+	if [ "$RK_BOOT_MEDIUM" == "emmc" ] && [ "$LF_TARGET_ROOTFS" == "ubuntu" ]; then
+		cp $WIFI_CONF $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc
+	fi
 
 	__COPY_FILES $RK_PROJECT_PATH_APP/root $RK_PROJECT_PACKAGE_ROOTFS_DIR
 	__COPY_FILES $RK_PROJECT_PATH_MEDIA/root $RK_PROJECT_PACKAGE_ROOTFS_DIR
@@ -1830,6 +1838,9 @@ __GET_BOOTARGS_FROM_BOARD_CFG() {
 
 __LINK_DEFCONFIG_FROM_BOARD_CFG() {
 	mkdir -p ${SDK_CONFIG_DIR}
+	if [[ "$LF_TARGET_ROOTFS" == "ubuntu" ]]; then
+		sudo chmod a+rw $SDK_CONFIG_DIR
+	fi
 
 	if [ -n "$RK_KERNEL_DTS" ]; then
 		rm -f $DTS_CONFIG
@@ -2149,6 +2160,7 @@ function build_save() {
 	STUB_PATH="$(echo $STUB_PATH | tr '[:lower:]' '[:upper:]')"
 	export STUB_PATH=$SDK_ROOT_DIR/$STUB_PATH
 	export STUB_PATCH_PATH=$STUB_PATH/PATCHES
+	export STUB_PARENT_PATH="$SDK_ROOT_DIR"/IMAGE
 	STUB_DEBUG_FILES_PATH="$STUB_PATH/DEBUG_FILES"
 	mkdir -p $STUB_PATH $STUB_PATCH_PATH
 
@@ -2172,6 +2184,11 @@ function build_save() {
 	echo "BUILD-ID: $(hostname):$(whoami)" >>$STUB_PATH/build_info.txt
 	build_info >>$STUB_PATH/build_info.txt
 	echo "save to $STUB_PATH"
+
+	if [[ "$LF_TARGET_ROOTFS" == "ubuntu" ]]; then
+		sudo chmod a+rw $STUB_PARENT_PATH
+	fi
+
 	finish_build
 }
 
@@ -2262,7 +2279,13 @@ if [[ "$LF_TARGET_ROOTFS" = "ubuntu" ]]; then
 			exit 0
 		fi
 	fi
-	git submodule update --init --recursive
+
+	if [ -d "$UBUNTU_DIR" ] && [ -f ${UBUNTU_DIR}/luckfox-ubuntu-22.04.3.tar.gz ]; then
+		msg_info "${UBUNTU_DIR} is not empty, skipping submodule update!"
+	else
+		msg_info "${UBUNTU_DIR} is empty or does not exist, updateing submodule!"
+		git submodule update --init --recursive
+	fi
 fi
 
 if echo $@ | grep -wqE "help|-h"; then
@@ -2341,4 +2364,3 @@ while [ $# -ne 0 ]; do
 done
 
 eval "${option:-build_allsave}"
-
