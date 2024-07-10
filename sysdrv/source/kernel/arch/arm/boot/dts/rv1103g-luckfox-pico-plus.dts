@@ -12,7 +12,6 @@
 / {
 	model = "Luckfox Pico Plus";
 	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1103";
-	};
 };
 
 /**********SFC**********/
