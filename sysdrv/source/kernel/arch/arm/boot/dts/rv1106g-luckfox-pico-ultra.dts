@@ -27,6 +27,13 @@
 
 /**********EMMC**********/
 &emmc {
+	bus-width = <8>;
+	cap-mmc-highspeed;
+	non-removable;
+	// mmc-hs200-1_8v;
+	rockchip,default-sample-phase = <90>;
+	no-sdio;
+	no-sd;
 	memory-region-ecsd = <&mmc_ecsd>;
 	post-power-on-delay-ms = <0>;
 	status = "okay";

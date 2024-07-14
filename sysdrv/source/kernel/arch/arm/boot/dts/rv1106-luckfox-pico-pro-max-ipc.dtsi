@@ -299,10 +299,22 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 	spidev@0 {
-		compatible = "rockchip,spidev";
+    compatible = "rockchip,spidev";
 		spi-max-frequency = <50000000>;
 		reg = <0>;
 	};
+
+  fbtft@0{
+    compatible = "sitronix,st7789v";
+    reg = <0>;
+    spi-max-frequency = <20000000>;
+    fps = <30>;
+    buswidth = <8>;
+    debug = <0x7>;
+    led-gpios = <&gpio2 RK_PB0 GPIO_ACTIVE_LOW>;//BL
+    dc = <&gpio2 RK_PB1 GPIO_ACTIVE_HIGH>;      //DC
+    reset = <&gpio1 RK_PC3 GPIO_ACTIVE_LOW>;    //RES
+  };
 };
 // I2C
 &i2c0 {
@@ -318,7 +330,7 @@
 };
 
 // &i2c4 {
-// 	pinctrl-0 = <&i2c4m0_xfer>;
+//  pinctrl-0 = <&i2c4m0_xfer>;
 // };
 
 // UART
