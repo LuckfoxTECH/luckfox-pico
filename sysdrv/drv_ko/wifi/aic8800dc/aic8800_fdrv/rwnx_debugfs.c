@@ -1334,6 +1334,14 @@ static ssize_t rwnx_dbgfs_vendor_hwconfig_write(struct file *file,
                     printk("CHIP_TEMP_GET_REQ degree=%d\n", addr_out[0]);
                 }
             break;
+			case 6://AP_PS_LEVEL_SET_REQ
+				if (ret != 2) {
+					printk("param error != 2\n");
+				} else {
+					ret = rwnx_send_vendor_hwconfig_req(priv, hwconfig_id, addr, NULL);
+					printk("AP_PS_LEVEL_SET_REQ lvl=%d\n", addr[0]);
+				}
+			break;
             default:
 			printk("param error\n");
 			break;
@@ -1346,7 +1354,7 @@ static ssize_t rwnx_dbgfs_vendor_hwconfig_write(struct file *file,
 	return count;
 }
 
-DEBUGFS_WRITE_FILE_OPS(vendor_hwconfig)
+DEBUGFS_WRITE_FILE_OPS(vendor_hwconfig);
 
 static ssize_t rwnx_dbgfs_vendor_swconfig_write(struct file *file,
             const char __user *user_buf,
@@ -1400,6 +1408,35 @@ static ssize_t rwnx_dbgfs_vendor_swconfig_write(struct file *file,
                 }
             break;
 
+            case 3: // EXT_FLAGS_SET_REQ
+                if (ret != 2) {
+                    printk("param error != 2\n");
+                } else {
+                    ret = rwnx_send_vendor_swconfig_req(priv, swconfig_id, addr, addr_out);
+                    printk("EXT_FLAGS_SET_REQ set ext_flags=0x%x, get ext_flags=0x%x\n",
+                        addr[0], addr_out[0]);
+                }
+            break;
+
+            case 4: // EXT_FLAGS_GET_REQ
+                if (ret != 1) {
+                    printk("param error != 1\n");
+                } else {
+                    ret = rwnx_send_vendor_swconfig_req(priv, swconfig_id, addr, addr_out);
+                    printk("EXT_FLAGS_GET_REQ get ext_flags=0x%x\n", addr_out[0]);
+                }
+            break;
+
+            case 5: // EXT_FLAGS_MASK_SET_REQ
+                if (ret != 3) {
+                    printk("param error != 3\n");
+                } else {
+                    ret = rwnx_send_vendor_swconfig_req(priv, swconfig_id, addr, addr_out);
+                    printk("EXT_FLAGS_MASK_SET_REQ set ext_flags mask=0x%x, val=0x%x, get ext_flags=0x%x\n",
+                        addr[0], addr[1], addr_out[0]);
+                }
+            break;
+
             default:
                 printk("param error\n");
                 break;
@@ -1413,8 +1450,107 @@ static ssize_t rwnx_dbgfs_vendor_swconfig_write(struct file *file,
     return count;
 }
 
-DEBUGFS_WRITE_FILE_OPS(vendor_swconfig)
+DEBUGFS_WRITE_FILE_OPS(vendor_swconfig);
 
+static ssize_t rwnx_dbgfs_agg_disable_write(struct file *file,
+            const char __user *user_buf,
+            size_t count, loff_t *ppos)
+{
+    struct rwnx_hw *priv = file->private_data;
+    char buf[64];
+    int agg_disable, agg_disable_rx, sta_idx;
+    size_t len = min_t(size_t, count, sizeof(buf) - 1);
+    int ret;
+    printk("%s\n", __func__);
+
+    if (copy_from_user(buf, user_buf, len)) {
+        return -EFAULT;
+    }
+
+    buf[len] = '\0';
+    ret = sscanf(buf, "%d %d %d", &agg_disable, &agg_disable_rx, &sta_idx);
+    if ((ret > 3) || (ret < 2)) {
+        printk("param error: cnt=%d\n", ret);
+    } else {
+        if (ret < 3) {
+            sta_idx = RWNX_INVALID_STA;
+        }
+        printk("disable_agg: T=%d, R=%d, staidx=%d\n", agg_disable, agg_disable_rx, sta_idx);
+        ret = rwnx_send_disable_agg_req(priv, (u8_l)agg_disable, (u8_l)agg_disable_rx, (u8_l)sta_idx);
+        if (ret) {
+            printk("rwnx_send_disable_agg_req fail: %d\n", ret);
+        }
+    }
+
+    return count;
+}
+
+DEBUGFS_WRITE_FILE_OPS(agg_disable);
+
+static ssize_t rwnx_dbgfs_set_roc_write(struct file *file,
+            const char __user *user_buf,
+            size_t count, loff_t *ppos)
+{
+    struct rwnx_hw *priv = file->private_data;
+    struct rwnx_vif *vif = NULL;
+    char buf[64];
+    int roc_start, chan_freq, duration;
+    size_t len = min_t(size_t, count, sizeof(buf) - 1);
+    int ret;
+    int if_type = NL80211_IFTYPE_STATION;
+    printk("%s\n", __func__);
+
+    if (copy_from_user(buf, user_buf, len)) {
+        return -EFAULT;
+    }
+
+    buf[len] = '\0';
+    ret = sscanf(buf, "%d %d %d", &roc_start, &chan_freq, &duration);
+
+    list_for_each_entry(vif, &priv->vifs, list) {
+        if (RWNX_VIF_TYPE(vif) == if_type) {
+            break;
+        }
+    }
+    if ((ret > 3) || (ret < 1)) {
+        printk("param error: cnt=%d\n", ret);
+    } else if (vif) {
+        struct ieee80211_channel chan_entry = {0,};
+        struct ieee80211_channel *chan = &chan_entry;
+        struct mm_remain_on_channel_cfm roc_cfm;
+        if (ret < 3) {
+            duration = 2000;
+            if (ret < 2) {
+                chan_freq = 2412;
+            }
+        }
+        printk("set_roc: start=%d, freq=%d\n", roc_start, chan_freq);
+        if (roc_start) {
+            if (chan_freq <= 2484) {
+                chan->band = NL80211_BAND_2GHZ;
+            } else {
+                chan->band = NL80211_BAND_5GHZ;
+            }
+            chan->center_freq = chan_freq;
+            chan->max_power = 18;
+            ret = rwnx_send_roc(priv, vif, chan, duration, &roc_cfm);
+            if (ret) {
+                printk("rwnx_send_roc fail: %d\n", ret);
+            } else {
+                printk("roc_cfm: opcode=%x, st=%d, idx=%d\n", roc_cfm.op_code, roc_cfm.status, roc_cfm.chan_ctxt_index);
+            }
+        } else {
+            ret = rwnx_send_cancel_roc(priv);
+            if (ret) {
+                printk("rwnx_send_cancel_roc fail: %d\n", ret);
+            }
+        }
+    }
+
+    return count;
+}
+
+DEBUGFS_WRITE_FILE_OPS(set_roc);
 
 #ifdef CONFIG_RWNX_FULLMAC
 
@@ -2239,6 +2375,8 @@ int rwnx_dbgfs_register(struct rwnx_hw *rwnx_hw, const char *name)
 	DEBUGFS_ADD_FILE(regdbg, dir_drv, S_IWUSR);
 	DEBUGFS_ADD_FILE(vendor_hwconfig, dir_drv,S_IWUSR);
 	DEBUGFS_ADD_FILE(vendor_swconfig, dir_drv,S_IWUSR);
+	DEBUGFS_ADD_FILE(agg_disable, dir_drv,S_IWUSR);
+	DEBUGFS_ADD_FILE(set_roc, dir_drv,S_IWUSR);
 
 #ifdef CONFIG_RWNX_P2P_DEBUGFS
 	{

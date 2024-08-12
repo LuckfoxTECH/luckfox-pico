@@ -47,6 +47,14 @@ u32 adaptivity_patch_tbl_8800d80[][2] = {
 	{0x0168, 0x00010000}, //tx_adaptivity_en
 };
 
+#define USER_CHAN_MAX_TXPWR_EN_FLAG     (0x01U << 1)
+#define USER_TX_USE_ANA_F_FLAG          (0x01U << 2)
+
+#define CFG_USER_CHAN_MAX_TXPWR_EN  0
+#define CFG_USER_TX_USE_ANA_F       0
+
+#define CFG_USER_EXT_FLAGS_EN   (CFG_USER_CHAN_MAX_TXPWR_EN || CFG_USER_TX_USE_ANA_F)
+
 u32 patch_tbl_8800d80[][2] = {
 	#ifdef USE_5G
 	{0x00b4, 0xf3010001},
@@ -56,9 +64,20 @@ u32 patch_tbl_8800d80[][2] = {
 #if defined(CONFIG_AMSDU_RX)
         {0x170, 0x0100000a}
 #endif
-#if AIC_IRQ_WAKE_FLAG
+#ifdef CONFIG_IRQ_FALL
 	{0x00000170, 0x0000010a}, //irqf
 #endif
+
+    #if CFG_USER_EXT_FLAGS_EN
+    {0x0188, 0x00000001
+        #if CFG_USER_CHAN_MAX_TXPWR_EN
+        | USER_CHAN_MAX_TXPWR_EN_FLAG
+        #endif
+        #if CFG_USER_TX_USE_ANA_F
+        | USER_TX_USE_ANA_F_FLAG
+        #endif
+    }, // user_ext_flags
+    #endif
 };
 
 #ifdef CONFIG_OOB
@@ -90,11 +109,16 @@ int aicwifi_sys_config_8800d80(struct aic_sdio_dev *sdiodev)
 	return 0;
 }
 
+#define NEW_PATCH_BUFFER_MAP    1
+
 int aicwifi_patch_config_8800d80(struct aic_sdio_dev *sdiodev)
 {
 	const u32 rd_patch_addr = RAM_FMAC_FW_ADDR + 0x0198;
 	u32 aic_patch_addr;
 	u32 config_base, aic_patch_str_base;
+	#if (NEW_PATCH_BUFFER_MAP)
+	u32 patch_buff_addr, patch_buff_base, rd_version_addr, rd_version_val;
+	#endif
 	uint32_t start_addr = 0x0016F800;
 	u32 patch_addr = start_addr;
 	u32 patch_cnt = sizeof(patch_tbl_8800d80)/sizeof(u32)/2;
@@ -125,6 +149,27 @@ int aicwifi_patch_config_8800d80(struct aic_sdio_dev *sdiodev)
 		return ret;
 	}
 	aic_patch_str_base = rd_patch_addr_cfm.memdata;
+
+	#if (NEW_PATCH_BUFFER_MAP)
+	rd_version_addr = RAM_FMAC_FW_ADDR + 0x01C;
+	if ((ret = rwnx_send_dbg_mem_read_req(sdiodev, rd_version_addr, &rd_patch_addr_cfm))) {
+		printk("version val[0x%x] rd fail: %d\n", rd_version_addr, ret);
+		return ret;
+	}
+	rd_version_val = rd_patch_addr_cfm.memdata;
+	printk("rd_version_val=%08X\n", rd_version_val);
+	sdiodev->fw_version_uint = rd_version_val;
+	if (rd_version_val > 0x06090100) {
+		patch_buff_addr = rd_patch_addr + 12;
+		ret = rwnx_send_dbg_mem_read_req(sdiodev, patch_buff_addr, &rd_patch_addr_cfm);
+		if (ret) {
+			printk("patch buf rd fail\n");
+			return ret;
+		}
+		patch_buff_base = rd_patch_addr_cfm.memdata;
+		patch_addr = start_addr = patch_buff_base;
+	}
+	#endif
 
 	ret = rwnx_send_dbg_mem_write_req(sdiodev, AIC_PATCH_ADDR(magic_num), AIC_PATCH_MAGIG_NUM);
 	if (ret) {

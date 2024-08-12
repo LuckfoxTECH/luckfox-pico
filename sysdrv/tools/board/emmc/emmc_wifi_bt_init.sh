@@ -2,10 +2,19 @@
 
 if [ "$(cat /proc/device-tree/model)" == "Luckfox Pico Ultra W" ]; then
 	systemctl stop wpa_supplicant
-	if [ -d /usr/ko ]; then
-		cd /usr/ko
+	if [ -d /oem/usr/ko ]; then
+		cd /oem/usr/ko
 		if [ -z "$(ifconfig | grep "wlan0")" ]; then
-			./insmod_wifi.sh
+			insmod cfg80211.ko
+			insmod libarc4.ko
+			insmod ctr.ko
+			insmod ccm.ko
+			insmod aes_generic.ko
+			insmod aic8800_bsp.ko
+			sleep 0.2
+			insmod aic8800_fdrv.ko
+			sleep 2
+			insmod aic8800_btplm.ko
 		else
 			# wait systemctl
 			sleep 0.5

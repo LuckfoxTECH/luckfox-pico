@@ -19,6 +19,11 @@
 #ifdef CONFIG_RWNX_FULLMAC
 const int nx_tid_prio[NX_NB_TID_PER_STA] = {7, 6, 5, 4, 3, 0, 2, 1};
 
+#ifdef CONFIG_TX_NETIF_FLOWCTRL
+extern int tx_fc_low_water;
+extern int tx_fc_high_water;
+#endif
+
 static inline int rwnx_txq_sta_idx(struct rwnx_sta *sta, u8 tid)
 {
 	if (is_multicast_sta(sta->sta_idx)){
@@ -853,9 +858,17 @@ int rwnx_txq_queue_skb(struct sk_buff *skb, struct rwnx_txq *txq,
 	/* Flowctrl corresponding netdev queue if needed */
 #ifdef CONFIG_RWNX_FULLMAC
 #ifndef CONFIG_ONE_TXQ
+
+#ifdef CONFIG_TX_NETIF_FLOWCTRL
+	if ((txq->ndev_idx != NDEV_NO_TXQ) && ((skb_queue_len(&txq->sk_list) > RWNX_NDEV_FLOW_CTRL_STOP) &&
+	!rwnx_hw->sdiodev->flowctrl)) {
+//		  (atomic_read(&rwnx_hw->sdiodev->tx_priv->tx_pktcnt) >= tx_fc_high_water))) {
+#else
 	/* If too many buffer are queued for this TXQ stop netdev queue */
 	if ((txq->ndev_idx != NDEV_NO_TXQ) &&
 		(skb_queue_len(&txq->sk_list) > RWNX_NDEV_FLOW_CTRL_STOP)) {
+#endif
+
 		txq->status |= RWNX_TXQ_NDEV_FLOW_CTRL;
 		netif_stop_subqueue(txq->ndev, txq->ndev_idx);
 #ifdef CREATE_TRACE_POINT
@@ -1292,8 +1305,14 @@ void rwnx_hwq_process(struct rwnx_hw *rwnx_hw, struct rwnx_hwq *hwq)
 		}
 #ifndef CONFIG_ONE_TXQ
 		/* restart netdev queue if number of queued buffer is below threshold */
+#ifdef CONFIG_TX_NETIF_FLOWCTRL
+		if (unlikely(txq->status & RWNX_TXQ_NDEV_FLOW_CTRL) &&
+			(skb_queue_len(&txq->sk_list) < RWNX_NDEV_FLOW_CTRL_RESTART)) {
+#else
 		if (unlikely(txq->status & RWNX_TXQ_NDEV_FLOW_CTRL) &&
 			skb_queue_len(&txq->sk_list) < RWNX_NDEV_FLOW_CTRL_RESTART) {
+#endif
+
 			txq->status &= ~RWNX_TXQ_NDEV_FLOW_CTRL;
 			netif_wake_subqueue(txq->ndev, txq->ndev_idx);
 #ifdef CREATE_TRACE_POINTS

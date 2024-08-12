@@ -46,6 +46,7 @@ extern int aicwf_dbg_level_bsp;
 
 #define AICWF_LOG		"AICWFDBG("
 
+#ifdef DEBUG
 #define AICWFDBG(level, args, arg...)	\
 do {	\
 	if (aicwf_dbg_level_bsp & level) {	\
@@ -60,6 +61,12 @@ do {	\
 	}	\
 } while (0)
 
+#else 
+
+#define AICWFDBG(level, args, arg...)
+#define RWNX_DBG(fmt, ...)
+
+#endif
 /// Message structure for MSGs from Emb to App
 struct ipc_e2a_msg {
 	u16 id;                ///< Message id.
@@ -312,6 +319,8 @@ int aicwf_plat_patch_load_8800dc(struct aic_sdio_dev *sdiodev);
 int aicwf_plat_rftest_load_8800dc(struct aic_sdio_dev *sdiodev);
 #ifdef CONFIG_DPD
 int aicwf_misc_ram_valid_check_8800dc(struct aic_sdio_dev *sdiodev, int *valid_out);
+#endif
+#if defined(CONFIG_DPD) || defined(CONFIG_LOFT_CALIB)
 int aicwf_plat_calib_load_8800dc(struct aic_sdio_dev *sdiodev);
 #endif
 
@@ -371,10 +380,16 @@ int aicbsp_resv_mem_deinit(void);
 
 #define RWNX_MAC_CALIB_BASE_NAME_8800DC        "fmacfw_calib_8800dc"
 #define RWNX_MAC_CALIB_NAME_8800DC_U02          RWNX_MAC_CALIB_BASE_NAME_8800DC"_u02.bin"
+#ifdef CONFIG_SDIO_BT
+#define RWNX_MAC_CALIB_NAME_8800DC_H_U02        RWNX_MAC_CALIB_BASE_NAME_8800DC"_hbt_u02.bin"
+#else
 #define RWNX_MAC_CALIB_NAME_8800DC_H_U02        RWNX_MAC_CALIB_BASE_NAME_8800DC"_h_u02.bin"
+#endif
 
-#ifdef CONFIG_DPD
+#if defined(CONFIG_DPD) || defined(CONFIG_LOFT_CALIB)
 #define ROM_FMAC_CALIB_ADDR            0x00130000
+#endif
+#ifdef CONFIG_DPD
 #ifndef CONFIG_FORCE_DPD_CALIB
 #define FW_DPDRESULT_NAME_8800DC        "aic_dpdresult_lite_8800dc.bin"
 #endif
@@ -389,13 +404,21 @@ int aicbsp_resv_mem_deinit(void);
 #define RWNX_MAC_PATCH_BASE_NAME_8800DC        "fmacfw_patch_8800dc"
 #define RWNX_MAC_PATCH_NAME2_8800DC RWNX_MAC_PATCH_BASE_NAME_8800DC".bin"
 #define RWNX_MAC_PATCH_NAME2_8800DC_U02 RWNX_MAC_PATCH_BASE_NAME_8800DC"_u02.bin"
+#ifdef CONFIG_SDIO_BT
+#define RWNX_MAC_PATCH_NAME2_8800DC_H_U02 RWNX_MAC_PATCH_BASE_NAME_8800DC"_hbt_u02.bin"
+#else
 #define RWNX_MAC_PATCH_NAME2_8800DC_H_U02 RWNX_MAC_PATCH_BASE_NAME_8800DC"_h_u02.bin"
+#endif
 #endif
 
 #define RWNX_MAC_PATCH_TABLE_NAME_8800DC "fmacfw_patch_tbl_8800dc"
 #define RWNX_MAC_PATCH_TABLE_8800DC RWNX_MAC_PATCH_TABLE_NAME_8800DC ".bin"
 #define RWNX_MAC_PATCH_TABLE_8800DC_U02 RWNX_MAC_PATCH_TABLE_NAME_8800DC "_u02.bin"
+#ifdef CONFIG_SDIO_BT
+#define RWNX_MAC_PATCH_TABLE_8800DC_H_U02 RWNX_MAC_PATCH_TABLE_NAME_8800DC "_hbt_u02.bin"
+#else
 #define RWNX_MAC_PATCH_TABLE_8800DC_H_U02 RWNX_MAC_PATCH_TABLE_NAME_8800DC "_h_u02.bin"
+#endif
 
 #define RWNX_MAC_RF_PATCH_BASE_NAME_8800DC     "fmacfw_rf_patch_8800dc"
 #define RWNX_MAC_RF_PATCH_NAME_8800DC RWNX_MAC_RF_PATCH_BASE_NAME_8800DC".bin"
@@ -492,8 +515,12 @@ enum chip_rev {
 
 #define AICBT_BTMODE_DEFAULT_8800d80    AICBT_BTMODE_BT_ONLY_COANT
 #define AICBT_BTMODE_DEFAULT            AICBT_BTMODE_BT_ONLY_SW
+#ifdef CONFIG_SDIO_BT
+#define AICBT_BTPORT_DEFAULT            AICBT_BTPORT_MB
+#else
 #define AICBT_BTPORT_DEFAULT            AICBT_BTPORT_UART
-#define AICBT_UART_BAUD_DEFAULT         AICBT_UART_BAUD_115200
+#endif
+#define AICBT_UART_BAUD_DEFAULT         AICBT_UART_BAUD_1_5M
 #define AICBT_UART_FC_DEFAULT           AICBT_UART_FLOWCTRL_ENABLE
 #define AICBT_LPM_ENABLE_DEFAULT 	    0
 #define AICBT_TXPWR_LVL_DEFAULT         AICBT_TXPWR_LVL
@@ -501,9 +528,8 @@ enum chip_rev {
 #define AICBT_TXPWR_LVL_DEFAULT_8800d80 AICBT_TXPWR_LVL_8800d80
 
 
-#define AIC_IRQ_WAKE_FLAG           0          // 0: rising edge, 1: falling edge
-#define FEATURE_SDIO_CLOCK          10000000 // 0: default, other: target clock rate
-#define FEATURE_SDIO_CLOCK_V3       50000000 // 0: default, other: target clock rate
+#define FEATURE_SDIO_CLOCK          50000000 // 0: default, other: target clock rate
+#define FEATURE_SDIO_CLOCK_V3       150000000 // 0: default, other: target clock rate
 #define FEATURE_SDIO_PHASE          2        // 0: default, 2: 180°
 
 struct aicbt_patch_table {
@@ -562,5 +588,6 @@ extern const struct aicbsp_firmware fw_8800dc_u02[];
 extern const struct aicbsp_firmware fw_8800dc_h_u02[];
 extern const struct aicbsp_firmware fw_8800d80_u01[];
 extern const struct aicbsp_firmware fw_8800d80_u02[];
+extern const struct aicbsp_firmware fw_8800d80_h_u02[];
 
 #endif

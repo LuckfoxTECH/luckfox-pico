@@ -47,12 +47,14 @@ int aicwf_bus_init(uint bus_hdrlen, struct device *dev)
 	if (IS_ERR(bus_if->bustx_thread)) {
 		bus_if->bustx_thread  = NULL;
 		txrx_err("aicwf_bustx_thread run fail\n");
+		ret = -1;
 		goto fail;
 	}
 
 	if (IS_ERR(bus_if->busrx_thread)) {
 		bus_if->busrx_thread  = NULL;
 		txrx_err("aicwf_bustx_thread run fail\n");
+		ret = -1;
 		goto fail;
 	}
 

@@ -25,16 +25,18 @@ u32 syscfg_tbl_8800dc_sdio_u02[][2] = {
     {0x40030084, 0x0011E800},
     {0x40030080, 0x00000001},
     {0x4010001C, 0x00000000},
+};
 #ifdef CONFIG_OOB
-    {0x40504044, 0x2},//oob_enable
-    {0x40500060, 0x03020700},
-    {0x40500040, 0},
-    {0x40100030, 1},
-    {0x40241020, 1},
-    {0x402400f0, 0x340022},
+u32 oobcfg_tbl_8800dc_sdio_u02[][2] = {
+		{0x40504044, 0x2},//oob_enable
+		{0x40500060, 0x03020700},
+		{0x40500040, 0},
+		{0x40100030, 1},
+		{0x40241020, 1},
+		{0x402400f0, 0x340022},
+};
 #endif //CONFIG_OOB
 
-};
 
 u32 syscfg_tbl_masked_8800dc[][3] = {
     //#ifdef CONFIG_PMIC_SETTING
@@ -1321,7 +1323,7 @@ uint32_t agc_cfg_ram[] = {
     0x00000000
 };
 
-
+#if !defined(CONFIG_EXT_FEM_8800DCDW)
 uint32_t txgain_map[96] =  {
 #ifdef CONFIG_FPGA_VERIFICATION
     0x20c0c971,
@@ -1459,8 +1461,8 @@ uint32_t txgain_map[96] =  {
     0x00ffc88b,
     0x00ffc979,
     0x00ffc989,
-    0x00ffca7d,
-    0x00ffca88,
+    0x00ffcc4b,
+    0x00ffcc54,
     0x00ffcc5e,
     0x00ffcc69,
     0x00ffcc78,
@@ -1492,8 +1494,8 @@ uint32_t txgain_map[96] =  {
     0x00ffc88b,
     0x00ffc979,
     0x00ffc989,
-    0x00ffca7d,
-    0x00ffca88,
+    0x00ffcc4b,
+    0x00ffcc54,
     0x00ffcc5e,
     0x00ffcc69,
     0x00ffcc78,
@@ -1501,9 +1503,9 @@ uint32_t txgain_map[96] =  {
     0x00ffcd70,
     0x00ffcd80,
     0x00ffcd90,
-    0x00ffce80,
-    0x00ffce93,
-    0x00ffcf90,
+    0x00ffcf68,
+    0x00ffcf75,
+    0x00ffcf83,
     0x00ffc080,
     0x00ffc090,
     0x00ffc180,
@@ -1562,8 +1564,8 @@ const uint32_t txgain_map_h[96] =
     0xffc879, //8
     0xffc96b, //9
     0xffc979, //10
-    0xffca6b, //11
-    0xffca79, //12
+    0xffcc45, //11
+    0xffcc4d, //12
     0xffcc56, //13
     0xffcc60, //14
     0xffcc6b, //15
@@ -1595,15 +1597,15 @@ const uint32_t txgain_map_h[96] =
     0xffc879, //8
     0xffc96b, //9
     0xffc979, //10
-    0xffca6b, //11
-    0xffca79, //12
+    0xffcc45, //11
+    0xffcc4d, //12
     0xffcc56, //13
     0xffcc60, //14
     0xffcc6b, //15
     0xffcc79, //16
     0xffcd72, //17
-    0xffce60, //18
-    0xffce72, //19
+    0xffcf5b, //18
+    0xffcf66, //19
     0xffcf72, //20
     0xffcf80, //21
     0xffcf90, //22
@@ -1626,6 +1628,213 @@ const uint32_t txgain_map_h[96] =
     0xffc86b, //7
 };
 
+#else /* #ifdef CONFIG_EXT_FEM_8800DCDW */
+const uint32_t txgain_map_femkct[96] =
+{
+    //11b
+    0x00ffd780,//15
+    0x00ffd872,//16
+    0x00ffd880,//17
+    0x00ffd972,//18
+    0x00ffd980,//19
+    0x00ffda72,//20
+    0x00ffda80,//21
+    0x00ffdb72,//22
+    0x00ffdb80,//23
+    0x00ffdc72,//24
+    0x00ffdc80,//25
+    0x00ffdd72,//26
+    0x00ffdd80,//27
+    0x00ffde72,//28
+    0x00ffde80,//29
+    0x00ffdf72,//30
+    0x00ffd072,//-1
+    0x00ffd072,//0
+    0x00ffd080,//1
+    0x00ffd172,//2
+    0x00ffd180,//3
+    0x00ffd272,//4
+    0x00ffd280,//5
+    0x00ffd36d,//6
+    0x00ffd379,//7
+    0x00ffd46d,//8
+    0x00ffd479,//9
+    0x00ffd572,//10
+    0x00ffd580,//11
+    0x00ffd672,//12
+    0x00ffd680,//13
+    0x00ffd772,//14
+    //high
+    0x00ffc872,//11
+    0x00ffc880,//12
+    0x00ffc972,//13
+    0x00ffc980,//14
+    0x00ffca72,//15
+    0x00ffca80,//16
+    0x00ffcb72,//17
+    0x00ffcb80,//18
+    0x00ffcc72,//19
+    0x00ffcc80,//20
+    0x00ffcd72,//21
+    0x00ffcd80,//22
+    0x00ffce72,//23
+    0x00ffce80,//24
+    0x00ffcf72,//25
+    0x00ffcf80,//26
+    0x00ffc072,//-5
+    0x00ffc080,//-4
+    0x00ffc172,//-3
+    0x00ffc180,//-2
+    0x00ffc272,//-1
+    0x00ffc280,//0
+    0x00ffc372,//1
+    0x00ffc380,//2
+    0x00ffc472,//3
+    0x00ffc480,//4
+    0x00ffc572,//5
+    0x00ffc580,//6
+    0x00ffc672,//7
+    0x00ffc680,//8
+    0x00ffc772,//9
+    0x00ffc780,//10
+    //low
+    0x00ffc872,//11
+    0x00ffc880,//12
+    0x00ffc972,//13
+    0x00ffc980,//14
+    0x00ffca72,//15
+    0x00ffca80,//16
+    0x00ffcb72,//17
+    0x00ffcb80,//18
+    0x00ffcc72,//19
+    0x00ffcc80,//20
+    0x00ffcd72,//21
+    0x00ffcd80,//22
+    0x00ffce72,//23
+    0x00ffce80,//24
+    0x00ffcf72,//26
+    0x00ffcf80,//27
+    0x00ffc072,//-5
+    0x00ffc080,//-4
+    0x00ffc172,//-3
+    0x00ffc180,//-2
+    0x00ffc272,//-1
+    0x00ffc280,//0
+    0x00ffc372,//1
+    0x00ffc380,//2
+    0x00ffc472,//3
+    0x00ffc480,//4
+    0x00ffc572,//5
+    0x00ffc580,//6
+    0x00ffc672,//7
+    0x00ffc680,//8
+    0x00ffc772,//9
+    0x00ffc780,//10
+};
+
+const uint32_t txgain_map_femkct_h[96] =
+{
+    //11b
+    0x00ffd872,//15
+    0x00ffd880,//16
+    0x00ffd972,//17
+    0x00ffd980,//18
+    0x00ffd990,//19
+    0x00ffda72,//20
+    0x00ffda80,//21
+    0x00ffdb72,//22
+    0x00ffdb80,//23
+    0x00ffdc72,//24
+    0x00ffdc80,//25
+    0x00ffdd72,//26
+    0x00ffdd80,//27
+    0x00ffde72,//28
+    0x00ffde80,//29
+    0x00ffdf72,//30
+    0x00ffd072,//-1
+    0x00ffd072,//0
+    0x00ffd080,//1
+    0x00ffd172,//2
+    0x00ffd180,//3
+    0x00ffd272,//4
+    0x00ffd280,//5
+    0x00ffd379,//6
+    0x00ffd46d,//7
+    0x00ffd479,//8
+    0x00ffd572,//9
+    0x00ffd580,//10
+    0x00ffd672,//11
+    0x00ffd680,//12
+    0x00ffd772,//13
+    0x00ffd780,//14
+    //high
+    0x00ffc880,//11
+    0x00ffc972,//12
+    0x00ffc980,//13
+    0x00ffca72,//14
+    0x00ffca80,//15
+    0x00ffcb72,//16
+    0x00ffcb80,//17
+    0x00ffcc72,//18
+    0x00ffcc80,//19
+    0x00ffcc90,//20
+    0x00ffcd72,//21
+    0x00ffcd80,//22
+    0x00ffce72,//23
+    0x00ffce80,//24
+    0x00ffcf72,//25
+    0x00ffcf80,//26
+    0x00ffc080,//-5
+    0x00ffc172,//-4
+    0x00ffc180,//-3
+    0x00ffc272,//-2
+    0x00ffc280,//-1
+    0x00ffc372,//0
+    0x00ffc380,//1
+    0x00ffc472,//2
+    0x00ffc480,//3
+    0x00ffc572,//4
+    0x00ffc580,//5
+    0x00ffc672,//6
+    0x00ffc680,//7
+    0x00ffc772,//8
+    0x00ffc780,//9
+    0x00ffc872,//10
+    //low
+    0x00ffc880,//11
+    0x00ffc972,//12
+    0x00ffc980,//13
+    0x00ffca72,//14
+    0x00ffca80,//15
+    0x00ffcb72,//16
+    0x00ffcb80,//17
+    0x00ffcc72,//18
+    0x00ffcc80,//19
+    0x00ffcc90,//20
+    0x00ffcd72,//21
+    0x00ffcd80,//22
+    0x00ffce72,//23
+    0x00ffce80,//24
+    0x00ffcf72,//25
+    0x00ffcf80,//26
+    0x00ffc080,//-5
+    0x00ffc172,//-4
+    0x00ffc180,//-3
+    0x00ffc272,//-2
+    0x00ffc280,//-1
+    0x00ffc372,//0
+    0x00ffc380,//1
+    0x00ffc472,//2
+    0x00ffc480,//3
+    0x00ffc572,//4
+    0x00ffc580,//5
+    0x00ffc672,//6
+    0x00ffc680,//7
+    0x00ffc772,//8
+    0x00ffc780,//9
+    0x00ffc872,//10
+};
+#endif
 
 u32 jump_tbl[][2] =
 {
@@ -1687,9 +1896,60 @@ u32 patch_tbl_rf_func[][2] =
     {0x00110bf0, 0x00180001},
 };
 
+
+//adap test
+u32 adaptivity_patch_tbl_8800dc[][2] = {
+    {0x000C, 0x0000320A}, //linkloss_thd
+    {0x009C, 0x00000000}, //ac_param_conf
+    {0x0128, 0xF6140001}, //tx_adaptivity_en
+};
+//adap test
+
+
 static u8 chip_id = 0;
 #define CHIP_ID_H_MASK  0xC0
 #define IS_CHIP_ID_H()  ((chip_id & CHIP_ID_H_MASK) == CHIP_ID_H_MASK)
+
+//Crystal provided by CPU (start)
+int set_bbpll_config(struct aic_sdio_dev *rwnx_hw){
+//    {0x40505010, 0x7C301010},//bbpll
+	int ret = 0;
+	struct dbg_mem_read_cfm rd_mem_addr_cfm;
+
+	//Read crystal provided by CPU or not.
+    ret = rwnx_send_dbg_mem_read_req(rwnx_hw, 0x40500148, &rd_mem_addr_cfm);
+    if (ret) {
+		AICWFDBG(LOGERROR, "%x rd fail: %d\n", 0x40500148, ret);
+        return -1;
+    }
+
+	AICWFDBG(LOGDEBUG, "%s rd_mem_addr_cfm.memdata:%x \r\n", __func__, rd_mem_addr_cfm.memdata);
+
+	if(!(rd_mem_addr_cfm.memdata & 0x01)){
+		AICWFDBG(LOGINFO, "%s Crystal not provided by CPU \r\n", __func__);
+		return 0;
+	}else{
+		AICWFDBG(LOGINFO, "%s Crystal provided by CPU \r\n", __func__);
+		//Read 0x40505010 value to check bbpll set or not.
+		ret = rwnx_send_dbg_mem_read_req(rwnx_hw, 0x40505010, &rd_mem_addr_cfm);
+		if(ret < 0){
+			AICWFDBG(LOGERROR, "%s error ret_val:%d\r\n", __func__, ret);
+			return -1;
+		}
+
+		if((rd_mem_addr_cfm.memdata >> 29) == 3){
+			AICWFDBG(LOGERROR, "%s Not need to set \r\n", __func__);
+			return 0;
+		}else{
+			rd_mem_addr_cfm.memdata |= ((0x1 << 29) | (0x1 << 30));
+			rd_mem_addr_cfm.memdata &= (~(0x1 << 31));
+			rwnx_send_dbg_mem_write_req(rwnx_hw, 0x40505010, rd_mem_addr_cfm.memdata);
+		}
+	}
+	return 0;
+}
+//Crystal provided by CPU (end)
+
 
 void system_config_8800dc(struct aic_sdio_dev *rwnx_hw)
 {
@@ -1698,6 +1958,9 @@ void system_config_8800dc(struct aic_sdio_dev *rwnx_hw)
     int ret, cnt;
     const u32 mem_addr = 0x40500000;
     struct dbg_mem_read_cfm rd_mem_addr_cfm;
+#ifdef CONFIG_OOB
+	int oobcfg_num;
+#endif
 
     ret = rwnx_send_dbg_mem_read_req(rwnx_hw, mem_addr, &rd_mem_addr_cfm);
     if (ret) {
@@ -1718,6 +1981,14 @@ void system_config_8800dc(struct aic_sdio_dev *rwnx_hw)
     chip_sub_id = (u8)(rd_mem_addr_cfm.memdata);
     //printk("%x=%x\n", rd_mem_addr_cfm.memaddr, rd_mem_addr_cfm.memdata);
 	AICWFDBG(LOGINFO, "chip_id=%x, chip_sub_id=%x!!\n", chip_id, chip_sub_id);
+
+	//Crystal provided by CPU (start)
+	ret = set_bbpll_config(rwnx_hw);
+    if (ret) {
+		AICWFDBG(LOGERROR, "set_bbpll_config fail: %d\n", ret);
+        return;
+    }
+	//Crystal provided by CPU (end)
 
 
 	ret = rwnx_send_dbg_mem_read_req(rwnx_hw, 0x40500010, &rd_mem_addr_cfm);
@@ -1747,7 +2018,7 @@ void system_config_8800dc(struct aic_sdio_dev *rwnx_hw)
                     return;
                 }
             }
-        } else if (chip_sub_id == 1) {
+        } else if ((chip_sub_id == 1) || (chip_sub_id == 2)) {
             syscfg_num = sizeof(syscfg_tbl_8800dc_sdio_u02) / sizeof(u32) / 2;
             for (cnt = 0; cnt < syscfg_num; cnt++) {
                 ret = rwnx_send_dbg_mem_write_req(rwnx_hw, syscfg_tbl_8800dc_sdio_u02[cnt][0], syscfg_tbl_8800dc_sdio_u02[cnt][1]);
@@ -1758,7 +2029,18 @@ void system_config_8800dc(struct aic_sdio_dev *rwnx_hw)
             }
         }
     }
-
+#ifdef CONFIG_OOB
+	if ((chip_sub_id == 1) || (chip_sub_id == 2)) {
+		oobcfg_num = sizeof(oobcfg_tbl_8800dc_sdio_u02) / sizeof(u32) / 2;
+        for (cnt = 0; cnt < oobcfg_num; cnt++) {
+			ret = rwnx_send_dbg_mem_write_req(rwnx_hw, oobcfg_tbl_8800dc_sdio_u02[cnt][0], oobcfg_tbl_8800dc_sdio_u02[cnt][1]);
+			if (ret) {
+				AICWFDBG(LOGERROR, "%x write fail: %d\n", oobcfg_tbl_8800dc_sdio_u02[cnt][0], ret);
+				return;
+            }
+       }
+	}
+#endif
     if (IS_CHIP_ID_H()) {
         syscfg_num = sizeof(syscfg_tbl_masked_8800dc_h) / sizeof(u32) / 3;
         p_syscfg_msk_tbl = syscfg_tbl_masked_8800dc_h;
@@ -1800,6 +2082,7 @@ void system_config_8800dc(struct aic_sdio_dev *rwnx_hw)
 
 }
 
+extern int adap_test;
 
 void aicwf_patch_config_8800dc(struct aic_sdio_dev *rwnx_hw)
 {
@@ -1821,6 +2104,11 @@ void aicwf_patch_config_8800dc(struct aic_sdio_dev *rwnx_hw)
         u32 txgain_cfg_size, *txgain_cfg_array;
         u32 jump_tbl_size = 0;
         u32 patch_tbl_func_num = 0;
+
+	//adap test
+	int adap_patch_num = 0;
+	//adap test
+
 
         array2_tbl_t jump_tbl_base = NULL;
         array2_tbl_t patch_tbl_func_base = NULL;
@@ -1879,6 +2167,19 @@ void aicwf_patch_config_8800dc(struct aic_sdio_dev *rwnx_hw)
 			}
 		}
 
+//adap test
+		if(adap_test){
+            AICWFDBG(LOGINFO, "%s for adaptivity test \r\n", __func__);
+			adap_patch_num = sizeof(adaptivity_patch_tbl_8800dc)/sizeof(u32)/2;
+			for(cnt = 0; cnt < adap_patch_num; cnt++)
+			{
+				if((ret = rwnx_send_dbg_mem_write_req(rwnx_hw, wifisetting_cfg_addr + adaptivity_patch_tbl_8800dc[cnt][0], adaptivity_patch_tbl_8800dc[cnt][1]))) {
+					AICWFDBG(LOGERROR, "%x write fail\n", wifisetting_cfg_addr + adaptivity_patch_tbl_8800dc[cnt][0]);
+				}
+			}
+		}
+//adap test
+
         if (ldpc_cfg_size > 512) {// > 0.5KB data
             for (i = 0; i < (ldpc_cfg_size - 512); i += 512) {//each time write 0.5KB
                 ret = rwnx_send_dbg_mem_block_write_req(rwnx_hw, ldpc_cfg_addr + i, 512, ldpc_cfg_ram + i / 4);
@@ -1915,11 +2216,21 @@ void aicwf_patch_config_8800dc(struct aic_sdio_dev *rwnx_hw)
 
         #if !defined(CONFIG_FPGA_VERIFICATION)
         if ((IS_CHIP_ID_H())) {
+            #if defined(CONFIG_EXT_FEM_8800DCDW)
+            txgain_cfg_size = sizeof(txgain_map_femkct_h);
+            txgain_cfg_array = (u32 *)txgain_map_femkct_h;
+            #else
             txgain_cfg_size = sizeof(txgain_map_h);
             txgain_cfg_array = (u32 *)txgain_map_h;
+            #endif
         } else {
+            #if defined(CONFIG_EXT_FEM_8800DCDW)
+            txgain_cfg_size = sizeof(txgain_map_femkct);
+            txgain_cfg_array = (u32 *)txgain_map_femkct;
+            #else
             txgain_cfg_size = sizeof(txgain_map);
             txgain_cfg_array = (u32 *)txgain_map;
+            #endif
         }
         ret = rwnx_send_dbg_mem_block_write_req(rwnx_hw, txgain_cfg_addr, txgain_cfg_size, txgain_cfg_array);
         if (ret) {
@@ -2207,4 +2518,25 @@ int aicwf_dpd_result_write_8800dc(void *buf, int buf_len)
 #endif /* !CONFIG_FORCE_DPD_CALIB */
 #endif
 
-
+#ifdef CONFIG_LOFT_CALIB
+int aicwf_loft_calib_8800dc(struct aic_sdio_dev *sdiodev)
+{
+    int ret = 0;
+    uint32_t fw_addr, boot_type;
+    ret = aicwf_plat_calib_load_8800dc(sdiodev);
+    if (ret) {
+        AICWFDBG(LOGINFO, "load calib bin fail: %d\n", ret);
+        return ret;
+    }
+    /* fw start */
+    fw_addr = 0x00130009;
+    boot_type = HOST_START_APP_FNCALL;
+    AICWFDBG(LOGINFO, "Start app: %08x, %d\n", fw_addr, boot_type);
+    ret = rwnx_send_dbg_start_app_req(sdiodev, fw_addr, boot_type, NULL);
+    if (ret) {
+        AICWFDBG(LOGINFO, "start app fail: %d\n", ret);
+        return ret;
+    }
+    return ret;
+}
+#endif

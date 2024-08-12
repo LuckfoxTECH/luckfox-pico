@@ -25,6 +25,9 @@
 #include "rwnx_compat.h"
 #include "aicwf_txrxif.h"
 #include "rwnx_msg_rx.h"
+#ifdef CONFIG_SDIO_BT
+#include "aic_btsdio.h"
+#endif
 void rwnx_cfg80211_unlink_bss(struct rwnx_hw *rwnx_hw, struct rwnx_vif *rwnx_vif);
 
 static int rwnx_freq_to_idx(struct rwnx_hw *rwnx_hw, int freq)
@@ -275,6 +278,7 @@ found_vif:
 	if (ps_state == MM_PS_MODE_OFF) {
 		// Start TX queues for provided VIF
 		rwnx_txq_vif_start(vif_entry, RWNX_TXQ_STOP_VIF_PS, rwnx_hw);
+        tasklet_schedule(&rwnx_hw->task);
 	} else {
 		// Stop TX queues for provided VIF
 		rwnx_txq_vif_stop(vif_entry, RWNX_TXQ_STOP_VIF_PS, rwnx_hw);
@@ -382,6 +386,18 @@ static inline int rwnx_apm_staloss_ind(struct rwnx_hw *rwnx_hw,
 
     return 0;
 }
+
+#ifdef CONFIG_SDIO_BT
+static inline int rwnx_bt_recv_ind(struct rwnx_hw *rwnx_hw,
+                                                struct rwnx_cmd *cmd,
+                                                struct ipc_e2a_msg *msg)
+{
+	struct mm_bt_recv_ind *ind = (struct mm_bt_recv_ind *)msg->param;
+
+	bt_sdio_recv(ind->bt_data,ind->data_len);
+	return 0;
+}
+#endif
 
 static inline int rwnx_rx_csa_counter_ind(struct rwnx_hw *rwnx_hw,
 										  struct rwnx_cmd *cmd,
@@ -1481,6 +1497,9 @@ static msg_cb_fct tdls_hdlrs[MSG_I(TDLS_MAX)] = {
 	[MSG_I(TDLS_CHAN_SWITCH_IND)] = rwnx_rx_tdls_chan_switch_ind,
 	[MSG_I(TDLS_CHAN_SWITCH_BASE_IND)] = rwnx_rx_tdls_chan_switch_base_ind,
 	[MSG_I(TDLS_PEER_PS_IND)] = rwnx_rx_tdls_peer_ps_ind,
+#ifdef CONFIG_SDIO_BT
+	[MSG_I(TDLS_SDIO_BT_RECV_IND)]	= rwnx_bt_recv_ind,
+#endif
 };
 
 static msg_cb_fct *msg_hdlrs[] = {
@@ -1501,7 +1520,7 @@ static msg_cb_fct *msg_hdlrs[] = {
  */
 void rwnx_rx_handle_msg(struct rwnx_hw *rwnx_hw, struct ipc_e2a_msg *msg)
 {
-	//printk("%s msg->id:0x%x \r\n", __func__, msg->id);
+	AICWFDBG(LOGDEBUG, "%s msg->id:0x%x \r\n", __func__, msg->id);
 
 	rwnx_hw->cmd_mgr->msgind(rwnx_hw->cmd_mgr, msg,
 							msg_hdlrs[MSG_T(msg->id)][MSG_I(msg->id)]);

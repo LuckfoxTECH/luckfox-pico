@@ -36,10 +36,10 @@ struct msg_buf {
 	u8 mode;
 	u16 len;
 	unsigned long timeout;*/
-	/* marlin 2 */
+
 	/*unsigned int fifo_id;
 	struct sprdwl_msg_list *msglist;*/
-	/* marlin 3 */
+
 	/*unsigned char buffer_type;
 	struct sprdwl_xmit_msg_list *xmit_msg_list;
 	unsigned char msg_type;

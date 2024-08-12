@@ -2280,7 +2280,7 @@ if [[ "$LF_TARGET_ROOTFS" = "ubuntu" ]]; then
 		fi
 	fi
 
-	if [ -d "$UBUNTU_DIR" ] && [ -f ${UBUNTU_DIR}/luckfox-ubuntu-22.04.3.tar.gz ]; then
+	if [ -d "$UBUNTU_DIR" ] && [ -f ${UBUNTU_DIR}/luckfox-ubuntu-22.04.3.tar.gz.md5 ]; then
 		msg_info "${UBUNTU_DIR} is not empty, skipping submodule update!"
 	else
 		msg_info "${UBUNTU_DIR} is empty or does not exist, updateing submodule!"
