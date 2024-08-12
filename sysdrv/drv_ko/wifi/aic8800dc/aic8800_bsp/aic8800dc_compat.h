@@ -30,6 +30,9 @@ int aicwf_dpd_result_load_8800dc(struct aic_sdio_dev *sdiodev, rf_misc_ram_lite_
 int aicwf_dpd_result_write_8800dc(void *buf, int buf_len);
 #endif/* !CONFIG_FORCE_DPD_CALIB */
 #endif
+#ifdef CONFIG_LOFT_CALIB
+int aicwf_loft_calib_8800dc(struct aic_sdio_dev *sdiodev);
+#endif
 
 #endif
 

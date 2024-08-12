@@ -108,6 +108,7 @@ struct aic_sdio_dev {
 	struct semaphore pwrctl_wakeup_sema;
 #endif
 	u16 chipid;
+	u32 fw_version_uint;
     struct aic_sdio_reg sdio_reg;
     void (*sdio_hal_irqhandler) (struct sdio_func *func);
 };

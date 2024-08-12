@@ -998,7 +998,7 @@ int aicwf_misc_ram_valid_check_8800dc(struct aic_sdio_dev *sdiodev, int *valid_o
         *valid_out = 0;
     }
     if (testmode == FW_RFTEST_MODE) {
-		
+
 	    uint32_t vect1 = 0;
 	    uint32_t vect2 = 0;
 	    cfg_base = RAM_LMAC_FW_ADDR + 0x0004;
@@ -1054,26 +1054,30 @@ int aicwf_misc_ram_valid_check_8800dc(struct aic_sdio_dev *sdiodev, int *valid_o
     }
     return ret;
 }
+#endif
 
+#if defined(CONFIG_DPD) || defined(CONFIG_LOFT_CALIB)
 int aicwf_plat_calib_load_8800dc(struct aic_sdio_dev *sdiodev)
 {
     int ret = 0;
     if (chip_sub_id == 1) {
         ret = rwnx_plat_bin_fw_upload_android(sdiodev, ROM_FMAC_CALIB_ADDR, RWNX_MAC_CALIB_NAME_8800DC_U02);
         if (ret) {
-            AICWFDBG(LOGINFO, "load rftest bin fail: %d\n", ret);
+            AICWFDBG(LOGINFO, "load calib bin fail: %d\n", ret);
             return ret;
         }
     } else if (chip_sub_id == 2) {
         ret = rwnx_plat_bin_fw_upload_android(sdiodev, ROM_FMAC_CALIB_ADDR, RWNX_MAC_CALIB_NAME_8800DC_H_U02);
         if (ret) {
-            AICWFDBG(LOGINFO, "load rftest bin fail: %d\n", ret);
+            AICWFDBG(LOGINFO, "load calib bin fail: %d\n", ret);
             return ret;
         }
     }
     return ret;
 }
+#endif
 
+#ifdef CONFIG_DPD
 #ifndef CONFIG_FORCE_DPD_CALIB
 int is_file_exist(char* name)
 {
@@ -1168,6 +1172,15 @@ static int rwnx_plat_patch_load(struct aic_sdio_dev *sdiodev)
                 }
                 #endif
                 else
+                #elif defined(CONFIG_LOFT_CALIB)
+                if (1) {
+                    AICWFDBG(LOGINFO, "loft calib\n");
+                    ret = aicwf_loft_calib_8800dc(sdiodev);
+                    if (ret) {
+                        AICWFDBG(LOGINFO, "loft calib fail: %d\n", ret);
+                        return ret;
+                    }
+                } else
                 #endif
                 {
                     ret = aicwf_misc_ram_init_8800dc(sdiodev);
@@ -1920,13 +1933,18 @@ int aicbsp_driver_fw_init(struct aic_sdio_dev *sdiodev)
 		if (rwnx_send_dbg_mem_read_req(sdiodev, mem_addr, &rd_mem_addr_cfm))
 			return -1;
 
-		aicbsp_info.chip_rev = (u8)(rd_mem_addr_cfm.memdata >> 16);
+		aicbsp_info.chip_rev = (u8)((rd_mem_addr_cfm.memdata >> 16) & 0x3F);
+		is_chip_id_h = (u8)(((rd_mem_addr_cfm.memdata >> 16) & 0xC0) == 0xC0);
 		btenable = 1;
-
-		if (aicbsp_info.chip_rev == CHIP_REV_U01)
-            aicbsp_firmware_list = fw_8800d80_u01;
-        if (aicbsp_info.chip_rev == CHIP_REV_U02 || aicbsp_info.chip_rev == CHIP_REV_U03)
-            aicbsp_firmware_list = fw_8800d80_u02;
+		if (is_chip_id_h) {
+			AICWFDBG(LOGINFO, "IS_CHIP_ID_H \n");
+			aicbsp_firmware_list = fw_8800d80_h_u02;
+		} else {
+			if (aicbsp_info.chip_rev == CHIP_REV_U01)
+				aicbsp_firmware_list = fw_8800d80_u01;
+			if (aicbsp_info.chip_rev == CHIP_REV_U02 || aicbsp_info.chip_rev == CHIP_REV_U03)
+				aicbsp_firmware_list = fw_8800d80_u02;
+		}
         if (aicbsp_system_config_8800d80(sdiodev))
             return -1;
 	}

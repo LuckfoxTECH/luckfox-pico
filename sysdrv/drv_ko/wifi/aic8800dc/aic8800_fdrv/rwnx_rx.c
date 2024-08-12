@@ -681,6 +681,9 @@ static void rwnx_rx_mgmt(struct rwnx_hw *rwnx_hw, struct rwnx_vif *rwnx_vif,
 	const u8* ie;
 	u32 len;
 
+	if(skb->data[0]!=0x80)
+		AICWFDBG(LOGDEBUG,"rxmgmt:%x,%x\n", skb->data[0], skb->data[1]);
+
     if (ieee80211_is_assoc_req(mgmt->frame_control) && rwnx_vif->wdev.iftype == NL80211_IFTYPE_AP) {
         printk("ASSOC_REQ: sta_idx %d MAC %pM\n", rwnx_vif->ap.aic_index, mgmt->sa);
         sta->sta_idx = rwnx_vif->ap.aic_index;
@@ -1771,7 +1774,7 @@ int reord_process_unit(struct aicwf_rx_priv *rx_priv, struct sk_buff *skb, u16 s
 
     spin_lock_bh(&preorder_ctrl->reord_list_lock);
     if (reord_need_check(preorder_ctrl, pframe->seq_num)) {
-#if 0
+#if 1
         if(pframe->rx_data[42] == 0x80){//this is rtp package
             if(pframe->seq_num == preorder_ctrl->ind_sn){
                 printk("%s pframe->seq_num1:%d \r\n", __func__, pframe->seq_num);
@@ -1943,7 +1946,7 @@ void rwnx_rxdata_process_amsdu(struct rwnx_hw *rwnx_hw, struct sk_buff *skb, u8 
             }
             //printk("sublen = %d, %x, %x, %x, %x\r\n", sublen,skb->data[0], skb->data[1], skb->data[12], skb->data[13]);
 #if 1
-            sub_skb = __dev_alloc_skb(sublen - 6 + 12, GFP_KERNEL);
+            sub_skb = __dev_alloc_skb(sublen - 6 + 12, GFP_ATOMIC);
             if(!sub_skb){
                 printk("sub_skb alloc fail:%d\n", sublen);
                 break;

@@ -394,6 +394,9 @@ enum mm_msg_tag {
     MM_SET_VENDOR_SWCONFIG_REQ,
     MM_SET_VENDOR_SWCONFIG_CFM,
 
+    MM_SET_TXPWR_LVL_ADJ_REQ,
+    MM_SET_TXPWR_LVL_ADJ_CFM,
+
     /// MAX number of messages
     MM_MAX,
 };
@@ -1160,6 +1163,7 @@ struct mm_set_arpoffload_en_cfm {
 struct mm_set_agg_disable_req {
 	u8_l disable;
 	u8_l staidx;
+    u8_l disable_rx;
 };
 
 struct mm_set_coex_req {
@@ -1261,6 +1265,13 @@ typedef struct
 
 typedef struct
 {
+    u8_l enable;
+    s8_l pwrlvl_adj_tbl_2g4[3];
+    s8_l pwrlvl_adj_tbl_5g[6];
+} txpwr_lvl_adj_conf_t;
+
+typedef struct
+{
     u8_l loss_enable;
     u8_l loss_value;
 } txpwr_loss_conf_t;
@@ -1274,6 +1285,10 @@ struct mm_set_txpwr_lvl_req
   };
 };
 
+struct mm_set_txpwr_lvl_adj_req
+{
+    txpwr_lvl_adj_conf_t txpwr_lvl_adj;
+};
 
 typedef struct {
 	u8_l enable;
@@ -1834,10 +1849,18 @@ struct me_traffic_ind_req {
 
 struct mm_apm_staloss_ind
 {
-        u8_l sta_idx;
-        u8_l vif_idx;
-        u8_l mac_addr[6];
+	u8_l sta_idx;
+	u8_l vif_idx;
+	u8_l mac_addr[6];
 };
+
+#ifdef CONFIG_SDIO_BT
+struct mm_bt_recv_ind
+{
+	u32_l data_len;
+	u8_l bt_data[1024];
+};
+#endif
 
 enum vendor_hwconfig_tag{
 	ACS_TXOP_REQ = 0,
@@ -1846,6 +1869,10 @@ enum vendor_hwconfig_tag{
 	CCA_THRESHOLD_REQ,
 	BWMODE_REQ,
 	CHIP_TEMP_GET_REQ,
+	AP_PS_LEVEL_SET_REQ,
+	CUSTOMIZED_FREQ_REQ,
+	WAKEUP_INFO_REQ,
+	KEEPALIVE_PKT_REQ,
 };
 
 enum {
@@ -1915,12 +1942,43 @@ struct mm_get_chip_temp_cfm
     s8_l degree;
 };
 
+struct mm_set_ap_ps_level_req
+{
+    u32_l hwconfig_id;
+    u8 ap_ps_level;
+};
+
 struct mm_set_vendor_hwconfig_cfm
 {
     u32_l hwconfig_id;
     union {
         struct mm_get_chip_temp_cfm chip_temp_cfm;
     };
+};
+
+struct mm_set_customized_freq_req
+{
+	u32_l hwconfig_id;
+	u16_l raw_freq[4];
+	u16_l map_freq[4];
+};
+
+struct mm_set_wakeup_info_req
+{
+	u32_l hwconfig_id;
+	u16_l offset;
+	u8_l  length;
+	u8_l  mask_and_patten[];
+
+};
+
+struct mm_set_keepalive_req
+{
+	u32_l hwconfig_id;
+	u16_l code;
+	u16_l length;
+	u32_l intv;
+	u8_l payload[];
 };
 
 struct mm_set_txop_req
@@ -1949,6 +2007,9 @@ enum vendor_swconfig_tag
     BCN_CFG_REQ = 0,
     TEMP_COMP_SET_REQ,
     TEMP_COMP_GET_REQ,
+    EXT_FLAGS_SET_REQ,
+    EXT_FLAGS_GET_REQ,
+    EXT_FLAGS_MASK_SET_REQ,
 };
 
 struct mm_set_bcn_cfg_req
@@ -1985,12 +2046,40 @@ struct mm_get_temp_comp_cfm
     s8_l degree;
 };
 
+struct mm_set_ext_flags_req
+{
+    u32_l user_flags;
+};
+
+struct mm_set_ext_flags_cfm
+{
+    u32_l user_flags;
+};
+
+struct mm_get_ext_flags_cfm
+{
+    u32_l user_flags;
+};
+
+struct mm_mask_set_ext_flags_req
+{
+    u32_l user_flags_mask;
+    u32_l user_flags_val;
+};
+
+struct mm_mask_set_ext_flags_cfm
+{
+    u32_l user_flags;
+};
+
 struct mm_set_vendor_swconfig_req
 {
     u32_l swconfig_id;
     union {
         struct mm_set_bcn_cfg_req bcn_cfg_req;
         struct mm_set_temp_comp_req temp_comp_set_req;
+        struct mm_set_ext_flags_req ext_flags_set_req;
+        struct mm_mask_set_ext_flags_req ext_flags_mask_set_req;
     };
 };
 
@@ -2001,8 +2090,24 @@ struct mm_set_vendor_swconfig_cfm
         struct mm_set_bcn_cfg_cfm bcn_cfg_cfm;
         struct mm_set_temp_comp_cfm temp_comp_set_cfm;
         struct mm_get_temp_comp_cfm temp_comp_get_cfm;
+        struct mm_set_ext_flags_cfm ext_flags_set_cfm;
+        struct mm_get_ext_flags_cfm ext_flags_get_cfm;
+        struct mm_mask_set_ext_flags_cfm ext_flags_mask_set_cfm;
     };
 };
+
+#ifdef CONFIG_SDIO_BT
+struct mm_bt_send_req
+{
+	u32_l data_len;
+	u8_l bt_data[1024];
+};
+
+struct mm_bt_send_cfm
+{
+	u8_l status;
+};
+#endif
 
 /// Structure containing the parameters of the @ref ME_RC_STATS_REQ message.
 struct me_rc_stats_req {
@@ -2697,22 +2802,36 @@ enum dbg_msg_tag {
 	/// Memory mask write confirm
 	DBG_MEM_MASK_WRITE_CFM,
 
-        DBG_RFTEST_CMD_REQ,
-        DBG_RFTEST_CMD_CFM,
-        DBG_BINDING_REQ,
-        DBG_BINDING_CFM,
-        DBG_BINDING_IND,
+	DBG_RFTEST_CMD_REQ,
+	DBG_RFTEST_CMD_CFM,
+	DBG_BINDING_REQ,
+	DBG_BINDING_CFM,
+	DBG_BINDING_IND,
 
-        DBG_CUSTOM_MSG_REQ,
-        DBG_CUSTOM_MSG_CFM,
-        DBG_CUSTOM_MSG_IND,
+	DBG_CUSTOM_MSG_REQ,
+	DBG_CUSTOM_MSG_CFM,
+	DBG_CUSTOM_MSG_IND,
 
-        DBG_GPIO_WRITE_REQ,
-        DBG_GPIO_WRITE_CFM,
-        DBG_GPIO_READ_REQ,
-        DBG_GPIO_READ_CFM,
-        DBG_GPIO_INIT_REQ,
-        DBG_GPIO_INIT_CFM,
+	DBG_GPIO_WRITE_REQ,
+	DBG_GPIO_WRITE_CFM,
+	DBG_GPIO_READ_REQ,
+	DBG_GPIO_READ_CFM,
+	DBG_GPIO_INIT_REQ,
+	DBG_GPIO_INIT_CFM,
+
+	/// EF usrdata read request
+	DBG_EF_USRDATA_READ_REQ,
+	/// EF usrdata read confirm
+	DBG_EF_USRDATA_READ_CFM,
+	/// Memory block read request
+	DBG_MEM_BLOCK_READ_REQ,
+	/// Memory block read confirm
+	DBG_MEM_BLOCK_READ_CFM,
+
+	DBG_PWM_INIT_REQ,
+	DBG_PWM_INIT_CFM,
+	DBG_PWM_DEINIT_REQ,
+	DBG_PWM_DEINIT_CFM,
 
 	/// Max number of Debug messages
 	DBG_MAX,
@@ -2883,6 +3002,12 @@ enum tdls_msg_tag {
 	TDLS_PEER_TRAFFIC_IND_REQ,
 	/// TDLS peer traffic indication confirmation.
 	TDLS_PEER_TRAFFIC_IND_CFM,
+
+#ifdef CONFIG_SDIO_BT
+	TDLS_SDIO_BT_SEND_REQ =  LMAC_FIRST_MSG(TASK_TDLS)+16,
+	TDLS_SDIO_BT_SEND_CFM,
+	TDLS_SDIO_BT_RECV_IND,
+#endif
 	/// MAX number of messages
 	TDLS_MAX
 };

@@ -55,6 +55,7 @@ typedef struct
     txpwr_lvl_conf_t txpwr_lvl;
     txpwr_lvl_conf_v2_t txpwr_lvl_v2;
     txpwr_lvl_conf_v3_t txpwr_lvl_v3;
+    txpwr_lvl_adj_conf_t txpwr_lvl_adj;
 	txpwr_loss_conf_t txpwr_loss;
     txpwr_ofst_conf_t txpwr_ofst;
 	txpwr_ofst2x_conf_t txpwr_ofst2x;
@@ -629,6 +630,67 @@ void get_userconfig_xtal_cap(xtal_cap_conf_t *xtal_cap)
     AICWFDBG(LOGINFO, "%s:xtal_cap_fine:%d\r\n", __func__, xtal_cap->xtal_cap_fine);
 }
 
+s8_l get_txpwr_max(s8_l power)
+{
+	int i=0;
+
+	for (i = 0; i <= 11; i++){
+		if(power < userconfig_info.txpwr_lvl_v3.pwrlvl_11b_11ag_2g4[i])
+			power = userconfig_info.txpwr_lvl_v3.pwrlvl_11b_11ag_2g4[i];
+	}
+    for (i = 0; i <= 9; i++){
+		if(power < userconfig_info.txpwr_lvl_v3.pwrlvl_11n_11ac_2g4[i])
+			power = userconfig_info.txpwr_lvl_v3.pwrlvl_11n_11ac_2g4[i];
+    }
+    for (i = 0; i <= 11; i++){
+		if(power < userconfig_info.txpwr_lvl_v3.pwrlvl_11ax_2g4[i])
+			power = userconfig_info.txpwr_lvl_v3.pwrlvl_11ax_2g4[i];
+    }
+	for (i = 4; i <= 11; i++){
+		if(power < userconfig_info.txpwr_lvl_v3.pwrlvl_11a_5g[i])
+			power = userconfig_info.txpwr_lvl_v3.pwrlvl_11a_5g[i];
+	}
+    for (i = 0; i <= 9; i++){
+		if(power < userconfig_info.txpwr_lvl_v3.pwrlvl_11n_11ac_5g[i])
+			power = userconfig_info.txpwr_lvl_v3.pwrlvl_11n_11ac_5g[i];
+    }
+	for (i = 0; i <= 11; i++){
+		if(power < userconfig_info.txpwr_lvl_v3.pwrlvl_11ax_5g[i])
+			power = userconfig_info.txpwr_lvl_v3.pwrlvl_11ax_5g[i];
+	}
+
+	if(userconfig_info.txpwr_loss.loss_enable == 1)
+		power += userconfig_info.txpwr_loss.loss_value;
+
+	printk("%s:txpwr_max:%d \r\n",__func__,power);
+	return power;
+}
+
+void set_txpwr_loss_ofst(s8_l value)
+{
+	int i=0;
+
+	for (i = 0; i <= 11; i++){
+		userconfig_info.txpwr_lvl_v3.pwrlvl_11b_11ag_2g4[i] += value;
+	}
+    for (i = 0; i <= 9; i++){
+		userconfig_info.txpwr_lvl_v3.pwrlvl_11n_11ac_2g4[i] += value;
+    }
+    for (i = 0; i <= 11; i++){
+		userconfig_info.txpwr_lvl_v3.pwrlvl_11ax_2g4[i] += value;
+    }
+	for (i = 4; i <= 11; i++){
+		userconfig_info.txpwr_lvl_v3.pwrlvl_11a_5g[i] += value;
+	}
+    for (i = 0; i <= 9; i++){
+		userconfig_info.txpwr_lvl_v3.pwrlvl_11n_11ac_5g[i] += value;
+    }
+	for (i = 0; i <= 11; i++){
+		userconfig_info.txpwr_lvl_v3.pwrlvl_11ax_5g[i] += value;
+	}
+
+	printk("%s:value:%d\r\n", __func__, value);
+}
 
 #define MATCH_NODE(type, node, cfg_key) {cfg_key, offsetof(type, node)}
 
@@ -1040,6 +1102,26 @@ void rwnx_plat_nvram_set_value_v3(char *command, char *value)
         userconfig_info.txpwr_lvl_v3.pwrlvl_11ax_5g[10] = rwnx_atoi(value);
     } else if (!strcmp(command,     "lvl_11ax_mcs11_5g")) {
         userconfig_info.txpwr_lvl_v3.pwrlvl_11ax_5g[11] = rwnx_atoi(value);
+    } else if (!strcmp(command, "lvl_adj_enable")) {
+        userconfig_info.txpwr_lvl_adj.enable = rwnx_atoi(value);
+    } else if (!strcmp(command, "lvl_adj_2g4_chan_1_4")) {
+        userconfig_info.txpwr_lvl_adj.pwrlvl_adj_tbl_2g4[0] = rwnx_atoi(value);
+    } else if (!strcmp(command, "lvl_adj_2g4_chan_5_9")) {
+        userconfig_info.txpwr_lvl_adj.pwrlvl_adj_tbl_2g4[1] = rwnx_atoi(value);
+    } else if (!strcmp(command, "lvl_adj_2g4_chan_10_13")) {
+        userconfig_info.txpwr_lvl_adj.pwrlvl_adj_tbl_2g4[2] = rwnx_atoi(value);
+    } else if (!strcmp(command, "lvl_adj_5g_chan_42")) {
+        userconfig_info.txpwr_lvl_adj.pwrlvl_adj_tbl_5g[0] = rwnx_atoi(value);
+    } else if (!strcmp(command, "lvl_adj_5g_chan_58")) {
+        userconfig_info.txpwr_lvl_adj.pwrlvl_adj_tbl_5g[1] = rwnx_atoi(value);
+    } else if (!strcmp(command, "lvl_adj_5g_chan_106")) {
+        userconfig_info.txpwr_lvl_adj.pwrlvl_adj_tbl_5g[2] = rwnx_atoi(value);
+    } else if (!strcmp(command, "lvl_adj_5g_chan_122")) {
+        userconfig_info.txpwr_lvl_adj.pwrlvl_adj_tbl_5g[3] = rwnx_atoi(value);
+    } else if (!strcmp(command, "lvl_adj_5g_chan_138")) {
+        userconfig_info.txpwr_lvl_adj.pwrlvl_adj_tbl_5g[4] = rwnx_atoi(value);
+    } else if (!strcmp(command, "lvl_adj_5g_chan_155")) {
+        userconfig_info.txpwr_lvl_adj.pwrlvl_adj_tbl_5g[5] = rwnx_atoi(value);
     } else if (!strcmp(command, "loss_enable")) {
         userconfig_info.txpwr_loss.loss_enable = rwnx_atoi(value);
     } else if (!strcmp(command, "loss_value")) {
@@ -1873,6 +1955,23 @@ void get_userconfig_txpwr_lvl_v3_in_fdrv(txpwr_lvl_conf_v3_t *txpwr_lvl_v3)
     AICWFDBG(LOGINFO, "%s:lvl_11ax_mcs9_5g:%d\r\n",     __func__, txpwr_lvl_v3->pwrlvl_11ax_5g[9]);
     AICWFDBG(LOGINFO, "%s:lvl_11ax_mcs10_5g:%d\r\n",    __func__, txpwr_lvl_v3->pwrlvl_11ax_5g[10]);
     AICWFDBG(LOGINFO, "%s:lvl_11ax_mcs11_5g:%d\r\n",    __func__, txpwr_lvl_v3->pwrlvl_11ax_5g[11]);
+}
+
+void get_userconfig_txpwr_lvl_adj_in_fdrv(txpwr_lvl_adj_conf_t *txpwr_lvl_adj)
+{
+    *txpwr_lvl_adj = userconfig_info.txpwr_lvl_adj;
+
+    AICWFDBG(LOGINFO, "%s:enable:%d\r\n",                   __func__, txpwr_lvl_adj->enable);
+    AICWFDBG(LOGINFO, "%s:lvl_adj_2g4_chan_1_4:%d\r\n",     __func__, txpwr_lvl_adj->pwrlvl_adj_tbl_2g4[0]);
+    AICWFDBG(LOGINFO, "%s:lvl_adj_2g4_chan_5_9:%d\r\n",     __func__, txpwr_lvl_adj->pwrlvl_adj_tbl_2g4[1]);
+    AICWFDBG(LOGINFO, "%s:lvl_adj_2g4_chan_10_13:%d\r\n",   __func__, txpwr_lvl_adj->pwrlvl_adj_tbl_2g4[2]);
+
+    AICWFDBG(LOGINFO, "%s:lvl_adj_5g_chan_42:%d\r\n",       __func__, txpwr_lvl_adj->pwrlvl_adj_tbl_5g[0]);
+    AICWFDBG(LOGINFO, "%s:lvl_adj_5g_chan_58:%d\r\n",       __func__, txpwr_lvl_adj->pwrlvl_adj_tbl_5g[1]);
+    AICWFDBG(LOGINFO, "%s:lvl_adj_5g_chan_106:%d\r\n",      __func__, txpwr_lvl_adj->pwrlvl_adj_tbl_5g[2]);
+    AICWFDBG(LOGINFO, "%s:lvl_adj_5g_chan_122:%d\r\n",      __func__, txpwr_lvl_adj->pwrlvl_adj_tbl_5g[3]);
+    AICWFDBG(LOGINFO, "%s:lvl_adj_5g_chan_138:%d\r\n",      __func__, txpwr_lvl_adj->pwrlvl_adj_tbl_5g[4]);
+    AICWFDBG(LOGINFO, "%s:lvl_adj_5g_chan_155:%d\r\n",      __func__, txpwr_lvl_adj->pwrlvl_adj_tbl_5g[5]);
 }
 
 /**

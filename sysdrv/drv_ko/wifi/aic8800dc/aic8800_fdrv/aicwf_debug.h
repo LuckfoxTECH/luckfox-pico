@@ -20,6 +20,8 @@ void rwnx_data_dump(char* tag, void* data, unsigned long len);
 
 #define AICWF_LOG		"AICWFDBG("
 
+
+#ifdef DEBUG
 #define AICWFDBG(level, args, arg...)	\
 do {	\
 	if (aicwf_dbg_level & level) {	\
@@ -33,8 +35,12 @@ do {	\
 		printk(AICWF_LOG"LOGTRACE)\t"fmt , ##__VA_ARGS__); 	\
 	}	\
 } while (0)
+#else
 
+#define AICWFDBG(level, args, arg...)
+#define RWNX_DBG(fmt, ...)
 
+#endif
 
 #if 0
 #define RWNX_DBG(fmt, ...)	\

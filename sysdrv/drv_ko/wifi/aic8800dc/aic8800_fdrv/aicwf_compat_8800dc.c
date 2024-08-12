@@ -16,6 +16,7 @@ void rwnx_plat_userconfig_parsing2(char *buffer, int size);
 
 void rwnx_release_firmware_common(u32** buffer);
 
+#if !defined(CONFIG_EXT_FEM_8800DCDW)
 u32 wifi_txgain_table_24g_8800dcdw[32] =
 {
     0xA4B22189, //index 0
@@ -159,6 +160,80 @@ u32 wifi_txgain_table_24g_1_8800dcdw_h[32] =
     0xD73A207F, //index 15
     0x00001825,
 };
+
+#else /* #ifdef CONFIG_EXT_FEM_8800DCDW */
+// ofdm
+uint32_t wifi_txgain_table_24g_8800dcdw_femkct[32] = {
+    0x919221C2, //index 0
+    0x00007825,
+    0x899221C3, //index 1
+    0x00007825,
+    0x8B9221C3, //index 2
+    0x00007825,
+    0x929221C3, //index 3
+    0x00007825,
+    0x949221C4, //index 4
+    0x00007825,
+    0x969221C4, //index 5
+    0x00007825,
+    0x949221C6, //index 6
+    0x00007825,
+    0x949221C8, //index 7
+    0x00007825,
+    0x9C9221C8, //index 8
+    0x00007825,
+    0x9C9221CA, //index 9
+    0x00007825,
+    0x9C9221CB, //index 10
+    0x00007825,
+    0x939221D5, //index 11
+    0x00007825,
+    0x9B9221D7, //index 12
+    0x00007825,
+    0xA49221D7, //index 13
+    0x00007825,
+    0xA79221D7, //index 14
+    0x00007825,
+    0xBD9221D7, //index 15
+    0x00007825,
+};
+
+// 11b
+uint32_t wifi_txgain_table_24g_1_8800dcdw_femkct[32] = {
+    0x836E20C2, //index 0
+    0x00003024,
+    0x856E20C2, //index 1
+    0x00003024,
+    0x826E20C3, //index 2
+    0x00003024,
+    0x836E20C3, //index 3
+    0x00003024,
+    0x856E20C3, //index 4
+    0x00003024,
+    0x876E20C3, //index 5
+    0x00003024,
+    0x8B6E20C3, //index 6
+    0x00003024,
+    0x926E20C4, //index 7
+    0x00003024,
+    0x9A6E20C4, //index 8
+    0x00003024,
+    0x936E20C5, //index 9
+    0x00003024,
+    0x936E20C7, //index 10
+    0x00003024,
+    0xA16E20C8, //index 11
+    0x00003024,
+    0xA16E20CA, //index 12
+    0x00003024,
+    0xA26E20CB, //index 13
+    0x00003024,
+    0xAA6E20CD, //index 14
+    0x00003024,
+    0xAC7220CF, //index 15
+    0x00003024,
+};
+#endif
 
 u32 wifi_rxgain_table_24g_20m_8800dcdw[64] = {
     0x82f282d1,//index 0
@@ -423,6 +498,7 @@ int aicwf_set_rf_config_8800dc(struct rwnx_hw *rwnx_hw, struct mm_set_rf_calib_c
 
 
 	if (testmode == 0) {
+        #if !defined(CONFIG_EXT_FEM_8800DCDW)
         if (IS_CHIP_ID_H()) {
             if ((ret = rwnx_send_rf_config_req(rwnx_hw, 0,    1, (u8_l *)wifi_txgain_table_24g_8800dcdw_h, 128)))
                 return -1;
@@ -436,6 +512,18 @@ int aicwf_set_rf_config_8800dc(struct rwnx_hw *rwnx_hw, struct mm_set_rf_calib_c
             if ((ret = rwnx_send_rf_config_req(rwnx_hw, 16,    1, (u8_l *)wifi_txgain_table_24g_1_8800dcdw, 128)))
                 return -1;
         }
+        #else /* #ifdef CONFIG_EXT_FEM_8800DCDW */
+        {
+            ret = rwnx_send_rf_config_req(rwnx_hw, 0,    1, (u8_l *)wifi_txgain_table_24g_8800dcdw_femkct, 128);
+            if (ret) {
+                return -1;
+            }
+            ret = rwnx_send_rf_config_req(rwnx_hw, 16,    1, (u8_l *)wifi_txgain_table_24g_1_8800dcdw_femkct, 128);
+            if (ret) {
+                return -1;
+            }
+        }
+        #endif
 
 		if ((ret = rwnx_send_rf_config_req(rwnx_hw, 0,	0, (u8_l *)wifi_rxgain_table_24g_20m_8800dcdw, 256)))
 			return -1;
