@@ -2275,6 +2275,11 @@ int mmc_start_init(struct mmc *mmc)
 
 	/* Test for SD version 2 */
 	err = mmc_send_if_cond(mmc);
+	if(err){
+		mmc_go_idle(mmc);
+		mmc_get_blk_desc(mmc)->hwpart = 0;
+		mmc_send_if_cond(mmc);
+	}
 
 	/* Now try to get the SD card's operating condition */
 	err = sd_send_op_cond(mmc);

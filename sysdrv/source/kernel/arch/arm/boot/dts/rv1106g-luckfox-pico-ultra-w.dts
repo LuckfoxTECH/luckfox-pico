@@ -24,6 +24,17 @@
 		reset-gpios = <&gpio1 RK_PA2 GPIO_ACTIVE_LOW>;
 	};
 
+  wireless_bluetooth: wireless-bluetooth {
+    compatible = "bluetooth-platdata";
+    uart_rts_gpios = <&gpio0 RK_PA5 GPIO_ACTIVE_LOW>;
+    pinctrl-names = "default", "rts_gpio";
+    pinctrl-0 = <&uart1m0_rtsn>;
+    pinctrl-1 = <&uart1_gpios>;
+    BT,wake_gpio     = <&gpio0 RK_PA2 GPIO_ACTIVE_HIGH>;
+    BT,wake_host_irq = <&gpio1 RK_PA2 GPIO_ACTIVE_HIGH>;
+    status = "okay";
+  };
+
 };
 
 /**********EMMC**********/
@@ -95,16 +106,13 @@
 &uart1 {
 	status = "okay";
 	pinctrl-names = "default";
-	pinctrl-0 = <&uart1m0_xfer &uart1m0_ctsn &uart1m0_rtsn>;
+	pinctrl-0 = <&uart1m0_xfer &uart1m0_ctsn>;
 };
 
 &pinctrl {
-  uart1 {
-    uart1m0_ctsn: uart1m0-ctsn{
-      rockchip,pins = <0 RK_PA6 2 &pcfg_pull_down>;
-    };
-    uart1m0_rtsn: uart1m0-rtsn{
-      rockchip,pins = <0 RK_PA5 2 &pcfg_pull_down>;
+  wireless-bluetooth {
+    uart1_gpios: uart1-gpios {
+      rockchip,pins = <0 RK_PA5 RK_FUNC_GPIO &pcfg_pull_none>;
     };
   };
 };

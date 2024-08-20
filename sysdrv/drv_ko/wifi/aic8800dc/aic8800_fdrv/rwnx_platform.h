@@ -117,10 +117,13 @@ void rwnx_platform_unregister_drv(void);
 void get_userconfig_txpwr_idx(txpwr_idx_conf_t *txpwr_idx);
 void get_userconfig_txpwr_ofst(txpwr_ofst_conf_t *txpwr_ofst);
 void get_userconfig_xtal_cap(xtal_cap_conf_t *xtal_cap);
+s8_l get_txpwr_max(s8_l power);
+void set_txpwr_loss_ofst(s8_l value);
 
 void get_userconfig_txpwr_lvl_in_fdrv(txpwr_lvl_conf_t *txpwr_lvl);
 void get_userconfig_txpwr_lvl_v2_in_fdrv(txpwr_lvl_conf_v2_t *txpwr_lvl_v2);
 void get_userconfig_txpwr_lvl_v3_in_fdrv(txpwr_lvl_conf_v3_t *txpwr_lvl_v3);
+void get_userconfig_txpwr_lvl_adj_in_fdrv(txpwr_lvl_adj_conf_t *txpwr_lvl_adj);
 
 void get_userconfig_txpwr_ofst_in_fdrv(txpwr_ofst_conf_t *txpwr_ofst);
 void get_userconfig_txpwr_ofst2x_in_fdrv(txpwr_ofst2x_conf_t *txpwr_ofst2x);

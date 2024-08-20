@@ -3,7 +3,7 @@
 check_hciconfig() {
 	if command -v hciattach &> /dev/null; then
 		if lsmod | grep -q "aic8800_fdrv"; then
-			hciattach -s 115200 /dev/ttyS1 any 115200 flow nosleep&
+			hciattach -s 1500000 /dev/ttyS1 any 1500000 flow nosleep&
 			sleep 2
 			if hciconfig -a | grep -q "hci0"; then
 				hciconfig hci0 up&

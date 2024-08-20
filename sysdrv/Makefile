@@ -121,7 +121,7 @@ ifneq ($(findstring $(TARGET_ROOTFS),custom),)
 else ifneq ($(findstring $(TARGET_ROOTFS),alpine),)
    ROOTFS_BUILD_ENV := alpine
 else ifneq ($(findstring $(TARGET_ROOTFS),ubuntu),)
-   ROOTFS_BUILD_ENV := ubuntu
+   ROOTFS_BUILD_ENV := ubuntu drv
 else ifneq ($(findstring $(TARGET_ROOTFS),buildroot),)
    ROOTFS_BUILD_ENV := rootfs_prepare pctools buildroot boardtools drv
 else
@@ -527,7 +527,7 @@ else
 	
 	cp -af $(BUSYBOX_DIR)/$(BUSYBOX_VER)/_install/* $(SYSDRV_DIR_OUT_ROOTFS)
 	# luckfox
-	cp $(SYSDRV_DIR)/tools/board/android-tools/S90usb0config $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d
+	cp $(SYSDRV_DIR)/tools/board/android-tools/S99usb0config $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d
 	touch $(SYSDRV_DIR_OUT_ROOTFS)/userdata/.busybox
 
 endif
@@ -609,7 +609,7 @@ else
 	cp $(SYSDRV_DIR)/tools/board/luckfox_config/S99luckfoxconfigload $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
 	cp $(SYSDRV_DIR)/tools/board/luckfox_config/luckfox-config  $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/
 	cp $(SYSDRV_DIR)/tools/board/luckfox_config/luckfox_switch_rgb_resolution $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/
-	cp $(SYSDRV_DIR)/tools/board/android-tools/S90usb0config $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
+	cp $(SYSDRV_DIR)/tools/board/android-tools/S99usb0config $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
 endif
 
 buildroot_clean:
@@ -642,7 +642,6 @@ ifeq ($(ENABLE_EMMC),YES)
 	cp $(SYSDRV_DIR)/tools/board/emmc/emmc_filesystem_resize.sh $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/filesystem_resize.sh
 	cp $(SYSDRV_DIR)/tools/board/emmc/emmc_rc.local $(SYSDRV_DIR_OUT_ROOTFS)/etc/rc.local
 	cp $(SYSDRV_DIR)/tools/board/emmc/emmc_wifi_bt_init.sh $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/wifi_bt_init.sh
-	cp $(SYSDRV_DIR)/tools/board/emmc/emmc_wifi_ko $(SYSDRV_DIR_OUT_ROOTFS)/usr/ko -r
 	cp $(SYSDRV_DIR)/tools/board/emmc/udhcp/usr/bin/udhcpc $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/udhcpc
 	cp $(SYSDRV_DIR)/tools/board/emmc/udhcp/usr/bin/udhcpd $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/udhcpd
 	mkdir -p $(SYSDRV_DIR_OUT_ROOTFS)/usr/share/udhcpc

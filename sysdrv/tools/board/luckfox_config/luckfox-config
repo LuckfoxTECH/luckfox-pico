@@ -407,8 +407,8 @@ function luckfox_pico_mini_pin_diagram_file() {
  PWM4_M2  - SPI0_M0_CLK   - GPIO1_C1 |       | GPIO1_C6 -             - PWM10_M1
  PWM5_M2  - SPI0_M0_MOSI  - GPIO1_C2 |       | GPIO1_D3 -             - PWM11_M2
  PWM6_M2  - SPI0_M0_MISO  - GPIO1_C3 |       | GPIO1_D2 -             - PWM0_M1
- PWM8_M1  - UART4_M1_RX   - GPIO1_C4 |       | GPIO1_D1 -             - PWM10_M2
- PWM9_M1  - UART4_M1_TX   - GPIO1_C5 |       | GPIO1_D0 - SARADC_M1   - PWM3_M2
+ PWM8_M1  - UART4_M1_RX   - GPIO1_C4 |       | GPIO1_D1 - UART3_M1_RX - PWM10_M2
+ PWM9_M1  - UART4_M1_TX   - GPIO1_C5 |       | GPIO1_D0 - UART3_M1_TX - PWM3_M2
                                      + - + - +
 EOF
 }
@@ -2710,7 +2710,7 @@ elif [ "$1" == "rgb_switch" ]; then
 				"18" "16" \
 				"2" "2" \
 				"0" "0" \
-				"0" "1"
+				"0" "0"
 		elif [ "$(luckfox_get_pin_cfg "RGB_HACTIVE")" == "720" ]; then
 			# 720 -> 480
 			echo "****************************************************"
