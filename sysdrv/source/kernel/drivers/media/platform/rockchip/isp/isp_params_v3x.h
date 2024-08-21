@@ -4,7 +4,7 @@
 #ifndef _RKISP_ISP_PARAM_V3X_H
 #define _RKISP_ISP_PARAM_V3X_H
 
-#include <linux/rkisp1-config.h>
+#include <linux/rk-isp1-config.h>
 #include <linux/rk-preisp.h>
 #include "common.h"
 #include "isp_params.h"
@@ -171,26 +171,23 @@ struct rkisp_isp_params_ops_v3x {
 struct rkisp_isp_params_val_v3x {
 	struct tasklet_struct lsc_tasklet;
 
-	struct rkisp_dummy_buffer buf_3dlut[ISP3_UNITE_MAX][ISP3X_3DLUT_BUF_NUM];
-	u32 buf_3dlut_idx[ISP3_UNITE_MAX];
+	struct rkisp_dummy_buffer buf_3dlut[ISP_UNITE_MAX][ISP3X_3DLUT_BUF_NUM];
+	u32 buf_3dlut_idx[ISP_UNITE_MAX];
 
-	struct rkisp_dummy_buffer buf_ldch[ISP3_UNITE_MAX][ISP3X_MESH_BUF_NUM];
-	u32 buf_ldch_idx[ISP3_UNITE_MAX];
+	struct rkisp_dummy_buffer buf_ldch[ISP_UNITE_MAX][ISP3X_MESH_BUF_NUM];
+	u32 buf_ldch_idx[ISP_UNITE_MAX];
 
-	struct rkisp_dummy_buffer buf_lsclut[ISP3_UNITE_MAX][ISP3X_LSC_LUT_BUF_NUM];
-	u32 buf_lsclut_idx[ISP3_UNITE_MAX];
+	struct rkisp_dummy_buffer buf_lsclut[ISP_UNITE_MAX][ISP3X_LSC_LUT_BUF_NUM];
+	u32 buf_lsclut_idx[ISP_UNITE_MAX];
 
-	struct rkisp_dummy_buffer buf_cac[ISP3_UNITE_MAX][ISP3X_MESH_BUF_NUM];
-	u32 buf_cac_idx[ISP3_UNITE_MAX];
+	struct rkisp_dummy_buffer buf_cac[ISP_UNITE_MAX][ISP3X_MESH_BUF_NUM];
+	u32 buf_cac_idx[ISP_UNITE_MAX];
 
-	struct rkisp_dummy_buffer buf_3dnr_iir[ISP3_UNITE_MAX];
-	struct rkisp_dummy_buffer buf_3dnr_cur[ISP3_UNITE_MAX];
-	struct rkisp_dummy_buffer buf_3dnr_ds[ISP3_UNITE_MAX];
-
-	struct isp3x_hdrmge_cfg last_hdrmge;
-	struct isp3x_drc_cfg last_hdrdrc;
-	struct isp3x_hdrmge_cfg cur_hdrmge;
-	struct isp3x_drc_cfg cur_hdrdrc;
+	struct rkisp_dummy_buffer buf_3dnr_iir;
+	struct rkisp_dummy_buffer buf_3dnr_cur;
+	struct rkisp_dummy_buffer buf_3dnr_ds;
+	u32 bay3d_ds_size;
+	u32 bay3d_iir_size;
 
 	bool dhaz_en;
 	bool drc_en;

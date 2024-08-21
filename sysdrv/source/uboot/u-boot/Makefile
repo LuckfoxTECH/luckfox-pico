@@ -85,6 +85,13 @@ else
   Q = @
 endif
 
+ifeq ("$(origin FWVER)", "command line")
+  PLAT_FW_VERSION := $(FWVER)
+endif
+ifeq ("$(origin SPL_FWVER)", "command line")
+  PLAT_SPL_FW_VERSION := $(SPL_FWVER)
+endif
+
 # If the user is running make -s (silent mode), suppress echoing of
 # commands
 
@@ -1369,6 +1376,12 @@ ifeq ($(CONFIG_SUPPORT_USBPLUG),)
 define filechk_version.h
 	(echo \#define PLAIN_VERSION \"$(UBOOTRELEASE)\"; \
 	echo \#define U_BOOT_VERSION \"U-Boot \" PLAIN_VERSION; \
+	if [ -n "$(PLAT_SPL_FW_VERSION)" ]; then \
+		echo \#define BUILD_SPL_TAG \"$(PLAT_SPL_FW_VERSION)\"; \
+	fi; \
+	if [ -n "$(PLAT_FW_VERSION)" ]; then \
+        echo \#define BUILD_TAG \"$(PLAT_FW_VERSION)\"; \
+	fi; \
 	echo \#define CC_VERSION_STRING \"$$(LC_ALL=C $(CC) --version | head -n 1)\"; \
 	echo \#define LD_VERSION_STRING \"$$(LC_ALL=C $(LD) --version | head -n 1)\"; )
 endef
@@ -1376,6 +1389,12 @@ else
 define filechk_version.h
         (echo \#define PLAIN_VERSION \"$(UBOOTRELEASE)\"; \
         echo \#define U_BOOT_VERSION \"USB-PLUG \" PLAIN_VERSION; \
+        if [ -n "$(PLAT_SPL_FW_VERSION)" ]; then \
+            echo \#define BUILD_SPL_TAG \"$(PLAT_SPL_FW_VERSION)\"; \
+        fi; \
+        if [ -n "$(PLAT_FW_VERSION)" ]; then \
+            echo \#define BUILD_TAG \"$(PLAT_FW_VERSION)\"; \
+        fi; \
         echo \#define CC_VERSION_STRING \"$$(LC_ALL=C $(CC) --version | head -n 1)\"; \
         echo \#define LD_VERSION_STRING \"$$(LC_ALL=C $(LD) --version | head -n 1)\"; )
 endef

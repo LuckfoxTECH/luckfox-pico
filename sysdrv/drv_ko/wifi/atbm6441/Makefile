@@ -297,11 +297,11 @@ all:install
 install:
 	@echo "make PLATFORM_CROSS=$(platform)"
 	#$(MAKE) all -f $(MAKEFILE_SUB) ARCH=$(arch)  CROSS_COMPILE=$(CROSS_COMPILE) KDIR=$(KERDIR) SYS=$(sys) PLAT=$(platform) -j8
-	$(MAKE) all -f $(MAKEFILE_SUB) ARCH=$(ARCH)  CROSS_COMPILE=$(CROSS_COMPILE) KDIR=$(KERNEL_DIR) SYS=$(sys) PLAT=$(platform) -j8
-	arm-rockchip830-linux-uclibcgnueabihf-strip --strip-debug $(shell pwd)/driver_install/atbm6041_wifi_sdio.ko
+	$(MAKE) all -f $(MAKEFILE_SUB) ARCH=$(ARCH)  CROSS_COMPILE=$(CROSS_COMPILE) KDIR=$(KERNEL_DIR) SYS=$(sys) PLAT=$(platform) -j8 O=$(WIFI_BUILD_KERNEL_OBJ_DIR)
+	#arm-rockchip830-linux-uclibcgnueabihf-strip --strip-debug $(shell pwd)/driver_install/atbm6041_wifi_sdio.ko
 	cp $(shell pwd)/driver_install/atbm6041_wifi_sdio.ko $(M_OUT_DIR) -rf
 clean:
-	$(MAKE) -f $(MAKEFILE_SUB) KDIR=$(KERDIR) ARCH=$(arch) clean
+	$(MAKE) -f $(MAKEFILE_SUB) KDIR=$(KERNEL_DIR) ARCH=$(ARCH) clean O=$(WIFI_BUILD_KERNEL_OBJ_DIR)
 strip:	
 	$(MAKE) -f $(MAKEFILE_SUB) KDIR=$(KERDIR) ARCH=$(arch) SYS=$(sys) PLAT=$(platform) strip
 get_ver:

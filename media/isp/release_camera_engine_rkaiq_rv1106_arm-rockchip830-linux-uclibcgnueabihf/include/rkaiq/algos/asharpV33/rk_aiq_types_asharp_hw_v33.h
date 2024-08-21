@@ -80,6 +80,13 @@ typedef struct RK_SHARP_Fix_V33_s {
     uint8_t sharp_enhance_bit;
     uint16_t sharp_noise_strength;
 
+    //isp32-lite new add
+    uint8_t sharp_clip_hf_mode;
+    uint8_t sharp_add_mode;
+
+    uint16_t sharp_ehf_th[8];
+    uint16_t sharp_clip_neg[8];
+
 } RK_SHARP_Fix_V33_t;
 
 #endif

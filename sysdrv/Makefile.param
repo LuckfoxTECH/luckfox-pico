@@ -64,6 +64,12 @@ ARCH := arm
 SYSDRV_CROSS_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
 endif
 
+ifeq ($(SYSDRV_CROSS),arm-rockchip1050-linux-uclibcgnueabihf)
+SYSDRV_LIB_TYPE := uclibc
+ARCH := arm
+SYSDRV_CROSS_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
+endif
+
 ifeq ($(SYSDRV_CROSS),arm-rockchip830-linux-gnueabihf)
 SYSDRV_LIB_TYPE := glibc
 ARCH := arm
@@ -75,6 +81,12 @@ SYSDRV_LIB_TYPE := glibc
 ARCH := arm64
 SYSDRV_CROSS_CFLAGS += -mtune=cortex-a76.cortex-a55
 endif
+
+ifeq ($(SYSDRV_BUILD_RECOVERY),y)
+export SYSDRV_KERNEL_OBJS_OUTPUT_DIR := $(CURRENT_DIR)/source/objs_kernel_recovery
+export SYSDRV_KERNEL_UPDATE_DTB := n
+endif
+export SYSDRV_KERNEL_OBJS_OUTPUT_DIR ?= $(CURRENT_DIR)/source/objs_kernel
 
 ################################################################################
 ##   Public function and export
@@ -189,6 +201,32 @@ endef
 
 #
 ########## {{{
+# DO NOT RUN THIS TARGET
+# $(1)   PKG $(CURRENT_DIR)
+# $(2)   PKG $(PKG_NAME)
+# $(3)   PKG OBJECTS DIR
+#
+define MAROC_PKG_RELEASE_ASM_NEW
+@(pkg_src=$(strip $(1)/$(strip $(2))); \
+pkg_name=$(strip $(2)); \
+pkg_dir=$(strip $(3)); \
+pkg_dst=$(strip $(1)/release_$(strip $(2))_$(CHIP)_$(ARCH)_asm); \
+test ! -d $$pkg_src || test ! -d $$pkg_src/.git || (\
+	rm -rf $$pkg_dst; \
+	mkdir -p $$pkg_dst; \
+	echo "obj-y += $$pkg_name.o" > $$pkg_dst/Makefile ; \
+	for item in `cd $$pkg_dir && find "./" -name "*\.s" -type f`; do \
+		mkdir -p $$pkg_dst/`dirname $$item` ; \
+		echo "$$pkg_name-objs += $${item/%\.s/\.o}" >> $$pkg_dst/Makefile ; \
+		cp -f $$pkg_dir/$$item "$$pkg_dst/$${item/%\.s/\.S}"; \
+	done ;\
+	git --git-dir=$$pkg_src/.git log -1 > $$pkg_dst/release_version.txt; \
+	););
+endef
+######### }}}
+
+#
+########## {{{
 # $(1)   PKG $(CURRENT_DIR)
 # $(2)   PKG $(PKG_NAME)
 # $(3)   PKG $(PKG_BIN)
@@ -223,7 +261,7 @@ if [ -d "$$pkg_src/$$pkg_dst" ];then echo "TEST: $$pkg_src/$$pkg_dst" && \
 	ln -sf $$pkg_src/$$pkg_release $$KERNEL_DIR/drivers/$$pkg_dst ); \
 fi; \
 grep -w "$$pkg_dst" $$KERNEL_DIR/drivers/Makefile || \
-	(echo "obj-\$$(CONFIG_VIDEO_ROCKCHIP_THUNDER_BOOT_ISP)	+= $$pkg_dst/" >> $$KERNEL_DIR/drivers/Makefile ); \
+	(echo "obj-\$$(CONFIG_ROCKCHIP_THUNDER_BOOT)	+= $$pkg_dst/" >> $$KERNEL_DIR/drivers/Makefile ); \
 );
 endef
 ######### }}}
@@ -233,7 +271,7 @@ endef
 #
 define MACRO_CLEAN_DRIVER_MODULE
 @(pkg_dst=$(strip $(1)); \
-pkg_cmds="sed -i '/\<obj-\$$(CONFIG_VIDEO_ROCKCHIP_THUNDER_BOOT_ISP)	+= $(strip $(1))\//d' $$KERNEL_DIR/drivers/Makefile"; \
+pkg_cmds="sed -i '/\<obj-\$$(CONFIG_ROCKCHIP_THUNDER_BOOT)	+= $(strip $(1))\//d' $$KERNEL_DIR/drivers/Makefile"; \
 grep -w "$$pkg_dst" $$KERNEL_DIR/drivers/Makefile && \
 eval "$$pkg_cmds";\
 );
@@ -259,3 +297,19 @@ export KERNEL_DIR
 export SYSDRV_OPTS
 
 include $(CURRENT_DIR)/cfg/package.mk
+
+# Enable build i2c-tools
+CONFIG_SYSDRV_ENABLE_I2C_TOOLS=n
+$(eval $(call MACRO_CHECK_ENABLE_PKG, RK_ENABLE_I2C_TOOLS))
+
+# Enable build sysstat
+CONFIG_SYSDRV_ENABLE_SYSSTAT=n
+$(eval $(call MACRO_CHECK_ENABLE_PKG, RK_ENABLE_SYSSTAT))
+
+# Enable build fio
+CONFIG_SYSDRV_ENABLE_FIO=n
+$(eval $(call MACRO_CHECK_ENABLE_PKG, RK_ENABLE_FIO))
+
+# Enable build EXFATPROGS
+CONFIG_SYSDRV_ENABLE_EXFATPROGS=n
+$(eval $(call MACRO_CHECK_ENABLE_PKG, RK_ENABLE_EXFATPROGS))

@@ -20,13 +20,13 @@
 #ifndef _im2d_h_
 #define _im2d_h_
 
-#include "im2d_type.h"
 #include "im2d_version.h"
+#include "im2d_type.h"
 
-#include "im2d_buffer.h"
 #include "im2d_common.h"
-#include "im2d_mpi.h"
+#include "im2d_buffer.h"
 #include "im2d_single.h"
 #include "im2d_task.h"
+#include "im2d_mpi.h"
 
 #endif /* #ifndef _im2d_h_ */

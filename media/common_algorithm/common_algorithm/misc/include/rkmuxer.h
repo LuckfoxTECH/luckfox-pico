@@ -29,6 +29,7 @@ typedef struct StVideoParam {
 	int qp_max;
 	int vir_width;
 	int vir_height;
+	int frag_keyframe;
 	ThumbParam thumb;
 } VideoParam;
 

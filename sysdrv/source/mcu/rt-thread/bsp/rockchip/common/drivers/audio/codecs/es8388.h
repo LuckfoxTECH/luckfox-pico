@@ -1,0 +1,455 @@
+/**
+  * Copyright (c) 2019 Rockchip Electronic Co.,Ltd
+  *
+  * SPDX-License-Identifier: Apache-2.0
+  *
+  ******************************************************************************
+  * @file    es8388.c
+  * @author  Xing Zheng
+  * @version v0.1
+  * @date    2019.07.01
+  * @brief   The rt-thread codec driver for Rockchip
+  ******************************************************************************
+  */
+
+#ifndef __ES8388_H__
+#define __ES8388_H__
+
+/* ES8388 address */
+#define ES8388_ADDR 0x20              /*!< 0x22:CE=1;0x20:CE=0*/
+
+#define ES8388_DACLVOL  46
+#define ES8388_DACRVOL  47
+#define ES8388_DACCTL   28
+#define ES8388_RATEMASK (0x1f << 0)
+
+/* ES8388 Registers start */
+#define ES8388_CONTROL1              0x00
+#define ES8388_CONTROL1_VMIDSEL_OFF  (0 << 0)
+#define ES8388_CONTROL1_VMIDSEL_50k  (1 << 0)
+#define ES8388_CONTROL1_VMIDSEL_500k (2 << 0)
+#define ES8388_CONTROL1_VMIDSEL_5k   (3 << 0)
+#define ES8388_CONTROL1_VMIDSEL_MASK (7 << 0)
+#define ES8388_CONTROL1_ENREF        (1 << 2)
+#define ES8388_CONTROL1_SEQEN        (1 << 3)
+#define ES8388_CONTROL1_SAMEFS       (1 << 4)
+#define ES8388_CONTROL1_DACMCLK_ADC  (0 << 5)
+#define ES8388_CONTROL1_DACMCLK_DAC  (1 << 5)
+#define ES8388_CONTROL1_LRCM         (1 << 6)
+#define ES8388_CONTROL1_SCP_RESET    (1 << 7)
+
+#define ES8388_CONTROL2                     0x01
+#define ES8388_CONTROL2_VREF_BUF_OFF        (1 << 0)
+#define ES8388_CONTROL2_VREF_LOWPOWER       (1 << 1)
+#define ES8388_CONTROL2_IBIASGEN_OFF        (1 << 2)
+#define ES8388_CONTROL2_ANALOG_OFF          (1 << 3)
+#define ES8388_CONTROL2_VREF_BUF_LOWPOWER   (1 << 4)
+#define ES8388_CONTROL2_VCM_MOD_LOWPOWER    (1 << 5)
+#define ES8388_CONTROL2_OVERCURRENT_ON      (1 << 6)
+#define ES8388_CONTROL2_THERMAL_SHUTDOWN_ON (1 << 7)
+
+#define ES8388_CHIPPOWER              0x02
+#define ES8388_CHIPPOWER_DACVREF_OFF  0
+#define ES8388_CHIPPOWER_ADCVREF_OFF  1
+#define ES8388_CHIPPOWER_DACDLL_OFF   2
+#define ES8388_CHIPPOWER_ADCDLL_OFF   3
+#define ES8388_CHIPPOWER_DACSTM_RESET 4
+#define ES8388_CHIPPOWER_ADCSTM_RESET 5
+#define ES8388_CHIPPOWER_DACDIG_OFF   6
+#define ES8388_CHIPPOWER_ADCDIG_OFF   7
+
+#define ES8388_ADCPOWER                    0x03
+#define ES8388_ADCPOWER_INT1_LOWPOWER      0
+#define ES8388_ADCPOWER_FLASH_ADC_LOWPOWER 1
+#define ES8388_ADCPOWER_ADC_BIAS_GEN_OFF   2
+#define ES8388_ADCPOWER_MIC_BIAS_OFF       3
+#define ES8388_ADCPOWER_ADCR_OFF           4
+#define ES8388_ADCPOWER_ADCL_OFF           5
+#define ES8388_ADCPOWER_AINR_OFF           6
+#define ES8388_ADCPOWER_AINL_OFF           7
+
+#define ES8388_DACPOWER          0x04
+#define ES8388_DACPOWER_OUT3_ON  0
+#define ES8388_DACPOWER_MONO_ON  1
+#define ES8388_DACPOWER_ROUT2_ON 2
+#define ES8388_DACPOWER_LOUT2_ON 3
+#define ES8388_DACPOWER_ROUT1_ON 4
+#define ES8388_DACPOWER_LOUT1_ON 5
+#define ES8388_DACPOWER_RDAC_OFF 6
+#define ES8388_DACPOWER_LDAC_OFF 7
+
+#define ES8388_CHIPLOPOW1  0x05
+#define ES8388_CHIPLOPOW2  0x06
+#define ES8388_ANAVOLMANAG 0x07
+
+#define ES8388_MASTERMODE          0x08
+#define ES8388_MASTERMODE_BCLKDIV  (0 << 0)
+#define ES8388_MASTERMODE_BCLK_INV (1 << 5)
+#define ES8388_MASTERMODE_MCLKDIV2 (1 << 6)
+#define ES8388_MASTERMODE_MSC      (1 << 7)
+
+#define ES8388_ADCCONTROL1 0x09
+#define ES8388_ADCCONTROL2 0x0a
+#define ES8388_ADCCONTROL3 0x0b
+
+#define ES8388_ADCCONTROL4                       0x0c
+#define ES8388_ADCCONTROL4_ADCFORMAT_MASK        (3 << 0)
+#define ES8388_ADCCONTROL4_ADCFORMAT_I2S         (0 << 0)
+#define ES8388_ADCCONTROL4_ADCFORMAT_LJUST       (1 << 0)
+#define ES8388_ADCCONTROL4_ADCFORMAT_RJUST       (2 << 0)
+#define ES8388_ADCCONTROL4_ADCFORMAT_PCM         (3 << 0)
+#define ES8388_ADCCONTROL4_ADCWL_SHIFT           2
+#define ES8388_ADCCONTROL4_ADCWL_MASK            (7 << 2)
+#define ES8388_ADCCONTROL4_ADCLRP_I2S_POL_NORMAL (0 << 5)
+#define ES8388_ADCCONTROL4_ADCLRP_I2S_POL_INV    (1 << 5)
+#define ES8388_ADCCONTROL4_ADCLRP_PCM_MSB_CLK2   (0 << 5)
+#define ES8388_ADCCONTROL4_ADCLRP_PCM_MSB_CLK1   (1 << 5)
+
+#define ES8388_ADCCONTROL5          0x0d
+#define ES8388_ADCCONTROL5_RATEMASK (0x1f << 0)
+
+#define ES8388_ADCCONTROL6 0x0e
+
+#define ES8388_ADCCONTROL7                  0x0f
+#define ES8388_ADCCONTROL7_ADC_MUTE         (1 << 2)
+#define ES8388_ADCCONTROL7_ADC_LER          (1 << 3)
+#define ES8388_ADCCONTROL7_ADC_ZERO_CROSS   (1 << 4)
+#define ES8388_ADCCONTROL7_ADC_SOFT_RAMP    (1 << 5)
+#define ES8388_ADCCONTROL7_ADC_RAMP_RATE_4  (0 << 6)
+#define ES8388_ADCCONTROL7_ADC_RAMP_RATE_8  (1 << 6)
+#define ES8388_ADCCONTROL7_ADC_RAMP_RATE_16 (2 << 6)
+#define ES8388_ADCCONTROL7_ADC_RAMP_RATE_32 (3 << 6)
+
+#define ES8388_ADCCONTROL8  0x10
+#define ES8388_ADCCONTROL9  0x11
+#define ES8388_ADCCONTROL10 0x12
+#define ES8388_ADCCONTROL11 0x13
+#define ES8388_ADCCONTROL12 0x14
+#define ES8388_ADCCONTROL13 0x15
+#define ES8388_ADCCONTROL14 0x16
+
+#define ES8388_DACCONTROL1                       0x17
+#define ES8388_DACCONTROL1_DACFORMAT_MASK        (3 << 1)
+#define ES8388_DACCONTROL1_DACFORMAT_I2S         (0 << 1)
+#define ES8388_DACCONTROL1_DACFORMAT_LJUST       (1 << 1)
+#define ES8388_DACCONTROL1_DACFORMAT_RJUST       (2 << 1)
+#define ES8388_DACCONTROL1_DACFORMAT_PCM         (3 << 1)
+#define ES8388_DACCONTROL1_DACWL_SHIFT           3
+#define ES8388_DACCONTROL1_DACWL_MASK            (7 << 3)
+#define ES8388_DACCONTROL1_DACLRP_I2S_POL_NORMAL (0 << 6)
+#define ES8388_DACCONTROL1_DACLRP_I2S_POL_INV    (1 << 6)
+#define ES8388_DACCONTROL1_DACLRP_PCM_MSB_CLK2   (0 << 6)
+#define ES8388_DACCONTROL1_DACLRP_PCM_MSB_CLK1   (1 << 6)
+#define ES8388_DACCONTROL1_LRSWAP                (1 << 7)
+
+#define ES8388_DACCONTROL2             0x18
+#define ES8388_DACCONTROL2_RATEMASK    (0x1f << 0)
+#define ES8388_DACCONTROL2_DOUBLESPEED (1 << 5)
+
+#define ES8388_DACCONTROL3              0x19
+#define ES8388_DACCONTROL3_AUTOMUTE     (1 << 2)
+#define ES8388_DACCONTROL3_DACMUTE      (1 << 2)
+#define ES8388_DACCONTROL3_LEFTGAINVOL  (1 << 3)
+#define ES8388_DACCONTROL3_DACZEROCROSS (1 << 4)
+#define ES8388_DACCONTROL3_DACSOFTRAMP  (1 << 5)
+#define ES8388_DACCONTROL3_DACRAMPRATE  (3 << 6)
+
+#define ES8388_DACCONTROL4  0x1a
+#define ES8388_LDACVOL      ES8388_DACCONTROL4
+#define ES8388_LDACVOL_MASK (0 << 0)
+#define ES8388_LDACVOL_MAX  (0xc0)
+
+#define ES8388_DACCONTROL5  0x1b
+#define ES8388_RDACVOL      ES8388_DACCONTROL5
+#define ES8388_RDACVOL_MASK (0 << 0)
+#define ES8388_RDACVOL_MAX  (0xc0)
+
+#define ES8388_DACVOL_MAX (0xc0)
+
+#define ES8388_DACCONTROL6              0x1c
+#define ES8388_DACCONTROL6_CLICKFREE    (1 << 3)
+#define ES8388_DACCONTROL6_DAC_INVR     (1 << 4)
+#define ES8388_DACCONTROL6_DAC_INVL     (1 << 5)
+#define ES8388_DACCONTROL6_DEEMPH_MASK  (3 << 6)
+#define ES8388_DACCONTROL6_DEEMPH_OFF   (0 << 6)
+#define ES8388_DACCONTROL6_DEEMPH_32k   (1 << 6)
+#define ES8388_DACCONTROL6_DEEMPH_44_1k (2 << 6)
+#define ES8388_DACCONTROL6_DEEMPH_48k   (3 << 6)
+
+#define ES8388_DACCONTROL7                   0x1d
+#define ES8388_DACCONTROL7_VPP_SCALE_3p5     (0 << 0)
+#define ES8388_DACCONTROL7_VPP_SCALE_4p0     (1 << 0)
+#define ES8388_DACCONTROL7_VPP_SCALE_3p0     (2 << 0)
+#define ES8388_DACCONTROL7_VPP_SCALE_2p5     (3 << 0)
+#define ES8388_DACCONTROL7_SHELVING_STRENGTH (1 << 2) /* In eights */
+#define ES8388_DACCONTROL7_MONO              (1 << 5)
+#define ES8388_DACCONTROL7_ZEROR             (1 << 6)
+#define ES8388_DACCONTROL7_ZEROL             (1 << 7)
+
+/* Shelving filter */
+#define ES8388_DACCONTROL8  0x1e
+#define ES8388_DACCONTROL9  0x1f
+#define ES8388_DACCONTROL10 0x20
+#define ES8388_DACCONTROL11 0x21
+#define ES8388_DACCONTROL12 0x22
+#define ES8388_DACCONTROL13 0x23
+#define ES8388_DACCONTROL14 0x24
+#define ES8388_DACCONTROL15 0x25
+
+#define ES8388_DACCONTROL16              0x26
+#define ES8388_DACCONTROL16_RMIXSEL_RIN1 (0 << 0)
+#define ES8388_DACCONTROL16_RMIXSEL_RIN2 (1 << 0)
+#define ES8388_DACCONTROL16_RMIXSEL_RIN3 (2 << 0)
+#define ES8388_DACCONTROL16_RMIXSEL_RADC (3 << 0)
+#define ES8388_DACCONTROL16_LMIXSEL_LIN1 (0 << 3)
+#define ES8388_DACCONTROL16_LMIXSEL_LIN2 (1 << 3)
+#define ES8388_DACCONTROL16_LMIXSEL_LIN3 (2 << 3)
+#define ES8388_DACCONTROL16_LMIXSEL_LADC (3 << 3)
+
+#define ES8388_DACCONTROL17          0x27
+#define ES8388_DACCONTROL17_LI2LOVOL (7 << 3)
+#define ES8388_DACCONTROL17_LI2LO    (1 << 6)
+#define ES8388_DACCONTROL17_LD2LO    (1 << 7)
+
+#define ES8388_DACCONTROL18          0x28
+#define ES8388_DACCONTROL18_RI2LOVOL (7 << 3)
+#define ES8388_DACCONTROL18_RI2LO    (1 << 6)
+#define ES8388_DACCONTROL18_RD2LO    (1 << 7)
+
+#define ES8388_DACCONTROL19          0x29
+#define ES8388_DACCONTROL19_LI2ROVOL (7 << 3)
+#define ES8388_DACCONTROL19_LI2RO    (1 << 6)
+#define ES8388_DACCONTROL19_LD2RO    (1 << 7)
+
+#define ES8388_DACCONTROL20          0x2a
+#define ES8388_DACCONTROL20_RI2ROVOL (7 << 3)
+#define ES8388_DACCONTROL20_RI2RO    (1 << 6)
+#define ES8388_DACCONTROL20_RD2RO    (1 << 7)
+
+#define ES8388_DACCONTROL21          0x2b
+#define ES8388_DACCONTROL21_LI2MOVOL (7 << 3)
+#define ES8388_DACCONTROL21_LI2MO    (1 << 6)
+#define ES8388_DACCONTROL21_LD2MO    (1 << 7)
+
+#define ES8388_DACCONTROL22          0x2c
+#define ES8388_DACCONTROL22_RI2MOVOL (7 << 3)
+#define ES8388_DACCONTROL22_RI2MO    (1 << 6)
+#define ES8388_DACCONTROL22_RD2MO    (1 << 7)
+
+#define ES8388_DACCONTROL23                  0x2d
+#define ES8388_DACCONTROL23_MOUTINV          (1 << 1)
+#define ES8388_DACCONTROL23_HPSWPOL          (1 << 2)
+#define ES8388_DACCONTROL23_HPSWEN           (1 << 3)
+#define ES8388_DACCONTROL23_VROI_1p5k        (0 << 4)
+#define ES8388_DACCONTROL23_VROI_40k         (1 << 4)
+#define ES8388_DACCONTROL23_OUT3_VREF        (0 << 5)
+#define ES8388_DACCONTROL23_OUT3_ROUT1       (1 << 5)
+#define ES8388_DACCONTROL23_OUT3_MONOOUT     (2 << 5)
+#define ES8388_DACCONTROL23_OUT3_RIGHT_MIXER (3 << 5)
+#define ES8388_DACCONTROL23_ROUT2INV         (1 << 7)
+
+/* LOUT1 Amplifier */
+#define ES8388_DACCONTROL24  0x2e
+#define ES8388_LOUT1VOL      ES8388_DACCONTROL24
+#define ES8388_LOUT1VOL_MASK (0 << 5)
+#define ES8388_LOUT1VOL_MAX  (0x24)
+
+/* ROUT1 Amplifier */
+#define ES8388_DACCONTROL25  0x2f
+#define ES8388_ROUT1VOL      ES8388_DACCONTROL25
+#define ES8388_ROUT1VOL_MASK (0 << 5)
+#define ES8388_ROUT1VOL_MAX  (0x24)
+
+#define ES8388_OUT1VOL_MAX (0x24)
+
+/* LOUT2 Amplifier */
+#define ES8388_DACCONTROL26  0x30
+#define ES8388_LOUT2VOL      ES8388_DACCONTROL26
+#define ES8388_LOUT2VOL_MASK (0 << 5)
+#define ES8388_LOUT2VOL_MAX  (0x24)
+
+/* ROUT2 Amplifier */
+#define ES8388_DACCONTROL27  0x31
+#define ES8388_ROUT2VOL      ES8388_DACCONTROL27
+#define ES8388_ROUT2VOL_MASK (0 << 5)
+#define ES8388_ROUT2VOL_MAX  (0x24)
+
+#define ES8388_OUT2VOL_MAX (0x24)
+
+/* Mono Out Amplifier */
+#define ES8388_DACCONTROL28    0x32
+#define ES8388_MONOOUTVOL      ES8388_DACCONTROL28
+#define ES8388_MONOOUTVOL_MASK (0 << 5)
+#define ES8388_MONOOUTVOL_MAX  (0x24)
+
+#define ES8388_DACCONTROL29 0x33
+#define ES8388_DACCONTROL30 0x34
+/* ES8388 Registers end */
+
+#define ES8388_SYSCLK 0
+
+#define ES8388_REG_MAX 0x35
+
+#define ES8388_1536FS 1536
+#define ES8388_1024FS 1024
+#define ES8388_768FS  768
+#define ES8388_512FS  512
+#define ES8388_384FS  384
+#define ES8388_256FS  256
+#define ES8388_128FS  128
+
+typedef enum
+{
+    BIT_LENGTH_MIN = -1,
+    BIT_LENGTH_16BITS = 0x03,
+    BIT_LENGTH_18BITS = 0x02,
+    BIT_LENGTH_20BITS = 0x01,
+    BIT_LENGTH_24BITS = 0x00,
+    BIT_LENGTH_32BITS = 0x04,
+    BIT_LENGTH_MAX,
+} es_bits_length_t;
+
+typedef enum
+{
+    MCLK_DIV_MIN = -1,
+    MCLK_DIV_1 = 1,
+    MCLK_DIV_2 = 2,
+    MCLK_DIV_3 = 3,
+    MCLK_DIV_4 = 4,
+    MCLK_DIV_6 = 5,
+    MCLK_DIV_8 = 6,
+    MCLK_DIV_9 = 7,
+    MCLK_DIV_11 = 8,
+    MCLK_DIV_12 = 9,
+    MCLK_DIV_16 = 10,
+    MCLK_DIV_18 = 11,
+    MCLK_DIV_22 = 12,
+    MCLK_DIV_24 = 13,
+    MCLK_DIV_33 = 14,
+    MCLK_DIV_36 = 15,
+    MCLK_DIV_44 = 16,
+    MCLK_DIV_48 = 17,
+    MCLK_DIV_66 = 18,
+    MCLK_DIV_72 = 19,
+    MCLK_DIV_5 = 20,
+    MCLK_DIV_10 = 21,
+    MCLK_DIV_15 = 22,
+    MCLK_DIV_17 = 23,
+    MCLK_DIV_20 = 24,
+    MCLK_DIV_25 = 25,
+    MCLK_DIV_30 = 26,
+    MCLK_DIV_32 = 27,
+    MCLK_DIV_34 = 28,
+    MCLK_DIV_7 = 29,
+    MCLK_DIV_13 = 30,
+    MCLK_DIV_14 = 31,
+    MCLK_DIV_MAX,
+} es_sclk_div_t;
+
+typedef enum
+{
+    LCLK_DIV_MIN = -1,
+    LCLK_DIV_128 = 0,
+    LCLK_DIV_192 = 1,
+    LCLK_DIV_256 = 2,
+    LCLK_DIV_384 = 3,
+    LCLK_DIV_512 = 4,
+    LCLK_DIV_576 = 5,
+    LCLK_DIV_768 = 6,
+    LCLK_DIV_1024 = 7,
+    LCLK_DIV_1152 = 8,
+    LCLK_DIV_1408 = 9,
+    LCLK_DIV_1536 = 10,
+    LCLK_DIV_2112 = 11,
+    LCLK_DIV_2304 = 12,
+
+    LCLK_DIV_125 = 16,
+    LCLK_DIV_136 = 17,
+    LCLK_DIV_250 = 18,
+    LCLK_DIV_272 = 19,
+    LCLK_DIV_375 = 20,
+    LCLK_DIV_500 = 21,
+    LCLK_DIV_544 = 22,
+    LCLK_DIV_750 = 23,
+    LCLK_DIV_1000 = 24,
+    LCLK_DIV_1088 = 25,
+    LCLK_DIV_1496 = 26,
+    LCLK_DIV_1500 = 27,
+    LCLK_DIV_MAX,
+} es_lclk_div_t;
+
+typedef enum
+{
+    D2SE_PGA_GAIN_MIN = -1,
+    D2SE_PGA_GAIN_DIS = 0,
+    D2SE_PGA_GAIN_EN = 1,
+    D2SE_PGA_GAIN_MAX = 2,
+} es_d2se_pga_t;
+
+typedef enum
+{
+    ADC_INPUT_MIN = -1,
+    ADC_INPUT_LINPUT1_RINPUT1 = 0x00,
+    ADC_INPUT_MIC1 = 0x05,
+    ADC_INPUT_MIC2 = 0x06,
+    ADC_INPUT_LINPUT2_RINPUT2 = 0x50,
+    ADC_INPUT_DIFFERENCE = 0xf0,
+    ADC_INPUT_MAX,
+} es_adc_input_t;
+
+typedef enum
+{
+    DAC_OUTPUT_MIN = -1,
+    DAC_OUTPUT_LOUT1 = 0x04,
+    DAC_OUTPUT_LOUT2 = 0x08,
+    DAC_OUTPUT_SPK = 0x09,
+    DAC_OUTPUT_ROUT1 = 0x10,
+    DAC_OUTPUT_ROUT2 = 0x20,
+    DAC_OUTPUT_ALL = 0x3c,
+    DAC_OUTPUT_MAX,
+} es_dac_output_t;
+
+typedef enum
+{
+    MIC_GAIN_MIN = -1,
+    MIC_GAIN_0DB = 0,
+    MIC_GAIN_3DB = 3,
+    MIC_GAIN_6DB = 6,
+    MIC_GAIN_9DB = 9,
+    MIC_GAIN_12DB = 12,
+    MIC_GAIN_15DB = 15,
+    MIC_GAIN_18DB = 18,
+    MIC_GAIN_21DB = 21,
+    MIC_GAIN_24DB = 24,
+    MIC_GAIN_MAX,
+} es_mic_gain_t;
+
+typedef enum
+{
+    ES_MODULE_MIN = -1,
+    ES_MODULE_ADC = 0x01,
+    ES_MODULE_DAC = 0x02,
+    ES_MODULE_ADC_DAC = 0x03,
+    ES_MODULE_LINE = 0x04,
+    ES_MODULE_MAX
+} es_module_t;
+
+typedef enum
+{
+    ES_MODE_MIN = -1,
+    ES_MODE_SLAVE = 0x00,
+    ES_MODE_MASTER = 0x01,
+    ES_MODE_MAX,
+} es_mode_t;
+
+typedef enum
+{
+    ES_I2S_MIN = -1,
+    ES_I2S_NORMAL = 0,
+    ES_I2S_LEFT = 1,
+    ES_I2S_RIGHT = 2,
+    ES_I2S_DSP = 3,
+    ES_I2S_MAX
+} es_i2s_fmt_t;
+
+#endif /* __ES8388_H__ */

@@ -5,8 +5,10 @@
 extern "C" {
 #endif
 
-int rk_hash_sm3(const unsigned char *in, unsigned int in_len,
-                unsigned char *out, unsigned int *out_len);
+
+int rk_hash_sm3(const unsigned char *in, unsigned int in_len, 
+							unsigned char *out, unsigned int *out_len);
+
 
 #ifdef __cplusplus
 }

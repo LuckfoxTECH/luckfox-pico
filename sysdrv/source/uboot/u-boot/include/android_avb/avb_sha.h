@@ -45,6 +45,7 @@ extern "C" {
 #include <android_avb/avb_crypto.h>
 #include <android_avb/avb_sysdeps.h>
 #include <dm/device.h>
+#include <u-boot/sha256.h>
 
 /* Block size in bytes of a SHA-256 digest. */
 #define AVB_SHA256_BLOCK_SIZE 64
@@ -60,10 +61,7 @@ typedef struct {
   size_t len;
   uint8_t block[2 * AVB_SHA256_BLOCK_SIZE];
   uint8_t buf[AVB_SHA256_DIGEST_SIZE]; /* Used for storing the final digest. */
-#ifdef CONFIG_DM_CRYPTO
-  struct udevice *crypto_dev;
-  sha_context crypto_ctx;
-#endif
+  sha256_context sha256ctx;
 } AvbSHA256Ctx;
 
 /* Data structure used for SHA-512. */

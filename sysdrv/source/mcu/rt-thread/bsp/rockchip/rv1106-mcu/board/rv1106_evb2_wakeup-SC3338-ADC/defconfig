@@ -1,0 +1,356 @@
+#
+# Automatically generated file; DO NOT EDIT.
+# RT-Thread Configuration
+#
+CONFIG_SOC_RV1106=y
+CONFIG_BOARD_RV1106_RISCV_EVB=y
+
+#
+# RT-Thread Kernel
+#
+CONFIG_RT_USING_CORE_RTTHREAD=y
+# CONFIG_RT_USING_CORE_FREERTOS is not set
+CONFIG_RT_NAME_MAX=8
+CONFIG_RT_ALIGN_SIZE=4
+# CONFIG_RT_THREAD_PRIORITY_8 is not set
+CONFIG_RT_THREAD_PRIORITY_32=y
+# CONFIG_RT_THREAD_PRIORITY_256 is not set
+CONFIG_RT_THREAD_PRIORITY_MAX=32
+CONFIG_RT_TICK_PER_SECOND=1000
+CONFIG_RT_USING_OVERFLOW_CHECK=y
+CONFIG_RT_USING_HOOK=y
+CONFIG_RT_USING_IDLE_HOOK=y
+CONFIG_RT_IDEL_HOOK_LIST_SIZE=4
+CONFIG_IDLE_THREAD_STACK_SIZE=1024
+# CONFIG_RT_USING_TIMER_SOFT is not set
+# CONFIG_RT_DEBUG is not set
+
+#
+# Inter-Thread communication
+#
+CONFIG_RT_USING_SEMAPHORE=y
+CONFIG_RT_USING_MUTEX=y
+CONFIG_RT_USING_EVENT=y
+CONFIG_RT_USING_MAILBOX=y
+CONFIG_RT_USING_MESSAGEQUEUE=y
+# CONFIG_RT_USING_SIGNALS is not set
+
+#
+# Memory Management
+#
+CONFIG_RT_USING_MEMPOOL=y
+# CONFIG_RT_USING_MEMHEAP is not set
+# CONFIG_RT_USING_NOHEAP is not set
+CONFIG_RT_USING_SMALL_MEM=y
+# CONFIG_RT_USING_SLAB is not set
+# CONFIG_RT_USING_MEMTRACE is not set
+CONFIG_RT_USING_HEAP=y
+
+#
+# Kernel Device Object
+#
+CONFIG_RT_USING_DEVICE=y
+# CONFIG_RT_USING_DEVICE_OPS is not set
+# CONFIG_RT_USING_INTERRUPT_INFO is not set
+CONFIG_RT_USING_CONSOLE=y
+CONFIG_RT_CONSOLEBUF_SIZE=128
+CONFIG_RT_CONSOLE_DEVICE_NAME="uart2"
+CONFIG_RT_VER_NUM=0x30103
+CONFIG_ARCH_RISCV=y
+# CONFIG_ARCH_CPU_STACK_GROWS_UPWARD is not set
+
+#
+# RT-Thread Components
+#
+CONFIG_RT_USING_COMPONENTS_INIT=y
+# CONFIG_RT_USING_USER_MAIN is not set
+
+#
+# C++ features
+#
+# CONFIG_RT_USING_CPLUSPLUS is not set
+
+#
+# Command shell
+#
+# CONFIG_RT_USING_FINSH is not set
+
+#
+# Device virtual file system
+#
+# CONFIG_RT_USING_DFS is not set
+
+#
+# Device Drivers
+#
+CONFIG_RT_USING_DEVICE_IPC=y
+CONFIG_RT_PIPE_BUFSZ=512
+CONFIG_RT_USING_SERIAL=y
+# CONFIG_RT_SERIAL_USING_DMA is not set
+CONFIG_RT_SERIAL_RB_BUFSZ=64
+# CONFIG_RT_USING_CAN is not set
+# CONFIG_RT_USING_HWTIMER is not set
+# CONFIG_RT_USING_CPUTIME is not set
+CONFIG_RT_USING_I2C=y
+# CONFIG_RT_USING_I2C_BITOPS is not set
+CONFIG_RT_USING_PIN=y
+CONFIG_RT_USING_ADC=y
+CONFIG_RT_USING_PWM=y
+# CONFIG_RT_USING_MTD_NOR is not set
+# CONFIG_RT_USING_MTD_NAND is not set
+# CONFIG_RT_USING_MTD is not set
+# CONFIG_RT_USING_PM is not set
+# CONFIG_RT_USING_RTC is not set
+# CONFIG_RT_USING_SDIO is not set
+# CONFIG_RT_USING_SPI is not set
+# CONFIG_RT_USING_WDT is not set
+# CONFIG_RT_USING_AUDIO is not set
+# CONFIG_RT_USING_SENSOR is not set
+# CONFIG_RT_USING_TOUCH is not set
+
+#
+# Using WiFi
+#
+# CONFIG_RT_USING_WIFI is not set
+
+#
+# Using USB
+#
+# CONFIG_RT_USING_USB_HOST is not set
+# CONFIG_RT_USING_USB_DEVICE is not set
+
+#
+# POSIX layer and C standard library
+#
+CONFIG_RT_USING_LIBC=y
+# CONFIG_RT_USING_PTHREADS is not set
+# CONFIG_RT_USING_MODULE is not set
+
+#
+# Network
+#
+
+#
+# Socket abstraction layer
+#
+# CONFIG_RT_USING_SAL is not set
+
+#
+# light weight TCP/IP stack
+#
+# CONFIG_RT_USING_LWIP is not set
+
+#
+# Modbus master and slave stack
+#
+# CONFIG_RT_USING_MODBUS is not set
+
+#
+# AT commands
+#
+# CONFIG_RT_USING_AT is not set
+# CONFIG_RT_USING_LITTLEVGL2RTT is not set
+
+#
+# VBUS(Virtual Software BUS)
+#
+# CONFIG_RT_USING_VBUS is not set
+
+#
+# Utilities
+#
+# CONFIG_RT_USING_CMBACKTRACE is not set
+# CONFIG_RT_USING_LOGTRACE is not set
+# CONFIG_RT_USING_RYM is not set
+# CONFIG_RT_USING_ULOG is not set
+# CONFIG_RT_USING_UTEST is not set
+
+#
+# RT-Thread Benchmarks
+#
+# CONFIG_RT_USING_BENCHMARK is not set
+# CONFIG_RT_USING_NET_HTTP is not set
+# CONFIG_RT_USING_OTA is not set
+# CONFIG_RT_USING_AUPIPE is not set
+
+#
+# RT-Thread board config
+#
+CONFIG_RT_BOARD_NAME="rv1106_evb2_wakeup-SC3338-ADC"
+CONFIG_RT_USING_CAM_STREAM_ON_LATE=y
+
+#
+# RT-Thread rockchip common drivers
+#
+# CONFIG_RT_USING_CPU_USAGE is not set
+# CONFIG_HAL_DBG_ON is not set
+# CONFIG_RT_USING_LOGBUFFER is not set
+# CONFIG_RT_USING_SND_GLB_RST is not set
+# CONFIG_RT_USING_RESET is not set
+# CONFIG_RT_USING_CRU_DUMP is not set
+# CONFIG_RT_USING_REGULATOR_DUMP is not set
+# CONFIG_RT_USING_PROF_IRQ is not set
+# CONFIG_RT_USING_PMIC is not set
+# CONFIG_RT_USING_PWM_REGULATOR is not set
+CONFIG_RT_USING_CACHE=y
+# CONFIG_RT_USING_UNCACHE_HEAP is not set
+# CONFIG_RT_USING_LARGE_HEAP is not set
+# CONFIG_RT_USING_DTCM_HEAP is not set
+# CONFIG_RT_USING_PSRAM_HEAP is not set
+
+#
+# Enable Fault Dump Hook
+#
+# CONFIG_RT_USING_SNOR is not set
+
+#
+# RT-Thread rockchip jpeg enc driver
+#
+# CONFIG_RT_USING_JPEG_ENC is not set
+
+#
+# RT-Thread rockchip pm drivers
+#
+# CONFIG_RT_USING_PM_DVFS is not set
+# CONFIG_RT_USING_PM_REQ_PWR is not set
+# CONFIG_RT_USING_PM_REQ_CLK is not set
+# CONFIG_RT_USING_DVFS_DBG is not set
+# CONFIG_RT_USING_PM_RUNTIME is not set
+# CONFIG_RT_USING_PM_TIMER is not set
+
+#
+# RT-Thread rockchip mipi-dphy driver
+#
+# CONFIG_RT_USING_MIPI_DPHY is not set
+
+#
+# RT-Thread rockchip isp driver
+#
+# CONFIG_RT_USING_ISP is not set
+CONFIG_RT_USING_ISP3=y
+CONFIG_RT_USING_ISP_DDR_ADRESS=0x860000
+CONFIG_RT_USING_ISP_DDR_SIZE=0x600000
+CONFIG_RT_USING_CHANNEL_MIPI=y
+# CONFIG_RT_USING_CHANNEL_DVP is not set
+# CONFIG_RT_USING_CHANNEL_LVDS is not set
+
+#
+# RT-Thread rockchip vcm driver
+#
+# CONFIG_RT_USING_VCM is not set
+
+#
+# RT-Thread rockchip vicap driver
+#
+# CONFIG_RT_USING_VICAP is not set
+
+#
+# RT-Thread rockchip camera driver
+#
+CONFIG_RT_USING_CAMERA=y
+
+#
+# supported camera
+#
+# CONFIG_RT_USING_GC2145 is not set
+# CONFIG_RT_USING_OV8825 is not set
+# CONFIG_RT_USING_OV5695 is not set
+# CONFIG_RT_USING_GC5035 is not set
+# CONFIG_RT_USING_OV02k10 is not set
+# CONFIG_RT_USING_GC2053 is not set
+# CONFIG_RT_USING_F37 is not set
+# CONFIG_RT_USING_SC230AI is not set
+# CONFIG_RT_USING_SC501AI is not set
+# CONFIG_RT_USING_SC530AI is not set
+# CONFIG_RT_USING_SC223A is not set
+# CONFIG_RT_USING_SC2336 is not set
+# CONFIG_RT_USING_SC301IOT is not set
+# CONFIG_RT_USING_SC3336 is not set
+CONFIG_RT_USING_SC3338=y
+# CONFIG_RT_USING_SC4336 is not set
+# CONFIG_RT_USING_GC3003 is not set
+# CONFIG_RT_USING_SC200AI is not set
+# CONFIG_RT_USING_GC2093 is not set
+# CONFIG_RT_USING_OS02K10 is not set
+
+#
+# RT-Thread rockchip ambient light sensor driver
+#
+# CONFIG_RT_USING_ALS is not set
+
+#
+# RT-Thread rockchip vicap_lite driver
+#
+# CONFIG_RT_USING_VICAP_LITE is not set
+
+#
+# RT-Thread rockchip csi2host driver
+#
+# CONFIG_RT_USING_CSI2HOST is not set
+
+#
+# RT-Thread rockchip buffer_manage driver
+#
+# CONFIG_RT_USING_BUFFER_MANAGE is not set
+# CONFIG_RT_USING_SENSOR_HUB is not set
+# CONFIG_RT_USING_QPIPSRAM is not set
+
+#
+# RT-Thread rockchip coredump driver
+#
+# CONFIG_RT_USING_COREDUMP is not set
+# CONFIG_RT_USING_SPINAND is not set
+
+#
+# Enable PSTORE
+#
+# CONFIG_RT_USING_PSTORE is not set
+
+#
+# RT-Thread rockchip AMP driver
+#
+
+#
+# RT-Thread rockchip rv1106 drivers
+#
+CONFIG_RT_USING_CRU=y
+
+#
+# Enable I2C
+#
+# CONFIG_RT_USING_I2C0 is not set
+# CONFIG_RT_USING_I2C1 is not set
+# CONFIG_RT_USING_I2C2 is not set
+# CONFIG_RT_USING_I2C3 is not set
+CONFIG_RT_USING_I2C4=y
+# CONFIG_RT_USING_I2C5 is not set
+CONFIG_RT_USING_PWM0=y
+CONFIG_RT_USING_PWM1=y
+CONFIG_RT_USING_PWM2=y
+CONFIG_RT_USING_SARADC=y
+
+#
+# Enable UART
+#
+# CONFIG_RT_USING_UART is not set
+
+#
+# RT-Thread Common Test case
+#
+# CONFIG_RT_USING_TC is not set
+# CONFIG_RT_USING_FILE_TEST is not set
+# CONFIG_RT_USING_COMMON_TEST is not set
+
+#
+# RT-Thread application
+#
+# CONFIG_RT_USING_ROCKCHIP_DEMO is not set
+CONFIG_RT_USING_RK_BATTERY_IPC=y
+
+#
+# RT-Thread Application Rockchip Battery IPC
+#
+CONFIG_RT_USING_META_DDR_ADRESS=0x800000
+CONFIG_RT_USING_RK_AOV=y
+# CONFIG_RT_USING_RK_IOT_APP is not set
+# CONFIG_ENABLE_DUAL_TRACKING is not set

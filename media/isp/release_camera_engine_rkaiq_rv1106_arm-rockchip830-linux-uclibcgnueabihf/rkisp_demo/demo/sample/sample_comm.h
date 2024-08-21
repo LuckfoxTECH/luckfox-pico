@@ -58,8 +58,24 @@ enum RK_ISP_HW_MODULE_e {
     RK_ISP_ACCM_V2,
     RK_ISP_ALDCH_V21,
     RK_SMARTIR,
+    RK_AINR,
     RK_ISP_MAX,
 };
+
+typedef int (*uapi_case_func)(const void*);
+
+typedef struct __uapi_case {
+    // description of this uapi
+    const char* desc;
+    // uapi function
+    uapi_case_func func;
+} uapi_case_t;
+
+int uapi_usage_show(uapi_case_t* uapi_list);
+
+int uapi_list_count(uapi_case_t* uapi_list);
+
+int uapi_process_loop(const rk_aiq_sys_ctx_t* ctx, uapi_case_t* uapi_list);
 
 #endif
 

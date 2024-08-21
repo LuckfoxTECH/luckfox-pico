@@ -27,6 +27,7 @@ extern "C" {
 #endif
 
 //typedef RK_S32 IVE_HANDLE;
+#define IVE_HANDLE_EXTERNAL_BUFFER_CACHE_COHERENCY 0x00000001
 
 typedef unsigned char IVE_U0Q8;
 typedef unsigned short IVE_U0Q11;
@@ -80,7 +81,7 @@ typedef struct rkIVE_IMAGE_S {
     RK_U32 u32Width;         /* RW;The width of the image */
     RK_U32 u32Height;        /* RW;The height of the image */
     IVE_IMAGE_TYPE_E enType; /* RW;The type of the image */
-    RK_U32 u32Reserved;
+    RK_S32 s32Reserved;
 } IVE_IMAGE_S;
 
 typedef IVE_IMAGE_S IVE_SRC_IMAGE_S;
@@ -93,7 +94,7 @@ typedef struct rkIVE_MEM_INFO_S {
     RK_U64 u64PhyAddr; /* RW;The physical address of the memory */
     RK_U64 u64VirAddr; /* RW;The virtual address of the memory */
     RK_U32 u32Size;    /* RW;The size of memory */
-    RK_U32 u32Reserved;
+    RK_S32 s32Reserved;
 } IVE_MEM_INFO_S;
 typedef IVE_MEM_INFO_S IVE_SRC_MEM_INFO_S;
 typedef IVE_MEM_INFO_S IVE_DST_MEM_INFO_S;
@@ -107,7 +108,7 @@ typedef struct rkIVE_DATA_S {
     RK_U32 u32Width;  /* RW;The width of 2D data by byte */
     RK_U32 u32Height; /* RW;The height of 2D data by byte */
 
-    RK_U32 u32Reserved;
+    RK_S32 s32Reserved;
 } IVE_DATA_S;
 typedef IVE_DATA_S IVE_SRC_DATA_S;
 typedef IVE_DATA_S IVE_DST_DATA_S;

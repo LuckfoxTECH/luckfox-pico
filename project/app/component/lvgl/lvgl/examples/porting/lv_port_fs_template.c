@@ -3,7 +3,7 @@
  *
  */
 
-/*Copy this file as "lv_port_fs.c" and set this value to "1" to enable content*/
+ /*Copy this file as "lv_port_fs.c" and set this value to "1" to enable content*/
 #if 0
 
 /*********************

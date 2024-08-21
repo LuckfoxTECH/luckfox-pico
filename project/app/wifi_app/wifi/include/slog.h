@@ -2,6 +2,7 @@
 #define __BT_LOG__
 #include <syslog.h>
 #include <sys/time.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {

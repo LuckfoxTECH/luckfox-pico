@@ -29,9 +29,12 @@
 #include "gain_head_v2.h"
 #include "gain_uapi_head_v2.h"
 
+// enable write local gain write to ddr
+#define RK_GAIN_V2_ENABLE_GAIN2DDR      0
 
 //RKAIQ_BEGIN_DECLARE
 #define RK_GAIN_V2_MAX_ISO_NUM  CALIBDB_MAX_ISO_LEVEL
+
 
 #define AGAINV2_RECALCULATE_DELTA_ISO       (10)
 
@@ -93,12 +96,12 @@ typedef struct RK_GAIN_Select_V2_s
 
 } RK_GAIN_Select_V2_t;
 #endif
+
 typedef struct RK_GAIN_Params_V2_s
 {   bool hdrgain_ctrl_enable;
     int iso[RK_GAIN_V2_MAX_ISO_NUM];
     RK_GAIN_Select_V2_t iso_params[RK_GAIN_V2_MAX_ISO_NUM];
 } RK_GAIN_Params_V2_t;
-
 
 
 typedef struct Again_Manual_Attr_V2_s
@@ -117,13 +120,11 @@ typedef struct AgainV2_Auto_Attr_V2_s
 } Again_Auto_Attr_V2_t;
 
 typedef struct AgainV2_ProcResult_V2_s {
-    bool isNeedUpdate;
-
     //for sw simultaion
-    RK_GAIN_Select_V2_t stSelect;
+    //RK_GAIN_Select_V2_t stSelect;
 
     //for hw register
-    RK_GAIN_Fix_V2_t stFix;
+    RK_GAIN_Fix_V2_t* stFix;
 
 } Again_ProcResult_V2_t;
 
@@ -141,6 +142,13 @@ typedef struct rk_aiq_gain_attrib_v2_s {
     Again_Manual_Attr_V2_t stManual;
 } rk_aiq_gain_attrib_v2_t;
 
+typedef struct rk_aiq_uapiV2_again_wrtIn_attr_s {
+    rk_aiq_uapi_sync_t sync;
+    bool enable;
+    int mode;
+    char path[100];
+    int call_cnt;
+} rk_aiq_uapiV2_again_wrtIn_attr_t;
 
 //RKAIQ_END_DECLARE
 

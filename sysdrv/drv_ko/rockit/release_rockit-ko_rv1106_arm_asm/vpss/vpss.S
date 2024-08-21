@@ -67,6 +67,105 @@ vpss_open:
 	.fnend
 	.size	vpss_open, .-vpss_open
 	.align	1
+	.global	vpss_version
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	vpss_version, %function
+vpss_version:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r0, r1, r4, r5, r6, lr}
+	.save {r4, r5, r6, lr}
+	.pad #8
+	mov	r4, r1
+	ldr	r2, [r1, #32]	@ unaligned
+	ldr	r5, [r0, #128]
+	cmp	r2, #76
+	ldr	r6, [r5, #160]
+	beq	.L7
+	movs	r3, #60
+	ldr	r2, .L10
+	str	r3, [sp]
+	movs	r1, #2
+	ldr	r3, .L10+4
+	movs	r0, #6
+	bl	vlog
+	mov	r0, #-1
+.L6:
+	add	sp, sp, #8
+	@ sp needed
+	pop	{r4, r5, r6, pc}
+.L7:
+	movs	r1, #0
+	mov	r0, r4
+	bl	memset
+	ldr	r3, [r6, #196]
+	str	r3, [r4]	@ unaligned
+	ldr	r3, [r5]
+	movs	r5, #0
+	strb	r5, [r4, #8]
+	strb	r5, [r4, #9]
+	str	r3, [r4, #4]	@ unaligned
+	strb	r5, [r4, #10]
+	strb	r5, [r4, #11]
+	ldr	r0, [r6, #192]
+	bl	strlen
+	movs	r3, #20
+	strb	r5, [r4, #37]
+	strb	r3, [r4, #36]
+	movs	r3, #17
+	strb	r5, [r4, #38]
+	strb	r5, [r4, #39]
+	strb	r3, [r4, #56]
+	strb	r5, [r4, #57]
+	strb	r5, [r4, #58]
+	strb	r5, [r4, #59]
+	cmp	r0, #15
+	str	r0, [r4, #12]	@ unaligned
+	bls	.L9
+	movs	r3, #15
+	strb	r5, [r4, #13]
+	strb	r3, [r4, #12]
+	strb	r5, [r4, #14]
+	strb	r5, [r4, #15]
+.L9:
+	movs	r5, #0
+	movs	r3, #16
+	strb	r5, [r4, #37]
+	adds	r0, r4, r3
+	strb	r3, [r4, #36]
+	strb	r3, [r4, #56]
+	strb	r5, [r4, #38]
+	strb	r5, [r4, #39]
+	strb	r5, [r4, #57]
+	strb	r5, [r4, #58]
+	strb	r5, [r4, #59]
+	ldr	r2, [r4, #12]	@ unaligned
+	ldr	r1, [r6, #192]
+	bl	strncpy
+	ldr	r2, [r4, #36]	@ unaligned
+	ldr	r1, .L10+8
+	add	r0, r4, #40
+	bl	strncpy
+	ldr	r2, [r4, #56]	@ unaligned
+	ldr	r1, .L10+12
+	add	r0, r4, #60
+	bl	strncpy
+	mov	r0, r5
+	b	.L6
+.L11:
+	.align	2
+.L10:
+	.word	.LC0
+	.word	.LANCHOR1
+	.word	.LC1
+	.word	.LC2
+	.fnend
+	.size	vpss_version, .-vpss_version
+	.align	1
 	.global	vpss_map_node_set
 	.syntax unified
 	.thumb
@@ -77,116 +176,151 @@ vpss_map_node_set:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, r7, lr}
-	.save {r4, r5, r6, r7, lr}
+	push	{r4, r5, r6, lr}
+	.save {r4, r5, r6, lr}
 	mov	r4, r1
-	ldrd	r5, r3, [r1, #8]
-	.pad #28
-	sub	sp, sp, #28
-	cmp	r3, #28
-	beq	.L7
-	movs	r3, #71
-	ldr	r2, .L20
+	ldr	r3, [r1, #9]	@ unaligned
+	.pad #24
+	sub	sp, sp, #24
+	ldr	r6, [r1, #5]	@ unaligned
+	cmp	r3, #25
+	beq	.L13
+	movs	r3, #93
+	ldr	r2, .L35
 	str	r3, [sp]
 	movs	r1, #2
-	ldr	r3, .L20+4
-	movs	r0, #0
-.L17:
-	bl	vlog
-	b	.L16
-.L7:
-	ldr	r0, [r1, #16]
-	cmp	r0, #18
-	beq	.L9
-	movs	r3, #76
-	ldr	r2, .L20+8
-	str	r3, [sp]
-	movs	r1, #2
-	ldr	r3, .L20+4
-	str	r0, [sp, #4]
-	movs	r0, #0
-.L19:
-	bl	vlog
-.L16:
-	mov	r0, #-1
-.L6:
-	add	sp, sp, #28
-	@ sp needed
-	pop	{r4, r5, r6, r7, pc}
-.L9:
-	ldrd	r1, r2, [r1, #20]
-	bl	vsys_get_node_from_map
-	mov	r7, r0
-	cbnz	r0, .L10
-	ldr	r3, [r4, #24]
-	ldr	r2, .L20+12
-	str	r3, [sp, #4]
-	movs	r3, #82
-	str	r3, [sp]
-	ldr	r3, .L20+4
-.L18:
-	movs	r1, #2
-	b	.L19
-.L10:
-	ldrb	r6, [r4]	@ zero_extendqisi2
-	cbnz	r6, .L11
-	mov	r2, r6
-	ldr	r1, [r4, #4]
+	ldr	r3, .L35+4
 	movs	r0, #6
-	adds	r5, r5, #1
-	bl	vsys_get_node_from_map
-	cbnz	r0, .L12
-	ldr	r3, [r4, #4]
-	ldr	r2, .L20+16
-	str	r3, [sp, #4]
-	movs	r3, #89
-	str	r3, [sp]
-	ldr	r3, .L20+4
-	b	.L18
+	bl	vlog
+.L32:
+	mov	r0, #-1
 .L12:
-	mov	r1, r7
-	bl	mpi_node_bind
-	cbz	r0, .L11
-	movs	r3, #94
-	ldr	r2, .L20+20
+	add	sp, sp, #24
+	@ sp needed
+	pop	{r4, r5, r6, pc}
+.L13:
+	ldr	r0, [r1, #13]	@ unaligned
+	cmp	r0, #18
+	beq	.L15
+	cmp	r0, #23
+	beq	.L15
+	movs	r3, #98
+	ldr	r2, .L35+8
 	str	r3, [sp]
+	ldr	r3, .L35+4
+	str	r0, [sp, #4]
+.L34:
 	movs	r1, #2
-	ldr	r3, .L20+4
-	mov	r0, r6
-	b	.L17
-.L11:
-	mov	r3, r7
-	mov	r2, r5
-	ldr	r1, [r4, #4]
+	movs	r0, #6
+	bl	vlog
+	b	.L32
+.L15:
+	ldr	r1, [r4, #17]	@ unaligned
+	ldr	r2, [r4, #21]	@ unaligned
+	bl	vsys_get_node_from_map
+	ldr	r1, [r4, #1]	@ unaligned
+	mov	r5, r0
+	cbnz	r0, .L16
+	ldr	r3, [r4, #21]	@ unaligned
+	ldr	r2, .L35+12
+	str	r3, [sp, #16]
+	ldr	r3, [r4, #17]	@ unaligned
+	str	r3, [sp, #12]
+	ldr	r3, [r4, #13]	@ unaligned
+	strd	r1, r3, [sp, #4]
+	movs	r3, #106
+	str	r3, [sp]
+	ldr	r3, .L35+4
+.L33:
+	movs	r1, #2
+	movs	r0, #6
+	bl	vlog
+	b	.L32
+.L16:
+	ldrb	r2, [r4]	@ zero_extendqisi2
+	cbnz	r2, .L17
+	movs	r0, #6
+	adds	r6, r6, #1
+	bl	vsys_get_node_from_map
+	mov	r1, r0
+	cbnz	r0, .L18
+	ldr	r3, [r4, #1]	@ unaligned
+	ldr	r2, .L35+16
+	str	r3, [sp, #4]
+	movs	r3, #113
+	str	r3, [sp]
+	ldr	r3, .L35+4
+	b	.L34
+.L18:
+	ldr	r3, [r4, #13]	@ unaligned
+	cmp	r3, #18
+	bne	.L19
+	mov	r1, r5
+.L31:
+	bl	mpi_node_bind
+	cbz	r0, .L17
+	ldr	r3, [r4, #21]	@ unaligned
+	ldr	r2, .L35+20
+	str	r3, [sp, #16]
+	ldr	r3, [r4, #17]	@ unaligned
+	str	r3, [sp, #12]
+	ldr	r3, [r4, #13]	@ unaligned
+	str	r3, [sp, #8]
+	ldr	r3, [r4, #1]	@ unaligned
+	str	r3, [sp, #4]
+	movs	r3, #124
+	str	r3, [sp]
+	ldr	r3, .L35+4
+	b	.L33
+.L19:
+	cmp	r3, #23
+	bne	.L17
+	mov	r0, r5
+	b	.L31
+.L17:
+	mov	r3, r5
+	mov	r2, r6
+	ldr	r1, [r4, #1]	@ unaligned
 	movs	r0, #6
 	bl	vsys_add_node_to_map
-	ldr	r3, [r4, #24]
-	ldr	r2, .L20+24
-	movs	r1, #5
-	movs	r0, #0
-	str	r3, [sp, #16]
-	ldr	r3, [r4, #8]
-	str	r3, [sp, #12]
-	ldr	r3, [r4, #4]
-	str	r3, [sp, #8]
-	ldrb	r3, [r4]	@ zero_extendqisi2
-	str	r3, [sp, #4]
-	movs	r3, #101
+	ldrb	r5, [r4]	@ zero_extendqisi2
+	ldr	r2, [r4, #21]	@ unaligned
+	ldr	r3, [r4, #1]	@ unaligned
+	cbz	r5, .L21
+	strd	r3, r2, [sp, #4]
+	movs	r1, #4
+	movs	r3, #132
+	ldr	r2, .L35+24
 	str	r3, [sp]
-	ldr	r3, .L20+4
+	movs	r0, #6
+	ldr	r3, .L35+4
 	bl	vlog
 	movs	r0, #0
-	b	.L6
+	b	.L12
 .L21:
+	str	r2, [sp, #12]
+	movs	r1, #4
+	ldr	r2, [r4, #5]	@ unaligned
+	movs	r0, #6
+	strd	r3, r2, [sp, #4]
+	movs	r3, #136
+	ldr	r2, .L35+28
+	str	r3, [sp]
+	ldr	r3, .L35+4
+	bl	vlog
+	mov	r0, r5
+	b	.L12
+.L36:
 	.align	2
-.L20:
-	.word	.LC0
-	.word	.LANCHOR1
-	.word	.LC1
-	.word	.LC2
+.L35:
 	.word	.LC3
+	.word	.LANCHOR1+13
 	.word	.LC4
 	.word	.LC5
+	.word	.LC6
+	.word	.LC7
+	.word	.LC8
+	.word	.LC9
 	.fnend
 	.size	vpss_map_node_set, .-vpss_map_node_set
 	.align	1
@@ -200,144 +334,193 @@ vpss_map_node_remove:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, r7, r8, r9, lr}
-	.save {r4, r5, r6, r7, r8, r9, lr}
+	push	{r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, lr}
+	.save {r4, r5, r6, r7, r8, r9, r10, lr}
+	.pad #16
 	mov	r4, r1
-	ldrd	r6, r3, [r1, #8]
-	.pad #20
-	sub	sp, sp, #20
-	cmp	r3, #28
-	beq	.L23
-	movs	r3, #118
-	ldr	r2, .L39
+	ldr	r3, [r1, #9]	@ unaligned
+	ldr	r7, [r1, #5]	@ unaligned
+	cmp	r3, #25
+	beq	.L38
+	movs	r3, #159
+	ldr	r2, .L63
 	str	r3, [sp]
 	movs	r1, #2
-	ldr	r3, .L39+4
-	movs	r0, #0
+	ldr	r3, .L63+4
+	movs	r0, #6
 	bl	vlog
-.L35:
+.L60:
 	mov	r0, #-1
-.L22:
-	add	sp, sp, #20
-	@ sp needed
-	pop	{r4, r5, r6, r7, r8, r9, pc}
-.L23:
-	ldr	r3, [r1, #16]
-	cmp	r3, #18
-	beq	.L25
-	str	r3, [sp, #4]
-	movs	r3, #122
-	ldr	r2, .L39+8
-	movs	r1, #2
-	str	r3, [sp]
-	movs	r0, #0
-	ldr	r3, .L39+4
-.L38:
-	bl	vlog
-	b	.L35
-.L25:
-	movs	r2, #0
-	ldr	r1, [r1, #4]
-	movs	r0, #6
-	bl	vsys_get_node_from_map
-	mov	r7, r0
-	cbnz	r0, .L26
-	ldr	r3, [r4, #4]
-	ldr	r2, .L39+12
-	str	r3, [sp, #4]
-	movs	r3, #128
-	str	r3, [sp]
-	ldr	r3, .L39+4
 .L37:
+	add	sp, sp, #16
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+.L38:
+	ldr	r3, [r1, #13]	@ unaligned
+	cmp	r3, #18
+	beq	.L40
+	cmp	r3, #23
+	beq	.L40
+	str	r3, [sp, #4]
+	movs	r3, #164
+	ldr	r2, .L63+8
+	str	r3, [sp]
+	ldr	r3, .L63+4
+.L62:
 	movs	r1, #2
-	b	.L38
-.L26:
-	ldrb	r5, [r4]	@ zero_extendqisi2
-	cbnz	r5, .L30
-	adds	r6, r6, #1
-	ldr	r1, [r4, #4]
 	movs	r0, #6
-	mov	r2, r6
-	bl	vsys_get_node_from_map
-	mov	r1, r0
-	cbnz	r0, .L28
-	movs	r3, #136
-	str	r6, [sp, #4]
-	str	r3, [sp]
-	ldr	r2, .L39+16
-	ldr	r3, .L39+4
-	b	.L37
-.L28:
-	mov	r0, r7
-	bl	mpi_node_unbind
-	mov	r2, r6
-	ldr	r1, [r4, #4]
-	movs	r0, #6
-	bl	vsys_remove_node_from_map
-	ldr	r3, [r4, #8]
-	ldr	r2, .L39+20
-	movs	r1, #5
-	mov	r0, r5
-	str	r3, [sp, #8]
-	ldr	r3, [r4, #4]
-	str	r6, [sp, #12]
-	str	r3, [sp, #4]
-	movs	r3, #142
-	str	r3, [sp]
-	ldr	r3, .L39+4
 	bl	vlog
-.L36:
-	movs	r0, #0
-	b	.L22
-.L30:
-	ldr	r6, .L39+4
-	movs	r5, #1
-	ldr	r8, .L39+24
-.L27:
-	ldr	r1, [r4, #4]
-	mov	r2, r5
-	movs	r0, #6
-	bl	vsys_get_node_from_map
-	mov	r1, r0
-	cbz	r0, .L29
-	ldr	r9, [r0, #56]
-	mov	r0, r7
-	bl	mpi_node_unbind
-	mov	r2, r5
-	ldr	r1, [r4, #4]
-	movs	r0, #6
-	bl	vsys_remove_node_from_map
-	subs	r3, r5, #1
-	mov	r2, r8
-	movs	r1, #5
-	movs	r0, #0
-	str	r3, [sp, #8]
-	ldr	r3, [r4, #4]
-	str	r9, [sp, #12]
-	str	r3, [sp, #4]
-	movs	r3, #153
-	str	r3, [sp]
-	mov	r3, r6
-	bl	vlog
-.L29:
-	adds	r5, r5, #1
-	cmp	r5, #5
-	bne	.L27
-	movs	r2, #0
-	ldr	r1, [r4, #4]
-	movs	r0, #6
-	bl	vsys_remove_node_from_map
-	b	.L36
+	b	.L60
 .L40:
+	ldr	r1, [r4, #1]	@ unaligned
+	movs	r2, #0
+	movs	r0, #6
+	bl	vsys_get_node_from_map
+	ldr	r1, [r4, #1]	@ unaligned
+	mov	r6, r0
+	cbnz	r0, .L41
+	movs	r3, #170
+	str	r1, [sp, #4]
+	str	r3, [sp]
+	ldr	r2, .L63+12
+	ldr	r3, .L63+4
+	b	.L62
+.L41:
+	ldrb	r3, [r4]	@ zero_extendqisi2
+	cmp	r3, #0
+	bne	.L49
+	adds	r7, r7, #1
+	movs	r0, #6
+	mov	r2, r7
+	bl	vsys_get_node_from_map
+	mov	r1, r0
+	cbnz	r0, .L43
+	movs	r3, #178
+	str	r7, [sp, #4]
+	str	r3, [sp]
+	ldr	r2, .L63+16
+	ldr	r3, .L63+4
+	b	.L62
+.L43:
+	ldr	r3, [r4, #13]	@ unaligned
+	cmp	r3, #18
+	bne	.L44
+	mov	r0, r6
+	bl	mpi_node_unbind
+	ldr	r3, [r4, #5]	@ unaligned
+	ldr	r2, .L63+20
+	movs	r1, #4
+	movs	r0, #6
+	str	r3, [sp, #8]
+	ldr	r3, [r4, #1]	@ unaligned
+	str	r7, [sp, #12]
+	str	r3, [sp, #4]
+	movs	r3, #184
+	str	r3, [sp]
+	ldr	r3, .L63+4
+	bl	vlog
+.L45:
+	mov	r2, r7
+	ldr	r1, [r4, #1]	@ unaligned
+	movs	r0, #6
+	bl	vsys_remove_node_from_map
+.L61:
+	movs	r0, #0
+	b	.L37
+.L44:
+	cmp	r3, #23
+	bne	.L45
+	mov	r1, r6
+	bl	mpi_node_unbind
+	ldr	r3, [r4, #1]	@ unaligned
+	ldr	r2, .L63+24
+	movs	r1, #4
+	movs	r0, #6
+	str	r7, [sp, #8]
+	str	r3, [sp, #4]
+	movs	r3, #188
+	str	r3, [sp]
+	ldr	r3, .L63+4
+	bl	vlog
+	b	.L45
+.L49:
+	ldr	r8, .L63+4
+	movs	r5, #1
+	ldr	r9, .L63+32
+	ldr	r10, .L63+36
+.L42:
+	ldr	r1, [r4, #1]	@ unaligned
+	mov	r2, r5
+	movs	r0, #6
+	bl	vsys_get_node_from_map
+	mov	r1, r0
+	cbz	r0, .L46
+	cmp	r5, #5
+	ldr	r7, [r0, #56]
+	beq	.L47
+	mov	r0, r6
+	bl	mpi_node_unbind
+	ldr	r3, [r4, #1]	@ unaligned
+	subs	r2, r5, #1
+	movs	r1, #4
+	movs	r0, #6
+	strd	r3, r2, [sp, #4]
+	mov	r2, r10
+	str	r3, [sp, #12]
+	movs	r3, #201
+	str	r3, [sp]
+	mov	r3, r8
+	bl	vlog
+.L48:
+	mov	r2, r5
+	ldr	r1, [r4, #1]	@ unaligned
+	movs	r0, #6
+	bl	vsys_remove_node_from_map
+.L46:
+	adds	r5, r5, #1
+	cmp	r5, #6
+	bne	.L42
+	ldr	r1, [r4, #1]	@ unaligned
+	movs	r2, #0
+	mov	r0, r5
+	bl	vsys_remove_node_from_map
+	ldr	r3, [r4, #1]	@ unaligned
+	ldr	r2, .L63+28
+	movs	r1, #4
+	mov	r0, r5
+	str	r7, [sp, #8]
+	str	r3, [sp, #4]
+	movs	r3, #212
+	str	r3, [sp]
+	ldr	r3, .L63+4
+	bl	vlog
+	b	.L61
+.L47:
+	mov	r1, r6
+	bl	mpi_node_unbind
+	ldr	r3, [r4, #1]	@ unaligned
+	mov	r2, r9
+	movs	r1, #4
+	movs	r0, #6
+	strd	r3, r3, [sp, #4]
+	movs	r3, #205
+	str	r3, [sp]
+	mov	r3, r8
+	bl	vlog
+	b	.L48
+.L64:
 	.align	2
-.L39:
-	.word	.LC0
-	.word	.LANCHOR1+18
-	.word	.LC1
+.L63:
 	.word	.LC3
-	.word	.LC2
-	.word	.LC6
-	.word	.LC7
+	.word	.LANCHOR1+31
+	.word	.LC10
+	.word	.LC11
+	.word	.LC12
+	.word	.LC13
+	.word	.LC14
+	.word	.LC17
+	.word	.LC16
+	.word	.LC15
 	.fnend
 	.size	vpss_map_node_remove, .-vpss_map_node_remove
 	.align	1
@@ -354,15 +537,21 @@ vpss_thread_fn:
 	.save {r3, r4, r5, lr}
 	add	r5, r0, #168
 	mov	r4, r0
-.L42:
-	ldr	r3, [r4, #184]
-	cbz	r3, .L43
+.L66:
+	bl	kthread_should_stop
+	cbz	r0, .L69
 	movs	r0, #0
 	pop	{r3, r4, r5, pc}
-.L43:
+.L69:
+	ldr	r3, [r4]
+	cbz	r3, .L67
+	movs	r0, #1
+	bl	msleep
+	b	.L66
+.L67:
 	mov	r0, r5
 	bl	down
-	b	.L42
+	b	.L66
 	.fnend
 	.size	vpss_thread_fn, .-vpss_thread_fn
 	.align	1
@@ -384,55 +573,55 @@ vpss_ioctl:
 	mov	r6, r1
 	mov	r7, r2
 	movs	r1, #5
-	ldr	r2, .L48
+	ldr	r2, .L74
 	ldr	r8, [r3, #160]
-	movs	r0, #0
+	movs	r0, #6
 	strd	r4, r3, [sp, #8]
-	movs	r3, #183
+	movs	r3, #239
 	str	r4, [sp, #4]
 	str	r3, [sp]
-	ldr	r3, .L48+4
+	ldr	r3, .L74+4
 	bl	vlog
-	ldr	r0, [r8, #192]
-	cmp	r0, r4
-	bhi	.L45
-	movs	r3, #186
+	ldr	r1, [r8, #188]
+	cmp	r1, r4
+	bhi	.L71
+	movs	r3, #242
 	str	r4, [sp, #4]
 	str	r3, [sp]
 	movs	r1, #2
-	ldr	r3, .L48+4
-	movs	r0, #0
-	ldr	r2, .L48+8
+	ldr	r3, .L74+4
+	movs	r0, #6
+	ldr	r2, .L74+8
 	bl	vlog
-.L46:
-.L44:
+.L72:
+.L70:
 	mvn	r0, #21
 	add	sp, sp, #16
 	@ sp needed
 	pop	{r4, r5, r6, r7, r8, pc}
-.L45:
+.L71:
 	.syntax unified
-@ 87 "./arch/arm/include/asm/barrier.h" 1
-	cmp	r4, r0
-	sbc	r0, r4, r4
+@ 87 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/barrier.h" 1
+	cmp	r4, r1
+	sbc	r1, r4, r4
 .inst.w 0xf3af8014
 @ 0 "" 2
 	.thumb
 	.syntax unified
-	ands	r4, r4, r0
-	ldr	r0, [r8, #188]
+	ands	r4, r4, r1
+	ldr	r1, [r8, #184]
 	movs	r3, #20
-	mla	r0, r3, r4, r0
-	cbnz	r0, .L47
-	movs	r3, #193
-	ldr	r2, .L48+12
+	mla	r1, r3, r4, r1
+	cbnz	r1, .L73
+	movs	r3, #249
+	ldr	r2, .L74+12
 	str	r3, [sp]
 	movs	r1, #2
-	ldr	r3, .L48+4
+	ldr	r3, .L74+4
+	movs	r0, #6
 	bl	vlog
-	b	.L44
-.L47:
-	mov	r1, r0
+	b	.L70
+.L73:
 	mov	r3, r7
 	mov	r2, r6
 	mov	r0, r5
@@ -440,75 +629,15 @@ vpss_ioctl:
 	@ sp needed
 	pop	{r4, r5, r6, r7, r8, lr}
 	b	mpi_ioctl_kernel
-.L49:
+.L75:
 	.align	2
-.L48:
-	.word	.LC8
-	.word	.LANCHOR1+39
-	.word	.LC9
-	.word	.LC10
+.L74:
+	.word	.LC18
+	.word	.LANCHOR1+52
+	.word	.LC19
+	.word	.LC20
 	.fnend
 	.size	vpss_ioctl, .-vpss_ioctl
-	.align	1
-	.global	vpss_version
-	.syntax unified
-	.thumb
-	.thumb_func
-	.fpu softvfp
-	.type	vpss_version, %function
-vpss_version:
-	.fnstart
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r0, r1, r2, r4, r5, lr}
-	.save {r4, r5, lr}
-	.pad #12
-	mov	r4, r1
-	ldr	r3, [r0, #128]
-	ldr	r5, [r3, #160]
-	ldr	r3, [r1, #32]
-	cmp	r3, #76
-	beq	.L51
-	movs	r3, #48
-	ldr	r2, .L55
-	str	r3, [sp]
-	movs	r1, #2
-	ldr	r3, .L55+4
-	movs	r0, #0
-	bl	vlog
-	mov	r0, #-1
-.L50:
-	add	sp, sp, #12
-	@ sp needed
-	pop	{r4, r5, pc}
-.L51:
-	movs	r3, #0
-	movs	r2, #1
-	str	r3, [r1, #8]
-	strd	r2, r3, [r1]
-	ldr	r0, [r5]
-	bl	strlen
-	cmp	r0, #16
-	it	ls
-	strls	r0, [r4, #12]
-	add	r0, r4, #16
-	itt	hi
-	movhi	r3, #16
-	strhi	r3, [r4, #12]
-	ldr	r2, [r4, #12]
-	ldr	r1, [r5]
-	bl	strncpy
-	movs	r0, #0
-	str	r0, [r4, #36]
-	str	r0, [r4, #56]
-	b	.L50
-.L56:
-	.align	2
-.L55:
-	.word	.LC0
-	.word	.LANCHOR1+50
-	.fnend
-	.size	vpss_version, .-vpss_version
 	.align	1
 	.global	vpss_probe
 	.syntax unified
@@ -520,54 +649,57 @@ vpss_probe:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, lr}
-	.save {r4, r5, r6, lr}
-	movs	r2, #196
-	ldr	r4, .L59
-	mov	r6, r0
+	push	{r3, r4, r5, r6, r7, lr}
+	.save {r3, r4, r5, r6, r7, lr}
+	movs	r2, #200
+	ldr	r4, .L78
+	mov	r7, r0
 	movs	r1, #0
-	ldr	r5, .L59+4
+	ldr	r6, .L78+4
+	movs	r5, #0
 	mov	r0, r4
 	bl	memset
 	mov	r1, #3264
-	mov	r0, r6
+	mov	r0, r7
 	bl	kstrdup
-	movs	r3, #4
-	mov	r2, r6
+	movs	r3, #1
+	mov	r2, r7
+	str	r3, [r4, #196]
 	movs	r1, #8
-	str	r5, [r4, #188]
-	str	r3, [r4, #192]
+	movs	r3, #4
+	str	r5, [r4, #72]
+	str	r3, [r4, #188]
+	strd	r5, r5, [r4, #80]
+	str	r6, [r4, #184]
 	str	r4, [r4, #164]
-	str	r0, [r4]
+	str	r0, [r4, #192]
 	adds	r0, r4, r3
 	bl	mpi_dev_register
-	add	r1, r5, #80
+	mov	r2, r5
 	add	r0, r4, #172
+	add	r1, r6, #80
 	strd	r0, r0, [r4, #172]
 	adds	r0, r4, #4
-	movs	r3, #0
-	str	r3, [r4, #72]
-	strd	r3, r3, [r4, #80]
-	str	r3, [r4, #168]
+	str	r5, [r4, #168]
 	bl	mpi_sysfs_dev_add
-	ldr	r3, .L59+8
+	ldr	r3, .L78+8
 	mov	r2, #-1
 	mov	r1, r4
-	ldr	r0, .L59+12
+	ldr	r0, .L78+12
 	bl	kthread_create_on_node
 	cmn	r0, #4096
 	mov	r5, r0
-	bhi	.L58
+	bhi	.L77
 	bl	wake_up_process
-.L58:
+.L77:
 	str	r5, [r4, #180]
-	pop	{r4, r5, r6, pc}
-.L60:
+	pop	{r3, r4, r5, r6, r7, pc}
+.L79:
 	.align	2
-.L59:
+.L78:
 	.word	.LANCHOR0
 	.word	.LANCHOR1+64
-	.word	.LC11
+	.word	.LC21
 	.word	vpss_thread_fn
 	.fnend
 	.size	vpss_probe, .-vpss_probe
@@ -582,15 +714,19 @@ vpss_shutdown:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
-	@ link register save eliminated.
-	ldr	r0, .L62
+	push	{r4, lr}
+	.save {r4, lr}
 	movs	r3, #1
-	adds	r0, r0, #4
-	str	r3, [r0, #180]
-	b	mpi_dev_unregister
-.L63:
+	ldr	r4, .L81
+	mov	r0, r4
+	str	r3, [r0], #4
+	bl	mpi_dev_unregister
+	ldr	r0, [r4, #192]
+	pop	{r4, lr}
+	b	kfree
+.L82:
 	.align	2
-.L62:
+.L81:
 	.word	.LANCHOR0
 	.fnend
 	.size	vpss_shutdown, .-vpss_shutdown
@@ -608,14 +744,14 @@ vpss_init:
 	@ frame_needed = 0, uses_anonymous_args = 0
 	push	{r3, lr}
 	.save {r3, lr}
-	ldr	r0, .L65
+	ldr	r0, .L84
 	bl	vpss_probe
 	movs	r0, #0
 	pop	{r3, pc}
-.L66:
+.L85:
 	.align	2
-.L65:
-	.word	.LC11
+.L84:
+	.word	.LC21
 	.fnend
 	.size	vpss_init, .-vpss_init
 	.section	.exit.text,"ax",%progbits
@@ -638,22 +774,22 @@ vpss_exit:
 	.section	.rodata
 	.align	2
 	.set	.LANCHOR1,. + 0
-	.type	__func__.36267, %object
-	.size	__func__.36267, 18
-__func__.36267:
-	.ascii	"vpss_map_node_set\000"
-	.type	__func__.36281, %object
-	.size	__func__.36281, 21
-__func__.36281:
-	.ascii	"vpss_map_node_remove\000"
-	.type	__func__.36298, %object
-	.size	__func__.36298, 11
-__func__.36298:
-	.ascii	"vpss_ioctl\000"
-	.type	__func__.36257, %object
-	.size	__func__.36257, 13
-__func__.36257:
+	.type	__func__.35758, %object
+	.size	__func__.35758, 13
+__func__.35758:
 	.ascii	"vpss_version\000"
+	.type	__func__.35768, %object
+	.size	__func__.35768, 18
+__func__.35768:
+	.ascii	"vpss_map_node_set\000"
+	.type	__func__.35782, %object
+	.size	__func__.35782, 21
+__func__.35782:
+	.ascii	"vpss_map_node_remove\000"
+	.type	__func__.35799, %object
+	.size	__func__.35799, 11
+__func__.35799:
+	.ascii	"vpss_ioctl\000"
 	.space	1
 	.type	vpss_ioctls, %object
 	.size	vpss_ioctls, 80
@@ -661,22 +797,22 @@ vpss_ioctls:
 	.word	-1068732416
 	.word	0
 	.word	vpss_version
-	.word	.LC12
+	.word	.LC22
 	.word	0
-	.word	-1071878143
+	.word	-1072074751
 	.word	0
 	.word	vpss_map_node_set
-	.word	.LC13
+	.word	.LC23
 	.word	0
-	.word	-1071878142
+	.word	-1072074750
 	.word	0
 	.word	vpss_map_node_get
-	.word	.LC14
+	.word	.LC24
 	.word	0
-	.word	-1071878141
+	.word	-1072074749
 	.word	0
 	.word	vpss_map_node_remove
-	.word	.LC15
+	.word	.LC25
 	.word	0
 	.type	vpss_driver_fops, %object
 	.size	vpss_driver_fops, 128
@@ -698,49 +834,73 @@ vpss_driver_fops:
 	.align	2
 	.set	.LANCHOR0,. + 0
 	.type	g_vpss_dev, %object
-	.size	g_vpss_dev, 196
+	.size	g_vpss_dev, 200
 g_vpss_dev:
-	.space	196
+	.space	200
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:
-	.ascii	"\033[31m\033[1m%s,%d:struct vpss_version mismatchin"
-	.ascii	"g\033[0m\000"
+	.ascii	"\033[1;31mstruct vpss_version mismatching\033[0m\000"
 .LC1:
-	.ascii	"\033[31m\033[1m%s,%d:vpss sub mode id fail mod_id ="
-	.ascii	" %d\033[0m\000"
+	.ascii	"-2024-05-24-16:21:01\000"
 .LC2:
-	.ascii	"\033[31m\033[1m%s,%d:vpss get sub node fail channel"
-	.ascii	"_id = %d\033[0m\000"
+	.ascii	"vmpi:28ee389dbc33c2c7db812cd08e54fd3a0f2f992b-v1.4."
+	.ascii	"81\000"
 .LC3:
-	.ascii	"\033[31m\033[1m%s,%d:vpss get grp node fail grp_id "
-	.ascii	"= %d\033[0m\000"
+	.ascii	"\033[1;31mstruct vpss_map_info mismatching\033[0m\000"
 .LC4:
-	.ascii	"\033[31m\033[1m%s,%d:vpss bind sub node fail\033[0m"
-	.ascii	"\000"
+	.ascii	"\033[1;31mVPSS sub mode id fail mod(%d)\033[0m\000"
 .LC5:
-	.ascii	"%s,%d:vpss map is_grp = %d, grp_id = %d, chn_id = %"
-	.ascii	"d, sub_ch_id = %d\000"
+	.ascii	"\033[1;31mVPSS GRP %d get sub node fail mod,dev,chn"
+	.ascii	"(%d-%d-%d)\033[0m\000"
 .LC6:
-	.ascii	"%s,%d:vpss grp_id = %d channel_id = %d unbind sub n"
-	.ascii	"ode channel_id = %d success\000"
+	.ascii	"\033[1;31mVPSS GRP %d get grp node fail\033[0m\000"
 .LC7:
-	.ascii	"%s,%d:vpss grp_id = %d channel_id = %d unmap sub no"
-	.ascii	"de channel_id = %d success\000"
+	.ascii	"\033[1;31mVPSS GRP %d bind sub node fail mod,dev,ch"
+	.ascii	"n(%d-%d-%d)\033[0m\000"
 .LC8:
-	.ascii	"%s,%d:nr = %d, index = %d dev = %p\000"
+	.ascii	"\033[1;32mVPSS GRP %d node map set to node %d succe"
+	.ascii	"ss!\033[0m\000"
 .LC9:
-	.ascii	"\033[31m\033[1m%s,%d:error: index = %d\033[0m\000"
+	.ascii	"\033[1;32mVPSS GRP %d CHN %d node map set to node %"
+	.ascii	"d success!\033[0m\000"
 .LC10:
-	.ascii	"\033[31m\033[1m%s,%d:error: ioctl is null\033[0m\000"
+	.ascii	"\033[1;31mVPSS sub mode id fail mod_id = %d\033[0m\000"
 .LC11:
-	.ascii	"vpss\000"
+	.ascii	"\033[1;31mVPSS get grp node fail grp_id = %d\033[0m"
+	.ascii	"\000"
 .LC12:
-	.ascii	"VPSS_IOCTL_VERSION\000"
+	.ascii	"\033[1;31mVPSS get sub node fail channel_id = %d\033"
+	.ascii	"[0m\000"
 .LC13:
-	.ascii	"VPSS_IOCTL_MAP_NODE_SET\000"
+	.ascii	"\033[1;32mVPSS GRP %d CHN %d node map remove node %"
+	.ascii	"d success!\033[0m\000"
 .LC14:
-	.ascii	"VPSS_IOCTL_MAP_NODE_GET\000"
+	.ascii	"\033[1;32mVPSS GRP %d AIISP node map remove node %d"
+	.ascii	" success!\033[0m\000"
 .LC15:
+	.ascii	"\033[1;32mVPSS GRP %d CHN %d node unbind to GRP %d "
+	.ascii	"node success!\033[0m\000"
+.LC16:
+	.ascii	"\033[1;32mVPSS GRP %d AIISP node unbind to GRP %d n"
+	.ascii	"ode success!\033[0m\000"
+.LC17:
+	.ascii	"\033[1;32mVPSS GRP %d node map remove node %d succe"
+	.ascii	"ss!\033[0m\000"
+.LC18:
+	.ascii	"nr = %d, index = %d dev = %p\000"
+.LC19:
+	.ascii	"\033[1;31merror: index = %d\033[0m\000"
+.LC20:
+	.ascii	"\033[1;31merror: ioctl is null\033[0m\000"
+.LC21:
+	.ascii	"vpss\000"
+.LC22:
+	.ascii	"VPSS_IOCTL_VERSION\000"
+.LC23:
+	.ascii	"VPSS_IOCTL_MAP_NODE_SET\000"
+.LC24:
+	.ascii	"VPSS_IOCTL_MAP_NODE_GET\000"
+.LC25:
 	.ascii	"VPSS_IOCTL_MAP_NODE_REMOVE\000"
 	.ident	"GCC: (crosstool-NG 1.24.0) 8.3.0"
 	.section	.note.GNU-stack,"",%progbits

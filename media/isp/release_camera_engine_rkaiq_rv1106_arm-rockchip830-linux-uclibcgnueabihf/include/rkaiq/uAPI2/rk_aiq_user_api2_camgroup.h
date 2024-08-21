@@ -111,6 +111,9 @@ rk_aiq_uapi2_camgroup_destroy(rk_aiq_camgroup_ctx_t* camgroup_ctx);
 XCamReturn
 rk_aiq_uapi2_camgroup_getCamInfos(rk_aiq_camgroup_ctx_t* camgroup_ctx, rk_aiq_camgroup_camInfos_t* camInfos);
 
+XCamReturn
+rk_aiq_uapi2_camgroup_resetCam(rk_aiq_camgroup_ctx_t* camgroup_ctx, int camId);
+
 RKAIQ_END_DECLARE
 
 #endif

@@ -18,7 +18,11 @@ SIG_UBOOT="${FIT_DIR}/uboot.data2sign"
 SIG_BOOT="${FIT_DIR}/boot.data2sign"
 SIG_RECOVERY="${FIT_DIR}/recovery.data2sign"
 # offs
-OFFS_DATA="0x1000"
+if grep -q '^CONFIG_FIT_ENABLE_RSA4096_SUPPORT=y' .config ; then
+	OFFS_DATA="0x1200"
+else
+	OFFS_DATA="0x1000"
+fi
 # placeholder address
 FDT_ADDR_PLACEHOLDER="0xffffff00"
 KERNEL_ADDR_PLACEHOLDER="0xffffff01"
@@ -92,6 +96,19 @@ function check_its()
 			exit 1
 		fi
 	done
+}
+
+function check_rsa_algo()
+{
+	if grep -q '^CONFIG_FIT_ENABLE_RSA4096_SUPPORT=y' .config ; then
+		rsa_algo="rsa4096"
+	else
+		rsa_algo="rsa2048"
+	fi
+	if ! grep -qr ${rsa_algo} $1 ; then
+		echo "ERROR: Wrong rsa_algo in its file. It should be ${rsa_algo}."
+		exit 1
+	fi
 }
 
 function check_rsa_keys()
@@ -376,6 +393,8 @@ function fit_gen_boot_itb()
 	else
 		check_rsa_keys
 
+		check_rsa_algo ${ITS_BOOT}
+
 		if ! grep -q '^CONFIG_FIT_SIGNATURE=y' .config ; then
 			echo "ERROR: CONFIG_FIT_SIGNATURE is disabled"
 			exit 1
@@ -460,6 +479,8 @@ function fit_gen_recovery_itb()
 		${MKIMAGE} -f ${ITS_RECOVERY} -E -p ${OFFS_DATA} ${ITB_RECOVERY} -v ${ARG_VER_RECOVERY}
 	else
 		check_rsa_keys
+
+		check_rsa_algo ${ITS_RECOVERY}
 
 		if ! grep -q '^CONFIG_FIT_SIGNATURE=y' .config ; then
 			echo "ERROR: CONFIG_FIT_SIGNATURE is disabled"

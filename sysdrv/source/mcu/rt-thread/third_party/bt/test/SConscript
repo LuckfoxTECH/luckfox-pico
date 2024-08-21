@@ -1,0 +1,27 @@
+# for module compiling
+import os
+Import('RTT_ROOT')
+from building import *
+
+cwd = GetCurrentDir()
+
+RTT_ROOT = ''
+
+if os.getenv('RTT_ROOT'):
+    RTT_ROOT = os.getenv('RTT_ROOT')
+else:
+    RTT_ROOT = os.path.normpath(cwd + '/../../..')
+
+print('RTT_ROOT:' + RTT_ROOT)
+
+examples_path = os.path.normpath(RTT_ROOT + '/examples/bluetooth')
+
+objs = []
+list = os.listdir(examples_path)
+
+for d in list:
+    path = os.path.join(examples_path, d)
+    if os.path.isfile(os.path.join(path, 'SConscript')):
+        objs = objs + SConscript(os.path.join(path, 'SConscript'))
+
+Return('objs')

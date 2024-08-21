@@ -9,3 +9,4 @@
 RK_RES test_cipher(int verbose);
 
 #endif /*_TEST_CIPHER_H_*/
+

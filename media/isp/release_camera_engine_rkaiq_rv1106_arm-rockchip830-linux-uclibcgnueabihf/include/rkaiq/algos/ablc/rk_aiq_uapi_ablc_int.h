@@ -20,5 +20,8 @@ rk_aiq_uapi_ablc_SetAttrib(RkAiqAlgoContext *ctx,
 XCamReturn
 rk_aiq_uapi_ablc_GetAttrib(const RkAiqAlgoContext *ctx,
                            rk_aiq_blc_attrib_t *attr);
+XCamReturn
+rk_aiq_uapi_ablc_GetInfo(const RkAiqAlgoContext *ctx,
+                         rk_aiq_ablc_info_t *pInfo);
 
 #endif

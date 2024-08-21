@@ -46,6 +46,7 @@ struct rk3588_clk_priv {
 	ulong cpll_hz;
 	ulong npll_hz;
 	ulong v0pll_hz;
+	ulong spll_hz;
 	ulong aupll_hz;
 	ulong armclk_hz;
 	ulong armclk_enter_hz;
@@ -378,6 +379,16 @@ enum {
 	DCLK3_VOP_SRC_SEL_MASK			= 3 << DCLK3_VOP_SRC_SEL_SHIFT,
 	DCLK3_VOP_SRC_DIV_SHIFT			= 0,
 	DCLK3_VOP_SRC_DIV_MASK			= 0x7f << DCLK3_VOP_SRC_DIV_SHIFT,
+
+	/* CRU_CLK_SEL114_CON */
+	CLK_DSIHOST_SEL_SHIFT			= 7,
+	CLK_DSIHOST_SEL_MASK			= 3 << CLK_DSIHOST_SEL_SHIFT,
+	CLK_DSIHOST_SEL_GPLL			= 0,
+	CLK_DSIHOST_SEL_CPLL,
+	CLK_DSIHOST_SEL_V0PLL,
+	CLK_DSIHOST_SEL_SPLL,
+	CLK_DSIHOST_DIV_SHIFT			= 0,
+	CLK_DSIHOST_DIV_MASK			= 0X7F << CLK_DSIHOST_DIV_SHIFT,
 
 	/* CRU_CLK_SEL117_CON */
 	CLK_AUX16MHZ_1_DIV_SHIFT		= 8,

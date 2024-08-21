@@ -391,7 +391,7 @@
 			  0x82000000 0x0 0xfc200000 0x0 0xfc200000 0x0 0x1e00000
 			  0xc3000000 0x1 0x00000000 0x1 0x00000000 0x0 0x40000000>;
 		reg = <0x0 0xfe4f0000 0x0 0x10000>,
-		      <0x1 0x40000000 0x0 0x400000>;
+		      <0x0 0xfe000000 0x0 0x400000>;
 		reg-names = "pcie-apb", "pcie-dbi";
 		resets = <&cru SRST_RESETN_PCIE_POWER_UP>, <&cru SRST_PRESETN_PCIE>,
 			 <&cru SRST_PRESETN_CRU_PCIE>;
@@ -1951,7 +1951,7 @@
 		reset-names = "reset";
 		rockchip,use-v2-tuning;
 		pinctrl-names = "default";
-		pinctrl-0 = <&sdmmc_clk &sdmmc_cmd &sdmmc_det &sdmmc_bus4 &sdmmc_pwren>;
+		pinctrl-0 = <&sdmmc_clk &sdmmc_cmd &sdmmc_det &sdmmc_bus4>;
 		status = "disabled";
 	};
 
@@ -1959,10 +1959,10 @@
 		compatible = "rockchip,crypto-v4";
 		reg = <0x0 0xffc40000 0x0 0x2000>;
 		interrupts = <GIC_SPI 19 IRQ_TYPE_LEVEL_HIGH>;
-		clocks = <&cru ACLK_CRYPTO>, <&cru HCLK_CRYPTO>,
-			 <&cru CLK_CORE_CRYPTO>, <&cru CLK_PKA_CRYPTO>;
+		clocks = <&scmi_clk SCMI_ACLK_CRYPTO>, <&scmi_clk SCMI_HCLK_CRYPTO>,
+			 <&scmi_clk SCMI_CORE_CRYPTO>, <&scmi_clk SCMI_PKA_CRYPTO>;
 		clock-names = "aclk", "hclk", "sclk", "pka";
-		assigned-clocks = <&cru CLK_CORE_CRYPTO>, <&cru CLK_PKA_CRYPTO>;
+		assigned-clocks = <&scmi_clk SCMI_CORE_CRYPTO>, <&scmi_clk SCMI_PKA_CRYPTO>;
 		assigned-clock-rates = <300000000>, <300000000>;
 		resets = <&cru SRST_RESETN_CORE_CRYPTO>;
 		reset-names = "crypto-rst";
@@ -1973,19 +1973,11 @@
 		compatible = "rockchip,rkrng";
 		reg = <0x0 0xffc50000 0x0 0x200>;
 		interrupts = <GIC_SPI 23 IRQ_TYPE_LEVEL_HIGH>;
-		clocks = <&cru HCLK_TRNG_NS>;
+		clocks = <&scmi_clk SCMI_HCLK_TRNG>;
 		clock-names = "hclk_trng";
 		resets = <&cru SRST_HRESETN_TRNG_NS>;
 		reset-names = "reset";
 		status = "disabled";
-	};
-
-	secure_otp: secure_otp@ffcd0000 {
-		compatible = "rockchip,rk3528-secure-otp";
-		reg = <0x0 0xffcd0000 0x0 0x4000>;
-		secure_conf = <0xff4500c0>;
-		mask_addr = <0x0>;
-		cru_rst_addr = <0xff4a8080>;
 	};
 
 	otp: otp@ffce0000 {

@@ -23,34 +23,47 @@ extern "C" {
 
 #include "rkadk_common.h"
 #include "rkadk_muxer.h"
+#include "file_common.h"
 
 typedef RKADK_MUXER_FPS_ATTR_S RKADK_RECORD_FPS_ATTR_S;
 typedef RKADK_MUXER_MANUAL_SPLIT_ATTR_S RKADK_REC_MANUAL_SPLIT_ATTR_S;
 typedef RKADK_MUXER_EVENT_CALLBACK_FN RKADK_REC_EVENT_CALLBACK_FN;
+typedef RKADK_MUXER_REC_TYPE_E RKADK_REC_TYPE_E;
 
 /* record create file function */
 typedef RKADK_S32 (*RKADK_REC_REQUEST_FILE_NAMES_FN)(
     RKADK_MW_PTR pRecorder, RKADK_U32 u32FileCnt,
     RKADK_CHAR (*paszFilename)[RKADK_MAX_FILE_PATH_LEN]);
 
-/* record type enum */
-typedef enum {
-  RKADK_REC_TYPE_NORMAL = 0, /* normal record */
-  RKADK_REC_TYPE_LAPSE, /* time lapse record, record a frame by an fixed time
-                           interval */
-  RKADK_REC_TYPE_BUTT
-} RKADK_REC_TYPE_E;
-
 /** record task's attribute */
 typedef struct {
   RKADK_S32 s32CamID;                                  /* camera id */
+  RKADK_U32 u32FragKeyFrame;
   RKADK_REC_REQUEST_FILE_NAMES_FN pfnRequestFileNames; /* rec callbak */
-  RKADK_REC_EVENT_CALLBACK_FN pfnEventCallback;        /* event callbak */
+  RKADK_REC_EVENT_CALLBACK_FN pfnEventCallback;      /* event callbak */
+  RKADK_AOV_ATTR_S stAovAttr;
+  RKADK_POST_ISP_ATTR_S *pstPostIspAttr;
 } RKADK_RECORD_ATTR_S;
 
 /****************************************************************************/
 /*                            Interface Definition                          */
 /****************************************************************************/
+/**
+ * @brief initialize file cache
+ * @return 0 success
+ * @return others failure
+ */
+RKADK_S32 RKADK_RECORD_FileCacheInit(FILE_CACHE_ARG *pstFileCacheAttr);
+
+/**
+ * @brief deinitialize file cache
+ * @return 0 success
+ * @return others failure
+ */
+RKADK_S32 RKADK_RECORD_FileCacheDeInit();
+
+void RKADK_RECORD_FileCacheSetMode(RKADK_REC_TYPE_E enRecType);
+
 /**
  * @brief create a new recorder
  * @param[in]pstRecAttr : the attribute of recorder
@@ -86,21 +99,30 @@ RKADK_S32 RKADK_RECORD_Start(RKADK_MW_PTR pRecorder);
 RKADK_S32 RKADK_RECORD_Stop(RKADK_MW_PTR pRecorder);
 
 /**
+ * @brief start recorder
  * @param[in]pRecorder : pointer of recorder
+ * @param[in]enStrmType : stream type, mainStream or subStream
  * @return 0 success
- * @return others failure
+ * @return -1 failure
  */
-RKADK_S32 RKADK_RECORD_Reset(RKADK_MW_PTR *pRecorder);
+RKADK_S32 RKADK_RECORD_Single_Start(RKADK_MW_PTR pRecorder, RKADK_STREAM_TYPE_E enStrmType);
 
 /**
- * @brief set recorder framerate
+ * @brief stop recorder
  * @param[in]pRecorder : pointer of recorder
- * @param[in]stFpsAttr : fps attribute
+ * @param[in]enStrmType : stream type, mainStream or subStream
+ * @return 0 success
+ * @return -1 failure
+ */
+RKADK_S32 RKADK_RECORD_Single_Stop(RKADK_MW_PTR pRecorder, RKADK_STREAM_TYPE_E enStrmType);
+
+
+/**
+ * @param[in]pRecorder : pointer of recorder
  * @return 0 success
  * @return others failure
  */
-RKADK_S32 RKADK_RECORD_SetFrameRate(RKADK_MW_PTR pRecorder,
-                                    RKADK_RECORD_FPS_ATTR_S stFpsAttr);
+RKADK_S32 RKADK_RECORD_Reset(RKADK_MW_PTR *ppRecorder);
 
 /**
  * @brief manual splite file.
@@ -111,17 +133,6 @@ RKADK_S32 RKADK_RECORD_SetFrameRate(RKADK_MW_PTR pRecorder,
  */
 RKADK_S32 RKADK_RECORD_ManualSplit(RKADK_MW_PTR pRecorder,
                                    RKADK_REC_MANUAL_SPLIT_ATTR_S *pstSplitAttr);
-
-/**
- * @brief register recorder envent callback
- * @param[in]pRecorder : pointer of recorder
- * @param[in]pfnEventCallback : callback function
- * @return 0 success
- * @return others failure
- */
-RKADK_S32
-RKADK_RECORD_RegisterEventCallback(
-    RKADK_MW_PTR pRecorder, RKADK_REC_EVENT_CALLBACK_FN pfnEventCallback);
 
 /**
  * @brief get aenc chn id.
@@ -135,31 +146,22 @@ RKADK_S32 RKADK_RECORD_GetAencChn();
  * @return 0 success
  * @return -1 failure
  */
-RKADK_S32 RKADK_RECORD_ToogleMirror(RKADK_MW_PTR pRecorder,
-                                    RKADK_STREAM_TYPE_E enStrmType, int mirror);
+RKADK_S32 RKADK_RECORD_ToggleMirror(RKADK_MW_PTR pRecorder,
+                                    RKADK_STREAM_TYPE_E enStrmType,
+                                    int mirror);
 
 /**
  * @brief toggle flip implemented by VPSS
  * @return 0 success
  * @return -1 failure
  */
-RKADK_S32 RKADK_RECORD_ToogleFlip(RKADK_MW_PTR pRecorder,
-                                  RKADK_STREAM_TYPE_E enStrmType, int flip);
+RKADK_S32 RKADK_RECORD_ToggleFlip(RKADK_MW_PTR pRecorder,
+                                  RKADK_STREAM_TYPE_E enStrmType,
+                                  int flip);
 
-#if 0
-/**
- * @brief get single frame at time.
- * @param[in]pszFileName : video file
- * @param[in]pstFrameAttr : frame attribute
- * @param[in]u32VeChn : venc channel
- * @param[in]u64TimeUs : frame time(us)
- * @return 0 success
- * @return -1 failure
- */
-RKADK_S32 RKADK_GetSingleFrameAtTime(RKADK_CHAR *pszFileName,
-                                     RKADK_FRAME_ATTR_S *pstFrameAttr,
-                                     RKADK_U32 u32VeChn, RKADK_U64 u64TimeUs);
-#endif
+RKADK_S32 RKADK_RECORD_SetRotation(RKADK_MW_PTR pRecorder,
+                                  ROTATION_E enRotation,
+                                  RKADK_STREAM_TYPE_E enStreamType);
 
 #ifdef __cplusplus
 }

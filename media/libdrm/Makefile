@@ -24,12 +24,14 @@ endif
 
 all: $(PKG_TARGET)
 	@echo "build $(PKG_NAME) done"
+	$(call MAROC_COPY_PKG_TO_MEDIA_OUTPUT, $(RK_MEDIA_OUTPUT), $(PKG_BIN))
 
 libdrm-build:
-	@rm -rf $(PKG_BIN) && mkdir -p $(PKG_BIN);
-	tar -xf $(PKG_TARBALL) -C $(PKG_BIN)/;
-	@rm -rf $(PKG_BIN)/share;
-	$(call MAROC_COPY_PKG_TO_MEDIA_OUTPUT, $(RK_MEDIA_OUTPUT), $(PKG_BIN))
+	@test -f $(CURRENT_DIR)/$(PKG_BIN)/lib/libdrm.so || (\
+		rm -rf $(PKG_BIN) && mkdir -p $(PKG_BIN); \
+		tar -xf $(PKG_TARBALL) -C $(PKG_BIN)/; \
+		rm -rf $(PKG_BIN)/share; \
+	);
 
 clean: distclean
 

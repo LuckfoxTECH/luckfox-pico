@@ -4,11 +4,11 @@
 #ifndef INCLUDE_RT_MPI_RK_MPI_SYS_H__
 #define INCLUDE_RT_MPI_RK_MPI_SYS_H__
 
-#include "rk_comm_mb.h"
-#include "rk_comm_sys.h"
-#include "rk_common.h"
-#include "rk_debug.h"
 #include "rk_type.h"
+#include "rk_debug.h"
+#include "rk_common.h"
+#include "rk_comm_sys.h"
+#include "rk_comm_mb.h"
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -19,27 +19,26 @@ extern "C" {
 RK_S32 RK_MPI_SYS_Init(RK_VOID);
 RK_S32 RK_MPI_SYS_Exit(RK_VOID);
 
-RK_S32 RK_MPI_SYS_Bind(const MPP_CHN_S *pstSrcChn, const MPP_CHN_S *pstDestChn);
-RK_S32 RK_MPI_SYS_UnBind(const MPP_CHN_S *pstSrcChn,
-                         const MPP_CHN_S *pstDestChn);
+RK_S32 RK_MPI_SYS_WaitFreeMB(RK_VOID);
+RK_S32 RK_MPI_SYS_RelasePhyMemory(RK_VOID);
+RK_S32 RK_MPI_SYS_SetForceLostFrame(const MPP_CHN_S *pstChn, int frameCnt);
+RK_S32 RK_MPI_SYS_DumpSys(RK_CHAR *cmd, RK_CHAR *buf, RK_U32 bufSize);
 
-RK_S32 RK_MPI_SYS_GetBindbyDest(const MPP_CHN_S *pstDestChn,
-                                MPP_CHN_S *pstSrcChn);
-RK_S32 RK_MPI_SYS_GetBindbySrc(const MPP_CHN_S *pstSrcChn,
-                               MPP_BIND_DEST_S *pstBindDest);
+RK_S32 RK_MPI_SYS_Bind(const MPP_CHN_S *pstSrcChn, const MPP_CHN_S *pstDestChn);
+RK_S32 RK_MPI_SYS_UnBind(const MPP_CHN_S *pstSrcChn, const MPP_CHN_S *pstDestChn);
+
+RK_S32 RK_MPI_SYS_GetBindbyDest(const MPP_CHN_S *pstDestChn, MPP_CHN_S *pstSrcChn);
+RK_S32 RK_MPI_SYS_GetBindbySrc(const MPP_CHN_S *pstSrcChn, MPP_BIND_DEST_S *pstBindDest);
 
 /* alloc mmz memory in user context                                         */
-RK_S32 RK_MPI_SYS_MmzAlloc(MB_BLK *pBlk, const RK_CHAR *pstrMmb,
-                           const RK_CHAR *pstrZone, RK_U32 u32Len);
+RK_S32 RK_MPI_SYS_MmzAlloc(MB_BLK *pBlk, const RK_CHAR *pstrMmb, const RK_CHAR *pstrZone, RK_U32 u32Len);
 
 /* alloc mmz memory with cache */
-RK_S32 RK_MPI_SYS_MmzAlloc_Cached(MB_BLK *pBlk, const RK_CHAR *pstrMmb,
-                                  const RK_CHAR *pstrZone, RK_U32 u32Len);
+RK_S32 RK_MPI_SYS_MmzAlloc_Cached(MB_BLK *pBlk, const RK_CHAR *pstrMmb, const RK_CHAR *pstrZone, RK_U32 u32Len);
 
 /* alloc mmz memory with flags */
-RK_S32 RK_MPI_SYS_MmzAllocEx(MB_BLK *pBlk, const RK_CHAR *pstrMmb,
-                             const RK_CHAR *pstrZone, RK_U32 u32Len,
-                             RK_U32 u32HeapFlags);
+RK_S32 RK_MPI_SYS_MmzAllocEx(MB_BLK *pBlk, const RK_CHAR *pstrMmb, const RK_CHAR *pstrZone,
+                                RK_U32 u32Len, RK_U32 u32HeapFlags);
 
 /* free mmz memory in user context                                          */
 RK_S32 RK_MPI_SYS_MmzFree(MB_BLK blk);
@@ -65,8 +64,7 @@ RK_S32 RK_MPI_SYS_InitPTSBase(RK_U64 u64PTSBase);
 RK_S32 RK_MPI_SYS_SyncPTS(RK_U64 u64PTSBase);
 
 /* set mpp channel input stream mode */
-RK_S32 RK_MPI_SYS_SetChnInputMode(const MPP_CHN_S *pstChn,
-                                  CHN_INPUT_MODE_E mode);
+RK_S32 RK_MPI_SYS_SetChnInputMode(const MPP_CHN_S *pstChn, CHN_INPUT_MODE_E mode);
 
 /* log level configuration */
 RK_S32 RK_MPI_LOG_SetLevelConf(LOG_LEVEL_CONF_S *pstConf);
@@ -79,3 +77,4 @@ RK_S32 RK_MPI_LOG_GetLevelConf(LOG_LEVEL_CONF_S *pstConf);
 #endif /* End of #ifdef __cplusplus */
 
 #endif /* INCLUDE_RT_MPI_RK_MPI_SYS_H__ */
+

@@ -317,12 +317,10 @@ int init_kernel_dtb(void)
 		return -ENODEV;
 	}
 
-	if (IS_ENABLED(CONFIG_EMBED_KERNEL_DTB_ALWAYS)) {
-		resource_init_list();
-		printf("Always embed kernel dtb\n");
-		goto dtb_embed;
-	}
-
+#ifdef CONFIG_EMBED_KERNEL_DTB_ALWAYS
+	printf("Always embed kernel dtb\n");
+	goto dtb_embed;
+#endif
 	ret = rockchip_read_dtb_file((void *)fdt_addr);
 	if (!ret) {
 		if (!dtb_check_ok((void *)fdt_addr, (void *)gd->fdt_blob)) {
@@ -333,7 +331,10 @@ int init_kernel_dtb(void)
 		}
 	}
 
+#ifdef CONFIG_EMBED_KERNEL_DTB
+#ifdef CONFIG_EMBED_KERNEL_DTB_ALWAYS
 dtb_embed:
+#endif
 	if (gd->fdt_blob_kern) {
 		if (!dtb_check_ok((void *)gd->fdt_blob_kern, (void *)gd->fdt_blob)) {
 			printf("Embedded kernel dtb mismatch this platform!\n");
@@ -352,7 +353,9 @@ dtb_embed:
 		memcpy((void *)fdt_addr, gd->fdt_blob_kern,
 		       fdt_totalsize(gd->fdt_blob_kern));
 		printf("DTB: %s\n", CONFIG_EMBED_KERNEL_DTB_PATH);
-	} else {
+	} else
+#endif
+	{
 		printf("Failed to get kernel dtb, ret=%d\n", ret);
 		return -ENOENT;
 	}

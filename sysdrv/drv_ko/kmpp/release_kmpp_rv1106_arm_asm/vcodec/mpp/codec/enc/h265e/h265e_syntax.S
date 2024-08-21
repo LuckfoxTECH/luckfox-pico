@@ -563,7 +563,7 @@ h265e_syntax_fill:
 	mov	r0, r7
 	ldr	r5, [r6, r3]
 	bl	memset
-	ldr	r3, [r8, #716]
+	ldr	r3, [r8, #740]
 	add	r4, r6, #19200
 	adds	r4, r4, #48
 	cmp	r3, #0
@@ -577,10 +577,10 @@ h265e_syntax_fill:
 	ldr	r1, [r5, #340]
 	bfi	r3, r1, #5, #1
 	strb	r3, [r6, r2]
-	ldr	r1, [r8, #788]
+	ldr	r1, [r8, #816]
 	bfi	r3, r1, #6, #1
 	strb	r3, [r6, r2]
-	ldr	r1, [r8, #792]
+	ldr	r1, [r8, #820]
 	bfi	r3, r1, #7, #1
 	strb	r3, [r6, r2]
 	ldrb	r2, [r5, #14]	@ zero_extendqisi2
@@ -754,10 +754,10 @@ h265e_syntax_fill:
 	bic	r3, r3, #5
 	orr	r3, r3, #5
 	strb	r3, [r6, r2]
-	ldr	r1, [r8, #720]
+	ldr	r1, [r8, #744]
 	bfi	r3, r1, #1, #1
 	strb	r3, [r6, r2]
-	ldrd	r3, r1, [r8, #720]
+	ldrd	r3, r1, [r8, #744]
 	cbz	r3, .L77
 	subs	r1, r1, #1
 	strh	r1, [r4, #34]	@ movhi
@@ -785,13 +785,13 @@ h265e_syntax_fill:
 	.size	h265e_syntax_fill, .-h265e_syntax_fill
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__FUNCTION__.9566, %object
-	.size	__FUNCTION__.9566, 20
-__FUNCTION__.9566:
+	.type	__FUNCTION__.9619, %object
+	.size	__FUNCTION__.9619, 20
+__FUNCTION__.9619:
 	.ascii	"fill_ref_parameters\000"
-	.type	__FUNCTION__.9506, %object
-	.size	__FUNCTION__.9506, 24
-__FUNCTION__.9506:
+	.type	__FUNCTION__.9559, %object
+	.size	__FUNCTION__.9559, 24
+__FUNCTION__.9559:
 	.ascii	"fill_picture_parameters\000"
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:

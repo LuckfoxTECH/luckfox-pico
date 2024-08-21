@@ -40,7 +40,15 @@ int hisi_connect1(char* ssid, const char* psk, const RK_WIFI_CONNECTION_Encryp_e
 //打开WiFi
 int hisi_enable(int enable)
 {
-	int ret = hisi_main();
+	int ret = 0;
+	if (enable)
+	{
+		ret = hisi_main();
+	}
+	else
+	{
+		ret = hisi_deinit();
+	}
 
 	if (ret < 0)
 		ret = false;
@@ -155,6 +163,7 @@ int hisi_connect_with_ssid(char* ssid)
 //WiFi恢复出厂设置
 int hisi_reset(void)
 {
+	vlink_hi_channel_cmd_reset();
 	return true;
 }
 
@@ -192,6 +201,7 @@ int hisi_enter_sleep(void)
 
 int hisi_exit_sleep(void)
 {
+	vlink_hi_channel_cmd_exit_deepsleep();
 	return true;
 }
 
@@ -199,7 +209,11 @@ int hisi_start_keepalive(RK_WIFI_LOW_POWER_KEEPALIVE_s *cfg)
 {
 	vlink_hi_channel_cmd_setfilter_info("wifi");
 	sleep(1);
-	vlink_hi_channel_cmd_keeplive_info(cfg->domain, cfg->port, cfg->period);
+	char port[16];
+	char period[16];
+	snprintf(port,sizeof(port),"%d",cfg->port);
+	snprintf(period,sizeof(period),"%d",cfg->period);
+	vlink_hi_channel_cmd_keeplive_info(cfg->domain,port, period,cfg->device_id,cfg->key);
 	return true;
 }
 
@@ -226,6 +240,32 @@ int hisi_wifi_ota(char *path)
 	return vlink_hi_channel_cmd_ota(path);
 }
 
+int hisi_get_batlevel(int type)
+{
+	return vlink_hi_channel_cmd_lpevent(RK_WIFI_LP_BAT_LEVEL);
+}
+
+int hisi_get_wkreason(int type)
+{
+	return vlink_hi_channel_cmd_lpevent(RK_WIFI_LP_WAKEUP_REASON);
+}
+
+int hisi_get_utc(unsigned long long * ret)
+{
+	return vlink_hi_channel_cmd_utc(ret);
+}
+
+
+int hisi_wifi_reboot(void)
+{
+	return vlink_hi_channel_cmd_reboot();
+}
+
+int hisi_wifi_get_pir(unsigned int *pir_ret)
+{
+	return vlink_hi_channel_cmd_getpir_info(pir_ret);
+}
+
 struct Rk_wifi_driver_ops hisi_driver_ops = {
 	.name = "hichannel iot",
 	.wifi_enable = hisi_enable,
@@ -238,4 +278,10 @@ struct Rk_wifi_driver_ops hisi_driver_ops = {
 	.wifi_set_BeaconListenInterval = hisi_set_BeaconListenInterval,
 	.wifi_set_pir = hisi_set_pir,
 	.wifi_ota = hisi_wifi_ota,
+	.wifi_get_batlevel = hisi_get_batlevel,
+	.wifi_get_wkreason = hisi_get_wkreason,
+	.wifi_get_utc = hisi_get_utc,
+	.wifi_reset = hisi_reset,
+	.wifi_reboot = hisi_wifi_reboot,
+	.wifi_get_pir = hisi_wifi_get_pir,
 };

@@ -37,6 +37,93 @@ vlog_compat_ioctl:
 	.fnend
 	.size	vlog_compat_ioctl, .-vlog_compat_ioctl
 	.align	1
+	.global	vlog
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	vlog, %function
+vlog:
+	.fnstart
+	@ args = 4, pretend = 0, frame = 288
+	@ frame_needed = 0, uses_anonymous_args = 1
+	push	{r4, r5, r6, r7, r8, r9, r10, lr}
+	.save {r4, r5, r6, r7, r8, r9, r10, lr}
+	mov	r9, r3
+	ldr	r5, .L5
+	.pad #320
+	sub	sp, sp, #320
+	ldr	r4, .L5+4
+	mov	r7, r0
+	mov	r8, r1
+	mov	r10, r2
+	ldr	r3, [r5]
+	str	r3, [sp, #316]
+	ldr	r3, [r4, r0, lsl #2]
+	cmp	r3, r1
+	blt	.L3
+	.syntax unified
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		mrs	r6, cpsr	@ arch_local_irq_save
+	cpsid	i
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	add	r0, sp, #40
+	add	r7, r4, r7, lsl #2
+	bl	ktime_get_ts64
+	ldr	r0, .L5+8
+	add	r4, r4, r8, lsl #2
+	ldrh	r3, [sp, #352]
+	str	r10, [sp, #28]
+	strd	r9, r3, [sp, #20]
+	ldr	r3, [sp, #48]
+	smull	r0, r1, r3, r0
+	asrs	r3, r3, #31
+	add	r0, sp, #60
+	rsb	r3, r3, r1, asr #6
+	str	r3, [sp, #16]
+	ldrd	r2, [sp, #40]
+	mov	r1, #256
+	strd	r2, [sp, #8]
+	ldr	r3, [r4, #192]
+	ldr	r2, .L5+12
+	str	r3, [sp]
+	ldr	r3, [r7, #96]
+	bl	snprintf
+	ldr	r0, .L5+16
+	add	r2, sp, #356
+	add	r1, sp, #60
+	str	r2, [sp, #36]
+	bl	mpi_fs_buf_loop_add
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r6	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+.L3:
+	ldr	r2, [sp, #316]
+	movs	r0, #0
+	ldr	r3, [r5]
+	cmp	r2, r3
+	beq	.L4
+	bl	__stack_chk_fail
+.L4:
+	add	sp, sp, #320
+	@ sp needed
+	pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+.L6:
+	.align	2
+.L5:
+	.word	__stack_chk_guard
+	.word	.LANCHOR0
+	.word	274877907
+	.word	.LC0
+	.word	.LANCHOR1+168
+	.fnend
+	.size	vlog, .-vlog
+	.align	1
 	.syntax unified
 	.thumb
 	.thumb_func
@@ -50,360 +137,23 @@ vlog_thread_fn:
 	.save {r3, r4, r5, lr}
 	add	r5, r0, #188
 	mov	r4, r0
-.L3:
-	ldr	r3, [r4, #204]
-	cbz	r3, .L4
+.L8:
+	bl	kthread_should_stop
+	cbz	r0, .L11
 	movs	r0, #0
 	pop	{r3, r4, r5, pc}
-.L4:
+.L11:
+	ldr	r3, [r4, #204]
+	cbz	r3, .L9
+	movs	r0, #1
+	bl	msleep
+	b	.L8
+.L9:
 	mov	r0, r5
 	bl	down
-	b	.L3
+	b	.L8
 	.fnend
 	.size	vlog_thread_fn, .-vlog_thread_fn
-	.align	1
-	.syntax unified
-	.thumb
-	.thumb_func
-	.fpu softvfp
-	.type	vlog_read, %function
-vlog_read:
-	.fnstart
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r3, lr}
-	.save {r3, lr}
-	ldr	r0, .L7
-	bl	mpi_fs_buf_read
-	cmp	r0, #-1
-	it	eq
-	moveq	r0, #0
-	pop	{r3, pc}
-.L8:
-	.align	2
-.L7:
-	.word	.LANCHOR0+168
-	.fnend
-	.size	vlog_read, .-vlog_read
-	.global	__aeabi_idivmod
-	.align	1
-	.global	format_time_stamp
-	.syntax unified
-	.thumb
-	.thumb_func
-	.fpu softvfp
-	.type	format_time_stamp, %function
-format_time_stamp:
-	.fnstart
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, r7, r8, r9, r10, lr}
-	.save {r4, r5, r6, r7, r8, r9, r10, lr}
-	mov	r6, r0
-	ldr	r4, .L14
-	add	r8, r6, #-1
-	ldr	r10, .L14+8
-	mov	r0, r1
-	mov	r7, r2
-	mov	r9, r8
-	movs	r5, #0
-.L10:
-	mov	r1, r4
-	adds	r5, r5, #1
-	bl	__aeabi_idivmod
-	smull	r2, r3, r4, r10
-	cmp	r5, #9
-	asr	r4, r4, #31
-	rsb	r4, r4, r3, asr #2
-	add	r0, r0, #48
-	strb	r0, [r9, #1]!
-	mov	r0, r1
-	bne	.L10
-	ldr	r4, .L14+4
-	movs	r5, #10
-	ldr	r9, .L14+8
-	movs	r3, #46
-	strb	r3, [r6, #9]
-.L11:
-	mov	r1, r4
-	mov	r0, r7
-	bl	__aeabi_idivmod
-	smull	r2, r3, r4, r9
-	adds	r5, r5, #1
-	cmp	r5, #16
-	asr	r4, r4, #31
-	rsb	r4, r4, r3, asr #2
-	add	r0, r0, #48
-	mov	r7, r1
-	strb	r0, [r8, r5]
-	bne	.L11
-	movs	r3, #0
-	strb	r3, [r6, #16]
-	pop	{r4, r5, r6, r7, r8, r9, r10, pc}
-.L15:
-	.align	2
-.L14:
-	.word	100000000
-	.word	100000
-	.word	1717986919
-	.fnend
-	.size	format_time_stamp, .-format_time_stamp
-	.align	1
-	.global	vlog
-	.syntax unified
-	.thumb
-	.thumb_func
-	.fpu softvfp
-	.type	vlog, %function
-vlog:
-	.fnstart
-	@ args = 4, pretend = 8, frame = 96
-	@ frame_needed = 0, uses_anonymous_args = 1
-	push	{r2, r3}
-	.save {r2, r3}
-	push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
-	.save {r4, r5, r6, r7, r8, r9, r10, fp, lr}
-	.pad #100
-	sub	sp, sp, #100
-	ldr	r6, .L19
-	mov	r4, r0
-	ldr	r5, .L19+4
-	mov	r10, r1
-	ldr	r9, [sp, #136]
-	ldr	r3, [r6]
-	str	r3, [sp, #92]
-	ldr	r3, [r5, r0, lsl #2]
-	cmp	r3, r1
-	blt	.L17
-	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
-		mrs	r8, cpsr	@ arch_local_irq_save
-	cpsid	i
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	add	r0, sp, #8
-	add	r4, r5, r4, lsl #2
-	bl	ktime_get_ts64
-	mov	fp, #91
-	ldr	r4, [r4, #92]
-	movs	r3, #13
-	add	r5, r5, r10, lsl #2
-	movs	r7, #93
-	mov	r0, r4
-	strb	r3, [sp, #28]
-	movs	r3, #10
-	strb	fp, [sp, #30]
-	strb	r3, [sp, #29]
-	bl	strlen
-	mov	r1, r4
-	mov	r2, r0
-	add	r0, sp, #31
-	bl	memcpy
-	mov	r0, r4
-	bl	strlen
-	ldr	r5, [r5, #184]
-	add	r3, sp, #96
-	adds	r4, r0, #5
-	add	r3, r3, r0
-	mov	r0, r5
-	strb	r7, [r3, #-65]
-	strb	fp, [r3, #-64]
-	bl	strlen
-	mov	r1, r5
-	add	r3, sp, #28
-	mov	r2, r0
-	adds	r0, r3, r4
-	bl	memcpy
-	mov	r0, r5
-	bl	strlen
-	add	r0, r0, r4
-	ldr	r2, [sp, #16]
-	ldr	r4, .L19+8
-	add	r3, sp, #96
-	add	r10, r3, r0
-	add	r3, sp, #28
-	adds	r0, r0, #2
-	ldr	r1, [sp, #8]
-	smull	r4, r5, r2, r4
-	asrs	r2, r2, #31
-	add	r0, r0, r3
-	strb	r7, [r10, #-68]
-	strb	fp, [r10, #-67]
-	rsb	r2, r2, r5, asr #6
-	bl	format_time_stamp
-	ldr	r0, .L19+12
-	movs	r3, #0
-	strb	r7, [r10, #-50]
-	strb	r3, [r10, #-49]
-	ldr	r2, [sp, #4]
-	add	r1, sp, #28
-	bl	mpi_fs_buf_loop_add
-	mov	r1, r9
-	ldr	r0, .L19+12
-	add	r2, sp, #140
-	str	r2, [sp, #4]
-	bl	mpi_fs_buf_loop_add
-	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
-		msr	cpsr_c, r8	@ local_irq_restore
-@ 0 "" 2
-	.thumb
-	.syntax unified
-.L17:
-	ldr	r2, [sp, #92]
-	movs	r0, #0
-	ldr	r3, [r6]
-	cmp	r2, r3
-	beq	.L18
-	bl	__stack_chk_fail
-.L18:
-	add	sp, sp, #100
-	@ sp needed
-	pop	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
-	add	sp, sp, #8
-	bx	lr
-.L20:
-	.align	2
-.L19:
-	.word	__stack_chk_guard
-	.word	.LANCHOR1
-	.word	274877907
-	.word	.LANCHOR0+168
-	.fnend
-	.size	vlog, .-vlog
-	.align	1
-	.global	vlog_version
-	.syntax unified
-	.thumb
-	.thumb_func
-	.fpu softvfp
-	.type	vlog_version, %function
-vlog_version:
-	.fnstart
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r0, r1, r2, r4, r5, lr}
-	.save {r4, r5, lr}
-	.pad #12
-	mov	r4, r1
-	ldr	r3, [r0, #128]
-	ldr	r3, [r3]
-	ldr	r5, [r3, #160]
-	ldr	r3, [r1, #32]
-	cmp	r3, #76
-	beq	.L22
-	movs	r3, #115
-	ldr	r2, .L26
-	str	r3, [sp]
-	movs	r1, #2
-	ldr	r3, .L26+4
-	movs	r0, #0
-	bl	vlog
-	mov	r0, #-1
-.L21:
-	add	sp, sp, #12
-	@ sp needed
-	pop	{r4, r5, pc}
-.L22:
-	movs	r3, #0
-	movs	r2, #1
-	str	r3, [r1, #8]
-	strd	r2, r3, [r1]
-	ldr	r0, [r5]
-	bl	strlen
-	cmp	r0, #16
-	it	ls
-	strls	r0, [r4, #12]
-	add	r0, r4, #16
-	itt	hi
-	movhi	r3, #16
-	strhi	r3, [r4, #12]
-	ldr	r2, [r4, #12]
-	ldr	r1, [r5]
-	bl	strncpy
-	movs	r0, #0
-	str	r0, [r4, #36]
-	str	r0, [r4, #56]
-	b	.L21
-.L27:
-	.align	2
-.L26:
-	.word	.LC0
-	.word	.LANCHOR2
-	.fnend
-	.size	vlog_version, .-vlog_version
-	.align	1
-	.global	vlog_set_level
-	.syntax unified
-	.thumb
-	.thumb_func
-	.fpu softvfp
-	.type	vlog_set_level, %function
-vlog_set_level:
-	.fnstart
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r0, r1, r2, r3, r4, lr}
-	.save {r4, lr}
-	.pad #16
-	mov	r4, r1
-	ldr	r3, [r1, #8]
-	movs	r0, #0
-	ldr	r2, .L36
-	str	r3, [sp, #8]
-	ldr	r3, [r1]
-	movs	r1, #4
-	str	r3, [sp, #4]
-	movs	r3, #140
-	str	r3, [sp]
-	ldr	r3, .L36+4
-	bl	vlog
-	ldr	r3, [r4, #4]
-	cmp	r3, #12
-	beq	.L29
-	movs	r3, #142
-	ldr	r2, .L36+8
-	str	r3, [sp]
-	movs	r1, #2
-	ldr	r3, .L36+4
-	movs	r0, #0
-	bl	vlog
-.L33:
-	mov	r0, #-1
-	b	.L28
-.L29:
-	ldr	r2, [r4]
-	cmp	r2, #23
-	bhi	.L33
-	ldr	r3, .L36+12
-	bne	.L31
-	movs	r2, #0
-.L32:
-	ldr	r1, [r4, #8]
-	adds	r2, r2, #1
-	cmp	r2, #23
-	str	r1, [r3], #4
-	bne	.L32
-.L35:
-	movs	r0, #0
-.L28:
-	add	sp, sp, #16
-	@ sp needed
-	pop	{r4, pc}
-.L31:
-	ldr	r1, [r4, #8]
-	str	r1, [r3, r2, lsl #2]
-	b	.L35
-.L37:
-	.align	2
-.L36:
-	.word	.LC1
-	.word	.LANCHOR2+13
-	.word	.LC2
-	.word	.LANCHOR1
-	.fnend
-	.size	vlog_set_level, .-vlog_set_level
 	.align	1
 	.syntax unified
 	.thumb
@@ -421,14 +171,14 @@ vlog_release:
 	ldr	r0, [r4]
 	bl	mpi_obj_unref
 	ldr	r3, [r4]
-	ldr	r2, .L39
+	ldr	r2, .L13
 	movs	r1, #5
 	movs	r0, #0
 	ldr	r3, [r3]
 	str	r3, [sp, #4]
-	movs	r3, #223
+	movs	r3, #231
 	str	r3, [sp]
-	ldr	r3, .L39+4
+	ldr	r3, .L13+4
 	bl	vlog
 	mov	r0, r4
 	bl	kfree
@@ -436,11 +186,11 @@ vlog_release:
 	add	sp, sp, #8
 	@ sp needed
 	pop	{r4, pc}
-.L40:
+.L14:
 	.align	2
-.L39:
-	.word	.LC3
-	.word	.LANCHOR2+28
+.L13:
+	.word	.LC1
+	.word	.LANCHOR2
 	.fnend
 	.size	vlog_release, .-vlog_release
 	.align	1
@@ -448,60 +198,176 @@ vlog_release:
 	.thumb
 	.thumb_func
 	.fpu softvfp
-	.type	vlog_open, %function
-vlog_open:
+	.type	vlog_read, %function
+vlog_read:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
-	ldr	r3, .L44
-	push	{r0, r1, r2, r4, r5, r6, r7, lr}
-	.save {r4, r5, r6, r7, lr}
-	.pad #12
-	mov	r7, r1
-	ldr	r0, [r3, #12]
-	mov	r1, #3520
-	bl	kmem_cache_alloc
-	mov	r5, r0
-	cbnz	r0, .L42
-	movs	r3, #210
-	ldr	r2, .L44+4
+	push	{r3, lr}
+	.save {r3, lr}
+	ldr	r0, .L17
+	bl	mpi_fs_buf_read
+	cmp	r0, #-1
+	it	eq
+	moveq	r0, #0
+	pop	{r3, pc}
+.L18:
+	.align	2
+.L17:
+	.word	.LANCHOR1+168
+	.fnend
+	.size	vlog_read, .-vlog_read
+	.align	1
+	.global	vlog_version
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	vlog_version, %function
+vlog_version:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r0, r1, r4, r5, r6, lr}
+	.save {r4, r5, r6, lr}
+	.pad #8
+	mov	r4, r1
+	ldr	r3, [r0, #128]
+	ldr	r3, [r3]
+	ldr	r6, [r3, #160]
+	ldr	r3, [r1, #32]	@ unaligned
+	cmp	r3, #76
+	beq	.L20
+	movs	r3, #123
+	ldr	r2, .L24
 	str	r3, [sp]
 	movs	r1, #2
-	ldr	r3, .L44+8
+	ldr	r3, .L24+4
+	movs	r0, #0
 	bl	vlog
 	mov	r0, #-1
-.L41:
-	add	sp, sp, #12
+.L19:
+	add	sp, sp, #8
 	@ sp needed
-	pop	{r4, r5, r6, r7, pc}
-.L42:
-	ldr	r4, .L44+12
-	adds	r6, r4, #4
-	mov	r0, r6
-	bl	mpi_obj_ref
-	ldr	r3, [r4, #4]
-	str	r6, [r5]
-	movs	r1, #5
-	str	r5, [r7, #128]
+	pop	{r4, r5, r6, pc}
+.L20:
+	movs	r5, #0
+	movs	r3, #1
+	strb	r5, [r1, #1]
+	strb	r3, [r1]
+	strb	r5, [r1, #2]
+	strb	r5, [r1, #3]
+	strb	r5, [r1, #4]
+	strb	r5, [r1, #5]
+	strb	r5, [r1, #6]
+	strb	r5, [r1, #7]
+	strb	r5, [r1, #8]
+	strb	r5, [r1, #9]
+	strb	r5, [r1, #10]
+	strb	r5, [r1, #11]
+	ldr	r0, [r6]
+	bl	strlen
+	cmp	r0, #16
+	ite	ls
+	strls	r0, [r4, #12]	@ unaligned
+	strbhi	r5, [r4, #13]
+	add	r0, r4, #16
+	itttt	hi
+	strbhi	r5, [r4, #14]
+	movhi	r3, #16
+	strbhi	r5, [r4, #15]
+	strbhi	r3, [r4, #12]
+	ldr	r2, [r4, #12]	@ unaligned
+	ldr	r1, [r6]
+	bl	strncpy
 	movs	r0, #0
-	ldr	r2, .L44+16
-	str	r3, [sp, #4]
-	movs	r3, #215
-	str	r3, [sp]
-	ldr	r3, .L44+8
-	bl	vlog
-	movs	r0, #0
-	b	.L41
-.L45:
+	strb	r0, [r4, #36]
+	strb	r0, [r4, #37]
+	strb	r0, [r4, #38]
+	strb	r0, [r4, #39]
+	strb	r0, [r4, #56]
+	strb	r0, [r4, #57]
+	strb	r0, [r4, #58]
+	strb	r0, [r4, #59]
+	b	.L19
+.L25:
 	.align	2
-.L44:
-	.word	kmalloc_caches
-	.word	.LC4
-	.word	.LANCHOR2+41
-	.word	.LANCHOR0
-	.word	.LC3
+.L24:
+	.word	.LC2
+	.word	.LANCHOR2+13
 	.fnend
-	.size	vlog_open, .-vlog_open
+	.size	vlog_version, .-vlog_version
+	.align	1
+	.global	vlog_set_level
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	vlog_set_level, %function
+vlog_set_level:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r0, r1, r2, r3, r4, lr}
+	.save {r4, lr}
+	.pad #16
+	mov	r4, r1
+	ldr	r3, [r1, #8]	@ unaligned
+	movs	r0, #0
+	ldr	r2, .L34
+	str	r3, [sp, #8]
+	ldr	r3, [r1]	@ unaligned
+	movs	r1, #4
+	str	r3, [sp, #4]
+	movs	r3, #148
+	str	r3, [sp]
+	ldr	r3, .L34+4
+	bl	vlog
+	ldr	r3, [r4, #4]	@ unaligned
+	cmp	r3, #12
+	beq	.L27
+	movs	r3, #150
+	ldr	r2, .L34+8
+	str	r3, [sp]
+	movs	r1, #2
+	ldr	r3, .L34+4
+	movs	r0, #0
+	bl	vlog
+.L31:
+	mov	r0, #-1
+	b	.L26
+.L27:
+	ldr	r2, [r4]	@ unaligned
+	cmp	r2, #24
+	bhi	.L31
+	ldr	r3, .L34+12
+	bne	.L29
+	movs	r2, #0
+.L30:
+	ldr	r1, [r4, #8]	@ unaligned
+	adds	r2, r2, #1
+	cmp	r2, #24
+	str	r1, [r3], #4
+	bne	.L30
+.L33:
+	movs	r0, #0
+.L26:
+	add	sp, sp, #16
+	@ sp needed
+	pop	{r4, pc}
+.L29:
+	ldr	r1, [r4, #8]	@ unaligned
+	str	r1, [r3, r2, lsl #2]
+	b	.L33
+.L35:
+	.align	2
+.L34:
+	.word	.LC3
+	.word	.LANCHOR2+26
+	.word	.LC4
+	.word	.LANCHOR0
+	.fnend
+	.size	vlog_set_level, .-vlog_set_level
 	.align	1
 	.syntax unified
 	.thumb
@@ -516,41 +382,41 @@ vlog_ioctl:
 	.save {r4, r5, r6, r7, r8, lr}
 	.pad #16
 	uxtb	r4, r1
-	ldr	r3, .L50
+	ldr	r3, .L40
 	mov	r6, r0
 	mov	r5, r1
 	mov	r7, r2
 	adds	r3, r3, #4
-	ldr	r2, .L50+4
+	ldr	r2, .L40+4
 	ldr	r8, [r3, #160]
 	movs	r1, #5
 	strd	r4, r3, [sp, #8]
 	movs	r0, #0
-	movs	r3, #176
+	movs	r3, #184
 	str	r4, [sp, #4]
 	str	r3, [sp]
-	ldr	r3, .L50+8
+	ldr	r3, .L40+8
 	bl	vlog
 	ldr	r0, [r8, #212]
 	cmp	r0, r4
-	bhi	.L47
-	movs	r3, #179
+	bhi	.L37
+	movs	r3, #187
 	str	r4, [sp, #4]
 	str	r3, [sp]
 	movs	r1, #2
-	ldr	r3, .L50+8
+	ldr	r3, .L40+8
 	movs	r0, #0
-	ldr	r2, .L50+12
+	ldr	r2, .L40+12
 	bl	vlog
-.L48:
-.L46:
+.L38:
+.L36:
 	mvn	r0, #21
 	add	sp, sp, #16
 	@ sp needed
 	pop	{r4, r5, r6, r7, r8, pc}
-.L47:
+.L37:
 	.syntax unified
-@ 87 "./arch/arm/include/asm/barrier.h" 1
+@ 87 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/barrier.h" 1
 	cmp	r4, r0
 	sbc	r0, r4, r4
 .inst.w 0xf3af8014
@@ -561,15 +427,15 @@ vlog_ioctl:
 	ldr	r0, [r8, #208]
 	movs	r3, #20
 	mla	r0, r3, r4, r0
-	cbnz	r0, .L49
-	movs	r3, #186
-	ldr	r2, .L50+16
+	cbnz	r0, .L39
+	movs	r3, #194
+	ldr	r2, .L40+16
 	str	r3, [sp]
 	movs	r1, #2
-	ldr	r3, .L50+8
+	ldr	r3, .L40+8
 	bl	vlog
-	b	.L46
-.L49:
+	b	.L36
+.L39:
 	mov	r1, r0
 	mov	r3, r7
 	mov	r2, r5
@@ -578,16 +444,75 @@ vlog_ioctl:
 	@ sp needed
 	pop	{r4, r5, r6, r7, r8, lr}
 	b	mpi_ioctl_kernel
-.L51:
+.L41:
 	.align	2
-.L50:
-	.word	.LANCHOR0
+.L40:
+	.word	.LANCHOR1
 	.word	.LC5
-	.word	.LANCHOR2+51
+	.word	.LANCHOR2+41
 	.word	.LC6
 	.word	.LC7
 	.fnend
 	.size	vlog_ioctl, .-vlog_ioctl
+	.align	1
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	vlog_open, %function
+vlog_open:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	ldr	r3, .L45
+	push	{r0, r1, r2, r4, r5, r6, r7, lr}
+	.save {r4, r5, r6, r7, lr}
+	.pad #12
+	mov	r7, r1
+	ldr	r0, [r3, #12]
+	mov	r1, #3520
+	bl	kmem_cache_alloc
+	mov	r5, r0
+	cbnz	r0, .L43
+	movs	r3, #218
+	ldr	r2, .L45+4
+	str	r3, [sp]
+	movs	r1, #2
+	ldr	r3, .L45+8
+	bl	vlog
+	mov	r0, #-1
+.L42:
+	add	sp, sp, #12
+	@ sp needed
+	pop	{r4, r5, r6, r7, pc}
+.L43:
+	ldr	r4, .L45+12
+	adds	r6, r4, #4
+	mov	r0, r6
+	bl	mpi_obj_ref
+	ldr	r3, [r4, #4]
+	str	r6, [r5]
+	movs	r1, #5
+	str	r5, [r7, #128]
+	movs	r0, #0
+	ldr	r2, .L45+16
+	str	r3, [sp, #4]
+	movs	r3, #223
+	str	r3, [sp]
+	ldr	r3, .L45+8
+	bl	vlog
+	movs	r0, #0
+	b	.L42
+.L46:
+	.align	2
+.L45:
+	.word	kmalloc_caches
+	.word	.LC8
+	.word	.LANCHOR2+52
+	.word	.LANCHOR1
+	.word	.LC1
+	.fnend
+	.size	vlog_open, .-vlog_open
 	.align	1
 	.global	vlog_probe
 	.syntax unified
@@ -602,10 +527,10 @@ vlog_probe:
 	push	{r4, r5, r6, lr}
 	.save {r4, r5, r6, lr}
 	movs	r2, #216
-	ldr	r4, .L54
+	ldr	r4, .L49
 	mov	r5, r0
 	movs	r1, #0
-	ldr	r6, .L54+4
+	ldr	r6, .L49+4
 	mov	r0, r4
 	bl	memset
 	mov	r1, #3264
@@ -623,31 +548,31 @@ vlog_probe:
 	movs	r1, #8
 	adds	r0, r4, #4
 	bl	mpi_dev_register
+	movs	r2, #0
 	add	r0, r4, #192
 	add	r1, r6, #40
 	strd	r0, r0, [r4, #192]
 	adds	r0, r4, #4
-	movs	r3, #0
-	str	r3, [r4, #72]
-	strd	r3, r3, [r4, #80]
-	str	r3, [r4, #188]
+	str	r2, [r4, #72]
+	strd	r2, r2, [r4, #80]
+	str	r2, [r4, #188]
 	bl	mpi_sysfs_dev_add
 	mov	r3, r5
 	mov	r2, #-1
 	mov	r1, r4
-	ldr	r0, .L54+8
+	ldr	r0, .L49+8
 	bl	kthread_create_on_node
 	cmn	r0, #4096
 	mov	r5, r0
-	bhi	.L53
+	bhi	.L48
 	bl	wake_up_process
-.L53:
+.L48:
 	str	r5, [r4, #200]
 	pop	{r4, r5, r6, pc}
-.L55:
+.L50:
 	.align	2
-.L54:
-	.word	.LANCHOR0
+.L49:
+	.word	.LANCHOR1
 	.word	.LANCHOR2+64
 	.word	vlog_thread_fn
 	.fnend
@@ -659,26 +584,26 @@ vlog_probe:
 	.section	.rodata
 	.align	2
 	.set	.LANCHOR2,. + 0
-	.type	__func__.36344, %object
-	.size	__func__.36344, 13
-__func__.36344:
-	.ascii	"vlog_version\000"
-	.type	__func__.36351, %object
-	.size	__func__.36351, 15
-__func__.36351:
-	.ascii	"vlog_set_level\000"
-	.type	__func__.36396, %object
-	.size	__func__.36396, 13
-__func__.36396:
+	.type	__func__.35894, %object
+	.size	__func__.35894, 13
+__func__.35894:
 	.ascii	"vlog_release\000"
-	.type	__func__.36389, %object
-	.size	__func__.36389, 10
-__func__.36389:
-	.ascii	"vlog_open\000"
-	.type	__func__.36367, %object
-	.size	__func__.36367, 11
-__func__.36367:
+	.type	__func__.35842, %object
+	.size	__func__.35842, 13
+__func__.35842:
+	.ascii	"vlog_version\000"
+	.type	__func__.35849, %object
+	.size	__func__.35849, 15
+__func__.35849:
+	.ascii	"vlog_set_level\000"
+	.type	__func__.35865, %object
+	.size	__func__.35865, 11
+__func__.35865:
 	.ascii	"vlog_ioctl\000"
+	.type	__func__.35887, %object
+	.size	__func__.35887, 10
+__func__.35887:
+	.ascii	"vlog_open\000"
 	.space	2
 	.type	vlog_ioctls, %object
 	.size	vlog_ioctls, 40
@@ -686,12 +611,12 @@ vlog_ioctls:
 	.word	-1068733440
 	.word	0
 	.word	vlog_version
-	.word	.LC8
+	.word	.LC9
 	.word	0
 	.word	-1072927743
 	.word	0
 	.word	vlog_set_level
-	.word	.LC9
+	.word	.LC10
 	.word	0
 	.type	vlog_driver_fops, %object
 	.size	vlog_driver_fops, 128
@@ -711,9 +636,9 @@ vlog_driver_fops:
 	.space	60
 	.data
 	.align	2
-	.set	.LANCHOR1,. + 0
+	.set	.LANCHOR0,. + 0
 	.type	current_log_level, %object
-	.size	current_log_level, 92
+	.size	current_log_level, 96
 current_log_level:
 	.word	4
 	.word	4
@@ -736,11 +661,12 @@ current_log_level:
 	.word	4
 	.word	4
 	.word	4
-	.space	8
+	.word	4
+	.word	4
+	.word	4
 	.type	module_name, %object
-	.size	module_name, 92
+	.size	module_name, 96
 module_name:
-	.word	.LC15
 	.word	.LC16
 	.word	.LC17
 	.word	.LC18
@@ -761,98 +687,108 @@ module_name:
 	.word	.LC33
 	.word	.LC34
 	.word	.LC35
-	.space	8
+	.word	.LC36
+	.word	.LC37
+	.word	.LC38
+	.word	.LC39
 	.type	level_name, %object
 	.size	level_name, 24
 level_name:
-	.word	.LC10
-	.word	.LC10
+	.word	.LC11
 	.word	.LC11
 	.word	.LC12
 	.word	.LC13
 	.word	.LC14
+	.word	.LC15
 	.bss
 	.align	2
-	.set	.LANCHOR0,. + 0
+	.set	.LANCHOR1,. + 0
 	.type	g_vlog_dev, %object
 	.size	g_vlog_dev, 216
 g_vlog_dev:
 	.space	216
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:
-	.ascii	"\033[31m\033[1m%s,%d:struct vlog_version mismatchin"
-	.ascii	"g\033[0m\000"
+	.ascii	"[%-6.6s][%-3.3s][%9lld.%-6ld] {%-18.18s:%04d} %s\015"
+	.ascii	"\012\000"
 .LC1:
-	.ascii	"\033[32m\033[1m%s,%d:mod = %d, level = %d\033[0m\000"
+	.ascii	"%d\000"
 .LC2:
-	.ascii	"\033[31m\033[1m%s,%d:struct vlog_level mismatching\033"
-	.ascii	"[0m\000"
+	.ascii	"\033[1;31mstruct vlog_version mismatching\033[0m\000"
 .LC3:
-	.ascii	"%s,%d:%d\000"
+	.ascii	"\033[1;32mmod = %d, level = %d\033[0m\000"
 .LC4:
-	.ascii	"\033[31m\033[1m%s,%d:valloc open fail\033[0m\000"
+	.ascii	"\033[1;31mstruct vlog_level mismatching\033[0m\000"
 .LC5:
-	.ascii	"%s,%d:vlog_ioctl: nr = %d, index = %d dev = %p\000"
+	.ascii	"vlog_ioctl: nr = %d, index = %d dev = %p\000"
 .LC6:
-	.ascii	"\033[31m\033[1m%s,%d:error: index = %d\033[0m\000"
+	.ascii	"\033[1;31merror: index = %d\033[0m\000"
 .LC7:
-	.ascii	"\033[31m\033[1m%s,%d:error: ioctl is null\033[0m\000"
+	.ascii	"\033[1;31merror: ioctl is null\033[0m\000"
 .LC8:
-	.ascii	"VLOG_IOCTL_VERSION\000"
+	.ascii	"\033[1;31mvalloc open fail\033[0m\000"
 .LC9:
-	.ascii	"VLOG_IOCTL_SET_LOG_LEVEL\000"
+	.ascii	"VLOG_IOCTL_VERSION\000"
 .LC10:
-	.ascii	"off\000"
+	.ascii	"VLOG_IOCTL_SET_LOG_LEVEL\000"
 .LC11:
-	.ascii	"err\000"
+	.ascii	"off\000"
 .LC12:
-	.ascii	"wrn\000"
+	.ascii	"err\000"
 .LC13:
-	.ascii	"inf\000"
+	.ascii	"wrn\000"
 .LC14:
-	.ascii	"dbg\000"
+	.ascii	"inf\000"
 .LC15:
-	.ascii	"cmpi\000"
+	.ascii	"dbg\000"
 .LC16:
-	.ascii	"mb\000"
+	.ascii	"cmpi\000"
 .LC17:
-	.ascii	"sys\000"
+	.ascii	"mb\000"
 .LC18:
-	.ascii	"rgn\000"
+	.ascii	"sys\000"
 .LC19:
-	.ascii	"venc\000"
+	.ascii	"rgn\000"
 .LC20:
-	.ascii	"vdec\000"
+	.ascii	"venc\000"
 .LC21:
-	.ascii	"vpss\000"
+	.ascii	"vdec\000"
 .LC22:
-	.ascii	"vgs\000"
+	.ascii	"vpss\000"
 .LC23:
-	.ascii	"vi\000"
+	.ascii	"vgs\000"
 .LC24:
-	.ascii	"vo\000"
+	.ascii	"vi\000"
 .LC25:
-	.ascii	"ai\000"
+	.ascii	"vo\000"
 .LC26:
-	.ascii	"ao\000"
+	.ascii	"ai\000"
 .LC27:
-	.ascii	"aenc\000"
+	.ascii	"ao\000"
 .LC28:
-	.ascii	"adec\000"
+	.ascii	"aenc\000"
 .LC29:
-	.ascii	"tde\000"
+	.ascii	"adec\000"
 .LC30:
-	.ascii	"isp\000"
+	.ascii	"tde\000"
 .LC31:
-	.ascii	"wbc\000"
+	.ascii	"isp\000"
 .LC32:
-	.ascii	"avs\000"
+	.ascii	"wbc\000"
 .LC33:
-	.ascii	"rga\000"
+	.ascii	"avs\000"
 .LC34:
-	.ascii	"af\000"
+	.ascii	"rga\000"
 .LC35:
+	.ascii	"af\000"
+.LC36:
 	.ascii	"ivs\000"
+.LC37:
+	.ascii	"gpu\000"
+.LC38:
+	.ascii	"nn\000"
+.LC39:
+	.ascii	"aiisp\000"
 	.section	___ksymtab_gpl+vlog,"a"
 	.align	2
 	.type	__ksymtab_vlog, %object

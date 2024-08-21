@@ -1,0 +1,10 @@
+menu "Example 'A2DP SINK' Config"
+
+    config A2DP_SINK_EXAMPLE
+        bool "Demo of a2dp audio sink role"
+        default n
+        help
+            This example involves the use of Bluetooth legacy profile A2DP for audio stream reception,
+            AVRCP for media information notifications, and I2S for audio stream output interface.
+
+endmenu

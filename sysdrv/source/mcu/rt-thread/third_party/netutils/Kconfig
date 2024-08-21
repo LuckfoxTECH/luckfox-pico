@@ -1,0 +1,89 @@
+
+menuconfig RT_USING_NETUTILS
+    bool "netutils: Networking utilities for RT-Thread"
+    depends on !PKG_USING_NETUTILS
+    default n
+
+if RT_USING_NETUTILS
+
+    config RT_NETUTILS_PING
+        bool "Enable Ping utility"
+        depends on (!RT_USING_NETDEV && RT_USING_LWIP && !PKG_NETUTILS_PING)
+        select RT_LWIP_ICMP
+        select RT_LWIP_RAW
+        default n
+
+    config RT_NETUTILS_TFTP
+        bool "Enable TFTP(Trivial File Transfer Protocol) server"
+        default n
+        depends on (RT_USING_LWIP && !PKG_NETUTILS_TFTP)
+    if RT_NETUTILS_TFTP
+        config NETUTILS_TFTP_PORT
+            int "TFTP server port"
+            range 0 65535
+            default 69
+    endif
+
+    config RT_NETUTILS_IPERF
+        bool "Enable iperf-liked network performance tool"
+        depends on !PKG_NETUTILS_IPERF
+        select RT_USING_LIBC
+        select RT_USING_SAL
+        select SAL_USING_POSIX
+        default n
+
+    config RT_NETUTILS_NETIO
+        bool "Enable NetIO network throughput performance tool"
+        default n
+        depends on (RT_USING_LWIP && !PKG_NETUTILS_NETIO)
+
+    config RT_NETUTILS_NTP
+        bool "Enable NTP(Network Time Protocol) client"
+        depends on !PKG_NETUTILS_NTP
+        select RT_USING_SAL
+        default n
+    if RT_NETUTILS_NTP
+        config NETUTILS_NTP_TIMEZONE
+            int "Timezone for calculate local time"
+            range -12 12
+            default 8
+
+        config NETUTILS_NTP_HOSTNAME
+            string "NTP server name1"
+            default "cn.ntp.org.cn"
+
+        config NETUTILS_NTP_HOSTNAME2
+            string "NTP server name2"
+            default "ntp.rt-thread.org"
+
+        config NETUTILS_NTP_HOSTNAME3
+            string "NTP server name3"
+            default "edu.ntp.org.cn"
+    endif
+
+    config RT_NETUTILS_TELNET
+        depends on !PKG_NETUTILS_TELNET
+        bool "Enable Telnet server"
+        default n
+
+    config RT_NETUTILS_TCPDUMP
+        bool "Enable tcpdump tool"
+        depends on (RT_USING_LWIP && !PKG_NETUTILS_TCPDUMP)
+        select RT_USING_OPTPARSE
+        select RT_USING_DFS
+        help
+            Select the tcpdump tool
+
+    if RT_NETUTILS_TCPDUMP
+        config PKG_NETUTILS_TCPDUMP_PRINT
+            bool "Enable tcpdump pcap data to print on the console"
+            default n
+            help
+                Enable tcpdump pcap data to print on the console
+
+        config PKG_NETUTILS_TCPDUMP_DBG
+            bool "Enable tcpdump debug log output"
+            default y
+    endif
+
+endif

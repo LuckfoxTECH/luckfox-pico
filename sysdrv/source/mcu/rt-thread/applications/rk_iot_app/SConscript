@@ -1,0 +1,55 @@
+from building import *
+
+cwd     = GetCurrentDir()
+
+root     = os.getcwd()
+
+src = Glob('*.c')
+src += Glob('cutils/*.c')
+src += Glob('cutils/sys_ctrl/*.c')
+src += Glob('utility/*.c')
+src += Glob('player/*.c')
+src += Glob('sha256/*.c')
+src += Glob('debug/*.c')
+#src += Glob('httpc/*.c')
+src += Glob('asr/*.c')
+
+#application *.c
+src += Glob(cwd + '/../*.c')
+
+inc_path = [cwd]
+inc_path += [cwd + '/cutils']
+inc_path += [cwd + '/cutils/sys_ctrl']
+inc_path += [cwd + '/include']
+inc_path += [cwd + '/player']
+inc_path += [cwd + '/utility']
+inc_path += [cwd + '/debug']
+inc_path += [cwd + '/sha256']
+#inc_path += [cwd + '/httpc']
+
+components_inc = []
+components_inc += [cwd + '/../../../../components/player/include']
+
+if GetDepend(['RT_USING_LWIP141']):
+    components_inc += [cwd + '/../../net/lwip-1.4.1/src/include']
+if GetDepend(['RT_USING_LWIP202']):
+    components_inc += [cwd + '/../../net/lwip-2.0.2/src/include']
+if GetDepend(['RT_USING_LWIP210']):
+    components_inc += [cwd + '/../../net/lwip-2.1.0/src/include']
+
+package_inc = []
+if GetDepend(['PKG_USING_MBEDTLS_V2710']):
+    package_inc += [root + '/../../../packages/mbedtls-v2.7.10/mbedtls/include/mbedtls']
+
+if GetDepend(['PKG_USING_MBEDTLS_LATEST_VERSION']):
+    package_inc += [root + '/../../../packages/mbedtls-latest/mbedtls/include/mbedtls']
+
+CPPPATH = [cwd, str(Dir('#'))]
+CPPPATH += inc_path
+#CPPPATH += components_inc
+CPPPATH += package_inc
+#print(CPPPATH)
+
+group = DefineGroup('rk_iot_app', src, depend = ['RT_USING_RK_IOT_APP'], CPPPATH = CPPPATH)
+
+Return('group')

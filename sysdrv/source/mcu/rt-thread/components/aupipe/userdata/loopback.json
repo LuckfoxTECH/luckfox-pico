@@ -1,0 +1,36 @@
+{
+    "pipeline":{
+        "rate":48000,
+        "bits":16,
+        "period-size":512,
+        "audiosrc0":{
+            "factory":"audiosrc",
+            "card":"acodecc",
+            "channels":2,
+            "sinks":{
+                "sink.0":{
+                    "name":"queue0",
+                    "bypass":true,
+                    "sink_ch":2
+                }
+            }
+        },
+        "queue0":{
+            "factory":"queue",
+            "channels":2,
+            "buffer-num":20,
+            "sinks":{
+                "sink.0":{
+                    "name":"audiosink0",
+                    "bypass":true,
+                    "sink_ch":2
+                }
+            }
+        },
+        "audiosink0":{
+            "factory":"audiosink",
+            "card":"acodecp",
+            "channels":2
+        }
+    }
+}

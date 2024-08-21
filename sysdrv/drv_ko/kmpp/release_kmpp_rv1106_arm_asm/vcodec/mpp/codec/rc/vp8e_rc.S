@@ -32,7 +32,7 @@ rc_model_v2_vp8_hal_start:
 	sub	sp, sp, #44
 	ldr	r3, [r1, #160]
 	mov	r5, r1
-	ldr	r7, .L58
+	ldr	r7, .L63
 	mov	r4, r0
 	ldrd	fp, r10, [r1, #164]
 	str	r3, [sp, #28]
@@ -47,8 +47,8 @@ rc_model_v2_vp8_hal_start:
 	mov	r3, r0
 	str	r5, [sp]
 	movs	r2, #61
-	ldr	r1, .L58+4
-	ldr	r0, .L58+8
+	ldr	r1, .L63+4
+	ldr	r0, .L63+8
 	bl	printk
 .L2:
 	ldr	r3, [r7]
@@ -56,9 +56,9 @@ rc_model_v2_vp8_hal_start:
 	bpl	.L3
 	ldrb	r3, [r5, #152]	@ zero_extendqisi2
 	movs	r2, #63
-	ldr	r1, .L58+4
+	ldr	r1, .L63+4
 	ubfx	r3, r3, #4, #1
-	ldr	r0, .L58+12
+	ldr	r0, .L63+12
 	str	r3, [sp]
 	ldrh	r3, [r5, #158]
 	bl	printk
@@ -78,7 +78,7 @@ rc_model_v2_vp8_hal_start:
 	ldr	r3, [r4, #8]
 	cmp	r3, #2
 	beq	.L5
-	ldr	r3, [r4, #380]
+	ldr	r3, [r4, #404]
 	ldrb	ip, [r5, #152]	@ zero_extendqisi2
 	and	ip, ip, #16
 	cmp	r3, #0
@@ -90,7 +90,7 @@ rc_model_v2_vp8_hal_start:
 	bge	.L8
 	ldr	r0, [r5, #160]
 	cbz	r0, .L9
-	ldr	r3, .L58+16
+	ldr	r3, .L63+16
 	cmp	r0, r3
 	bgt	.L28
 	add	r8, r8, #15
@@ -111,85 +111,88 @@ rc_model_v2_vp8_hal_start:
 	lsls	r2, r6, #6
 	mov	r1, #8000
 	bl	axb_div_c
-	ldr	r3, .L58+20
+	ldr	r3, .L63+20
 	mov	r2, #-1
 .L12:
 	ldr	r1, [r3], #4
 	adds	r2, r2, #1
 	cmp	r0, r1
 	bgt	.L12
-	ldr	r3, .L58+4
+	ldr	r3, .L63+4
 	add	r3, r3, r2, lsl #2
 	ldr	r3, [r3, #76]
 .L8:
-	str	r3, [r4, #584]
+	str	r3, [r4, #608]
 	lsls	r3, r3, #6
-	b	.L57
+	b	.L62
 .L28:
 	movs	r3, #10
 	b	.L8
 .L9:
 	movs	r1, #85
-	ldr	r0, .L58+24
+	ldr	r0, .L63+24
 	bl	printk
 	movs	r3, #40
 	str	r3, [r5, #172]
-	str	r3, [r4, #584]
+	str	r3, [r4, #608]
 	mov	r3, #2560
-.L57:
-	str	r3, [r4, #580]
-	ldr	r3, [r4, #608]
+.L62:
+	str	r3, [r4, #604]
+	ldr	r3, [r4, #632]
 	cmp	r3, #0
 	ble	.L14
-	ldr	r2, [r4, #580]
+	ldr	r2, [r4, #604]
 	ldr	r0, [r7]
-	ldr	r1, [r4, #556]
+	ldr	r1, [r4, #580]
 	lsls	r6, r0, #25
 	add	r2, r2, r1
-	str	r2, [r4, #580]
+	str	r2, [r4, #604]
 	asr	r3, r2, #6
-	str	r3, [r4, #584]
+	str	r3, [r4, #608]
 	bpl	.L15
 	strd	r2, r1, [sp]
 	movs	r2, #100
-	ldr	r1, .L58+4
-	ldr	r0, .L58+28
+	ldr	r1, .L63+4
+	ldr	r0, .L63+28
 	bl	printk
 .L15:
-	ldr	r3, [r5, #180]
-	ldr	r2, [r4, #580]
-	ldr	r1, [r5, #176]
+	ldr	r2, [r5, #180]
+	ldr	r3, [r5, #176]
+	ldr	r1, [r4, #604]
+	lsls	r2, r2, #6
 	lsls	r3, r3, #6
 	cmp	r2, r3
-	blt	.L16
-	lsls	r3, r1, #6
-	cmp	r3, r2
+	bgt	.L16
+	cmp	r1, r2
+	blt	.L29
+	cmp	r3, r1
 	it	ge
-	movge	r3, r2
+	movge	r3, r1
 .L16:
-	str	r3, [r4, #580]
+	str	r3, [r4, #604]
 	asrs	r3, r3, #6
-	strd	r3, r3, [r4, #560]
+	strd	r3, r3, [r4, #584]
 .L17:
-	ldr	r2, [r4, #584]
-	ldrd	r1, r3, [r5, #176]
+	ldrd	r3, r2, [r5, #176]
+	ldr	r1, [r4, #608]
 	cmp	r2, r3
-	blt	.L23
-	cmp	r2, r1
-	mov	r3, r2
+	bgt	.L23
+	cmp	r1, r2
+	blt	.L33
+	cmp	r3, r1
 	it	ge
 	movge	r3, r1
 .L23:
-	ldr	r6, .L58
-	str	r3, [r4, #584]
+	ldr	r6, .L63
+	str	r3, [r4, #608]
 	str	r3, [r5, #172]
 	ldr	r3, [r6]
 	lsls	r1, r3, #25
 	bpl	.L25
 	ldr	r3, [r5, #164]
 	movs	r2, #151
-	ldr	r1, .L58+4
-	ldr	r0, .L58+32
+	ldr	r1, .L63+4
+	ldr	r0, .L63+32
 	str	r3, [sp, #16]
 	ldr	r3, [r5, #160]
 	str	r3, [sp, #12]
@@ -204,8 +207,8 @@ rc_model_v2_vp8_hal_start:
 	bpl	.L25
 	ldr	r3, [r5, #176]
 	movs	r2, #154
-	ldr	r1, .L58+4
-	ldr	r0, .L58+36
+	ldr	r1, .L63+4
+	ldr	r0, .L63+36
 	str	r3, [sp, #16]
 	ldr	r3, [r5, #172]
 	str	r3, [sp, #12]
@@ -223,71 +226,83 @@ rc_model_v2_vp8_hal_start:
 	bpl	.L5
 	mov	r3, r4
 	movs	r2, #156
-	ldr	r1, .L58+4
-	ldr	r0, .L58+40
+	ldr	r1, .L63+4
+	ldr	r0, .L63+40
 	bl	printk
 	b	.L5
 .L14:
-	ldr	r3, [r4, #584]
+	ldr	r3, [r4, #608]
 	ldr	r2, [r4, #112]
 	subs	r3, r3, r2
-	str	r3, [r4, #584]
+	str	r3, [r4, #608]
 	b	.L15
+.L29:
+	mov	r3, r2
+	b	.L16
 .L7:
-	ldr	r1, [r5, #180]
-	ldr	r0, [r5, #176]
-	ldr	r3, [r4, #556]
-	ldr	r2, [r4, #580]
-	lsls	r6, r0, #6
-	add	r2, r2, r3
-	lsls	r3, r1, #6
+	ldr	r6, [r5, #180]
+	ldr	r2, [r5, #176]
+	ldr	r3, [r4, #580]
+	ldr	r0, [r4, #604]
+	lsls	r1, r6, #6
+	add	r0, r0, r3
+	lsls	r3, r2, #6
 	cmp	ip, #0
 	beq	.L18
-	cmp	r2, r3
-	blt	.L19
-	cmp	r2, r6
-	mov	r3, r2
+	cmp	r1, r3
+	bgt	.L19
+	cmp	r0, r1
+	blt	.L30
+	cmp	r3, r0
 	it	ge
-	movge	r3, r6
+	movge	r3, r0
 .L19:
-	ldr	r2, [r4, #552]
-	adds	r6, r3, r2
-	ldr	r2, [r4, #560]
-	add	r2, r2, r6, asr #6
-	asrs	r2, r2, #1
-	cmp	r2, r1
+	cmp	r2, r6
+	ldr	r1, [r4, #584]
+	ldr	r0, [r4, #576]
 	blt	.L20
-	cmp	r2, r0
+	add	r0, r0, r3
+	add	r1, r1, r0, asr #6
+	asrs	r1, r1, #1
+	cmp	r1, r6
+	blt	.L31
+	cmp	r2, r1
 	it	ge
-	movge	r2, r0
-	mov	r1, r2
+	movge	r2, r1
 .L20:
-	str	r1, [r4, #560]
-	strd	r3, r1, [r4, #580]
+	str	r2, [r4, #584]
+	strd	r3, r2, [r4, #604]
 .L21:
-	ldr	r3, .L58
+	ldr	r3, .L63
 	ldr	r3, [r3]
 	lsls	r0, r3, #25
 	bpl	.L17
 	ldr	r3, [r4, #116]
 	movs	r2, #142
-	ldr	r1, .L58+4
-	ldr	r0, .L58+44
+	ldr	r1, .L63+4
+	ldr	r0, .L63+44
 	str	r3, [sp]
 	movs	r3, #0
 	bl	printk
 	b	.L17
+.L30:
+	mov	r3, r1
+	b	.L19
+.L31:
+	mov	r2, r6
+	b	.L20
 .L18:
-	cmp	r2, r3
-	blt	.L22
-	cmp	r2, r6
-	mov	r3, r2
+	cmp	r1, r3
+	bgt	.L22
+	cmp	r0, r1
+	blt	.L32
+	cmp	r3, r0
 	it	ge
-	movge	r3, r6
+	movge	r3, r0
 .L22:
-	str	r3, [r4, #580]
+	str	r3, [r4, #604]
 	asrs	r3, r3, #6
-	str	r3, [r4, #584]
+	str	r3, [r4, #608]
 	ldrb	r2, [r5, #154]	@ zero_extendqisi2
 	and	r2, r2, #63
 	cmp	r2, #3
@@ -296,11 +311,17 @@ rc_model_v2_vp8_hal_start:
 	cmp	r2, #0
 	beq	.L21
 	subs	r3, r3, r2
-	str	r3, [r4, #584]
+	str	r3, [r4, #608]
 	b	.L21
-.L59:
+.L32:
+	mov	r3, r1
+	b	.L22
+.L33:
+	mov	r3, r2
+	b	.L23
+.L64:
 	.align	2
-.L58:
+.L63:
 	.word	rc_debug
 	.word	.LANCHOR0
 	.word	.LC0
@@ -319,14 +340,14 @@ rc_model_v2_vp8_hal_start:
 	.section	.rodata
 	.align	2
 	.set	.LANCHOR0,. + 0
-	.type	__func__.8798, %object
-	.size	__func__.8798, 26
-__func__.8798:
+	.type	__func__.8858, %object
+	.size	__func__.8858, 26
+__func__.8858:
 	.ascii	"rc_model_v2_vp8_hal_start\000"
 	.space	2
-	.type	qp_tbl.8777, %object
-	.size	qp_tbl.8777, 96
-qp_tbl.8777:
+	.type	qp_tbl.8837, %object
+	.size	qp_tbl.8837, 96
+qp_tbl.8837:
 	.word	47
 	.word	57
 	.word	73
@@ -356,7 +377,7 @@ qp_tbl.8777:
 default_vp8e:
 	.word	.LC8
 	.word	9
-	.word	664
+	.word	688
 	.word	rc_model_v2_init
 	.word	rc_model_v2_deinit
 	.word	0

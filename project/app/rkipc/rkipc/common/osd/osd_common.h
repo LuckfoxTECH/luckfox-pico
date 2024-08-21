@@ -22,6 +22,7 @@
 
 #define WEB_VIEW_RECT_W 704
 #define WEB_VIEW_RECT_H 480
+#define MAX_WCH_BYTE 128
 
 enum {
 	OSD_TYPE_DATE = 0,
@@ -31,7 +32,7 @@ enum {
 };
 
 typedef struct text_data {
-	wchar_t wch[128];
+	wchar_t wch[MAX_WCH_BYTE];
 	unsigned int font_size;
 	unsigned int font_color;
 	unsigned int color_inverse;

@@ -1,0 +1,16 @@
+import os
+from building import *
+
+group      = []
+cwd        = GetCurrentDir()
+src        = []
+CPPPATH    = []
+CPPDEFINES = []
+
+if GetDepend('PKG_CMSIS_RTOS2'):
+    CPPPATH = CPPPATH + [cwd + '/CMSIS_5/CMSIS/RTOS2/Include',cwd + '/RTOS2/RT-Thread/src']
+    src = src + Glob('RTOS2/RT-Thread/src/*.c')
+
+group = DefineGroup('CMSIS', src, depend = ['PKG_CMSIS_RTOS2'], CPPPATH = CPPPATH, LOCAL_CPPDEFINES=CPPDEFINES)
+
+Return('group')

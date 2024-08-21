@@ -1,0 +1,211 @@
+menu "RT-Thread application"
+
+config RT_USING_DLMODULE_APP_EXAMPLE
+    bool "dlmodule example enable"
+    default n
+    depends on RT_USING_MODULE
+    help
+        "Examples for how to use dlmodule"
+
+config RT_USING_LVGL_DEMO
+    bool "LVGL Demo enable"
+    depends on RT_USING_LITTLEVGL2RTT_V8
+    select RT_LV_COLOR_SCREEN_TRANSP
+    help
+        "LVGL Demo"
+
+choice
+    prompt "Display demo select"
+    depends on RT_USING_LVGL_DEMO
+
+    config RT_LV_DEMO_MUSIC
+        bool "Music demo enable"
+        help
+            "LVGL Music demo"
+
+    config RT_LV_DEMO_BENCHMARK
+        bool "benchmark demo enable"
+        help
+            "LVGL Benchmark demo"
+endchoice
+
+config RT_USING_ROCKCHIP_DEMO
+    bool "Rockchip demo select"
+    default n
+
+choice
+    prompt "Display demo select"
+    depends on RT_USING_ROCKCHIP_DEMO
+
+    config RT_USING_ANIMATION1_DEMO
+        bool "Animation1 demo enable"
+        help
+            "Animation demo based on 240x320 panel"
+
+    config RT_USING_ANIMATION2_DEMO
+        bool "Animation2 demo enable"
+        select RT_USING_PSRAM_HEAP
+        help
+            "Animation demo based on 320x385 panel"
+
+    config RT_USING_CLOCK_DEMO
+        bool "clock demo enable"
+        depends on RT_USING_LITTLEVGL2RTT_V7
+        help
+            "Display clock demo based on 720x1080 panel"
+
+    config RT_USING_CLOCK_DARK
+        bool "clock dark enable"
+        select RT_USING_DTCM_HEAP
+        help
+            "Display clock dark based on 720x1080 panel"
+
+    config RT_USING_CLOCK_WHISKEY
+        bool "clock whiskey enable"
+        select RT_USING_PSRAM_HEAP
+        help
+            "Display clock dark based on 320x320 panel"
+
+    config RT_USING_LVGL_CLOCK_EXH2020
+        bool "clock exh2020 enable"
+        depends on RT_USING_LITTLEVGL2RTT_V7
+        select RT_USING_PSRAM_HEAP
+        help
+            "Display clock demo based on 454x454 panel"
+
+    config RT_USING_APP_WEARABLE
+        bool "Wearable demo enable"
+        depends on RT_USING_LITTLEVGL2RTT_V7
+        select RT_USING_PSRAM_HEAP
+        select RT_USING_LARGE_HEAP
+        help
+            "Display wearable demo"
+
+    config RT_USING_RECORDING_PEN_APP
+        bool "Recording pen app"
+        depends on RT_USING_LITTLEVGL2RTT_V7
+        select RT_USING_AUDIO_SERVER
+        help
+            Enable recording pen app
+
+    config RT_USING_IOT_DISPLAY
+        bool "IoT display enable"
+        depends on RT_USING_LITTLEVGL2RTT_V7
+        help
+            "Display clock & IoT strings based on 240x320 panel"
+
+    config RT_USING_PCBA_TEST
+        bool "pcba test enable"
+        default n
+        depends on RT_USING_LITTLEVGL2RTT_V7
+        select RT_USING_AUDIO_SERVER
+        help
+            Enable PCBA test with LCD display
+
+endchoice
+
+if RT_USING_RECORDING_PEN_APP
+    source "$RTT_DIR/applications/recording_pen/Kconfig"
+endif
+
+if RT_USING_APP_WEARABLE
+    config APP_USING_SMOOTH_REFRESH
+        bool "App wearable smooth refresh"
+        default n
+        help
+            App wearable using smooth refresh when sliding.
+endif
+
+if RT_USING_LVGL_CLOCK_EXH2020
+    config NEW_ROTATE_ALGORITHM
+        bool "Using new rotate algorithm"
+        default y
+endif
+
+if RT_USING_PCBA_TEST
+    source "$RTT_DIR/applications/pcba_test/Kconfig"
+endif
+
+config RT_USING_RK_BATTERY_IPC
+    bool "rk batter ipc app"
+    default n
+
+if RT_USING_RK_BATTERY_IPC
+menu "RT-Thread Application Rockchip Battery IPC"
+config RT_USING_META_DDR_ADRESS
+    hex "meta ddr phy address"
+    default 0x800000
+    depends on RT_USING_RK_BATTERY_IPC
+
+config RT_USING_RK_AOV
+    bool "rk fast wakeup"
+    default n
+    depends on RT_USING_RK_BATTERY_IPC
+
+endmenu
+endif
+
+config RT_USING_RK_IOT_APP
+    bool "rk iot app"
+    select RT_USING_PLAYER
+    select RT_USING_LWIP
+    default n
+
+    if RT_USING_RK_IOT_APP
+        config PRJCONF_SYSINFO_SAVE_TO_FLASH
+            bool "system info save to flash"
+            default y
+
+        config PRJCONF_BOOT_AUTOMATICALLY
+            bool "boot app automatically"
+            default n
+
+        config PRJCONF_NET_EN
+            bool "network and wlan enable"
+            default n
+
+        config PRJCONF_USING_AISPEECH
+            bool "Enable aispeech"
+            default n
+
+        config PRJCONF_USING_AISPEECH_VAD
+            depends on PRJCONF_USING_AISPEECH
+            bool "Enable aispeech vad"
+            default n
+
+        choice
+            prompt "Select asr wake up mode"
+            default PRJCONF_AI_RK
+
+            config PRJCONF_AI_RK
+                bool "use xiaodu wake up words"
+            config PRJCONF_AI_SPEECH
+                bool "use speech wake up words"
+            config PRJCONF_AI_CUSTOM
+                bool "use custom wake up words"
+            config PRJCONF_AI_LWAKEUP
+                bool "use lite wake up words"
+        endchoice
+
+        config PRJCONF_PLAYBACK_SOUND_CARD
+            string "Playback sound card"
+            default "es8388p"
+            help
+                Set playback sound card name
+
+        config PRJCONF_ASR_SOUND_CARD
+            string "ASR sound card"
+            default "pdmc"
+            help
+                Set ASR sound card name
+
+        config PRJCONF_ASR_USE_VAD
+            bool "dsp get data through vad path"
+            default n
+            help
+                dsp get record data through VAD or through CM4 path.
+    endif
+
+source "$RTT_DIR/applications/dual_track/Kconfig"
+
+endmenu

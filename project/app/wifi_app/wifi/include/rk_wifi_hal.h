@@ -13,8 +13,8 @@ struct Rk_wifi_driver_ops {
 	//扫描
 	int (*wifi_scan)(void);
 	//获取扫描结果
-	char(*wifi_scan_r)(void);
-	char(*wifi_scan_for_softap)(void);
+	char *(*wifi_scan_r)(void);
+	char *(*wifi_scan_for_softap)(void);
 	//发起连接
 	int (*wifi_connect)(char* ssid, const char* psk);
 	//连接WEP加密的WIFI
@@ -48,6 +48,11 @@ struct Rk_wifi_driver_ops {
 	//wifi固件ota升级
 	int (*wifi_ota)(char *path);
 
+	//wifi重启
+	int (*wifi_reboot)(void);
+	//获取平台PIR电平值：1为触发PIR，0为无触发
+	int (*wifi_get_pir)(unsigned int *pir_ret);
+
 	/*
 	 * 低功耗专用API
 	 */
@@ -57,6 +62,9 @@ struct Rk_wifi_driver_ops {
 	int (*wifi_stop_keepalive)(int port);
 	int (*wifi_set_BeaconListenInterval)(int dtim);
 	int (*wifi_set_pir)(int enable);
+	int (*wifi_get_batlevel)(void);
+	int (*wifi_get_wkreason)(void);
+	int (*wifi_get_utc)(unsigned long long *utc);
 };
 
 extern struct Rk_wifi_driver_ops hisi_driver_ops;

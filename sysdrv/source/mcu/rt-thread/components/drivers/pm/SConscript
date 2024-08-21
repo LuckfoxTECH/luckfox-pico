@@ -1,0 +1,20 @@
+from building import *
+
+cwd = GetCurrentDir()
+src = []
+CPPPATH = [cwd + '/../include']
+group = []
+
+if GetDepend(['RT_USING_PM']):
+    src = src + ['pm.c']
+
+if GetDepend(['RT_USING_PM_FG']):
+    src = src + ['fuel_gauge.c']
+
+if GetDepend(['RT_USING_PM_CHARGER']):
+    src = src + ['charger.c']
+
+if len(src):
+    group = DefineGroup('DeviceDrivers', src, depend = [''], CPPPATH = CPPPATH)
+
+Return('group')

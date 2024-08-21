@@ -11,6 +11,9 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#define CRU_BASE		0xFF3B2000
+#define CRU_SOFTRST_CON04	0x0A10
+
 #ifdef CONFIG_USB_DWC3
 static struct dwc3_device dwc3_device_data = {
 	.maximum_speed = USB_SPEED_HIGH,
@@ -27,9 +30,24 @@ int usb_gadget_handle_interrupts(void)
 	return 0;
 }
 
+#ifdef CONFIG_SUPPORT_USBPLUG
+static void usb_reset_otg_controller(void)
+{
+	writel(0x1 << 7 | 0x1 << 23, CRU_BASE + CRU_SOFTRST_CON04);
+	mdelay(1);
+	writel(0x0 << 7 | 0x1 << 23, CRU_BASE + CRU_SOFTRST_CON04);
+
+	mdelay(1);
+}
+#endif
+
 int board_usb_init(int index, enum usb_init_type init)
 {
+#ifdef CONFIG_SUPPORT_USBPLUG
+	usb_reset_otg_controller();
+#endif
 	writel(0x01ff0000, 0xff000050); /* Resume usb2 phy to normal mode */
+
 	return dwc3_uboot_init(&dwc3_device_data);
 }
 #endif

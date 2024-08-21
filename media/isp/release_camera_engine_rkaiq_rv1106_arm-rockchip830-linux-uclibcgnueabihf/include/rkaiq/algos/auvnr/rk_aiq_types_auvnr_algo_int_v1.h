@@ -260,10 +260,10 @@ typedef struct Auvnr_ProcResult_V1_s {
     int uvnrEn;
 
     //for sw simultaion
-    RK_UVNR_Params_V1_Select_t stSelect;
+    //RK_UVNR_Params_V1_Select_t stSelect;
 
     //for hw register
-    RK_UVNR_Fix_V1_t stFix;
+    RK_UVNR_Fix_V1_t* stFix;
 	
 } Auvnr_ProcResult_V1_t;
 

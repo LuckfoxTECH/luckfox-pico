@@ -23,7 +23,7 @@ extern "C" {
 
 #include "version.h"
 
-static char stVersionInfo[] = RKADK_VERSION_INFO;
+static char stVersionInfo[]  = RKADK_VERSION_INFO;
 static char stVersionBuild[] = RKADK_BUILD_INFO;
 
 void RKADK_VERSION_Dump();

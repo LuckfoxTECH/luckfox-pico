@@ -1,6 +1,20 @@
 // Copyright 2021 Rockchip Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+#include <inttypes.h> // PRId64
+#include <rga/im2d.h>
+#include <rga/rga.h>
+#include <rk_comm_ivs.h>
+#include <rk_debug.h>
+#include <rk_mpi_mb.h>
+#include <rk_mpi_mmz.h>
+#include <rk_mpi_rgn.h>
+#include <rk_mpi_sys.h>
+#include <rk_mpi_venc.h>
+#include <rk_mpi_vi.h>
+#include <rk_mpi_vo.h>
+#include <rk_mpi_vpss.h>
+
 int rk_video_init();
 int rk_video_deinit();
 int rk_video_restart();
@@ -40,3 +54,6 @@ int rk_video_set_snapshot_interval_ms(int value);
 int rk_video_get_jpeg_resolution(char **value);
 int rk_video_set_jpeg_resolution(const char *value);
 int rk_take_photo();
+int rkipc_venc_jpeg_init();
+int rkipc_venc_jpeg_deinit();
+int rkipc_osd_draw_nn_init();

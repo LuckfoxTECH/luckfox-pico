@@ -1,0 +1,42 @@
+menu "RT-Thread Benchmarks"
+
+config RT_USING_BENCHMARK
+    bool "Enable benchmarks for rt-thread"
+    default n
+
+config RT_USING_TINYMEMBENCH
+    bool "Enable tinymembench"
+	depends on RT_USING_BENCHMARK
+    default n
+
+config RT_USING_COREMARK
+    bool "Enable coremark"
+    depends on RT_USING_BENCHMARK
+    default n
+
+config RT_USING_DHRYSTONE
+    bool "Enable dhrystone"
+    depends on RT_USING_BENCHMARK
+    default n
+
+config RT_USING_FHOURSTONE
+    bool "Enable fhourstone"
+    depends on RT_USING_BENCHMARK
+    default n
+
+config RT_USING_LINPACK
+    bool "Enable linpack"
+    depends on RT_USING_BENCHMARK
+    default n
+
+config RT_USING_PI_CSS5
+    bool "Enable pi_css5"
+    depends on RT_USING_BENCHMARK
+    default n
+
+config RT_USING_WHETSTONE
+    bool "Enable whetstone"
+    depends on RT_USING_BENCHMARK
+    default n
+
+endmenu

@@ -26,7 +26,7 @@ PKG_DEP_ZLIB := $(CURRENT_DIR)/../zlib
 
 PKG_BIN := out
 
-PKG_CONF_OPTS += $(SYSDRV_OPTS) -Os \
+PKG_CONF_OPTS += $(SYSDRV_CROSS_CFLAGS) $(SYSDRV_OPTS) -Os \
 				 -I $(PKG_DEP_ZLIB)/out/include \
 				 -L $(PKG_DEP_ZLIB)/out/lib
 

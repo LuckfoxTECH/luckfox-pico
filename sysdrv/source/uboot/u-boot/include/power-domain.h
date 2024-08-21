@@ -91,6 +91,48 @@ struct power_domain {
 int power_domain_get(struct udevice *dev, struct power_domain *power_domain);
 
 /**
+ * power_domain_get_by_index - Get the indexed power domain for a device.
+ *
+ * @dev:		The client device.
+ * @power_domain:	A pointer to a power domain struct to initialize.
+ * @index:		Power domain index to be powered on.
+ *
+ * @return 0 if OK, or a negative error code.
+ */
+#if CONFIG_IS_ENABLED(POWER_DOMAIN)
+int power_domain_get_by_index(struct udevice *dev,
+			      struct power_domain *power_domain, int index);
+#else
+static inline
+int power_domain_get_by_index(struct udevice *dev,
+			      struct power_domain *power_domain, int index)
+{
+	return -ENOSYS;
+}
+#endif
+
+/**
+ * power_domain_get_by_name - Get the named power domain for a device.
+ *
+ * @dev:		The client device.
+ * @power_domain:	A pointer to a power domain struct to initialize.
+ * @name:		Power domain name to be powered on.
+ *
+ * Return: 0 if OK, or a negative error code.
+ */
+#if CONFIG_IS_ENABLED(POWER_DOMAIN)
+int power_domain_get_by_name(struct udevice *dev,
+			     struct power_domain *power_domain, const char *name);
+#else
+static inline
+int power_domain_get_by_name(struct udevice *dev,
+			     struct power_domain *power_domain, const char *name)
+{
+	return -ENOSYS;
+}
+#endif
+
+/**
  * power_domain_free - Free a previously requested power domain.
  *
  * @power_domain:	A power domain struct that was previously successfully
@@ -116,5 +158,39 @@ int power_domain_on(struct power_domain *power_domain);
  * @return 0 if OK, or a negative error code.
  */
 int power_domain_off(struct power_domain *power_domain);
+
+/**
+ * dev_power_domain_on - Enable power domains for a device .
+ *
+ * @dev:		The client device.
+ *
+ * @return 0 if OK, or a negative error code.
+ */
+#if (CONFIG_IS_ENABLED(OF_CONTROL) && !CONFIG_IS_ENABLED(OF_PLATDATA)) && \
+	CONFIG_IS_ENABLED(POWER_DOMAIN)
+int dev_power_domain_on(struct udevice *dev);
+#else
+static inline int dev_power_domain_on(struct udevice *dev)
+{
+	return 0;
+}
+#endif
+
+/**
+ * dev_power_domain_off - Disable power domains for a device .
+ *
+ * @dev:		The client device.
+ *
+ * @return 0 if OK, or a negative error code.
+ */
+#if (CONFIG_IS_ENABLED(OF_CONTROL) && !CONFIG_IS_ENABLED(OF_PLATDATA)) && \
+	CONFIG_IS_ENABLED(POWER_DOMAIN)
+int dev_power_domain_off(struct udevice *dev);
+#else
+static inline int dev_power_domain_off(struct udevice *dev)
+{
+	return 0;
+}
+#endif
 
 #endif

@@ -4,6 +4,8 @@
 #define RKAIQ_TOOL_ANR_H_
 int setAnrAttrib(rk_aiq_sys_ctx_t* ctx, char* data);
 int getAnrAttrib(rk_aiq_sys_ctx_t* ctx, char* data);
+int setAnrAttribV2(rk_aiq_sys_ctx_t* ctx, char* data);
+int getAnrAttribV2(rk_aiq_sys_ctx_t* ctx, char* data);
 int setAnrIQPara(rk_aiq_sys_ctx_t* ctx, char* data);
 int getAnrIQPara(rk_aiq_sys_ctx_t* ctx, char* data);
 int setLumaSFStrength(rk_aiq_sys_ctx_t* ctx, char* data);

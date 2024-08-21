@@ -13,6 +13,7 @@
 #include <common.h>
 #include <bootm.h>
 #include <command.h>
+#include <mp_boot.h>
 #include <android_bootloader_message.h>
 #include <android_avb/rk_avb_ops_user.h>
 #include <android_avb/avb_atx_ops.h>
@@ -30,6 +31,9 @@ static int do_boot_android(cmd_tbl_t *cmdtp, int flag, int argc,
 	if (argc > 5)
 		return CMD_RET_USAGE;
 
+#ifdef CONFIG_MP_BOOT_BOOTM
+	mpb_post(5);
+#endif
 	if (argc >= 5) {
 		load_address = simple_strtoul(argv[4], &addr_arg_endp, 16);
 		if (addr_arg_endp == argv[4] || *addr_arg_endp != '\0')

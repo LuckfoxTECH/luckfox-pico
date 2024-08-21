@@ -1,0 +1,98 @@
+===========RK2108_RT-Thread SDK Release Note===========
+
+[RK2108_RT-Thead_SDK_Release_V1.3.0_20211026.xml change log]
+1. Fix USB uac and hid issue
+2. Enable disk buffer for fat fs by default
+3. Change i2s/pdm-gpio to pull-none mode
+4. Support CFU firmware
+5. Update audio library to support playback function for audio demo
+
+[RK2108_RT-Thead_SDK_Release_V1.2.0_20210406.xml change log]
+1. Add emmc suspend support
+2. RK816-interrupt: fix lost plug-out event, enable irqs safely
+3. Mux to gpio in pin_mode
+4. Add cyw20721 sensor hub driver
+5. RK2108D: Update baud rate of uart0 to 1500000
+6. Support camera test: vicap_test
+7. Support flac and ape decoder
+
+
+[RK2108_RT-Thead_SDK_Release_V1.1.0_20201210.xml change log]
+1. Upgrade littlevGL to v7.4.0;
+2. Support print log in loader;
+3. Update recording pen demo;
+4. Support GPIO for MIPI_TE;
+5. Add some screen and touch panel driver;
+6. Support RK2108D_EVB;
+7. Update display thread for switching lut, and auto close VOP;
+8. Update psram.bin to v1.12
+
+
+[RK2108_RT-Thead_SDK_Release_V1.0.0_20200812.xml change log]
+
+1. Use rk2108_fast_loader.bin instead of the old rk2108_loader.bin;
+2. Fixed the probabilistic crash problem caused by suspend/resume;
+3. Improved the accuracy of SPI Clock frequency;
+4. Support suspend/resume for recording pen Demo;
+5. Support OTA upgrade DSP firmware partition;
+6. Added RK816 Alarm function;
+7. A new tool is added, which reads UID from Nor Flash and generates Key to write to Vendor partition;
+8. Add cyw434x WIFI, BT driver and configuration files.
+
+
+
+[RK2108_RT-Thead_SDK_Beta_V0.5.0_20200710.xml change log]
+
+1. Fix the problem that Codec I2C address is overwritten;
+2. Reduced the time taken for PSRAM initialization;
+3. Fixed the problem that the MAC system cannot recognize the U disk;
+4. Fixed the SPI full duplex communication timeout problem.
+5. Add RK2108D EVB Board;
+6. Add a variety of unicode formats to support multiple languages;
+7. Add SPI Nand flash driver;
+8. Support littlefs file system;
+9. Support suspend/resume for UART, USB;
+10. Support closing console printing;
+11. Support recovery OTA for rk2108_fast_loader.bin.
+
+
+
+[RK2108_RT-Thead_SDK_Beta_V0.4.0_20200619.xml change log]
+
+1. Optimize opus coding efficiency and change to DSP XIP mode;
+2. The document is changed to pdf and saved in the RKDocs directory;
+3. Fixed the problem of multiple drive letters on the computer;
+4. Integrate PDM 4 MIC + ADC 2ch into a sound card;
+5. Support recovery mode for OTA;
+6. Support 1 lane and 2 lanes mode for MIPI DSI;
+7. Support fast boot, rk2108_loader.bin needs to be replaced with rk2108_fast_loader.bin
+8. Support suspend/resume for eMMC driver.
+
+
+
+[RK2108_RT-Thead_SDK_Beta_V0.3.0_20200513.xml change log]
+
+1. Update Demo, support touch panel;
+2. Update the Audio server, easy for users to incorporate third-party codec libraries;
+3. Organize the display driver, support MIPI DSI, MCU, SPI screens;
+4. Support reading flash UID in DSP, used for algorithm secret key verification;
+5. Fixed the problem of suspend/resume crash caused by XIP mode turned on.
+
+
+
+[RK2108_RT-Thead_SDK_Beta_V0.2.0_20200427.xml change log]
+
+1. Support recording_pen_v10 EVB board;
+2. Update LittlevGL to V6.1.2;
+3. Update Touch Framework, support GT5688 touch panel;
+4. Support Codec ES8156;
+5. Support USB plug in/out detect for RK816;
+6. Power off the unused LDOs, to reduce power consumption for idle mode;
+7. Add Mass production upgrade tool and Vendor partition burning tool.
+
+
+
+[RK2108_RT-Thead_SDK_Beta_V0.1.0_20200330.xml change log]
+
+1. Support Recording Pen Demo.
+

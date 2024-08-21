@@ -128,6 +128,7 @@ dtb-$(CONFIG_ARCH_BCM_5301X) += \
 	bcm47094-luxul-xwr-3150-v1.dtb \
 	bcm47094-netgear-r8500.dtb \
 	bcm47094-phicomm-k3.dtb \
+	bcm53015-meraki-mr26.dtb \
 	bcm53016-meraki-mr32.dtb \
 	bcm94708.dtb \
 	bcm94709.dtb \
@@ -978,24 +979,49 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += \
 	rv1103g-evb-v10.dtb \
 	rv1103g-evb-v11.dtb \
 	rv1103g-evb-v11-sii902x-bt6562hdmi.dtb \
+	rv1103g-evb2-v10.dtb \
+	rv1103g-evb2-v10-aov-spi-nor.dtb \
 	rv1103g-rmsl311-dloc-sl-v10.dtb \
 	rv1103g-scaner-v10.dtb \
 	rv1106g-38x38-ipc-v10.dtb \
 	rv1106g-38x38-ipc-v10-spi-nand.dtb \
 	rv1106g-evb1-mcu-display-v11.dtb \
+	rv1106g-evb1-mcu-display-v20.dtb \
 	rv1106g-evb1-rgb-display-v11.dtb \
 	rv1106g-evb1-v10.dtb \
 	rv1106g-evb1-v11.dtb \
+	rv1106g-evb1-v11-4k.dtb \
+	rv1106g-evb1-v11-aiisp.dtb \
 	rv1106g-evb1-v11-cvr.dtb \
+	rv1106g-evb1-v11-cvr-dual-cam.dtb \
 	rv1106g-evb1-v11-spi-nand-cvr.dtb \
 	rv1106g-evb1-v11-sii902x-bt11202hdmi.dtb \
 	rv1106g-evb1-v11-sii902x-rgb2hdmi.dtb \
 	rv1106g-evb1-v10-dual-cam.dtb \
+	rv1106g-evb1-v11-dual-cam.dtb \
 	rv1106g-evb1-v10-facial-gate.dtb \
+	rv1106g-evb1-v11-facial-gate.dtb \
 	rv1106g-evb1-v10-spi-nand.dtb \
 	rv1106g-evb1-v10-spi-nor.dtb \
+	rv1106g-evb1-v11-fastboot-emmc.dtb \
+	rv1106g-evb1-v11-fastboot-spi-nand.dtb \
+	rv1106g-evb1-v11-fastboot-spi-nor.dtb \
+	rv1106g-evb1-v11-cvr-ext-dual-cam.dtb \
 	rv1106g-evb2-v10.dtb \
+	rv1106g-evb2-v10-dual-camera.dtb \
 	rv1106g-evb2-v11-emmc.dtb \
+	rv1106g-evb2-v11-trailcam-emmc.dtb \
+	rv1106g-evb2-v12-aov-spi-nor.dtb \
+	rv1106g-evb2-v12-dual-camera-avs.dtb \
+	rv1106g-evb2-v12-dual-camera-aov-spi-nor.dtb \
+	rv1106g-evb2-v12-nofastae-emmc.dtb \
+	rv1106g-evb2-v12-nofastae-spi-nand.dtb \
+	rv1106g-evb2-v12-nofastae-spi-nor.dtb \
+	rv1106g-evb2-v12-200w-spi-nor.dtb \
+	rv1106g-evb2-v12-spi-nand-tb.dtb \
+	rv1106g-evb2-v12-wakeup.dtb \
+	rv1106g-evb2-v14-spi-nor.dtb \
+	rv1106g-evb2-v14-wakeup.dtb \
 	rv1106g-smart-door-lock-rmsl-v10.dtb \
 	rv1106g-smart-door-lock-rmsl-v12.dtb \
 	rv1106g-uvc-demo-v10.dtb \
@@ -1008,6 +1034,7 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += \
 	rv1126-evb-ddr3-v12-spi-nor.dtb \
 	rv1126-evb-ddr3-v13.dtb \
 	rk3036-evb.dtb \
+	rk3036-evb1-ddr3-v10.dtb \
 	rk3036-kylin.dtb \
 	rk3066a-bqcurie2.dtb \
 	rk3066a-marsboard.dtb \

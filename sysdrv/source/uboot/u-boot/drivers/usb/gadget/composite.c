@@ -838,11 +838,15 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 				 * bcdUSB should be 0x0300 for superspeed,
 				 * but we change it to 0x0301 for rockusb.
 				 */
+#ifndef CONFIG_SUPPORT_USBPLUG
 				if (!strncmp(cdev->driver->name,
 					     "rkusb_ums_dnl", 13))
 					cdev->desc.bcdUSB = cpu_to_le16(0x0301);
 				else
 					cdev->desc.bcdUSB = cpu_to_le16(0x0300);
+#else
+				cdev->desc.bcdUSB = cpu_to_le16(0x0300);
+#endif
 				cdev->desc.bMaxPacketSize0 = 9;
 			} else {
 				cdev->desc.bMaxPacketSize0 =

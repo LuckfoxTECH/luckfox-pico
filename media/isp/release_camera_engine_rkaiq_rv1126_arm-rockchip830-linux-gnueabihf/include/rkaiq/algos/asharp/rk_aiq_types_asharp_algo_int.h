@@ -100,7 +100,7 @@ typedef struct RKAsharp_Sharp_HW_Params_s
     float rf_h_coeff_percent[MAX_ISO_STEP];
     float hbf_coeff_percent[MAX_ISO_STEP];
 
-    
+
     float gaus_luma_kernel  [MAX_ISO_STEP][RKSHAPRENHW_PBF_DIAM * RKSHAPRENHW_PBF_DIAM];
     float kernel_pbf_l    [MAX_ISO_STEP][RKSHAPRENHW_PBF_DIAM * RKSHAPRENHW_PBF_DIAM];
     float kernel_pbf_h    [MAX_ISO_STEP][RKSHAPRENHW_PBF_DIAM * RKSHAPRENHW_PBF_DIAM];
@@ -334,14 +334,48 @@ typedef enum AsharpParamMode_e {
     ASHARP_PARAM_MODE_MAX
 } AsharpParamMode_t;
 
+typedef struct rk_aiq_edgeFilter_manual_IQPara_s{
 
+    int   enable;
+    float luma_point[8];
+    float dog_kernel_l[25];
+    float dog_kernel_h[25];
+    struct CalibDb_EdgeFilter_ISO_s edgeFilter_iso;
+}rk_aiq_edgeFilter_manual_IQPara_t;
+typedef struct rk_aiq_sharp_manual_IQPara_s{
+    int enable;
+    float luma_point[8];
+
+    float gauss_luma_coeff[9];
+    float mbf_coeff[221];
+#if 0
+    float pbf_coeff[9];
+    float rf_m_coeff[25];
+    float rf_h_coeff[25];
+    float hbf_coeff[9];
+#else
+    //v2
+    float pbf_coeff_l[9];
+    float pbf_coeff_h[9];
+    float rf_m_coeff_l[25];
+    float rf_m_coeff_h[25];
+    float rf_h_coeff_l[25];
+    float rf_h_coeff_h[25];
+    float hbf_coeff_l[9];
+    float hbf_coeff_h[9];
+#endif
+    struct CalibDb_Sharp_ISO_s sharp_iso;
+
+}rk_aiq_sharp_manual_IQPara_t;
 
 typedef struct Asharp_Manual_Attr_s
 {
     int sharpEn;
+    rk_aiq_sharp_manual_IQPara_t   stSharpParam;
     RKAsharp_Sharp_Params_Select_t stSharpParamSelect;
 
     int edgeFltEn;
+    rk_aiq_edgeFilter_manual_IQPara_t   stEdgefilterParam;
     RKAsharp_EdgeFilter_Params_Select_t stEdgefilterParamSelect;
 
 } Asharp_Manual_Attr_t;
@@ -403,7 +437,7 @@ typedef struct AsharpExpInfo_s {
 	int preIso[3];
 	int preDcgMode[3];
     int pre_snr_mode;
-	
+
 	int mfnr_mode_3to1;
 } AsharpExpInfo_t;
 
@@ -415,10 +449,19 @@ typedef enum rk_aiq_sharp_module_e{
 
 typedef struct rk_aiq_sharp_IQpara_s{
 	int module_bits;
-	
+
 	CalibDb_Sharp_t stSharpPara;
     CalibDb_EdgeFilter_t stEdgeFltPara;
 }rk_aiq_sharp_IQpara_t;
+
+
+
+
+typedef struct RkAsharp_Sharp_Manual_IQPara_s {
+
+    rk_aiq_sharp_manual_IQPara_t           sharpPara;
+    rk_aiq_edgeFilter_manual_IQPara_t      edgeFilterPara;
+}RkAsharp_Sharp_Manual_IQPara_t;
 
 
 RKAIQ_END_DECLARE

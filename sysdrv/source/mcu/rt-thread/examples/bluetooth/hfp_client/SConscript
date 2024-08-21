@@ -1,0 +1,16 @@
+Import('RTT_ROOT')
+Import('rtconfig')
+from building import *
+
+src = Split('''
+    main/bt_app_av.c
+    main/bt_app_core.c
+    main/main.c
+    main/hfp_client_api.c
+''')
+
+CPPPATH = ""
+
+group = DefineGroup('examples', src, depend = ['HFP_CLIENT_EXAMPLE'], CPPPATH = CPPPATH)
+
+Return('group')

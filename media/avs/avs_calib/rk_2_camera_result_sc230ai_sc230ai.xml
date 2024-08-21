@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<cameras_num>2</cameras_num>
+<calib_width>1920</calib_width>
+<calib_height>1080</calib_height>
+<camera_type>1</camera_type>
+<camera_fov>107</camera_fov>
+<camera_matrix_0 type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>3</cols>
+  <dt>f</dt>
+  <data>
+    3.73959448e+03 4.22944754e-01 9.48736694e+02 0. 3.73644849e+03
+    5.54968628e+02 0. 0. 1.</data></camera_matrix_0>
+<camera_distortion_0 type_id="opencv-matrix">
+  <rows>1</rows>
+  <cols>4</cols>
+  <dt>f</dt>
+  <data>
+    -9.31460440e-01 1.30924940e+00 -8.51006992e-03 1.65518129e-03</data></camera_distortion_0>
+<xi_0>2.3498959541320801e+00</xi_0>
+<camera_pose_0 type_id="opencv-matrix">
+  <rows>4</rows>
+  <cols>4</cols>
+  <dt>f</dt>
+  <data>
+    1. 0. 0. 0. 0. 1. 0. 0. 0. 0. 1. 0. 0. 0. 0. 1.</data></camera_pose_0>
+<internal_meanReprojectError_0>2.8692653775215149e-01</internal_meanReprojectError_0>
+<external_meanReprojectError_0>0.</external_meanReprojectError_0>
+<camera_matrix_1 type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>3</cols>
+  <dt>f</dt>
+  <data>
+    3.89461865e+03 4.05671477e-01 9.99229065e+02 0. 3.88211426e+03
+    5.34389099e+02 0. 0. 1.</data></camera_matrix_1>
+<camera_distortion_1 type_id="opencv-matrix">
+  <rows>1</rows>
+  <cols>4</cols>
+  <dt>f</dt>
+  <data>
+    -1.06845140e+00 1.71290421e+00 -3.96473333e-03 -5.20940730e-03</data></camera_distortion_1>
+<xi_1>2.4256694316864014e+00</xi_1>
+<camera_pose_1 type_id="opencv-matrix">
+  <rows>4</rows>
+  <cols>4</cols>
+  <dt>f</dt>
+  <data>
+    4.83097047e-01 -3.82677303e-03 8.75558436e-01 4.25615463e+01
+    6.23317529e-03 9.99980152e-01 9.31369665e-04 3.84045154e-01
+    -8.75544608e-01 5.00756735e-03 4.83111292e-01 -4.29618340e+01 0. 0.
+    0. 1.</data></camera_pose_1>
+<internal_meanReprojectError_1>2.4914073944091797e-01</internal_meanReprojectError_1>
+<external_meanReprojectError_1>7.4757629632949829e-01</external_meanReprojectError_1>
+</opencv_storage>

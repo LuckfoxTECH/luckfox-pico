@@ -32,7 +32,6 @@ DECLARE_GLOBAL_DATA_PTR;
 #include <u-boot/sha1.h>
 #include <u-boot/sha256.h>
 
-#define FDT_DEFAULT_LOAD_ADDR 0x00c00000
 #define __round_mask(x, y) ((__typeof__(x))((y)-1))
 #define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
 
@@ -2141,13 +2140,7 @@ int fit_image_load_index(bootm_headers_t *images, ulong addr,
 	ret = fit_image_select(fit, noffset, images->verify);
 	if (ret) {
 		bootstage_error(bootstage_id + BOOTSTAGE_SUB_HASH);
-		/* Use the memory fdt directly */
-		printf("   Use the memory fdt directly\n");
-		*datap = FDT_DEFAULT_LOAD_ADDR;
-		fit_image_get_data_size(fit, noffset, (int *)&size);
-		*lenp = (ulong)size;
-		return noffset;
-		//return ret;
+		return ret;
 	}
 
 	bootstage_mark(bootstage_id + BOOTSTAGE_SUB_CHECK_ARCH);
@@ -2182,6 +2175,7 @@ int fit_image_load_index(bootm_headers_t *images, ulong addr,
 		fit_image_check_os(fit, noffset, IH_OS_ARM_TRUSTED_FIRMWARE) ||
 		fit_image_check_os(fit, noffset, IH_OS_OP_TEE) ||
 		fit_image_check_os(fit, noffset, IH_OS_U_BOOT) ||
+		fit_image_check_os(fit, noffset, IH_OS_QNX) ||
 		fit_image_check_os(fit, noffset, IH_OS_OPENRTOS);
 
 	/*
@@ -2267,10 +2261,8 @@ int fit_image_load_index(bootm_headers_t *images, ulong addr,
 			return -EXDEV;
 		}
 
-		//printf("   Loading %s from 0x%08lx to 0x%08lx\n",
-		//       prop_name, data, load);
 		printf("   Loading %s from 0x%08lx to 0x%08lx\n",
-		       prop_name, image_start, load);
+		       prop_name, data, load);
 
 		dst = map_sysmem(load, len);
 		memmove(dst, buf, len);

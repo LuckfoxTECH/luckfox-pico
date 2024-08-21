@@ -2633,6 +2633,7 @@ int spi_nor_scan(struct spi_nor *nor)
 	nor->sector_size = mtd->erasesize;
 
 #ifndef CONFIG_SPL_BUILD
+	printf("JEDEC id bytes: %02x, %02x, %02x\n", info->id[0], info->id[1], info->id[2]);
 	printf("SF: Detected %s with page size ", nor->name);
 	print_size(nor->page_size, ", erase size ");
 	print_size(nor->erase_size, ", total ");

@@ -99,6 +99,14 @@ extern hi_u32 hi_ota_sync_flag;
 extern pthread_cond_t hi_ota_sync_cond;
 extern pthread_mutex_t hi_ota_sync_lock;
 
+extern hi_u32 hi_sync_flag;
+extern hi_bool ota_trans_ret;
+extern pthread_cond_t hi_sync_cond;
+extern pthread_mutex_t hi_sync_lock;
+extern hi_u64 hi_utc;
+extern hi_u32 ifgetutc;
+extern hi_u32 pir_state;
+
 //rockchip
 //内部保存WiFi信息一个副本
 RK_WIFI_INFO_Connection_s g_hi_wifi_info;
@@ -751,6 +759,8 @@ hi_s32 vlink_wifi_work_status_ret(hi_char *workstatus)
 		sample_log_print("vlink_wifi_work_status_ret======net disconnect\n");
 		sample_wlan_flush_ip();
 		m_wifi_cb(RK_WIFI_State_DISCONNECTED, NULL);
+		memset(&g_hi_wifi_info.wpa_state, 0, 20);
+		strcpy(&g_hi_wifi_info.wpa_state, "DISCONNECTED");
 		//g_hi_wifi_state = 0;
 		break;
 	case 4:
@@ -1005,7 +1015,42 @@ void sample_link_rec_cb(unsigned char *msg_data, int len)
 		case 22:
 			sample_send_event(msg_data, len);
 			break;
+		case 50:
+		{
+			item = cJSON_GetObjectItem(root,"event-type");
+			int type = atoi(item->valuestring);
+			RK_WIFI_INFO_Connection_s info;
+			info.lp_event_type = type;
+			if (info.lp_event_type == RK_WIFI_LP_BAT_LEVEL) {
+				item = cJSON_GetObjectItem(root,"bat");
+				info.lp_data[0] = atoi(item->valuestring); 
+			} else if (info.lp_event_type == RK_WIFI_LP_WAKEUP_REASON) {
+				item = cJSON_GetObjectItem(root,"wakeup-reason");
+				info.lp_data[0] = atoi(item->valuestring);
+			}
+			printf("info.lp-event-type is %d \n",type);
+			printf("get event type ! \n");
+			m_wifi_cb(RK_WIFI_State_LP_EVENT_TYPE,&info);
+			break;
+		}
+
+		case 51:
+		{
+			pthread_mutex_lock(&hi_sync_lock);
+			item = cJSON_GetObjectItem(root,"ret");
+			ifgetutc = atoi(item->valuestring);
+			hi_sync_flag = 1;
+			if (ifgetutc == 1) {
+				item = cJSON_GetObjectItem(root,"utc");
+				hi_utc = atoll(item->valuestring);
+			}
+			pthread_cond_signal(&hi_sync_cond);
+			pthread_mutex_unlock(&hi_sync_lock);
+			break;
+		}
+
 		case 52:
+		{
 			item = cJSON_GetObjectItem(root,"failed");
 			if (NULL !=  item) {
 				ota_trans_ret = HI_FAILURE;
@@ -1014,7 +1059,20 @@ void sample_link_rec_cb(unsigned char *msg_data, int len)
 			hi_ota_sync_flag = 1;
 			pthread_cond_signal(&hi_ota_sync_cond);
 			pthread_mutex_unlock(&hi_ota_sync_lock);
-        	break;
+			break;
+		}
+
+		case 53:
+		{
+			pthread_mutex_lock(&hi_sync_lock);
+			item = cJSON_GetObjectItem(root,"pir-val");
+			pir_state = atoi(item->valuestring);
+			hi_sync_flag = 1;
+			pthread_cond_signal(&hi_sync_cond);
+			pthread_mutex_unlock(&hi_sync_lock);
+			break;
+		}
+
 		case 88:
 		{
 			//VLINK_WIFI_CMD_SENDMSG_GETINFO
@@ -1125,6 +1183,35 @@ void sample_link_rec_cb(unsigned char *msg_data, int len)
 }
 #endif
 
+int hisi_deinit()
+{
+	if (g_sample_link == NULL)
+		return 0;
+
+	if (g_sample_link->sock_thread) {
+		pthread_cancel(g_sample_link->sock_thread);
+		pthread_join(g_sample_link->sock_thread, HI_NULL);
+	}
+
+	pthread_mutex_destroy(&g_sample_link->mut);
+	pthread_cond_destroy(&g_sample_link->cond);
+
+	if (g_sample_link->sockfd != -1) {
+		close(g_sample_link->sockfd);
+	}
+
+	if (g_sample_link->eventfd != -1) {
+		close(g_sample_link->eventfd);
+	}
+
+	if (g_sample_link != HI_NULL) {
+		free(g_sample_link);
+		g_sample_link = HI_NULL;
+	}
+	g_terminate = HI_TRUE;
+	return 0;
+}
+
 int hisi_main(void)
 {
 	hi_s32 ret;
@@ -1132,14 +1219,19 @@ int hisi_main(void)
 
 	//set_lo_ipaddr();
 
+	set_lo_ipaddr();
+	pr_info("set lo ipaddy \n");
+	if (pthread_cond_init(&hi_sync_cond,NULL)!=0 || pthread_mutex_init(&hi_sync_lock,NULL)) {
+		sample_log_print("get stat flag init failed \n");
+		return -1;
+	}
 	//signal(SIGINT, sample_terminate);
-	signal(SIGTERM, sample_terminate);
-	signal(SIGPWR, sample_power);
-
+	//signal(SIGTERM, sample_terminate);
+	//signal(SIGPWR, sample_power);
 	if (sample_wlan_init_up() != HI_SUCCESS) {
 		sample_log_print("sample_wlan_init_up is fail\n");
 	}
-
+	pr_info("set wifi init up \n");
 	if (hi_channel_init() != HI_SUCCESS) {
 		sample_log_print("hi_channel_init is fail!\n");
 	}
@@ -1147,7 +1239,7 @@ int hisi_main(void)
 	{
 		sample_log_print("hi_channel_init is ok!\n");
 	}
-
+	pr_info("set hichannel init up \n");
 	hi_channel_register_rx_cb(sample_link_rec_cb);
 
 	memset(&g_hi_wifi_info, 0, sizeof(RK_WIFI_INFO_Connection_s));

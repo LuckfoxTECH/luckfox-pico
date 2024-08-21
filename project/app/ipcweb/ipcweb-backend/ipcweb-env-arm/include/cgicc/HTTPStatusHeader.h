@@ -18,19 +18,19 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA 
  */
 
 #ifndef _HTTPSTATUSHEADER_H_
 #define _HTTPSTATUSHEADER_H_ 1
 
 #ifdef __GNUG__
-#pragma interface
+#  pragma interface
 #endif
 
 /*! \file HTTPStatusHeader.h
  * \brief HTTP header to set a specific request status
- *
+ * 
  */
 
 #include <string>
@@ -39,44 +39,51 @@
 
 namespace cgicc {
 
-// ============================================================
-// Class HTTPStatusHeader
-// ============================================================
-
-/*! \class HTTPStatusHeader HTTPStatusHeader.h cgicc/HTTPStatusHeader.h
- * \brief HTTP header to set a specific request status
- *
- */
-class CGICC_API HTTPStatusHeader : public HTTPHeader {
-public:
-  /*!
-   * \brief Create a new status header.
-   * \param status The 3-digit status code, for example 404.
-   * \param message The message associated with the status code, for example
-   * "not found".
+  // ============================================================
+  // Class HTTPStatusHeader
+  // ============================================================
+  
+  /*! \class HTTPStatusHeader HTTPStatusHeader.h cgicc/HTTPStatusHeader.h
+   * \brief HTTP header to set a specific request status
+   *
    */
-  HTTPStatusHeader(int status, const std::string &message);
-
-  /*! \brief Destructor */
-  virtual ~HTTPStatusHeader();
-
-  /*!
-   * \brief Get the status code associated with this header.
-   * \return The 3-digit status code of this header.
-   */
-  inline int getStatusCode() const { return fStatus; }
-
-  /*!
-   * \brief Write this HTTPStatusHeader to a stream.
-   * \param out The ostream to which to write.
-   */
-  virtual void render(std::ostream &out) const;
-
-private:
-  HTTPStatusHeader();
-  int fStatus;
-};
-
+  class CGICC_API HTTPStatusHeader : public HTTPHeader 
+  {
+  public:
+    
+    /*!
+     * \brief Create a new status header.
+     * \param status The 3-digit status code, for example 404.
+     * \param message The message associated with the status code, for example
+     * "not found".
+     */
+    HTTPStatusHeader(int status, 
+		     const std::string& message);
+    
+    /*! \brief Destructor */
+    virtual ~HTTPStatusHeader();
+    
+    /*!
+     * \brief Get the status code associated with this header.
+     * \return The 3-digit status code of this header.
+     */
+    inline int 
+    getStatusCode() 				const
+    { return fStatus; }
+    
+    
+    /*!
+     * \brief Write this HTTPStatusHeader to a stream.  
+     * \param out The ostream to which to write.
+     */
+    virtual void 
+    render(std::ostream& out) 			const;
+    
+  private:
+    HTTPStatusHeader();
+    int fStatus;
+  };
+  
 } // namespace cgicc
 
 #endif /* ! _HTTPSTATUSHEADER_H_ */

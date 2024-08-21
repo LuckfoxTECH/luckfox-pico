@@ -22,6 +22,7 @@
 #include <asm/byteorder.h>
 #include <linux/libfdt.h>
 #include <mapmem.h>
+#include <mp_boot.h>
 #include <fdt_support.h>
 #include <asm/bootm.h>
 #include <asm/secure.h>
@@ -80,7 +81,7 @@ __weak void board_quiesce_devices(void *images)
  */
 static void announce_and_cleanup(bootm_headers_t *images, int fake)
 {
-	ulong us;
+	ulong us, tt_us;
 
 	bootstage_mark_name(BOOTSTAGE_ID_BOOTM_HANDOFF, "start_kernel");
 #ifdef CONFIG_BOOTSTAGE_FDT
@@ -108,8 +109,12 @@ static void announce_and_cleanup(bootm_headers_t *images, int fake)
 
 	cleanup_before_linux();
 
+#ifdef CONFIG_MP_BOOT
+	mpb_post(4);
+#endif
 	us = (get_ticks() - gd->sys_start_tick) / (COUNTER_FREQUENCY / 1000000);
-	printf("Total: %ld.%ld ms\n", us / 1000, us % 1000);
+	tt_us = get_ticks() / (COUNTER_FREQUENCY / 1000000);
+	printf("Total: %ld.%ld/%ld.%ld ms\n", us / 1000, us % 1000, tt_us / 1000, tt_us % 1000);
 
 	printf("\nStarting kernel ...%s\n\n", fake ?
 		"(fake run for tracing)" : "");

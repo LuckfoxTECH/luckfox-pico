@@ -61,6 +61,7 @@ static void SetCommCfg() {
   stParamCommCfg.rec_mute = false;
   stParamCommCfg.speaker_volume = 100;
   stParamCommCfg.mic_volume = 100;
+  stParamCommCfg.vpss_devcie = 1;
 
   RKADK_Struct2Ini(RKADK_PARAM_PATH, &stParamCommCfg, g_stCommCfgMapTable,
                    sizeof(g_stCommCfgMapTable) / sizeof(RKADK_SI_CONFIG_MAP_S));
@@ -91,7 +92,8 @@ static void SetAudioCfg() {
   RKADK_PARAM_AUDIO_CFG_S stAudioCfg;
 
   memset(&stAudioCfg, 0, sizeof(RKADK_PARAM_AUDIO_CFG_S));
-  strcpy(stAudioCfg.audio_node, AI_DEVICE_NAME);
+  strcpy(stAudioCfg.ai_audio_node, AUDIO_DEVICE_NAME);
+  stAudioCfg.ai_depth = AI_DEPTH;
   stAudioCfg.bit_width = AUDIO_BIT_WIDTH;
   stAudioCfg.channels = AUDIO_CHANNEL;
   stAudioCfg.mic_type = AUDIO_MIC_TYPE;
@@ -117,6 +119,7 @@ static void SetRecCfg() {
   stParamRecCfg.pre_record_mode = RKADK_MUXER_PRE_RECORD_NONE;
   stParamRecCfg.lapse_multiple = 30;
   stParamRecCfg.file_num = 2;
+  stParamRecCfg.enable_audio = true;
 
   stParamRecCfg.record_time_cfg[0].record_time = 60;
   stParamRecCfg.record_time_cfg[0].splite_time = 60;
@@ -124,6 +127,7 @@ static void SetRecCfg() {
   stParamRecCfg.attribute[0].width = RECORD_VIDEO_WIDTH;
   stParamRecCfg.attribute[0].height = RECORD_VIDEO_HEIGHT;
   stParamRecCfg.attribute[0].bitrate = 30 * 1024 * 1024;
+  stParamRecCfg.attribute[0].framerate = VIDEO_FRAME_RATE;
   stParamRecCfg.attribute[0].gop = VIDEO_GOP;
   stParamRecCfg.attribute[0].profile = VIDEO_PROFILE;
   stParamRecCfg.attribute[0].codec_type = RKADK_CODEC_TYPE_H264;
@@ -144,9 +148,9 @@ static void SetRecCfg() {
   stParamRecCfg.record_time_cfg[1].lapse_interval = 60;
   stParamRecCfg.attribute[1].width = RECORD_VIDEO_WIDTH_S;
   stParamRecCfg.attribute[1].height = RECORD_VIDEO_HEIGHT_S;
-  stParamRecCfg.attribute[1].bufsize =
-      RECORD_VIDEO_WIDTH_S * RECORD_VIDEO_HEIGHT_S * 3 / 2;
+  stParamRecCfg.attribute[1].bufsize = RECORD_VIDEO_WIDTH_S * RECORD_VIDEO_HEIGHT_S * 3 / 2;
   stParamRecCfg.attribute[1].bitrate = 4 * 1024 * 1024;
+  stParamRecCfg.attribute[1].framerate = VIDEO_FRAME_RATE;
   stParamRecCfg.attribute[1].gop = VIDEO_GOP;
   stParamRecCfg.attribute[1].profile = VIDEO_PROFILE;
   stParamRecCfg.attribute[1].codec_type = RKADK_CODEC_TYPE_H264;
@@ -180,13 +184,11 @@ static void SetRecCfg() {
       sensorPath, &stParamRecCfg.record_time_cfg[1], g_stRecTimeCfgMapTable_1,
       sizeof(g_stRecTimeCfgMapTable_1) / sizeof(RKADK_SI_CONFIG_MAP_S));
   RKADK_Struct2Ini(sensorPath, &stParamRecCfg.attribute[0].venc_param,
-                   g_stRecParamMapTable_0,
-                   sizeof(g_stRecParamMapTable_0) /
-                       sizeof(RKADK_SI_CONFIG_MAP_S));
+                   g_stRecParamMapTable_0, sizeof(g_stRecParamMapTable_0) /
+                                               sizeof(RKADK_SI_CONFIG_MAP_S));
   RKADK_Struct2Ini(sensorPath, &stParamRecCfg.attribute[1].venc_param,
-                   g_stRecParamMapTable_1,
-                   sizeof(g_stRecParamMapTable_1) /
-                       sizeof(RKADK_SI_CONFIG_MAP_S));
+                   g_stRecParamMapTable_1, sizeof(g_stRecParamMapTable_1) /
+                                               sizeof(RKADK_SI_CONFIG_MAP_S));
 }
 
 static void SetStreamCfg() {
@@ -196,9 +198,9 @@ static void SetStreamCfg() {
   memset(&stStreamCfg, 0, sizeof(RKADK_PARAM_STREAM_CFG_S));
   stStreamCfg.attribute.width = STREAM_VIDEO_WIDTH;
   stStreamCfg.attribute.height = STREAM_VIDEO_HEIGHT;
-  stStreamCfg.attribute.bufsize =
-      STREAM_VIDEO_WIDTH * STREAM_VIDEO_HEIGHT * 3 / 2;
+  stStreamCfg.attribute.bufsize = STREAM_VIDEO_WIDTH * STREAM_VIDEO_HEIGHT * 3 / 2;
   stStreamCfg.attribute.bitrate = 10 * 1024;
+  stStreamCfg.attribute.framerate = VIDEO_FRAME_RATE;
   stStreamCfg.attribute.gop = VIDEO_GOP;
   stStreamCfg.attribute.profile = VIDEO_PROFILE;
   stStreamCfg.attribute.codec_type = RKADK_CODEC_TYPE_H264;
@@ -219,11 +221,11 @@ static void SetStreamCfg() {
 
   RKADK_Struct2Ini(sensorPath, &stStreamCfg, g_stPreviewCfgMapTable,
                    sizeof(g_stPreviewCfgMapTable) /
-                       sizeof(RKADK_SI_CONFIG_MAP_S));
+                      sizeof(RKADK_SI_CONFIG_MAP_S));
 
-  RKADK_Struct2Ini(
-      sensorPath, &stStreamCfg.attribute.venc_param, g_stPreviewParamMapTable,
-      sizeof(g_stPreviewParamMapTable) / sizeof(RKADK_SI_CONFIG_MAP_S));
+  RKADK_Struct2Ini(sensorPath, &stStreamCfg.attribute.venc_param,
+                   g_stPreviewParamMapTable, sizeof(g_stPreviewParamMapTable) /
+                                                 sizeof(RKADK_SI_CONFIG_MAP_S));
 }
 
 static void SetLiveCfg() {
@@ -234,6 +236,7 @@ static void SetLiveCfg() {
   stLiveCfg.attribute.width = STREAM_VIDEO_WIDTH;
   stLiveCfg.attribute.height = STREAM_VIDEO_HEIGHT;
   stLiveCfg.attribute.bitrate = 4 * 1024 * 1024;
+  stLiveCfg.attribute.framerate = VIDEO_FRAME_RATE;
   stLiveCfg.attribute.gop = VIDEO_GOP;
   stLiveCfg.attribute.profile = VIDEO_PROFILE;
   stLiveCfg.attribute.codec_type = RKADK_CODEC_TYPE_H264;
@@ -255,9 +258,9 @@ static void SetLiveCfg() {
   RKADK_Struct2Ini(sensorPath, &stLiveCfg, g_stLiveCfgMapTable,
                    sizeof(g_stLiveCfgMapTable) / sizeof(RKADK_SI_CONFIG_MAP_S));
 
-  RKADK_Struct2Ini(
-      sensorPath, &stLiveCfg.attribute.venc_param, g_stLiveParamMapTable,
-      sizeof(g_stLiveParamMapTable) / sizeof(RKADK_SI_CONFIG_MAP_S));
+  RKADK_Struct2Ini(sensorPath, &stLiveCfg.attribute.venc_param,
+                   g_stLiveParamMapTable, sizeof(g_stLiveParamMapTable) /
+                                              sizeof(RKADK_SI_CONFIG_MAP_S));
 }
 
 static void SetPhotoCfg() {
@@ -267,7 +270,6 @@ static void SetPhotoCfg() {
   memset(&stPhotoCfg, 0, sizeof(RKADK_PARAM_PHOTO_CFG_S));
   stPhotoCfg.image_width = PHOTO_VIDEO_WIDTH;
   stPhotoCfg.image_height = PHOTO_VIDEO_HEIGHT;
-  stPhotoCfg.snap_num = 1;
   stPhotoCfg.venc_chn = 2;
   stPhotoCfg.vpss_grp = 0;
   stPhotoCfg.vpss_chn = 0;
@@ -292,7 +294,7 @@ static void SetViCfg() {
 
   memset(&stViCfg, 0, sizeof(RKADK_PARAM_VI_CFG_S));
   stViCfg.chn_id = 0;
-  strcpy(stViCfg.device_name, "rkisp_mainpath");
+  strcpy(stViCfg.device_name, DEF_DEVICE_NEME_VI_0);
   stViCfg.width = RECORD_VIDEO_WIDTH;
   stViCfg.height = RECORD_VIDEO_HEIGHT;
   stViCfg.buf_cnt = VIDEO_BUFFER_COUNT;
@@ -303,7 +305,7 @@ static void SetViCfg() {
 
   memset(&stViCfg, 0, sizeof(RKADK_PARAM_VI_CFG_S));
   stViCfg.chn_id = 1;
-  strcpy(stViCfg.device_name, "rkisp_selfpath");
+  strcpy(stViCfg.device_name, DEF_DEVICE_NEME_VI_1);
   stViCfg.width = THUMB_WIDTH;
   stViCfg.height = THUMB_HEIGHT;
   stViCfg.buf_cnt = VIDEO_BUFFER_COUNT;
@@ -314,7 +316,7 @@ static void SetViCfg() {
 
   memset(&stViCfg, 0, sizeof(RKADK_PARAM_VI_CFG_S));
   stViCfg.chn_id = 2;
-  strcpy(stViCfg.device_name, "rkisp_bypasspath");
+  strcpy(stViCfg.device_name, DEF_DEVICE_NEME_VI_2);
   stViCfg.buf_cnt = VIDEO_BUFFER_COUNT;
   stViCfg.width = STREAM_VIDEO_WIDTH;
   stViCfg.height = STREAM_VIDEO_HEIGHT;
@@ -325,7 +327,7 @@ static void SetViCfg() {
 
   memset(&stViCfg, 0, sizeof(RKADK_PARAM_VI_CFG_S));
   stViCfg.chn_id = 3;
-  strcpy(stViCfg.device_name, "rkisp_mainpath_4x4sampling");
+  strcpy(stViCfg.device_name, DEF_DEVICE_NEME_VI_3);
   stViCfg.width = STREAM_VIDEO_WIDTH;
   stViCfg.height = STREAM_VIDEO_HEIGHT;
   stViCfg.buf_cnt = VIDEO_BUFFER_COUNT;
@@ -345,19 +347,18 @@ static void SetDispCfg() {
   memset(&stDispCfg, 0, sizeof(RKADK_PARAM_DISP_CFG_S));
   stDispCfg.width = DISP_WIDTH;
   stDispCfg.height = DISP_HEIGHT;
-  // vpss
-  stDispCfg.enable_buf_pool = true;
-  stDispCfg.buf_pool_cnt = 3;
-  stDispCfg.rotaion = 90;
-  stDispCfg.vpss_grp = 2;
+  stDispCfg.rotation = 1;
+  stDispCfg.vpss_grp = 3;
   stDispCfg.vpss_chn = 0;
-  // vo
-  strcpy(stDispCfg.device_node, "/dev/dri/card0");
-#ifdef RKADK_ENABLE_DISP
-  pstDispCfg->plane_type = VO_PLANE_PRIMARY;
-#endif
   strcpy(stDispCfg.img_type, "RGB888");
-  stDispCfg.z_pos = 0;
+  strcpy(stDispCfg.splice_mode, "RGA");
+#ifdef RV1106_1103
+  strcpy(stDispCfg.intf_type, "default");
+#else
+  strcpy(stDispCfg.intf_type, "MIPI");
+#endif
+  stDispCfg.vo_device = 0;
+  stDispCfg.vo_layer = 0;
   stDispCfg.vo_chn = 0;
   RKADK_Struct2Ini(sensorPath, &stDispCfg, g_stDispCfgMapTable,
                    sizeof(g_stDispCfgMapTable) / sizeof(RKADK_SI_CONFIG_MAP_S));
@@ -378,10 +379,10 @@ static void SetThumbCfg() {
   stThumbCfg.record_sub_venc_chn = THUMB_RECORD_SUB_VENC_CHN;
   stThumbCfg.vpss_grp = THUMB_VPSS_GRP;
   stThumbCfg.vpss_chn = THUMB_VPSS_CHN;
+  stThumbCfg.qfactor = 50;
 
   RKADK_Struct2Ini(sensorPath, &stThumbCfg, g_stThumbCfgMapTable,
-                   sizeof(g_stThumbCfgMapTable) /
-                       sizeof(RKADK_SI_CONFIG_MAP_S));
+                   sizeof(g_stThumbCfgMapTable) / sizeof(RKADK_SI_CONFIG_MAP_S));
 }
 
 int main(int argc, char *argv[]) {

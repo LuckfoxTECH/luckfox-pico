@@ -47,6 +47,8 @@
 #include "mac80211/atbm_common.h"
 #include "internal_cmd.h"
 #ifdef CONFIG_ATBM_DEV_IOCTL
+#include "dev_ioctl.h"
+
 #define ATBM_DEV_IOCTL_DEBUG 1
 
 #if ATBM_DEV_IOCTL_DEBUG
@@ -57,80 +59,8 @@
 
 #define DEV_MAC2STR(a) (a)[0],(a)[1],(a)[2],(a)[3],(a)[4],(a)[5]
 #define DEV_MACSTR "%02x:%02x:%02x:%02x:%02x:%02x"
-enum atbm_msg_type{
-    ATBM_DEV_IO_GET_STA_STATUS   = 0,
-    ATBM_DEV_IO_GET_STA_RSSI     = 1, //STA connected AP's RSSI
-    ATBM_DEV_IO_GET_AP_INFO      = 2,  //STA or AP
-    ATBM_DEV_IO_GET_STA_INFO     = 3,
-    ATBM_DEV_IO_SET_STA_SCAN     = 4,
-    ATBM_DEV_IO_SET_FREQ         = 5,
-    ATBM_DEV_IO_SET_SPECIAL_OUI  = 6, //use for Beacon and Probe package
-    ATBM_DEV_IO_SET_STA_DIS      = 7,
-    ATBM_DEV_IO_SET_IF_TYPE      = 8,
-    ATBM_DEV_IO_SET_ADAPTIVE     = 9,
-    ATBM_DEV_IO_SET_TXPWR_DCXO   = 10,
-    ATBM_DEV_IO_SET_TXPWR        = 11,
-    ATBM_DEV_IO_GET_WORK_CHANNEL   = 12,
-    ATBM_DEV_IO_SET_BEST_CHANNEL_SCAN   = 13,
-    ATBM_DEV_IO_GET_AP_LIST   = 14,
-    ATBM_DEV_IO_GET_TP_RATE   = 15,
-    ATBM_DEV_IO_ETF_TEST   = 16,
-    ATBM_DEV_IO_ETF_GET_RESULT  = 17,
-    ATBM_DEV_IO_ETF_START_TX	= 18,
-    ATBM_DEV_IO_ETF_STOP_TX		= 19,
-    ATBM_DEV_IO_ETF_START_RX	= 20,
-    ATBM_DEV_IO_ETF_STOP_RX		= 21,
-    ATBM_DEV_IO_FIX_TX_RATE		 = 22,
-    ATBM_DEV_IO_MAX_TX_RATE		 = 23,
-    ATBM_DEV_IO_TX_RATE_FREE	 = 24,
-    ATBM_DEV_IO_SET_EFUSE_MAC    = 25,
-	ATBM_DEV_IO_SET_EFUSE_DCXO   = 26,
-	ATBM_DEV_IO_SET_EFUSE_DELTAGAIN = 27,
-	ATBM_DEV_IO_MIN_TX_RATE		 = 28,
-	ATBM_DEV_IO_SET_RATE_POWER	 = 29,
-#ifdef CONFIG_IEEE80211_SPECIAL_FILTER
-
-	ATBM_DEV_IO_SET_SPECIAL_FILTER = 30,
-#endif
-	ATBM_DEV_IO_SET_COUNTRY_CODE = 31,
-	
-	ATBM_DEV_IO_GET_DRIVER_VERSION = 32,
-	ATBM_DEV_IO_GET_EFUSE			= 33,
-	ATBM_DEV_IO_GET_ETF_START_RX_RESULTS = 34,
-	ATBM_DEV_IO_SET_UPERR_PROCESS_PID = 35,
-#ifdef CONFIG_ATBM_SUPPORT_AP_CONFIG
-	ATBM_DEV_IO_SET_FIX_SCAN_CHANNEL = 36,
-#endif
-
-};
-
-#define WSM_MAX_NUM_LINK_AP 14//Lmac support station number is 4;
-typedef struct _atbm_wifi_ap_info_{
-    int wext_rssi;
-    unsigned long rx_packets;
-    unsigned long tx_packets;
-    unsigned long tx_retry_count;
-    int last_rx_rate_idx;
-    unsigned char  wext_mac[ETH_ALEN];
-    unsigned char  sta_cnt;
-}atbm_wifi_ap_info;
-
-typedef struct _atbm_wifi_sta_info_{
-    int rssi;
-    unsigned long rx_packets;
-    unsigned long tx_packets;
-    unsigned long tx_retry_count;
-    u8  bssid[ETH_ALEN];
-    u8  ssid[IEEE80211_MAX_SSID_LEN];
-    size_t ssid_len;
-}atbm_wifi_sta_info;
 
 
-struct altm_wext_msg{
-    int type;
-    int value;
-    char externData[256];
-};
 
 extern unsigned int atbm_wifi_status_get(void);
 extern int atbm_change_iface_to_monitor(struct net_device *dev);
@@ -157,6 +87,328 @@ extern int wsm_start_tx(struct atbm_common *hw_priv, struct ieee80211_vif *vif);
 extern int wsm_stop_tx(struct atbm_common *hw_priv);
 extern u32 GetChipVersion(struct atbm_common *hw_priv);
 extern void atbm_set_special_oui(struct atbm_common *hw_priv, char *pdata, int len);
+extern int DCXOCodeWrite(struct atbm_common *hw_priv,u8 data);
+extern u8 DCXOCodeRead(struct atbm_common *hw_priv);
+
+static int atbm_dev_ioctl_sta_get_status(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_ioctl_sta_get_rssi(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_ioctl_set_txpower(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_ioctl_set_txrate(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_ioctl_set_ratePower(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_ioctl_set_efuse_mac(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_ioctl_set_efuse_dcxo(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_ioctl_set_efuse_deltagain(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_get_ap_info(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_get_sta_info(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_set_sta_scan(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_set_freq(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_set_special_oui(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_set_sta_dis(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_set_iftype(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_set_adaptive(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_set_txpwr_dcxo(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_get_work_channel(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_set_best_channel_scan(struct net_device *dev, struct altm_wext_msg *msg);
+int atbm_dev_get_ap_list(struct net_device *dev, struct altm_wext_msg *msg);
+int atbm_dev_get_tp_rate(struct net_device *dev, struct altm_wext_msg *msg);
+extern void etf_param_init(struct atbm_common *hw_priv);
+int atbm_dev_etf_test(struct net_device *dev, struct altm_wext_msg *msg);
+int atbm_dev_etf_get_result(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_stop_tx(struct net_device *dev, struct altm_wext_msg *msg);
+
+static int atbm_dev_start_tx(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_stop_rx(struct net_device *dev, struct altm_wext_msg *msg);
+
+static int atbm_dev_start_rx(struct net_device *dev, struct altm_wext_msg *msg);
+
+#ifdef CONFIG_IEEE80211_SPECIAL_FILTER
+
+static int atbm_dev_set_special_filter(struct net_device *dev, struct altm_wext_msg *msg);
+#endif
+static int atbm_dev_set_country_code(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_get_driver_version(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_get_efuse(struct net_device *dev, struct altm_wext_msg *msg);
+static int  atbm_dev_set_cail_auto_ppm(struct net_device *dev, struct altm_wext_msg *msg);
+
+static int atbm_dev_get_vendor_special_ie(struct net_device *dev, struct altm_wext_msg *msg);
+
+#ifdef CONFIG_ATBM_STA_LISTEN
+extern int ieee80211_set_sta_channel(struct ieee80211_sub_if_data *sdata,int channel);
+static int atbm_dev_set_sta_listen_channel(struct net_device *dev, struct altm_wext_msg *msg);
+#endif
+extern 	u32 GetChipCrystalType(struct atbm_common *hw_priv);
+static int atbm_dev_get_cail_ppm_results(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_set_efuse_dcxo(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_set_efuse_deltagain(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_set_efuse_mac(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_set_efuse_gain_compensation_value(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_get_etf_rx_results(struct net_device *dev, struct altm_wext_msg *msg);
+#ifdef CONFIG_ATBM_SUPPORT_AP_CONFIG
+
+static int atbm_dev_set_fix_scan_channel(struct net_device *dev, struct altm_wext_msg *msg);
+#endif
+
+#ifdef CONFIG_JUAN_MISC
+
+static int atbm_dev_set_ap_tim_control(struct net_device *dev, struct altm_wext_msg *msg);
+static int atbm_dev_get_ap_tim_control(struct net_device *dev, struct altm_wext_msg *msg);
+
+#endif
+
+
+dev_ioctl_cmd_t dev_cmd[]={
+	{ATBM_DEV_IO_GET_STA_STATUS,atbm_dev_ioctl_sta_get_status,
+				"ATBM_DEV_IO_GET_STA_STATUS:sta mode get connect status"},
+	{ATBM_DEV_IO_GET_STA_RSSI,atbm_dev_ioctl_sta_get_rssi,
+				"ATBM_DEV_IO_GET_STA_RSSI:sta mode get rssi"},
+	{ATBM_DEV_IO_GET_AP_INFO,atbm_dev_get_ap_info,
+				"ATBM_DEV_IO_GET_AP_INFO : sta mode get connect ap information "},
+	{ATBM_DEV_IO_GET_STA_INFO,atbm_dev_get_sta_info,
+				"ATBM_DEV_IO_GET_STA_INFO:ap mode get connect sta information"},
+	{ATBM_DEV_IO_SET_STA_SCAN,atbm_dev_set_sta_scan,
+				"ATBM_DEV_IO_SET_STA_SCAN:sta mode , Scan private data,You can specify channel and mac address scanning"},
+	{ATBM_DEV_IO_SET_FREQ,atbm_dev_set_freq,
+				"ATBM_DEV_IO_SET_FREQ:any mode,Change the frequency corresponding to a channel"},
+	{ATBM_DEV_IO_SET_SPECIAL_OUI,atbm_dev_set_special_oui,
+				"ATBM_DEV_IO_SET_SPECIAL_OUI:Insert private data into the Management frame"},
+	{ATBM_DEV_IO_SET_STA_DIS,atbm_dev_set_sta_dis,
+				"ATBM_DEV_IO_SET_STA_DIS:sta mode , disconnect form"},
+	{ATBM_DEV_IO_SET_IF_TYPE,atbm_dev_set_iftype,
+				"ATBM_DEV_IO_SET_IF_TYPE:The manager mode is switched to the monitor mode"},
+	{ATBM_DEV_IO_SET_ADAPTIVE,atbm_dev_set_adaptive,
+				"ATBM_DEV_IO_SET_ADAPTIVE:Set the adaptive mode"},
+	{ATBM_DEV_IO_SET_TXPWR_DCXO,atbm_dev_set_txpwr_dcxo,
+				"ATBM_DEV_IO_SET_TXPWR_DCXO:set efuse deltagain & dcxo"},
+	{ATBM_DEV_IO_SET_TXPWR,atbm_dev_ioctl_set_txpower,
+				"ATBM_DEV_IO_SET_TXPWR:add tx power with 0,3,15,63"},
+	{ATBM_DEV_IO_GET_WORK_CHANNEL,atbm_dev_get_work_channel,
+				"ATBM_DEV_IO_GET_WORK_CHANNEL:Gets the current working channel"},
+	{ATBM_DEV_IO_SET_BEST_CHANNEL_SCAN,atbm_dev_set_best_channel_scan,
+				"ATBM_DEV_IO_SET_BEST_CHANNEL_SCAN:Channels can be restricted for scanning to determine the best channel "},
+	{ATBM_DEV_IO_GET_AP_LIST,atbm_dev_get_ap_list,
+				"ATBM_DEV_IO_GET_AP_LIST:sta mode to scan"},
+	{ATBM_DEV_IO_GET_TP_RATE,atbm_dev_get_tp_rate,
+				"ATBM_DEV_IO_GET_TP_RATE:Gets the throughput of the current link"},
+	{ATBM_DEV_IO_ETF_TEST,atbm_dev_etf_test,"ATBM_DEV_IO_ETF_TEST"},
+	{ATBM_DEV_IO_ETF_GET_RESULT,atbm_dev_etf_get_result,"ATBM_DEV_IO_ETF_GET_RESULT"},
+	{ATBM_DEV_IO_ETF_START_TX,atbm_dev_start_tx,"ATBM_DEV_IO_ETF_START_TX"},
+	{ATBM_DEV_IO_ETF_STOP_TX,atbm_dev_stop_tx,"ATBM_DEV_IO_ETF_STOP_TX"},
+	{ATBM_DEV_IO_ETF_START_RX,atbm_dev_start_rx,"ATBM_DEV_IO_ETF_START_RX"},
+	{ATBM_DEV_IO_ETF_STOP_RX,atbm_dev_stop_rx,"ATBM_DEV_IO_ETF_STOP_RX"},
+	{ATBM_DEV_IO_FIX_TX_RATE,atbm_dev_ioctl_set_txrate,"ATBM_DEV_IO_FIX_TX_RATE"},
+	{ATBM_DEV_IO_MAX_TX_RATE,atbm_dev_ioctl_set_txrate,"ATBM_DEV_IO_MAX_TX_RATE"},
+	{ATBM_DEV_IO_TX_RATE_FREE,atbm_dev_ioctl_set_txrate,"ATBM_DEV_IO_TX_RATE_FREE"},
+	{ATBM_DEV_IO_SET_EFUSE_MAC,atbm_dev_ioctl_set_efuse_mac,"ATBM_DEV_IO_SET_EFUSE_MAC"},
+	{ATBM_DEV_IO_SET_EFUSE_DCXO,atbm_dev_ioctl_set_efuse_dcxo,"ATBM_DEV_IO_SET_EFUSE_DCXO"},
+	{ATBM_DEV_IO_SET_EFUSE_DELTAGAIN,atbm_dev_ioctl_set_efuse_deltagain,"ATBM_DEV_IO_SET_EFUSE_DELTAGAIN"},
+	{ATBM_DEV_IO_MIN_TX_RATE,atbm_dev_ioctl_set_txrate,"ATBM_DEV_IO_MIN_TX_RATE"},
+	{ATBM_DEV_IO_SET_RATE_POWER,atbm_dev_ioctl_set_ratePower,"ATBM_DEV_IO_SET_RATE_POWER"},
+#ifdef CONFIG_IEEE80211_SPECIAL_FILTER
+
+	{ATBM_DEV_IO_SET_SPECIAL_FILTER,atbm_dev_set_special_filter,"ATBM_DEV_IO_SET_SPECIAL_FILTER"},
+#endif
+	{ATBM_DEV_IO_SET_COUNTRY_CODE,atbm_dev_set_country_code,"ATBM_DEV_IO_SET_COUNTRY_CODE"},
+	{ATBM_DEV_IO_GET_DRIVER_VERSION,atbm_dev_get_driver_version,"ATBM_DEV_IO_GET_DRIVER_VERSION"},
+	{ATBM_DEV_IO_GET_EFUSE,atbm_dev_get_efuse,"ATBM_DEV_IO_GET_EFUSE"},
+	{ATBM_DEV_IO_GET_ETF_START_RX_RESULTS,atbm_dev_get_etf_rx_results,"ATBM_DEV_IO_GET_ETF_START_RX_RESULTS"},
+//	{ATBM_DEV_IO_SET_UPERR_PROCESS_PID,,},
+#ifdef CONFIG_ATBM_SUPPORT_AP_CONFIG
+
+	{ATBM_DEV_IO_SET_FIX_SCAN_CHANNEL,atbm_dev_set_fix_scan_channel,"ATBM_DEV_IO_SET_FIX_SCAN_CHANNEL"},
+#endif
+	{ATBM_DEV_IO_SET_AUTO_CALI_PPM,atbm_dev_set_cail_auto_ppm,"ATBM_DEV_IO_SET_AUTO_CALI_PPM"},
+	{ATBM_DEV_IO_GET_CALI_REAULTS,atbm_dev_get_cail_ppm_results,"ATBM_DEV_IO_GET_CALI_REAULTS"},
+	{ATBM_DEV_IO_SET_EFUSE_GAIN_COMPENSATION_VALUE,atbm_dev_set_efuse_gain_compensation_value,"ATBM_DEV_IO_SET_EFUSE_GAIN_COMPENSATION_VALUE"},
+	{ATBM_DEV_IO_GET_VENDOR_SPECIAL_IE,atbm_dev_get_vendor_special_ie,"ATBM_DEV_IO_GET_VENDOR_SPECIAL_IE"},
+#ifdef CONFIG_ATBM_STA_LISTEN
+
+	{ATBM_DEV_IO_SET_STA_LISTEN_CHANNEL,atbm_dev_set_sta_listen_channel,"ATBM_DEV_IO_SET_STA_LISTEN_CHANNEL"},
+#endif
+#ifdef CONFIG_JUAN_MISC
+
+	{ATBM_DEV_IO_SET_AP_TIM_CONTROL,atbm_dev_set_ap_tim_control,"ATBM_DEV_IO_SET_AP_TIM_CONTROL"},
+	{ATBM_DEV_IO_GET_AP_TIM_CONTROL,atbm_dev_get_ap_tim_control,"ATBM_DEV_IO_GET_AP_TIM_CONTROL"},
+#endif	
+	{-1,NULL,NULL},
+
+};
+
+
+static int atbm_dev_ioctl_sta_get_status(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+
+	memcpy(msg->externData, &sdata->vif.bss_conf.assoc, 4);
+	atbm_printk_err("%s : %s \n",__func__,sdata->vif.bss_conf.assoc?"ASSOC SUCCESS":"NOT CONNECT");
+	return 0;
+}
+
+static int atbm_dev_ioctl_sta_get_rssi(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+    struct ieee80211_local *local = sdata->local;
+	struct sta_info *sta = NULL;
+    int rssi = 0;
+	
+    rcu_read_lock();
+    list_for_each_entry_rcu(sta, &local->sta_list, list) {					
+        if (sta->sdata->vif.type == NL80211_IFTYPE_STATION){	
+            rssi = (s8) -atbm_ewma_read(&sta->avg_signal);
+            memcpy(msg->externData, &rssi, 4);
+            break;
+        }
+    }
+    rcu_read_unlock();
+	atbm_printk_err("%s : rssi = %d \n",__func__,rssi);
+	return 0;
+}
+static int atbm_dev_ioctl_set_txpower(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+
+	struct atbm_vif *priv = (struct atbm_vif *)sdata->vif.drv_priv;
+
+    struct atbm_common *hw_priv = priv->hw_priv;
+	struct ieee80211_internal_wsm_txpwr txpwr;
+	int ret = 0;
+	memcpy(&txpwr.txpwr_indx, &msg->externData[0], sizeof(int)); 
+	if(atbm_internal_wsm_txpwr(hw_priv,&txpwr) == false){
+		ret = -EINVAL;
+	}
+
+	return 0;
+}
+
+static int atbm_dev_ioctl_set_txrate(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+
+	struct atbm_vif *priv = (struct atbm_vif *)sdata->vif.drv_priv;
+
+    struct atbm_common *hw_priv = priv->hw_priv;
+	int ret = 0;
+	struct ieee80211_internal_rate_req req;
+	req.flags = 0;
+	req.rate  = 0;
+
+	if(msg->type == ATBM_DEV_IO_FIX_TX_RATE){
+		req.flags |= IEEE80211_INTERNAL_RATE_FLAGS_SET_TX_RATE;
+		req.flags |= IEEE80211_INTERNAL_RATE_FLAGS_CLEAE_TOP_RATE;
+	}
+
+	if(msg->type == ATBM_DEV_IO_MAX_TX_RATE){
+		req.flags |= IEEE80211_INTERNAL_RATE_FLAGS_SET_TOP_RATE;
+		req.flags |= IEEE80211_INTERNAL_RATE_FLAGS_CLEAR_TX_RATE;
+	}
+
+	if(msg->type == ATBM_DEV_IO_TX_RATE_FREE){
+		req.flags |= IEEE80211_INTERNAL_RATE_FLAGS_CLEAE_TOP_RATE;
+		req.flags |= IEEE80211_INTERNAL_RATE_FLAGS_CLEAR_TX_RATE;
+	}
+
+	if(msg->type == ATBM_DEV_IO_MIN_TX_RATE){
+		req.flags |= IEEE80211_INTERNAL_RATE_FLAGS_SET_MIN_RATE;
+	}
+	req.rate = msg->value;
+
+	if(atbm_internal_wsm_set_rate(hw_priv,&req) == false){
+		ret = -EINVAL;
+	}else {
+		ret = 0;
+	}
+	
+	return ret;
+}
+
+static int atbm_dev_ioctl_set_ratePower(struct net_device *dev, struct altm_wext_msg *msg)
+{
+
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+
+	struct atbm_vif *priv = (struct atbm_vif *)sdata->vif.drv_priv;
+
+    struct atbm_common *hw_priv = priv->hw_priv;
+	int ret = 0;
+	
+	struct ieee80211_internal_rate_power_req power_req;
+
+	memset(&power_req,0,sizeof(struct ieee80211_internal_rate_power_req));
+
+	power_req.rate_index = msg->externData[0];
+	power_req.power		 = msg->externData[1];
+
+	if(atbm_internal_wsm_set_rate_power(hw_priv,&power_req) == false){
+		ret = -EINVAL;
+	}else {
+		ret = 0;
+	}
+
+	return 0;
+}
+
+static int atbm_dev_ioctl_set_efuse_mac(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+	struct atbm_vif *priv = (struct atbm_vif *)sdata->vif.drv_priv;
+    struct atbm_common *hw_priv = priv->hw_priv;
+	int ret = 0;
+	u8 prv_mac[ETH_ALEN];
+	
+	memcpy(prv_mac,hw_priv->efuse.mac,ETH_ALEN);
+	memcpy(hw_priv->efuse.mac,msg->externData,ETH_ALEN);
+
+	if(atbm_save_efuse(hw_priv,&hw_priv->efuse) != 0){
+		memcpy(hw_priv->efuse.mac,prv_mac,ETH_ALEN);
+		ret = -EINVAL;
+	}
+
+	return ret;
+}
+
+static int atbm_dev_ioctl_set_efuse_dcxo(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+	struct atbm_vif *priv = (struct atbm_vif *)sdata->vif.drv_priv;
+    struct atbm_common *hw_priv = priv->hw_priv;
+	int ret = 0;
+	u8 prv_dcxo = hw_priv->efuse.dcxo_trim;
+
+	hw_priv->efuse.dcxo_trim = msg->externData[0];
+	
+	if(atbm_save_efuse(hw_priv,&hw_priv->efuse) != 0){
+		hw_priv->efuse.dcxo_trim = prv_dcxo;
+		ret = -EINVAL;
+	}
+	
+	return ret;
+}
+
+static int atbm_dev_ioctl_set_efuse_deltagain(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+	struct atbm_vif *priv = (struct atbm_vif *)sdata->vif.drv_priv;
+    struct atbm_common *hw_priv = priv->hw_priv;
+	int ret = 0;
+	
+	u8 prv_deltagain1 = hw_priv->efuse.delta_gain1;
+	u8 prv_deltagain2 = hw_priv->efuse.delta_gain2;
+	u8 prv_deltagain3 = hw_priv->efuse.delta_gain3;
+
+	hw_priv->efuse.delta_gain1 = msg->externData[0];
+	hw_priv->efuse.delta_gain2 = msg->externData[1];
+	hw_priv->efuse.delta_gain3 = msg->externData[2];
+
+	if(atbm_save_efuse(hw_priv,&hw_priv->efuse) != 0){
+		hw_priv->efuse.delta_gain1 = prv_deltagain1;
+		hw_priv->efuse.delta_gain2 = prv_deltagain2;
+		hw_priv->efuse.delta_gain3 = prv_deltagain3;
+		ret = -EINVAL;
+	}
+
+	return ret;
+}
+
 
 
 static int atbm_dev_get_ap_info(struct net_device *dev, struct altm_wext_msg *msg)
@@ -241,7 +493,7 @@ static int atbm_dev_get_sta_info(struct net_device *dev, struct altm_wext_msg *m
     struct sta_info *sta = NULL;
     atbm_wifi_sta_info *p_info;
 
-    dev_printk("%s\n", __func__);
+    printk("%s\n", __func__);
 
     if(msg == NULL){
         return -1;
@@ -371,7 +623,7 @@ static int atbm_dev_set_sta_scan(struct net_device *dev, struct altm_wext_msg *m
 	//Wifi_Recv_Info_t *recv_data = NULL;
 	u8 *user_pos = NULL;
 	u8 *recv_info = NULL;
-	u8 scan_ch = 0;
+	u8 scan_ch = 0,scan_ch_list[3];
 	
 	memset(&internal_scan,0,sizeof(struct ieee80211_internal_scan_request));
 	
@@ -411,8 +663,11 @@ static int atbm_dev_set_sta_scan(struct net_device *dev, struct altm_wext_msg *m
 		internal_scan.n_macs = MAC_FILTER_NUM;
     }
 	if(scan_ch != 0){
-		internal_scan.channels = &scan_ch;
-		internal_scan.n_channels = 1;
+
+		scan_ch_list[0] = scan_ch_list[1] = scan_ch_list[2] = scan_ch;
+		internal_scan.channels = scan_ch_list;
+		internal_scan.n_channels = 3;
+		
 	}else {
 		internal_scan.channels = NULL;
 		internal_scan.n_channels = 0;
@@ -510,7 +765,7 @@ static int atbm_dev_set_special_oui(struct net_device *dev, struct altm_wext_msg
     {
   //  struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
     struct atbm_vif *priv = (struct atbm_vif *)sdata->vif.drv_priv;
-    atbm_set_special_oui(priv->hw_priv, msg->externData, len);
+  	  atbm_set_special_oui(priv->hw_priv, msg->externData, len);
     }
 
 	list_for_each_entry(sdata_update, &local->interfaces, list){
@@ -676,6 +931,11 @@ exit:
 		atbm_kfree(results);
 	if(tables)
 		atbm_kfree(tables);
+	if(ret > 0)
+		ret = 0;
+	else
+		ret = -1;
+	
 	return ret;
 	
 	
@@ -768,7 +1028,7 @@ int atbm_dev_set_txpwr(struct net_device *dev, struct altm_wext_msg *msg)
     struct atbm_common *hw_priv = priv->hw_priv;
 
     int txpwr_indx = 0;
-    int txpwr = 0;
+   // int txpwr = 0;
     char cmd[32];
 
     dev_printk("%s\n", __func__);
@@ -793,12 +1053,13 @@ int atbm_dev_set_txpwr(struct net_device *dev, struct altm_wext_msg *msg)
     */
     sprintf(cmd, "set_rate_txpower_mode %d ", txpwr_indx);
     
-    dev_printk("atbm: %s , %d,txpwr_indx = %d\n", cmd,strlen(cmd),txpwr_indx);
+    atbm_printk_err("atbm: %s , %d,txpwr_indx = %d\n", cmd,strlen(cmd),txpwr_indx);
     ret = wsm_write_mib(hw_priv, WSM_MIB_ID_FW_CMD, cmd, strlen(cmd), priv->if_id);
     if(ret < 0){
     }
 
     return ret;
+
 }
 static int atbm_dev_get_work_channel(struct net_device *dev, struct altm_wext_msg *msg)
 {
@@ -1149,7 +1410,7 @@ int atbm_dev_get_tp_rate(struct net_device *dev, struct altm_wext_msg *msg)
 
     return ret;
 }
-extern void etf_param_init(struct atbm_common *hw_priv);
+//extern void etf_param_init(struct atbm_common *hw_priv);
 int atbm_dev_etf_test(struct net_device *dev, struct altm_wext_msg *msg)
 {
     int i =0 ;
@@ -1267,34 +1528,23 @@ static int atbm_dev_stop_tx(struct net_device *dev, struct altm_wext_msg *msg);
 
 static int atbm_dev_start_tx(struct net_device *dev, struct altm_wext_msg *msg)
 {
-	int i = 0;
+//	int i = 0;
 	int ret = 0;
 	int len = 0;
 	int channel = 0;
-	u32 rate = 0;
+//	u32 rate = 0;
 	u32 is_40M = 0;
 	int band_value = 0;
 	int greedfiled = 0;
-	u8 ucDbgPrintOpenFlag = 1;
+//	u8 ucDbgPrintOpenFlag = 1;
 	short *len_p;
+	start_tx_param_t tx_param;
 //	char *extra = NULL;
 	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
 	struct ieee80211_local *local = sdata->local;
 	struct atbm_common *hw_priv=local->hw.priv;
-	struct atbm_vif *vif;
+//	struct atbm_vif *vif;
 
-
-	if(ETF_bStartTx || ETF_bStartRx){
-		
-		if(ETF_bStartTx){
-			atbm_dev_stop_tx(dev,NULL);
-			msleep(500);
-		}else{
-			atbm_printk_err("Error! already start_tx, please stop_rx first!\n");
-			return 0;
-		}
-		
-	}
 	if(strlen(msg->externData) == 0)
 	{
 		atbm_printk_err("Invalid parameters\n");
@@ -1329,124 +1579,31 @@ static int atbm_dev_start_tx(struct net_device *dev, struct altm_wext_msg *msg)
 		is_40M = 1;
 	else
 		is_40M = 0;
+
+
+	tx_param.channel = channel;
+	tx_param.rate = band_value;
+	tx_param.is_40M = is_40M;
+	tx_param.pktlen = len;
+	tx_param.greedfiled = greedfiled;
 	
-	//check rate 
-		switch(band_value){
-			case 10: rate = WSM_TRANSMIT_RATE_1;
-				break;
-			case 20: rate = WSM_TRANSMIT_RATE_2;
-				break;
-			case 55: rate = WSM_TRANSMIT_RATE_5;
-				break;
-			case 110: rate = WSM_TRANSMIT_RATE_11;
-				break;
-			case 60: rate = WSM_TRANSMIT_RATE_6;
-				break;
-			case 90: rate = WSM_TRANSMIT_RATE_9;
-				break;
-			case 120: rate = WSM_TRANSMIT_RATE_12;
-				break;
-			case 180: rate = WSM_TRANSMIT_RATE_18;
-				break;
-			case 240: rate = WSM_TRANSMIT_RATE_24;
-				break;
-			case 360: rate = WSM_TRANSMIT_RATE_36;
-				break;
-			case 480: rate = WSM_TRANSMIT_RATE_48;
-				break;
-			case 540: rate = WSM_TRANSMIT_RATE_54;
-				break;
-			case 65: rate = WSM_TRANSMIT_RATE_HT_6;
-				break;
-			case 130: rate = WSM_TRANSMIT_RATE_HT_13;
-				break;
-			case 195: rate = WSM_TRANSMIT_RATE_HT_19;
-				break;
-			case 260: rate = WSM_TRANSMIT_RATE_HT_26;
-				break;
-			case 390: rate = WSM_TRANSMIT_RATE_HT_39;
-				break;
-			case 520: rate = WSM_TRANSMIT_RATE_HT_52;
-				break;
-			case 585: rate = WSM_TRANSMIT_RATE_HT_58;
-				break;
-			case 650: rate = WSM_TRANSMIT_RATE_HT_65;
-				break;
-			default:
-				{
-					atbm_printk_err("invalid rate!\n");
-					ret = -EINVAL;
-					goto exit;
-				}
-				
-		}
+	ret = atbm_internal_start_tx(hw_priv,&tx_param);
 
-	atbm_printk_err("rate:%d\n", rate);
-	
-	if(is_40M == 1){
-		is_40M = NL80211_CHAN_HT40PLUS;//
-		channel -= 2;
-	}
-
-	atbm_printk_wext("NL80211_CHAN_HT40PLUS:%d\n", NL80211_CHAN_HT40PLUS);
-
-	//printk("%d, %d, %d, %d\n", channel, rate, len, is_40M);
-	hw_priv->etf_channel = channel;
-	hw_priv->etf_channel_type = is_40M;
-	hw_priv->etf_rate = rate;
-	hw_priv->etf_len = len; 
-	hw_priv->etf_greedfiled = greedfiled;
-	
-	atbm_for_each_vif(hw_priv,vif,i){
-		if((vif != NULL)){
-			atbm_printk_wext("*******\n");
-
-			down(&hw_priv->scan.lock);
-			WARN_ON(wsm_write_mib(hw_priv, WSM_MIB_ID_DBG_PRINT_TO_HOST,
-				&ucDbgPrintOpenFlag, sizeof(ucDbgPrintOpenFlag), vif->if_id));
-			mutex_lock(&hw_priv->conf_mutex);
-			
-			ETF_bStartTx = 1;
-			if(wsm_start_tx(hw_priv, vif->vif) != 0)
-			{
-				up(&hw_priv->scan.lock);
-			}
-			
-			mutex_unlock(&hw_priv->conf_mutex);
-			break;
-		}
-	}
 exit:
 	return ret;
 }
 
 static int atbm_dev_stop_tx(struct net_device *dev, struct altm_wext_msg *msg)
 {
-	int i = 0;
+//	int i = 0;
 	int ret = 0;
 	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
 	struct ieee80211_local *local = sdata->local;
 	struct atbm_common *hw_priv=local->hw.priv;
-	struct atbm_vif *vif;
+//	struct atbm_vif *vif;
 
-	if(0 == ETF_bStartTx){
-		atbm_printk_err("please start start_rx first,then stop_tx\n");
-		return -EINVAL;
-	}
-	
-	mutex_lock(&hw_priv->conf_mutex);
-	ETF_bStartTx = 0;
-	mutex_unlock(&hw_priv->conf_mutex);
-	
-	atbm_for_each_vif(hw_priv,vif,i){
-		if((vif != NULL)){
-			
-			wsm_oper_unlock(hw_priv);
-			wsm_stop_tx(hw_priv);
-			wsm_stop_scan(hw_priv,i);
-			up(&hw_priv->scan.lock);
-		}
-	}
+	ret = atbm_internal_stop_tx(hw_priv);
+
 
 	return ret;
 }
@@ -1459,25 +1616,15 @@ static int atbm_dev_stop_rx(struct net_device *dev, struct altm_wext_msg *msg);
 
 static int atbm_dev_start_rx(struct net_device *dev, struct altm_wext_msg *msg)
 {
-	int i = 0;
+	
 	int ret = 0;
-	char cmd[20] = "monitor 1 ";
-	u8 ucDbgPrintOpenFlag = 1;
+
 	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
 	struct ieee80211_local *local = sdata->local;
 	struct atbm_common *hw_priv=local->hw.priv;
-	struct atbm_vif *vif;
+
 	int channel,is_40M;
-	if(ETF_bStartTx || ETF_bStartRx){
-		if(ETF_bStartRx){
-			atbm_printk_err("start rx : %s ,stop now and change chan[%d],is_40M[%d]\n",ch_and_type,msg->externData[0],msg->externData[1]);
-			atbm_dev_stop_rx(dev,NULL);
-			msleep(500);
-		}else{
-			atbm_printk_err("Error! already ETF_bStartRx, please stop_tx first!\n");
-			return 0;
-		}
-	}
+
 
 	if(strlen(msg->externData) == 0)
 	{
@@ -1494,31 +1641,8 @@ static int atbm_dev_start_rx(struct net_device *dev, struct altm_wext_msg *msg)
 		is_40M = 1;
 	else
 		is_40M = 0;
-	//./iwpriv wlan0 fwdbg 1
-	atbm_for_each_vif(hw_priv,vif,i){
-		if (vif != NULL)
-		{
-			WARN_ON(wsm_write_mib(hw_priv, WSM_MIB_ID_DBG_PRINT_TO_HOST,
-				&ucDbgPrintOpenFlag, sizeof(ucDbgPrintOpenFlag), vif->if_id));
-			break;
-		}
-	}
-	sprintf(cmd,"monitor 1 %d %d",channel,is_40M);
-	//memcpy(cmd+10, msg->externData, strlen(msg->externData)+1);
-	memset(ch_and_type, 0, 20);
-//	memcpy(ch_and_type, msg->externData, strlen(msg->externData)+1);
-	sprintf(ch_and_type,"%d %d",channel,is_40M);
-	atbm_printk_wext("CMD:%s,ch_and_type:%s\n", cmd,ch_and_type);
-	i = 0;
-	atbm_for_each_vif(hw_priv,vif,i){
-		if (vif != NULL)
-		{
-			ETF_bStartRx = 1;
-			WARN_ON(wsm_write_mib(hw_priv, WSM_MIB_ID_FW_CMD,
-				cmd, strlen(cmd)+1, vif->if_id));
-			break;
-		}
-	}	
+
+	ret = atbm_internal_start_rx(hw_priv,channel,is_40M);
 
 	return ret;
 }
@@ -1526,42 +1650,18 @@ static int atbm_dev_start_rx(struct net_device *dev, struct altm_wext_msg *msg)
 
 static int atbm_dev_stop_rx(struct net_device *dev, struct altm_wext_msg *msg)
 {
-	int i = 0;
+
 	int ret = 0;
-	char cmd[20] = "monitor 0 ";
-	u8 ucDbgPrintOpenFlag = 0;
+
 	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
 	struct ieee80211_local *local = sdata->local;
 	struct atbm_common *hw_priv=local->hw.priv;
-	struct atbm_vif *vif;
-
-	if((0 == ETF_bStartRx) || (NULL == ch_and_type)){
-		atbm_printk_err("please start start_rx first,then stop_rx\n");
-		return -EINVAL;
-	}
-
-	ETF_bStartRx = 0;
 	
-	memcpy(cmd+10, ch_and_type, strlen(ch_and_type));
-	//printk("cmd %s\n", cmd);
-	i = 0;
-	atbm_for_each_vif(hw_priv,vif,i){
-		if (vif != NULL)
-		{
-			WARN_ON(wsm_write_mib(hw_priv, WSM_MIB_ID_FW_CMD,
-				cmd, 13, vif->if_id));
-			break;
-		}
-	}
 
-	atbm_for_each_vif(hw_priv,vif,i){
-		if (vif != NULL)
-		{
-			WARN_ON(wsm_write_mib(hw_priv, WSM_MIB_ID_DBG_PRINT_TO_HOST,
-				&ucDbgPrintOpenFlag, sizeof(ucDbgPrintOpenFlag), vif->if_id));
-			break;
-		}
-	}
+	
+	ret = atbm_internal_stop_rx(hw_priv,NULL);
+	
+
 	return ret;
 }
 
@@ -1607,21 +1707,23 @@ exit:
 static int atbm_dev_set_fix_scan_channel(struct net_device *dev, struct altm_wext_msg *msg)
 {
 	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
-	struct ieee80211_internal_ap_conf *conf_req;
-	int ret = -1;
+	struct ieee80211_internal_ap_conf conf_req,*conf_req_temp = NULL;
+	int ret = 0;
 
-	conf_req = (struct ieee80211_internal_ap_conf *)msg->externData;
+	
+	conf_req_temp = (struct ieee80211_internal_ap_conf *)msg->externData;
 
-	if(!conf_req){
-		atbm_printk_err("atbm_dev_set_fix_scan_channel : set fix scan channel error ! \n");
-		return -1;
-	}
 
-	if(conf_req->channel < 0 || conf_req->channel > 14){
-			conf_req->channel = 0;
+	memset(&conf_req,0,sizeof(struct ieee80211_internal_ap_conf));
+	conf_req.channel = conf_req_temp->channel;
+	atbm_printk_err("atbm_dev_set_fix_scan_channel : set fix scan channel =%d ! \n",conf_req.channel);
+	if(conf_req.channel < 0 || conf_req.channel > 14){
+			conf_req.channel = 0;
+			atbm_printk_err("atbm_dev_set_fix_scan_channel : clear fix scan channel  ! \n");
 	}
 	
-	ret = atbm_internal_update_ap_conf(sdata,conf_req,conf_req->channel == 0?true:false);
+	if(atbm_internal_update_ap_conf(sdata,&conf_req,conf_req.channel == 0?true:false) == false)
+		ret = -1;
 	
 
 	return ret;
@@ -1639,19 +1741,34 @@ static int atbm_dev_set_country_code(struct net_device *dev, struct altm_wext_ms
 #else
 	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
 	struct ieee80211_local *local = sdata->local;
-	//unsigned char country_code[3] = {0};
+	unsigned char country_code[3] = {0};
 	int ret = 0;
 	
 	if(!ieee80211_sdata_running(sdata)){
 		ret = -ENETDOWN;
 		goto exit;
 	}
-	memcpy(local->country_code,&msg->externData[0],2);
-	atbm_printk_err("atbm_dev_set_country_code:country_code = %c%c---------------\n",local->country_code[0],local->country_code[1]);
+	memcpy(country_code,&msg->externData[0],2);
+	atbm_printk_err("atbm_dev_set_country_code:country_code = %c%c---------------\n",country_code[0],country_code[1]);
+#if CONFIG_CFG80211_INTERNAL_REGDB
+		
+
+	if(atbm_set_country_code_to_cfg80211(local,country_code) < 0){
+		ret = -EINVAL;
+		goto exit;
+	}
+#else
+	memcpy(local->country_code,country_code,2);
+#endif
+	
+	ret = 0;
 exit:
 	return ret;
 #endif	
 }
+
+
+
 
 static int atbm_dev_get_driver_version(struct net_device *dev, struct altm_wext_msg *msg)
 {
@@ -1692,7 +1809,437 @@ static int atbm_dev_get_efuse(struct net_device *dev, struct altm_wext_msg *msg)
 
 	return 0;
 }
+
+static int  atbm_dev_set_cail_auto_ppm(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+	struct ieee80211_local *local = sdata->local;
+	struct atbm_common *hw_priv=local->hw.priv;
+	int i = 0;
+	struct atbm_vif *vif;
+	char buff_on[10] = "cfo 1";
+	char buff_off[10] = "cfo 0";
+	i = 0;
+	char *ptr = NULL;
+
+	if(msg->value == 0){
+		ptr = buff_off;
+	}else{
+		ptr = buff_on;
+	}
+
 	
+	atbm_for_each_vif(hw_priv,vif,i){
+		if (vif != NULL)
+		{
+			
+			WARN_ON(wsm_write_mib(hw_priv, WSM_MIB_ID_FW_CMD,
+				ptr, 5, vif->if_id));
+			break;
+		}
+	}
+	return 0;
+}
+
+static int atbm_dev_get_vendor_special_ie(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	struct atbm_vendor_cfg_ie * private_ie = NULL;
+
+	private_ie = atbm_internal_get_6441_vendor_ie();
+	if(private_ie){
+		memcpy(msg->externData,private_ie,sizeof(struct atbm_vendor_cfg_ie));
+	}
+
+	return 0;
+}
+#ifdef CONFIG_ATBM_STA_LISTEN
+//extern int ieee80211_set_sta_channel(struct ieee80211_sub_if_data *sdata,int channel);
+static int atbm_dev_set_sta_listen_channel(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+//	struct ieee80211_local *local = sdata->local;
+//	struct atbm_common *hw_priv=local->hw.priv;
+	int channel = 0,ret = 0;
+	
+
+	channel = msg->value;
+	if(channel < 0 || channel > 14){
+		atbm_printk_err("atbm_dev_set_sta_listen_channel , channel = %d err\n",channel);
+		return -1;
+	}
+	atbm_printk_err("listen ++++++++++++++++++++++++++ \n");
+	ret = ieee80211_set_sta_channel(sdata,channel);
+	atbm_printk_err("listen --------------------------,ret = %d \n",ret);
+	
+	return 0;
+}
+#endif
+#ifdef CONFIG_JUAN_MISC
+
+static int atbm_dev_set_ap_tim_control(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+	struct ieee80211_local *local = sdata->local;
+	struct atbm_common *hw_priv=local->hw.priv;
+	struct TIM_Parameters tim_val;
+	int ret = 0;
+	if(!ieee80211_sdata_running(sdata) && (sdata->vif.type != NL80211_IFTYPE_AP)){
+		atbm_printk_err("atbm_dev_set_ap_tim_control : not ap mode! \n");
+		return -ENETDOWN;
+	}
+	tim_val.tim_user_control_ena = msg->externData[0];
+	tim_val.tim_val = msg->value;
+
+	atbm_printk_err("tim_control=%x , Bitmap control:0x%02x , Partial Virtual Bitmap:0x%x ! \n",
+				tim_val.tim_user_control_ena,tim_val.tim_val & 0xff,tim_val.tim_val>>8);
+	
+	ret = wsm_set_tim(hw_priv,&tim_val,sizeof(struct TIM_Parameters));
+	
+	return ret;
+	
+}
+
+static int atbm_dev_get_ap_tim_control(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+	struct ieee80211_local *local = sdata->local;
+	struct atbm_common *hw_priv=local->hw.priv;
+	struct TIM_Parameters tim_val;
+	int ret;
+	if(!ieee80211_sdata_running(sdata) && (sdata->vif.type != NL80211_IFTYPE_AP)){
+		atbm_printk_err("atbm_dev_get_ap_tim_control : not ap mode! \n");
+		return -ENETDOWN;
+	}
+
+	ret = wsm_get_tim(hw_priv,&tim_val,sizeof(struct TIM_Parameters));
+	msg->externData[0] = tim_val.tim_user_control_ena;
+	msg->value = tim_val.tim_val;
+	atbm_printk_err("beacon tim :%s ,tim_control=%x , Bitmap control:0x%02x , Partial Virtual Bitmap:0x%x ! \n",
+		tim_val.tim_user_control_ena==0?"auto control tim":"customer control tim",
+		tim_val.tim_user_control_ena,tim_val.tim_val & 0xff,tim_val.tim_val>>8);
+
+	return ret;
+}
+
+#endif
+
+/*
+	crystal_type : 
+		2 ?a12?¨ª?¡ì¨¬?
+		?????¦Ì?¨´?a?¨¤¨¢¡é?¡ì¨¬?
+
+	??¨®D?¨¤¨¢¡é?¡ì¨¬?dcxo2?¨®DD¡ì¡ê?12?¨ª?¡ì¨¬?ppm2?¨º¨¹dcxo????
+	
+*/	
+//extern 	u32 GetChipCrystalType(struct atbm_common *hw_priv);
+static int atbm_dev_get_cail_ppm_results(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+	struct ieee80211_local *local = sdata->local;
+	struct atbm_common *hw_priv=local->hw.priv;
+	u8 dcxo = 0;
+	u8 crystal_type = 0;
+	int cfo_val = 0;
+	
+	crystal_type = GetChipCrystalType(hw_priv);
+	
+	dcxo = DCXOCodeRead(hw_priv);
+
+	wsm_get_cfo_ppm_correction_value(hw_priv,&cfo_val,sizeof(int));
+	
+	atbm_printk_always("%s,dcxo:%d,cfo_val:%d ppm\n", crystal_type==2?"share crystal":"independent crystal", dcxo,cfo_val);
+	msg->externData[0] = crystal_type;
+	msg->externData[1] = dcxo;	
+	msg->externData[2] = cfo_val;
+	
+	return  0;
+}
+static int atbm_dev_set_efuse_dcxo(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+	struct ieee80211_local *local = sdata->local;
+	struct atbm_common *hw_priv=local->hw.priv;
+	struct efuse_headr efuse_data;
+	int ret = 0;
+	int write_rom;
+
+	memcpy(&efuse_data,&hw_priv->efuse,sizeof(struct efuse_headr));		
+	efuse_data.dcxo_trim = msg->externData[0];
+	write_rom = msg->value;
+	
+	DCXOCodeWrite(hw_priv,efuse_data.dcxo_trim);
+	
+	if(write_rom){
+		if(atbm_save_efuse(hw_priv,&efuse_data) != 0){
+			
+			ret = -EINVAL;
+		}else{
+			hw_priv->efuse.dcxo_trim = efuse_data.dcxo_trim;
+			memcpy(msg->externData,&hw_priv->efuse,sizeof(struct efuse_headr));
+			ret = 0;
+		}
+	}
+	
+	return ret;
+}
+
+static int atbm_dev_set_efuse_deltagain(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+	struct ieee80211_local *local = sdata->local;
+	struct atbm_common *hw_priv=local->hw.priv;
+	struct efuse_headr efuse_data;
+	int ret;
+//	struct cfg_txpower_t configured_txpower;
+	int write_rom;
+	char writebuf[128] = "";
+
+	memcpy(&efuse_data,&hw_priv->efuse,sizeof(struct efuse_headr));
+	efuse_data.delta_gain1 = msg->externData[0];
+	efuse_data.delta_gain2 = msg->externData[1];
+	efuse_data.delta_gain3 = msg->externData[2];
+	
+	write_rom = msg->value;
+		
+	memset(writebuf, 0, sizeof(writebuf));
+	sprintf(writebuf, "set_txpwr_and_dcxo,%d,%d,%d,%d ", efuse_data.delta_gain1,efuse_data.delta_gain2,
+														 efuse_data.delta_gain1,efuse_data.dcxo_trim);
+	
+	atbm_printk_init("cmd: %s\n", writebuf);
+	ret = wsm_write_mib(hw_priv, WSM_MIB_ID_FW_CMD, writebuf, strlen(writebuf), 0);
+	if(ret < 0){
+		atbm_printk_err("%s: write mib failed(%d). \n",__func__, ret);
+		return -EINVAL;
+	}
+	
+	if(write_rom == 1){
+		if(atbm_save_efuse(hw_priv,&efuse_data) != 0){
+			atbm_printk_err("%s: atbm_save_efuse failed(%d). \n",__func__, ret);
+			ret = -EINVAL;
+		}else{
+			hw_priv->efuse.delta_gain1 = efuse_data.delta_gain1;
+			hw_priv->efuse.delta_gain2 = efuse_data.delta_gain2;
+			hw_priv->efuse.delta_gain3 = efuse_data.delta_gain3;
+			memcpy(msg->externData,&hw_priv->efuse,sizeof(struct efuse_headr));
+			ret = 0;
+		}
+	}
+	return ret;
+}
+static int atbm_dev_set_efuse_mac(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+	struct ieee80211_local *local = sdata->local;
+	struct atbm_common *hw_priv=local->hw.priv;
+	struct efuse_headr efuse_data;
+	int ret;
+
+	/*
+		Make sure the data is consistent with EFUSE
+		Values in other sections are not modified
+	*/
+	if ((ret = wsm_get_efuse_data(hw_priv, &efuse_data, sizeof(efuse_data))) == 0){ 
+			atbm_printk_init("Get efuse data is [%d,%d,%d,%d,%d,%d,%d,%d,%02x:%02x:%02x:%02x:%02x:%02x]\n",
+					efuse_data.version,efuse_data.dcxo_trim,efuse_data.delta_gain1,efuse_data.delta_gain2,efuse_data.delta_gain3,
+					efuse_data.Tj_room,efuse_data.topref_ctrl_bias_res_trim,efuse_data.PowerSupplySel,efuse_data.mac[0],efuse_data.mac[1],
+					efuse_data.mac[2],efuse_data.mac[3],efuse_data.mac[4],efuse_data.mac[5]);
+		}
+		else{
+			atbm_printk_err("ATBM_DEV_IO_SET_EFUSE_MAC : read efuse failed\n");
+			return -1;
+		}
+		
+		
+		memcpy(efuse_data.mac,msg->externData,ETH_ALEN);
+
+		if(atbm_save_efuse(hw_priv,&efuse_data) != 0){
+		
+			ret = -EINVAL;
+		}else{
+			memcpy(hw_priv->efuse.mac,efuse_data.mac,ETH_ALEN);
+			memcpy(msg->externData,&hw_priv->efuse,sizeof(struct efuse_headr));
+			ret = 0;
+		}
+	return ret;
+}
+
+/*
+hw_priv->efuse ?????o??¡ä?¡ª??€???????????¡±1???????????????¨¨??efuse??????efuse¨¨¡¥???o??£¤¨¨??¨¨????¡ä?¨C¡ã
+
+*/
+static int atbm_dev_set_efuse_gain_compensation_value(struct net_device *dev, struct altm_wext_msg *msg)
+{
+	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+	struct ieee80211_local *local = sdata->local;
+	struct atbm_common *hw_priv=local->hw.priv;
+	struct efuse_headr efuse_data;
+	int compensation_val = 0,ret,write_rom;
+	char writebuf[128] = "";
+
+	struct cfg_txpower_t configured_txpower,configured_txpower_temp;
+	int prv_deltagain;
+	int delta_gain[3],deal_gain[3];
+	int gain_for = 0;
+//	static int read_flag = 0;
+	/*
+		Get efuse deltAgain of the register
+	*/
+	memset(&configured_txpower_temp,0,sizeof(configured_txpower_temp));
+	memset(&configured_txpower,0,sizeof(configured_txpower));
+	compensation_val = msg->externData[0];
+	if((ret = wsm_get_cfg_txpower(hw_priv,&configured_txpower,sizeof(struct cfg_txpower_t))) != 0){
+		atbm_printk_err("wsm_get_cfg_txpower failed\n");
+		return -1;
+	}
+	if(memcmp(&configured_txpower_temp,&configured_txpower,sizeof(configured_txpower)) != 0){
+		atbm_printk_err("gain1:%d gain2:%d gain3:%d \n",
+					configured_txpower.set_txpwr_delta_gain[0],
+					configured_txpower.set_txpwr_delta_gain[1],
+					configured_txpower.set_txpwr_delta_gain[2]);
+		delta_gain[0] = configured_txpower.set_txpwr_delta_gain[0];//hw_priv->efuse.delta_gain1;
+		delta_gain[1] = configured_txpower.set_txpwr_delta_gain[1];//hw_priv->efuse.delta_gain2;
+		delta_gain[2] = configured_txpower.set_txpwr_delta_gain[2];//hw_priv->efuse.delta_gain3;
+
+		delta_gain[0] > 127?delta_gain[0]-=256:delta_gain[0];
+		delta_gain[1] > 127?delta_gain[1]-=256:delta_gain[0];
+		delta_gain[2] > 127?delta_gain[2]-=256:delta_gain[0];
+		
+		delta_gain[0] < 0?delta_gain[0]+=32:delta_gain[0];
+		delta_gain[1] < 0?delta_gain[1]+=32:delta_gain[1];
+		delta_gain[2] < 0?delta_gain[2]+=32:delta_gain[2];
+		
+		atbm_printk_err("gain1:%d gain2:%d gain3:%d \n",
+					delta_gain[0],
+					delta_gain[1],
+					delta_gain[2]);
+	}
+	else{
+		memset(&efuse_data,0,sizeof(struct efuse_headr));
+		if ((ret = wsm_get_efuse_data(hw_priv, &efuse_data, sizeof(efuse_data))) == 0){	
+			atbm_printk_init("Get efuse data is [%d,%d,%d,%d,%d,%d,%d,%d,%02x:%02x:%02x:%02x:%02x:%02x]\n",
+					efuse_data.version,efuse_data.dcxo_trim,efuse_data.delta_gain1,efuse_data.delta_gain2,efuse_data.delta_gain3,
+					efuse_data.Tj_room,efuse_data.topref_ctrl_bias_res_trim,efuse_data.PowerSupplySel,efuse_data.mac[0],efuse_data.mac[1],
+					efuse_data.mac[2],efuse_data.mac[3],efuse_data.mac[4],efuse_data.mac[5]);
+
+		}else{
+			atbm_printk_err("wsm_get_efuse_data failed\n");
+			return -1;
+		}
+		delta_gain[0] = efuse_data.delta_gain1;
+		delta_gain[1] = efuse_data.delta_gain2;
+		delta_gain[2] = efuse_data.delta_gain3;
+		if(compensation_val == 0){
+			atbm_printk_err("compensation_val == 0, not change! \n");
+			return 0;
+		}
+	}	
+
+
+	
+	
+	if(compensation_val > 128)
+		compensation_val -= 256;
+	atbm_printk_err("compensation_val = %d\n",compensation_val);
+
+	for(gain_for = 0;gain_for<3;gain_for++)	{
+		prv_deltagain = delta_gain[gain_for];
+		if(prv_deltagain < 16){//?y¨ºy
+			
+			if(compensation_val >= 0){// gain add
+				prv_deltagain = prv_deltagain + compensation_val;
+				if(prv_deltagain > 128)
+					prv_deltagain -= 256;
+			
+				if(prv_deltagain > 15){
+					prv_deltagain = 15;
+				}
+				
+			}else{//gain sub
+				prv_deltagain = prv_deltagain + compensation_val;
+				
+				if(prv_deltagain > 128)
+					prv_deltagain -= 256;
+				
+				if(prv_deltagain < 0){
+					prv_deltagain += 32;
+					if(prv_deltagain < 17)
+						prv_deltagain = 17;
+				}
+				
+			}
+
+		}else if(prv_deltagain >= 16){//?o¨ºy
+		
+			if(compensation_val >= 0){// gain add
+				prv_deltagain += compensation_val;
+				if(prv_deltagain > 128)
+					prv_deltagain -= 256;
+		
+				if(prv_deltagain >= 32){
+					prv_deltagain = (prv_deltagain - 32);
+					prv_deltagain > 15?prv_deltagain=15:prv_deltagain;
+				}
+				
+			}else{//gain sub
+				prv_deltagain += compensation_val;
+				if(prv_deltagain > 128)
+					prv_deltagain -= 256;
+				if(prv_deltagain < 17){
+					prv_deltagain = 17;
+					
+				}
+				
+			}
+
+		}
+		if(prv_deltagain > 128)
+				prv_deltagain -= 256;
+		deal_gain[gain_for] = prv_deltagain;
+
+		atbm_printk_err(" prv_deltagain = %d ,gain[%d] = %d compensation_val = %d\n",
+								prv_deltagain,gain_for,deal_gain[gain_for],compensation_val);
+	}
+
+	write_rom = msg->value;
+		
+	memset(writebuf, 0, sizeof(writebuf));
+
+	sprintf(writebuf, "set_txpwr_and_dcxo,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d ", deal_gain[0],deal_gain[1], deal_gain[2],hw_priv->efuse.dcxo_trim,
+		configured_txpower.set_b_txpwr_delta_gain[0],configured_txpower.set_b_txpwr_delta_gain[1],configured_txpower.set_b_txpwr_delta_gain[2],
+		configured_txpower.set_gn_txpwr_delta_gain[0],configured_txpower.set_gn_txpwr_delta_gain[1],configured_txpower.set_gn_txpwr_delta_gain[2]);
+	
+	atbm_printk_init("cmd: %s\n", writebuf);
+	ret = wsm_write_mib(hw_priv, WSM_MIB_ID_FW_CMD, writebuf, strlen(writebuf), 0);
+	if(ret < 0){
+		atbm_printk_err("%s: write mib failed(%d). \n",__func__, ret);
+		return -EINVAL;
+	}
+	
+	if(write_rom == 1){
+		delta_gain[0] = hw_priv->efuse.delta_gain1;
+		delta_gain[1] = hw_priv->efuse.delta_gain2;
+		delta_gain[2] = hw_priv->efuse.delta_gain3;
+		hw_priv->efuse.delta_gain1 = deal_gain[0];
+		hw_priv->efuse.delta_gain2 = deal_gain[1];
+		hw_priv->efuse.delta_gain3 = deal_gain[2];	
+		if((ret = atbm_save_efuse(hw_priv,&hw_priv->efuse)) != 0){
+			atbm_printk_err("%s: atbm_save_efuse failed(%d). \n",__func__, ret);
+			hw_priv->efuse.delta_gain1 = delta_gain[0];
+			hw_priv->efuse.delta_gain2 = delta_gain[1];
+			hw_priv->efuse.delta_gain3 = delta_gain[2];
+			ret = -EINVAL;
+		}
+
+		atbm_printk_init("dcxo:%d,gain1:%d,gain2:%d,gain3:%d,[%02x:%02x:%02x:%02x:%02x:%02x]\n",
+					hw_priv->efuse.dcxo_trim,hw_priv->efuse.delta_gain1,hw_priv->efuse.delta_gain2,hw_priv->efuse.delta_gain3,
+					hw_priv->efuse.mac[0],hw_priv->efuse.mac[1],hw_priv->efuse.mac[2],hw_priv->efuse.mac[3],
+					hw_priv->efuse.mac[4],hw_priv->efuse.mac[5]);
+	}
+	
+	return ret;
+}
+
+
 
 
 int atbm_wext_cmd(struct net_device *dev, void *data, int len)
@@ -1705,7 +2252,8 @@ int atbm_wext_cmd(struct net_device *dev, void *data, int len)
 
     struct atbm_common *hw_priv = priv->hw_priv;
     struct altm_wext_msg *msg = NULL;
-
+	dev_ioctl_cmd_t *cmd_t = dev_cmd;
+	int i = 0,found = 0;
     if(atomic_read(&priv->enabled)==0){
         atbm_printk_err("atbm_wext_cmd() priv is disabled\n");
         ret = -1;
@@ -1731,7 +2279,23 @@ int atbm_wext_cmd(struct net_device *dev, void *data, int len)
         msg = (struct altm_wext_msg *)data;
         
     dev_printk("cmd type: %d\n", msg->type);
-    
+
+
+	for(i = 0;cmd_t[i].msg_type != -1;i++){
+		if(msg->type == cmd_t[i].msg_type){
+			found = 1;
+			break;
+		}
+	}
+	if(found){
+		ret = cmd_t[i].func(dev, msg);
+	}else{
+		atbm_printk_err("cmd not found!\n");
+		for(i = 0;cmd_t[i].msg_type != -1;i++)
+			atbm_printk_err("supporrt cmd[%d] , %s \n",i,cmd_t[i].uage);
+	}
+#if 0
+	
     switch (msg->type)
     {
         case ATBM_DEV_IO_GET_STA_STATUS:
@@ -1788,15 +2352,16 @@ int atbm_wext_cmd(struct net_device *dev, void *data, int len)
 #endif
         case ATBM_DEV_IO_SET_TXPWR:
         {
+#ifdef CONFIG_JUAN_MISC
         	atbm_dev_set_txpwr(dev,msg);
-			#if 0
+#else
         	struct ieee80211_internal_wsm_txpwr txpwr;
 
 			memcpy(&txpwr.txpwr_indx, &msg->externData[0], sizeof(int)); 
         	if(atbm_internal_wsm_txpwr(hw_priv,&txpwr) == false){
 				ret = -EINVAL;
         	}
-			#endif
+#endif
             break;
         }
         case ATBM_DEV_IO_GET_WORK_CHANNEL:
@@ -1884,50 +2449,20 @@ int atbm_wext_cmd(struct net_device *dev, void *data, int len)
 		}
 		case ATBM_DEV_IO_SET_EFUSE_MAC:
 		{
-			u8 prv_mac[ETH_ALEN];
-
-			memcpy(prv_mac,hw_priv->efuse.mac,ETH_ALEN);
-			memcpy(hw_priv->efuse.mac,msg->externData,ETH_ALEN);
-
-			if(atbm_save_efuse(hw_priv,&hw_priv->efuse) != 0){
-				memcpy(hw_priv->efuse.mac,prv_mac,ETH_ALEN);
-				ret = -EINVAL;
-			}
-
+			ret = atbm_dev_set_efuse_mac(dev,msg);
 			break;
 		}
 
 		case ATBM_DEV_IO_SET_EFUSE_DCXO:
 		{
-			u8 prv_dcxo = hw_priv->efuse.dcxo_trim;
-
-			hw_priv->efuse.dcxo_trim = msg->externData[0];
-			
-			if(atbm_save_efuse(hw_priv,&hw_priv->efuse) != 0){
-				hw_priv->efuse.dcxo_trim = prv_dcxo;
-				ret = -EINVAL;
-			}
-
+			ret = atbm_dev_set_efuse_dcxo(dev,msg);
 			break;
 		}
 
 		case ATBM_DEV_IO_SET_EFUSE_DELTAGAIN:
 		{
-			u8 prv_deltagain1 = hw_priv->efuse.delta_gain1;
-			u8 prv_deltagain2 = hw_priv->efuse.delta_gain2;
-			u8 prv_deltagain3 = hw_priv->efuse.delta_gain3;
-
-			hw_priv->efuse.delta_gain1 = msg->externData[0];
-			hw_priv->efuse.delta_gain2 = msg->externData[1];
-			hw_priv->efuse.delta_gain3 = msg->externData[2];
-
-			if(atbm_save_efuse(hw_priv,&hw_priv->efuse) != 0){
-				hw_priv->efuse.delta_gain1 = prv_deltagain1;
-				hw_priv->efuse.delta_gain2 = prv_deltagain2;
-				hw_priv->efuse.delta_gain3 = prv_deltagain3;
-				ret = -EINVAL;
-			}
-
+			ret = atbm_dev_set_efuse_deltagain(dev,msg);
+			
 			break;
 		}
 		case ATBM_DEV_IO_SET_COUNTRY_CODE:
@@ -1959,11 +2494,37 @@ int atbm_wext_cmd(struct net_device *dev, void *data, int len)
 				ret = atbm_dev_set_fix_scan_channel(dev,msg);
 			}break;
 #endif
+		case ATBM_DEV_IO_SET_AUTO_CALI_PPM:{
+				atbm_dev_set_cail_auto_ppm(dev,msg);
+			}break;
+		case ATBM_DEV_IO_GET_CALI_REAULTS:{
+				ret = atbm_dev_get_cail_ppm_results(dev,msg);
+			}break;
+		case ATBM_DEV_IO_SET_EFUSE_GAIN_COMPENSATION_VALUE:{
+				ret = atbm_dev_set_efuse_gain_compensation_value(dev,msg);
+			}break;
+		case ATBM_DEV_IO_GET_VENDOR_SPECIAL_IE:{
+				ret = atbm_dev_get_vendor_special_ie(dev,msg);
+			}break;
+#ifdef CONFIG_ATBM_STA_LISTEN
+		case ATBM_DEV_IO_SET_STA_LISTEN_CHANNEL:{
+				ret = atbm_dev_set_sta_listen_channel(dev,msg);
+			}break;
+#endif
+#ifdef CONFIG_JUAN_MISC
+
+		case ATBM_DEV_IO_SET_AP_TIM_CONTROL:{
+				ret = atbm_dev_set_ap_tim_control(dev,msg);
+			}break;
+		case ATBM_DEV_IO_GET_AP_TIM_CONTROL:{
+				ret = atbm_dev_get_ap_tim_control(dev,msg);
+			}break;
+#endif
         default:
             atbm_printk_err("%s: not found. %d\n",__func__, msg->type);
             break;
     }
-
+#endif
 __Exit__:
     return ret;
 }

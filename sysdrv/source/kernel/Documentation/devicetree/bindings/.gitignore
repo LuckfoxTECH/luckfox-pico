@@ -2,4 +2,3 @@
 *.example.dts
 processed-schema*.yaml
 processed-schema*.json
-!.yamllint

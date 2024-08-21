@@ -308,8 +308,12 @@ static struct fsg_lun *fsg_lun_from_dev(struct device *dev)
 /* Number of buffers we will use.  2 is enough for double-buffering */
 #define FSG_NUM_BUFFERS	2
 
+#if defined(CONFIG_USB_DWC3_GADGET) && defined(ROCKUSB_FSG_BUFLEN)
+#define FSG_BUFLEN	((u32)ROCKUSB_FSG_BUFLEN)
+#else
 /* Default size of buffer length. */
 #define FSG_BUFLEN	((u32)262144)
+#endif
 
 /* Maximal number of LUNs supported in mass storage function */
 #define FSG_MAX_LUNS	8

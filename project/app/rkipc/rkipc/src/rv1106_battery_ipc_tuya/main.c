@@ -156,6 +156,7 @@ extern void ioctl_msg_func(int sig_num);
 
 int main(int argc, char **argv) {
 	LOG_INFO("%s: main begin\n", get_time_string());
+	rkipc_version_dump();
 	signal(SIGINT, sigterm_handler);
 	signal(SIGQUIT, sigterm_handler);
 	signal(SIGINT, sigterm_handler);
@@ -217,9 +218,9 @@ int main(int argc, char **argv) {
 	// second stream and rtsp
 	rk_video_init();
 	LOG_INFO("%s: rk_video_init over\n", get_time_string());
-	// if (rk_param_get_int("audio.0:enable", 0))
-	// 	rkipc_audio_init();
-	// LOG_INFO("%s: rkipc_audio_init over\n", get_time_string());
+	if (rk_param_get_int("audio.0:enable", 0))
+		rkipc_audio_init();
+	LOG_INFO("%s: rkipc_audio_init over\n", get_time_string());
 
 	if (rk_param_get_int("video.1:enable_npu", 0))
 		rkipc_rockiva_init();

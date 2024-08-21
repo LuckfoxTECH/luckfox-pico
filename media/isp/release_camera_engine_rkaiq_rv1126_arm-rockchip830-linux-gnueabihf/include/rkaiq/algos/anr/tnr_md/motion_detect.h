@@ -41,11 +41,17 @@
 #define     ftell64(fp)
 #endif
 #define     SIGN(a)                             (((a) > 0) ? (1) : (-(1)))
+#ifndef MIN
 #define     MIN(a,b)                            ((a) <= (b) ? (a):(b))
+#endif
+#ifndef MAX
 #define     MAX(a,b)                            ((a) >= (b) ? (a):(b))
+#endif
 #define     CLIP(a, min_v, max_v)               (((a) < (min_v)) ? (min_v) : (((a) > (max_v)) ? (max_v) : (a)))
 #define     ABS(a)                              (((a) > 0) ? (a) : (-(a)))
+#ifndef ROUND_F
 #define     ROUND_F(x)                          (int32_t)(((float)x)+(((x) > 0) ? 0.5 : (-0.5)))
+#endif
 #define     ROUND_INT(x, shf_bit)               (int)((((x) > 0) ? 1 : -1) * ((ABS(x) + (1<<((shf_bit)-1)))>>(shf_bit)))
 #define     ROUND_UINT16(x, shf_bit)            ((uint16_t)     (MIN(x, (1 << (uint32_t)16) - 1) + (1<<(shf_bit - 1))) >> (shf_bit))
 #define     ROUND(x)                            (int)(((x) >= 0)?((x) + 0.5) : ((x) - 0.5))
@@ -87,7 +93,7 @@
 #define     RATIO_BITS_NUM                      7
 #define     RATIO_BITS_R_NUM                    5
 
-#define     YUV_SCALE_FIX_BITS                  8
+#define     YUV_SCALE_FIX_BITS                  5
 #define     GAIN_SCALE_MOTION_BITS              5
 
 #define     GAIN_MIN_VAL                        1

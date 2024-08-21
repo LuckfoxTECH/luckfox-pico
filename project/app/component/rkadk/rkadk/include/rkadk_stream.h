@@ -21,8 +21,8 @@
 extern "C" {
 #endif
 
-#include "rk_mpi_venc.h"
 #include "rkadk_common.h"
+#include "rkadk_media_comm.h"
 
 /* the data type of video encode */
 typedef struct {
@@ -95,6 +95,7 @@ typedef struct {
 typedef struct {
   RKADK_U32 u32CamId;
   RKADK_VENC_DATA_PROC_FUNC pfnDataCB;
+  RKADK_POST_ISP_ATTR_S *pstPostIspAttr;
 } RKADK_STREAM_VIDEO_ATTR_S;
 
 RKADK_S32 RKADK_STREAM_VideoInit(RKADK_STREAM_VIDEO_ATTR_S *pstVideoAttr,
@@ -109,8 +110,7 @@ RKADK_S32 RKADK_STREAM_VencStop(RKADK_MW_PTR pHandle);
 RKADK_S32 RKADK_STREAM_GetVideoInfo(RKADK_U32 u32CamId,
                                     RKADK_VIDEO_INFO_S *pstVideoInfo);
 
-RKADK_S32 RKADK_STREAM_AudioInit(RKADK_STREAM_AUDIO_ATTR_S *pstAudioAttr,
-                                 RKADK_MW_PTR *ppHandle);
+RKADK_S32 RKADK_STREAM_AudioInit(RKADK_STREAM_AUDIO_ATTR_S *pstAudioAttr, RKADK_MW_PTR *ppHandle);
 
 RKADK_S32 RKADK_STREAM_AudioDeInit(RKADK_MW_PTR pHandle);
 
@@ -118,8 +118,7 @@ RKADK_S32 RKADK_STREAM_AencStart(RKADK_MW_PTR pHandle);
 
 RKADK_S32 RKADK_STREAM_AencStop(RKADK_MW_PTR pHandle);
 
-RKADK_S32 RKADK_STREAM_GetAudioInfo(RKADK_MW_PTR pHandle,
-                                    RKADK_AUDIO_INFO_S *pstAudioInfo);
+RKADK_S32 RKADK_STREAM_GetAudioInfo(RKADK_MW_PTR pHandle, RKADK_AUDIO_INFO_S *pstAudioInfo);
 
 #ifdef __cplusplus
 }

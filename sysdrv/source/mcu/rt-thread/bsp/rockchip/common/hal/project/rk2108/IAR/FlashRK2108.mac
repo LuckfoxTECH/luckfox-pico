@@ -1,0 +1,21 @@
+
+execUserFlashInit()
+{
+  __message "----- Prepare hardware for Flashloader -----\n";
+  //__writeMemory32(0x55AAAA55, 0x400B0400, "Memory");
+  //__writeMemory32(0x000000a1, 0x40820008, "Memory");
+  //__writeMemory32(0x00000007, 0x4082000C, "Memory");
+  //__writeMemory32(0x00000010, 0x40820010, "Memory");
+  //__writeMemory32(0x00000087, 0x4082000C, "Memory");
+  //__writeMemory32(0x0000000d, 0x40820000, "Memory");
+  //__writeMemory32(0x00000000, 0x40820004, "Memory");
+  //__writeMemory32(0x00000007, 0x4082000C, "Memory");
+  //__writeMemory32(0x00000000, 0x40820010, "Memory");
+  //__writeMemory32(0x00000031, 0x40820000, "Memory");
+  //__writeMemory32(0x00000032, 0x40820000, "Memory");
+}
+
+execUserFlashExit()
+{
+  __message "----- Hardware clean for Flashloader -----\n";
+}

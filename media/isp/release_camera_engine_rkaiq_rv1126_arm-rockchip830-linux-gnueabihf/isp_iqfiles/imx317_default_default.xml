@@ -2656,20 +2656,77 @@
                     [0 ]
                 </extraDelay>
             </vcmConfig>
-            <zoomfocus_tbl index="1" type="struct" size="[1 1]">
-                <focusLength index="1" type="double" size="[1 8]">
-                    [12.0300 14.0600 16.6200 19.8800 24.0800 29.5200 36.5200 45.6100 ]
-                </focusLength>
-                <zoomPosition index="1" type="double" size="[1 8]">
-                    [0 1000 2000 3000 4000 5000 6000 7000 ]
-                </zoomPosition>
-                <focusInfPosition index="1" type="double" size="[1 8]">
-                    [2400 3400 5200 6000 6500 6200 5600 3000 ]
-                </focusInfPosition>
-                <focusMacroPosition index="1" type="double" size="[1 8]">
-                    [2700 4000 4800 5500 6200 7500 7500 6500 ]
-                </focusMacroPosition>
-            </zoomfocus_tbl>
+      <zoomfocus_tbl index="1" type="struct" size="[1 1]">
+        <WideModuleDeviation index="1" type="double" size="[1 1]">
+               [22]
+            </WideModuleDeviation>
+        <TeleModuleDeviation index="1" type="double" size="[1 1]">
+               [22]
+            </TeleModuleDeviation>
+        <ZoomMoveDot index="1" type="double" size="[1 1]">
+               [0]
+            </ZoomMoveDot>
+        <ZoomMoveStep index="1" type="double" size="[1 1]">
+               [10]
+            </ZoomMoveStep>
+        <focusLength index="1" type="double" size="[1 1]">
+                [0]
+            </focusLength>
+        <zoomPosition index="1" type="double" size="[1 1]">
+                [0]
+            </zoomPosition>
+        <focusPosition index="1" type="cell" size="[1 2]">
+          <cell index="1" type="struct" size="[1 1]">
+            <distance index="1" type="double" size="[1 1]">
+                    [1.5]
+                </distance>
+            <Position index="1" type="double" size="[1 1]">
+                    [0]
+                </Position>
+          </cell>
+          <cell index="7" type="struct" size="[1 1]">
+            <distance index="1" type="double" size="[1 1]">
+                    [-1]
+                </distance>
+            <Position index="1" type="double" size="[1 1]">
+                    [0]
+                </Position>
+          </cell>
+        </focusPosition>
+        <ZoomSearchTbl index="1" type="double" size="[1 1]">
+               [0]
+            </ZoomSearchTbl>
+        <FocusSearchPlusRange index="1" type="double" size="[1 1]">
+               [0]
+            </FocusSearchPlusRange>
+        <ZoomSearchRefCurveIdx index="1" type="double" size="[1 1]">
+               [0 ]
+            </ZoomSearchRefCurveIdx>
+        <FocusSearchMargin index="1" type="double" size="[1 1]">
+               [100 ]
+            </FocusSearchMargin>
+        <FocusSearchStage1Step index="1" type="double" size="[1 1]">
+               [1 ]
+            </FocusSearchStage1Step>
+        <searchZoomRange index="1" type="double" size="[1 1]">
+               [30 ]
+            </searchZoomRange>
+        <searchFocusRange index="1" type="double" size="[1 1]">
+               [30 ]
+            </searchFocusRange>
+        <searchEavg index="1" type="double" size="[1 1]">
+               [100 ]
+            </searchEavg>
+        <searchEmax index="1" type="double" size="[1 1]">
+               [100 ]
+            </searchEmax>
+        <IsRecZoomFocusPos index="1" type="double" size="[1 1]">
+               [0 ]
+            </IsRecZoomFocusPos>
+        <RecZoomFocusDir index="1" type="char" size="[1 1]">
+               [/userdata]
+            </RecZoomFocusDir>
+      </zoomfocus_tbl>
         </AF>
         <MERGE index="1" type="struct" size="[1 1]">
             <EnvLv index="1" type="double" size="[1 13]">

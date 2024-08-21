@@ -1,0 +1,16 @@
+# RT-Thread building script for bridge
+
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+src  = Glob('src/*.c')
+CPPPATH = [cwd] \
+    + [cwd + '/src'] \
+    + [cwd + '/include'] \
+    + [cwd + '/include/ogg']
+
+group = DefineGroup('ogg', src, depend = ['RT_USING_LIB_OGG'], CPPPATH = CPPPATH)
+
+Return('group')

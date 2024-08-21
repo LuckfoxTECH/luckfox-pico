@@ -8,7 +8,8 @@ export LC_ALL=C
 SHELL:=/bin/bash
 
 CURRENT_DIR := $(shell pwd)
-PKG_TARBALL := middle_lut
+PKG_TARBALL := avs_calib
+PKG_TARBALL += avs_lut
 PKG_LIB_INSTALL_PATH := lib
 PKG_BIN ?= out
 
@@ -22,14 +23,14 @@ endif
 
 all: $(PKG_TARGET)
 	@echo "build $(PKG_NAME) done";
+	$(call MAROC_COPY_PKG_TO_MEDIA_OUTPUT, $(RK_MEDIA_OUTPUT), $(PKG_BIN))
 
 avs-build:
-	@rm -rf $(PKG_BIN);
-	@mkdir -p $(PKG_BIN);
-	cp -rfa $(PKG_TARBALL) $(PKG_BIN)/;
-	cp -rfa include/ $(PKG_BIN)/include/;
-	cp -rfa lib/ $(PKG_BIN)/lib/;
-	$(call MAROC_COPY_PKG_TO_MEDIA_OUTPUT, $(RK_MEDIA_OUTPUT), $(PKG_BIN))
+	@test -f $(CURRENT_DIR)/$(PKG_BIN)/lib/librkAVS_genLut.so  || (\
+		rm -rf $(PKG_BIN) && mkdir -p $(PKG_BIN); \
+		cp -rfa $(PKG_TARBALL) $(PKG_BIN)/; \
+		cp -rfa lib/ $(PKG_BIN)/lib/; \
+	);
 
 clean: distclean
 

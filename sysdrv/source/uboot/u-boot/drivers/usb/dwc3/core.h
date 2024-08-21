@@ -844,6 +844,9 @@ struct dwc3 {
 	unsigned		tx_de_emphasis:2;
 	unsigned		usb2_phyif_utmi_width:5;
 	int			index;
+	u64			ts;
+	u8			connected;
+	bool			check_linksts;
 	struct list_head        list;
 };
 

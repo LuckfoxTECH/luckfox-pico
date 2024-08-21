@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flash_board>
+    <pass>
+        <loader>$PROJ_DIR$\FlashRK2108.flash</loader>
+    </pass>
+</flash_board>

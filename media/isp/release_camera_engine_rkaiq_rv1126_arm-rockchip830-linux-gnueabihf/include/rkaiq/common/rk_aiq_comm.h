@@ -496,4 +496,12 @@ typedef enum
     RK_AIQ_BAYER_RGGB       = 3,
 } RkAiqBayerPattern_t;
 
+#ifndef AIQ_MAYBE_UNUSED
+#ifdef __GNUC__
+#define AIQ_MAYBE_UNUSED __attribute__((unused))
+#else
+#define AIQ_MAYBE_UNUSED
+#endif
+#endif  // AIQ_MAYBE_UNUSED
+
 #endif

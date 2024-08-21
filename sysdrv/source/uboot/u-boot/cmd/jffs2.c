@@ -162,7 +162,13 @@ static int mtd_device_validate(u8 type, u8 num, u32 *size)
 		printf("no such FLASH device: %s%d (valid range 0 ... %d\n",
 				MTD_DEV_TYPE(type), num, CONFIG_SYS_MAX_FLASH_BANKS - 1);
 #else
-		printf("support for FLASH devices not present\n");
+		struct mtd_info *mtd = get_mtd_device_nm(CONFIG_JFFS2_DEV);
+		if (mtd) {
+			*size = mtd->size;
+			return 0;
+		}
+
+		printf("no such Nor device: %s\n", CONFIG_JFFS2_DEV);
 #endif
 	} else if (type == MTD_DEV_TYPE_NAND) {
 #if defined(CONFIG_JFFS2_NAND) && defined(CONFIG_CMD_NAND)
@@ -286,8 +292,11 @@ static inline u32 get_part_sector_size_nor(struct mtdids *id, struct part_info *
 
 	return sector_size;
 #else
-	BUG();
-	return 0;
+	struct mtd_info *mtd;
+
+	mtd = get_mtd_device_nm(CONFIG_JFFS2_DEV);
+
+	return mtd->erasesize;
 #endif
 }
 
@@ -372,7 +381,7 @@ int mtdparts_init(void)
 		id->size = size;
 		INIT_LIST_HEAD(&id->link);
 
-		DEBUGF("dev id: type = %d, num = %d, size = 0x%08lx, mtd_id = %s\n",
+		DEBUGF("dev id: type = %d, num = %d, size = 0x%08llx, mtd_id = %s\n",
 				id->type, id->num, id->size, id->mtd_id);
 
 		/* partition */
@@ -400,7 +409,7 @@ int mtdparts_init(void)
 
 		part->sector_size = get_part_sector_size(id, part);
 
-		DEBUGF("part  : name = %s, size = 0x%08lx, offset = 0x%08lx\n",
+		DEBUGF("part  : name = %s, size = 0x%08llx, offset = 0x%08llx\n",
 				part->name, part->size, part->offset);
 
 		/* device */

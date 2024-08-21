@@ -51,6 +51,20 @@ typedef struct {
     int16_t num_value; /* Number of enum values */
 } __attribute__((packed)) j2s_enum;
 
+typedef struct __map_index {
+  void *dst_offset;
+  void *ptr_offset;
+  size_t len;
+} map_index_t;
+
+typedef struct _j2s_pool {
+  uint8_t *data;
+  size_t size;
+  size_t used;
+  map_index_t *maps_list;
+  size_t map_len;
+} j2s_pool_t;
+
 typedef struct {
     /* Random magic number */
     int magic;
@@ -87,6 +101,8 @@ typedef struct {
 
 /* Helpers for alloc/free ptr */
 void* j2s_alloc_data(j2s_ctx* ctx, size_t size);
+void *j2s_alloc_data2(j2s_ctx *ctx, size_t size, size_t* real_size);
+int j2s_alloc_map_record(j2s_ctx *ctx, void *dst, void *ptr, size_t len);
 int j2s_add_data(j2s_ctx* ctx, void* ptr, bool freeable);
 void j2s_release_data(j2s_ctx* ctx, void* ptr);
 
@@ -116,6 +132,12 @@ void j2s_struct_to_cache(j2s_ctx* ctx, const char* name, int fd, void* ptr);
 int j2s_struct_from_cache(j2s_ctx* ctx, const char* name, int fd, void* ptr);
 
 int j2s_struct_free(j2s_ctx* ctx, const char* name, void* ptr);
+
+int j2s_struct_to_bin(j2s_ctx *ctx, int struct_index, void *ptr,
+                      void *dts_ptr);
+
+int j2s_calib_to_bin(j2s_ctx *ctx, const char *name, void *ptr,
+                     void* bin_buf);
 
 /* Dump root struct to cJSON */
 #define j2s_root_struct_to_json(ctx, ptr) j2s_struct_to_json(ctx, NULL, ptr)

@@ -1,6 +1,8 @@
 #ifndef _RK_AIQ_CALIB_TYPES_ISP20_H_
 #define _RK_AIQ_CALIB_TYPES_ISP20_H_
 
+#include "adpcc/rk_aiq_types_adpcc_ext.h"
+
 #pragma pack(4)
 
 #define CALIBDB_MAX_ISO_LEVEL 13
@@ -118,6 +120,7 @@ typedef enum _CalibDb_AntiFlickerMode_e {
 typedef enum _CalibDb_IrisType_e {
     IRIS_DC_TYPE = 0,
     IRIS_P_TYPE = 1,
+    IRIS_HDC_TYPE = 2,
     IRIS_INVALID_TYPE,
 } CalibDb_IrisType_t;
 
@@ -242,6 +245,7 @@ typedef struct CalibDb_LinExpInitExp_s {
     float                   InitIspDGainValue;
     int                     InitPIrisGainValue;
     int                     InitDCIrisDutyValue;
+    int                     InitHDCIrisTargetValue;
     int                     array_size;
 } CalibDb_LinExpInitExp_t;
 
@@ -251,6 +255,7 @@ typedef struct CalibDb_HdrExpInitExp_s {
     Cam3x1FloatMatrix_t     InitIspDGainValue;
     int                     InitPIrisGainValue;
     int                     InitDCIrisDutyValue;
+    int                     InitHDCIrisTargetValue;
     int                     array_size;
 } CalibDb_HdrExpInitExp_t;
 
@@ -284,6 +289,7 @@ typedef struct CalibDb_LinMeAttr_s {
     float                IspDGainValue;
     int                  PIrisGainValue;
     int                  DCIrisValue;
+    int                  HDCIrisValue;
 } CalibDb_LinMeAttr_t;
 
 typedef struct CalibDb_HdrMeAttr_s {
@@ -296,6 +302,7 @@ typedef struct CalibDb_HdrMeAttr_s {
     Cam3x1FloatMatrix_t     IspDGainValue;
     int                     PIrisGainValue;
     int                     DCIrisValue;
+    int                     HDCIrisValue;
 } CalibDb_HdrMeAttr_t;
 
 typedef struct CalibDb_MeAttr_s {
@@ -377,11 +384,27 @@ typedef struct CalibDb_DCIris_Attr_s {
     int         ClosePwmDuty;
 } CalibDb_DCIris_Attr_t;
 
+#define AEC_HDCIRIS_DOT_MAX_NUM (256)
+typedef struct CalibDb_HDCIris_Attr_s {
+    float       DampOver;
+    float       DampUnder;
+    bool        ZeroIsMax;
+    int         MinTarget;
+    int         MaxTarget;
+    int         ZoomTargetDot[AEC_HDCIRIS_DOT_MAX_NUM];
+    int         ZoomDot[AEC_HDCIRIS_DOT_MAX_NUM];
+    int         IrisTargetDot[AEC_HDCIRIS_DOT_MAX_NUM];
+    int         GainDot[AEC_HDCIRIS_DOT_MAX_NUM];
+    int         zoom_array_size;
+    int         iris_array_size;
+} CalibDb_HDCIris_Attr_t;
+
 typedef struct CalibDb_AecIrisCtrl_s {
     uint8_t                     enable;
     CalibDb_IrisType_t          IrisType;
     CalibDb_PIris_Attr_t        PIrisAttr;
     CalibDb_DCIris_Attr_t       DCIrisAttr;
+    CalibDb_HDCIris_Attr_t      HDCIrisAttr;
 } CalibDb_AecIrisCtrl_t;
 
 typedef struct CalibDb_AecCommon_Attr_s {
@@ -1047,18 +1070,6 @@ typedef struct CalibDb_Dpcc_set_s {
     CalibDb_Dpcc_set_RO_t ro;
 } CalibDb_Dpcc_set_t;
 
-typedef struct CalibDb_Dpcc_Fast_Mode_s {
-    int fast_mode_en;
-    int ISO[CALIBDB_DPCC_MAX_ISO_LEVEL];
-    int fast_mode_single_en;
-    int fast_mode_single_level[CALIBDB_DPCC_MAX_ISO_LEVEL];
-    int fast_mode_double_en;
-    int fast_mode_double_level[CALIBDB_DPCC_MAX_ISO_LEVEL];
-    int fast_mode_triple_en;
-    int fast_mode_triple_level[CALIBDB_DPCC_MAX_ISO_LEVEL];
-
-} CalibDb_Dpcc_Fast_Mode_t;
-
 typedef struct CalibDb_Dpcc_Pdaf_s {
     unsigned char en;
     unsigned char point_en[16];
@@ -1089,15 +1100,6 @@ typedef struct CalibDb_Dpcc_Expert_Mode_s {
     unsigned char stage1_use_set1[CALIBDB_DPCC_MAX_ISO_LEVEL];
     CalibDb_Dpcc_set_t set[3];
 } CalibDb_Dpcc_Expert_Mode_t;
-
-typedef struct CalibDb_Dpcc_Sensor_s {
-    float en;
-    float max_level;
-    float iso[CALIBDB_DPCC_MAX_ISO_LEVEL];
-    float level_single[CALIBDB_DPCC_MAX_ISO_LEVEL];
-    float level_multiple[CALIBDB_DPCC_MAX_ISO_LEVEL];
-} CalibDb_Dpcc_Sensor_t;
-
 
 typedef struct CalibDb_Dpcc_s {
     int enable;
@@ -1264,11 +1266,11 @@ typedef struct CalibDb_RKDM_s {
     unsigned char debayer_shift_num;
 } CalibDb_RKDM_t;
 
-#define CCM_ILLUMINATION_MAX               7
+#define CCM_ILLUMINATION_MAX         9
 #define CCM_PROFILE_NAME            ( 25U )
 typedef char                        CalibDb_Ccm_ProfileName_t[CCM_PROFILE_NAME];
 #define CCM_ILLUMINATION_NAME       ( 20U )
-typedef char                        CalibDb_IlluminationName_t[CCM_ILLUMINATION_NAME];
+// typedef char                        CalibDb_IlluminationName_t[CCM_ILLUMINATION_NAME];
 #define CCM_PROFILES_NUM_MAX         ( 5 )
 #define CCM_RESOLUTIONS_NUM_MAX      ( 4 )
 #define CALIBDB_ISO_NUM              ( 9 )

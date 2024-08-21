@@ -31,7 +31,7 @@
 #include <image.h>
 
 #ifdef USE_HOSTCC
-#define CONFIG_SYS_BOOTM_LEN	0x4000000
+#define CONFIG_SYS_BOOTM_LEN	0x10000000
 #endif
 
 #ifndef CONFIG_SYS_BOOTM_LEN

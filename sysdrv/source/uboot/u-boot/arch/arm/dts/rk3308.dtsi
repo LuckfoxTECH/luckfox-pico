@@ -264,13 +264,6 @@
 		status = "disabled";
 	};
 
-	secure_otp: secure_otp@0xff2a8000 {
-		compatible = "rockchip,rk3308-secure-otp";
-		reg = <0x0 0xff2a8000 0x0 0x4000>;
-		secure_conf = <0xff2b0004>;
-		mask_addr = <0xff540000>;
-	};
-
 	vop: vop@ff2e0000 {
 		compatible = "rockchip,rk3308-vop";
 		reg = <0x0 0xff2e0000 0x0 0x1fc>, <0x0 0xff2e0a00 0x0 0x400>;
@@ -307,7 +300,7 @@
 		#pwm-cells = <3>;
 		pinctrl-names = "active";
 		pinctrl-0 = <&pwm0_pin>;
-		clocks = <&cru SCLK_PWM>, <&cru PCLK_PWM>;
+		clocks = <&cru SCLK_PWM0>, <&cru PCLK_PWM>;
 		clock-names = "pwm", "pclk";
 		status = "disabled";
 	};
@@ -318,7 +311,7 @@
 		#pwm-cells = <3>;
 		pinctrl-names = "active";
 		pinctrl-0 = <&pwm1_pin>;
-		clocks = <&cru SCLK_PWM>, <&cru PCLK_PWM>;
+		clocks = <&cru SCLK_PWM0>, <&cru PCLK_PWM>;
 		clock-names = "pwm", "pclk";
 		status = "disabled";
 	};
@@ -329,7 +322,7 @@
 		#pwm-cells = <3>;
 		pinctrl-names = "active";
 		pinctrl-0 = <&pwm2_pin>;
-		clocks = <&cru SCLK_PWM>, <&cru PCLK_PWM>;
+		clocks = <&cru SCLK_PWM0>, <&cru PCLK_PWM>;
 		clock-names = "pwm", "pclk";
 		status = "disabled";
 	};
@@ -340,7 +333,7 @@
 		#pwm-cells = <3>;
 		pinctrl-names = "active";
 		pinctrl-0 = <&pwm3_pin>;
-		clocks = <&cru SCLK_PWM>, <&cru PCLK_PWM>;
+		clocks = <&cru SCLK_PWM0>, <&cru PCLK_PWM>;
 		clock-names = "pwm", "pclk";
 		status = "disabled";
 	};

@@ -2639,8 +2639,8 @@ static bool drm_valid_hdmi_vic(u8 vic)
 	return vic > 0 && vic < ARRAY_SIZE(edid_4k_modes);
 }
 
-static void drm_add_hdmi_modes(struct hdmi_edid_data *data,
-			       const struct drm_display_mode *mode)
+void drm_add_hdmi_modes(struct hdmi_edid_data *data,
+			const struct drm_display_mode *mode)
 {
 	struct drm_display_mode *mode_buf = data->mode_buf;
 

@@ -246,7 +246,7 @@ static int rockchip_rk3568_otp_read(struct udevice *dev, int offset, void *buf,
 	if (!buffer)
 		return -ENOMEM;
 
-	ret = rockchip_otp_ecc_enable(otp, false);
+	ret = rockchip_otp_ecc_enable(otp, true);
 	if (ret < 0) {
 		printf("%s rockchip_otp_ecc_enable err\n", __func__);
 		return ret;
@@ -461,6 +461,10 @@ static const struct udevice_id rockchip_otp_ids[] = {
 	},
 	{
 		.compatible = "rockchip,rk3528-otp",
+		.data = (ulong)&rk3568_data,
+	},
+	{
+		.compatible = "rockchip,rk3562-otp",
 		.data = (ulong)&rk3568_data,
 	},
 	{

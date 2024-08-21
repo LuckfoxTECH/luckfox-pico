@@ -62,10 +62,10 @@
 #define VOP_WIN_GET(x, name) \
 		vop_read_reg(x, vop->win->offset, &vop->win->name)
 
-#define VOP_GRF_SET(vop, name, v) \
+#define VOP_GRF_SET(vop, grf, reg, v) \
 	do { \
-		if (vop->grf_ctrl) { \
-			vop_grf_writel(vop, vop->grf_ctrl->name, v); \
+		if (vop->data->grf) { \
+			vop_grf_writel(vop->grf, vop->data->grf->reg, v); \
 		} \
 	} while (0)
 
@@ -139,7 +139,18 @@ enum vop_csc_format {
 	CSC_BT601L,
 	CSC_BT709L,
 	CSC_BT601F,
-	CSC_BT2020,
+	CSC_BT2020L,
+	CSC_BT709L_13BIT,
+	CSC_BT709F_13BIT,
+	CSC_BT2020L_13BIT,
+	CSC_BT2020F_13BIT,
+};
+
+enum vop_pol {
+	HSYNC_POSITIVE = 0,
+	VSYNC_POSITIVE = 1,
+	DEN_NEGATIVE   = 2,
+	DCLK_INVERT    = 3
 };
 
 #define DSP_BG_SWAP		0x1
@@ -254,6 +265,7 @@ struct vop_ctrl {
 	struct vop_reg post_scl_factor;
 	struct vop_reg post_scl_ctrl;
 	struct vop_reg dsp_interlace;
+	struct vop_reg dsp_interlace_pol;
 	struct vop_reg global_regdone_en;
 	struct vop_reg auto_gate_en;
 	struct vop_reg post_lb_mode;
@@ -298,6 +310,11 @@ struct vop_ctrl {
 
 	struct vop_reg dsp_out_yuv;
 	struct vop_reg dsp_data_swap;
+	struct vop_reg dsp_bg_swap;
+	struct vop_reg dsp_rb_swap;
+	struct vop_reg dsp_rg_swap;
+	struct vop_reg dsp_delta_swap;
+	struct vop_reg dsp_dummy_swap;
 	struct vop_reg dsp_ccir656_avg;
 	struct vop_reg dsp_black;
 	struct vop_reg dsp_blank;
@@ -359,6 +376,7 @@ struct vop_ctrl {
 	struct vop_reg mcu_rw_bypass_port;
 
 	/* bt1120 */
+	struct vop_reg bt1120_uv_swap;
 	struct vop_reg bt1120_yc_swap;
 	struct vop_reg bt1120_en;
 
@@ -366,6 +384,11 @@ struct vop_ctrl {
 	struct vop_reg bt656_en;
 
 	struct vop_reg cfg_done;
+
+	/* ebc vop */
+	struct vop_reg enable;
+	struct vop_reg inf_out_en;
+	struct vop_reg out_dresetn;
 };
 
 struct vop_scl_extension {
@@ -430,6 +453,15 @@ struct vop_line_flag {
 
 struct vop_grf_ctrl {
 	struct vop_reg grf_dclk_inv;
+	struct vop_reg grf_vopl_sel;
+	struct vop_reg grf_edp_ch_sel;
+	struct vop_reg grf_hdmi_ch_sel;
+	struct vop_reg grf_mipi_ch_sel;
+	struct vop_reg grf_hdmi_pin_pol;
+	struct vop_reg grf_hdmi_1to4_en;
+	struct vop_reg grf_mipi_mode;
+	struct vop_reg grf_mipi_pin_pol;
+	struct vop_reg grf_mipi_1to4_en;
 };
 
 struct vop_csc_table {
@@ -457,6 +489,7 @@ struct vop_data {
 	const struct vop_win *win;
 	const struct vop_line_flag *line_flag;
 	const struct vop_grf_ctrl *grf_ctrl;
+	const struct vop_grf_ctrl *vo0_grf_ctrl;
 	const struct vop_csc_table *csc_table;
 	const struct vop_csc *win_csc;
 	int win_offset;
@@ -468,15 +501,16 @@ struct vop_data {
 struct vop {
 	u32 *regsbak;
 	void *regs;
-	void *grf;
+	void *grf_ctrl;
+	void *vo0_grf_ctrl;
 
 	uint32_t version;
 	const struct vop_ctrl *ctrl;
 	const struct vop_win *win;
 	const struct vop_line_flag *line_flag;
-	const struct vop_grf_ctrl *grf_ctrl;
 	const struct vop_csc_table *csc_table;
 	const struct vop_csc *win_csc;
+	const struct vop_data *data;
 	int win_offset;
 
 	struct gpio_desc mcu_rs_gpio;
@@ -523,13 +557,13 @@ static inline void vop_cfg_done(struct vop *vop)
 	VOP_CTRL_SET(vop, cfg_done, 1);
 }
 
-static inline void vop_grf_writel(struct vop *vop, struct vop_reg reg, u32 v)
+static inline void vop_grf_writel(void *regmap, struct vop_reg reg, u32 v)
 {
 	u32 val = 0;
 
-	if (VOP_REG_SUPPORT(vop, reg)) {
+	if (reg.mask) {
 		val = (v << reg.shift) | (reg.mask << (reg.shift + 16));
-		writel(val, vop->grf + reg.offset);
+		writel(val, regmap + reg.offset);
 	}
 }
 

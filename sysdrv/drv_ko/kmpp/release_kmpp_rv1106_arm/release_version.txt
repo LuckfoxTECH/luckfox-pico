@@ -1,8 +1,16 @@
-commit 3760314fc2a60bd419a3263eb6c6d79f66241d1e
-Author: Zhihua Wang <hogan.wang@rock-chips.com>
-Date:   Thu Jan 12 14:50:59 2023 +0800
+commit 424abb9bffcc6f077daa00572bca1301c757e079
+Author: Yandong Lin <yandong.lin@rock-chips.com>
+Date:   Thu Apr 25 11:21:07 2024 +0800
 
-    [vcodec]: check chan create when destroy
+    [mpp_enc]: fix wrap enc sw timeout when resolution switch
     
-    Signed-off-by: Zhihua Wang <hogan.wang@rock-chips.com>
-    Change-Id: I885ffdac16690ec54cc3bb608cb127add9ea9f61
+    1. Drop task if resolution mismatch that will happen in resolution switch
+    case.
+    2. In the case of wrapping, when switching resolutions, need to ensure
+    that the wrapping frame being encoded finish.
+    
+    relative redmine:
+    https://redmine.rock-chips.com/issues/479306
+    
+    Signed-off-by: Yandong Lin <yandong.lin@rock-chips.com>
+    Change-Id: I68777eb1bb2a2ddd9bad6ee2f610ff6d3e487544

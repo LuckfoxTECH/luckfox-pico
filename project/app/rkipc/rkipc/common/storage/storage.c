@@ -15,6 +15,7 @@ static void *g_sd_phandle = NULL;
 static void *g_file_scan_signal = NULL;
 static rkipc_str_dev_attr g_sd_dev_attr;
 static pthread_mutex_t g_rkmuxer_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t g_mkdir_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int g_storage_record_flag[3]; // only for recording thread
 static int rk_storage_muxer_init_by_id(int id);
 static int rk_storage_muxer_deinit_by_id(int id);
@@ -157,6 +158,7 @@ static int rkipc_storage_create_folder(char *folder) {
 		LOG_ERROR("Invalid path.\n");
 		return -1;
 	}
+	pthread_mutex_lock(&g_mkdir_mutex);
 	for (i = 1; i < len; i++) {
 		if (folder[i] != '/')
 			continue;
@@ -164,6 +166,7 @@ static int rkipc_storage_create_folder(char *folder) {
 		if (access(folder, R_OK)) {
 			if (mkdir(folder, 0755)) {
 				LOG_ERROR("mkdir error\n");
+				pthread_mutex_unlock(&g_mkdir_mutex);
 				return -1;
 			}
 		}
@@ -172,9 +175,11 @@ static int rkipc_storage_create_folder(char *folder) {
 	if (access(folder, R_OK)) {
 		if (mkdir(folder, 0755)) {
 			LOG_ERROR("mkdir error\n");
+			pthread_mutex_unlock(&g_mkdir_mutex);
 			return -1;
 		}
 	}
+	pthread_mutex_unlock(&g_mkdir_mutex);
 	LOG_DEBUG("Create %s finished\n", folder);
 
 	return 0;
@@ -238,7 +243,8 @@ static int rkipc_storage_get_mount_path(char *dev, char *path, int path_len) {
 		LOG_ERROR("Open file error!\n");
 		return -1;
 	}
-
+	// avoid mount not yet completed at this time
+	usleep(100 * 1000);
 	memset(path, 0, path_len);
 	while (!feof(fp)) {
 		fgets(strLine, MAX_STRLINE_LEN, fp);
@@ -521,12 +527,12 @@ static void *rkipc_storage_file_monitor_thread(void *arg) {
 	return NULL;
 }
 
-static void cb(void *userdata, char *filename, int dir, struct stat *statbuf) {
-	if (dir == 0) {
-		rkipc_str_folder *folder = (rkipc_str_folder *)userdata;
-		rkipc_storage_file_list_add(folder, filename, statbuf);
-	}
-}
+// static void cb(void *userdata, char *filename, int dir, struct stat *statbuf) {
+// 	if (dir == 0) {
+// 		rkipc_str_folder *folder = (rkipc_str_folder *)userdata;
+// 		rkipc_storage_file_list_add(folder, filename, statbuf);
+// 	}
+// }
 
 int rkipc_storage_read_file_list(rkipc_str_folder *folder, rkipc_str_folder_attr *folder_attr) {
 	DIR *dir;
@@ -658,7 +664,6 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 		for (i = 0; i < devAttr.folder_num; i++) {
 			if (devAttr.folder_attr[i].num_limit == false)
 				continue;
-			pthread_mutex_lock(&pHandle->dev_sta.folder[i].mutex);
 			limit = pHandle->dev_sta.folder[i].file_num;
 			while (limit > devAttr.folder_attr[i].limit) {
 				limit = pHandle->dev_sta.folder[i].file_num;
@@ -667,7 +672,6 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 					        devAttr.folder_attr[i].folder_path,
 					        pHandle->dev_sta.folder[i].file_list_last->filename);
 					LOG_INFO("delete file by num limit: %s\n", file);
-					pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
 					// when the deletion is too fast,
 					// the other listener thread cannot respond in time,
 					// which will cause duplication twice, so delete it directly here first
@@ -681,7 +685,6 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 					continue;
 				}
 			}
-			pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
 		}
 
 		if (rkipc_storage_get_disk_size(devAttr.mount_path, &pHandle->dev_sta.total_size,
@@ -705,11 +708,10 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 		}
 		LOG_INFO("pHandle->dev_sta.free_size is %d, min is %d, max is %d\n",
 		         pHandle->dev_sta.free_size, devAttr.free_size_del_min, devAttr.free_size_del_max);
-		LOG_INFO("total_space is %lld\n", total_space);
+		LOG_INFO("total_space is %ld\n", total_space);
 		for (i = 0; i < devAttr.folder_num; i++) {
 			if (devAttr.folder_attr[i].num_limit == true)
 				continue;
-			pthread_mutex_lock(&pHandle->dev_sta.folder[i].mutex);
 			limit = pHandle->dev_sta.folder[i].total_space * 100 / total_space;
 			// LOG_INFO("pHandle->dev_sta.folder[i].total_space*100 is %lld, total_space is %lld\n",
 			// pHandle->dev_sta.folder[i].total_space*100, total_space); LOG_INFO("limit is %d,
@@ -721,7 +723,6 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 					        devAttr.folder_attr[i].folder_path,
 					        pHandle->dev_sta.folder[i].file_list_last->filename);
 					LOG_INFO("delete file by space limit: %s\n", file);
-					pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
 					// when the deletion is too fast,
 					// the other listener thread cannot respond in time,
 					// which will cause duplication twice, so delete it directly here first
@@ -735,7 +736,6 @@ static void *rkipc_storage_file_scan_thread(void *arg) {
 					continue;
 				}
 			}
-			pthread_mutex_unlock(&pHandle->dev_sta.folder[i].mutex);
 		}
 	}
 
@@ -1639,18 +1639,18 @@ static void *rk_storage_record(void *arg) {
 		         rk_storage_muxer_group[id].file_format);
 		LOG_INFO("[%d], file_name is %s\n", id, rk_storage_muxer_group[id].file_name);
 		pthread_mutex_lock(&g_rkmuxer_mutex);
-		rk_storage_muxer_group[0].g_record_run_ = 0;
+		rk_storage_muxer_group[id].g_record_run_ = 0;
 		rkmuxer_deinit(id);
 		rkmuxer_init(id, NULL, rk_storage_muxer_group[id].file_name,
 		             &rk_storage_muxer_group[id].g_video_param,
 		             &rk_storage_muxer_group[id].g_audio_param);
-		rk_storage_muxer_group[0].g_record_run_ = 1;
+		rk_storage_muxer_group[id].g_record_run_ = 1;
 		pthread_mutex_unlock(&g_rkmuxer_mutex);
 		rk_signal_wait(rk_storage_muxer_group[id].g_storage_signal,
 		               rk_storage_muxer_group[id].file_duration * 1000);
 	}
 	pthread_mutex_lock(&g_rkmuxer_mutex);
-	rk_storage_muxer_group[0].g_record_run_ = 0;
+	rk_storage_muxer_group[id].g_record_run_ = 0;
 	rkmuxer_deinit(id);
 	pthread_mutex_unlock(&g_rkmuxer_mutex);
 
@@ -1712,16 +1712,19 @@ static int rk_storage_muxer_init_by_id(int id) {
 	strcat(rk_storage_muxer_group[id].record_path, "/");
 	strcat(rk_storage_muxer_group[id].record_path, folder_name);
 	LOG_DEBUG("%d: record_path is %s\n", id, rk_storage_muxer_group[id].record_path);
+	pthread_mutex_lock(&g_mkdir_mutex);
 	// create record_path if no exit
 	DIR *d = opendir(rk_storage_muxer_group[id].record_path);
 	if (d == NULL) {
 		if (mkdir(rk_storage_muxer_group[id].record_path, 0777) == -1) {
 			LOG_ERROR("Create %s fail\n", rk_storage_muxer_group[id].record_path);
+			pthread_mutex_unlock(&g_mkdir_mutex);
 			return -1;
 		}
 	} else {
 		closedir(d);
 	}
+	pthread_mutex_unlock(&g_mkdir_mutex);
 
 	snprintf(entry, 127, "storage.%d:file_format", id);
 	rk_storage_muxer_group[id].file_format = rk_param_get_string(entry, "mp4");
@@ -1828,7 +1831,7 @@ int rk_storage_write_audio_frame(int id, unsigned char *buffer, unsigned int buf
 }
 
 int rk_storage_record_start() {
-	// only main stream
+	// only main stream, id default is 0
 	LOG_INFO("start\n");
 	time_t t = time(NULL);
 	struct tm tm = *localtime(&t);
@@ -1851,7 +1854,7 @@ int rk_storage_record_start() {
 }
 
 int rk_storage_record_stop() {
-	// only main stream
+	// only main stream, id default is 0
 	LOG_INFO("start\n");
 	pthread_mutex_lock(&g_rkmuxer_mutex);
 	rk_storage_muxer_group[0].g_record_run_ = 0;

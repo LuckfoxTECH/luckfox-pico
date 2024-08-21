@@ -140,8 +140,7 @@ FT_BEGIN_HEADER
 #ifdef ECANCELED /* defined since 10.2 */
 #include "AvailabilityMacros.h"
 #endif
-#if defined(__LP64__) &&                                                       \
-    (MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4)
+#if defined(__LP64__) && (MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4)
 #undef FT_MACINTOSH
 #endif
 
@@ -360,14 +359,14 @@ typedef FT_UINT64 FT_UInt64;
  */
 
 #define FT_BEGIN_STMNT do {
-#define FT_END_STMNT                                                           \
-  }                                                                            \
-  while (0)
+#define FT_END_STMNT                                                                               \
+	}                                                                                              \
+	while (0)
 #define FT_DUMMY_STMNT FT_BEGIN_STMNT FT_END_STMNT
 
 /* `typeof` condition taken from gnulib's `intprops.h` header file */
-#if ((defined(__GNUC__) && __GNUC__ >= 2) ||                                   \
-     (defined(__IBMC__) && __IBMC__ >= 1210 && defined(__IBM__TYPEOF__)) ||    \
+#if ((defined(__GNUC__) && __GNUC__ >= 2) ||                                                       \
+     (defined(__IBMC__) && __IBMC__ >= 1210 && defined(__IBM__TYPEOF__)) ||                        \
      (defined(__SUNPRO_C) && __SUNPRO_C >= 0x5110 && !__STDC__))
 #define FT_TYPEOF(type) (__typeof__(type))
 #else

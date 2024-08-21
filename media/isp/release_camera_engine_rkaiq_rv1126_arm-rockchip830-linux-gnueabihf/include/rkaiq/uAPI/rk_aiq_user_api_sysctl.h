@@ -20,6 +20,8 @@
 
 #include "rk_aiq.h"
 #include "rk_aiq_algo_des.h"
+#include "rk_aiq_utils.h"
+#include "anr/ainr/rkpostisp.h"
 
 RKAIQ_BEGIN_DECLARE
 
@@ -142,6 +144,16 @@ rk_aiq_uapi_sysctl_getStaticMetas(const char* sns_ent_name, rk_aiq_static_info_t
  */
 XCamReturn
 rk_aiq_uapi_sysctl_enumStaticMetas(int index, rk_aiq_static_info_t* static_info);
+
+/*!
+ * \brief enum static camera infos by phy id
+ *
+ * \param[in] index           which camera info will be enum
+ * \param[out] static_info    returned camera infos
+ * \return return 0 if success
+ */
+XCamReturn rk_aiq_uapi_sysctl_enumStaticMetasByPhyId(
+    int index, rk_aiq_static_info_t* static_info);
 
 /*!
  * \brief get sensor entity name from video node
@@ -389,6 +401,17 @@ XCamReturn
 rk_aiq_uapi_sysctl_getRkRawFrameInfo(const rk_aiq_sys_ctx_t* ctx, rkraw_frame_info_t *frame_info);
 
 /*!
+ * \brief get RkRaw frame info directly from RkRaw
+ *
+ * \param[in] rawdata         rawdata
+ * \param[out] frame_info     frame info to get
+ * called after rk_aiq_uapi_sysctl_enqueueRkRawBuf() or rk_aiq_uapi_sysctl_enqueueRkRawFile()
+ * \return return 0 if success
+ */
+XCamReturn
+rk_aiq_uapi_getFrameInfo_fromRkRaw(void* rawdata, rkraw_frame_info_t* frame_info);
+
+/*!
  * \brief set the bypass stream rotation
  *
  * \param[in] ctx             context
@@ -481,6 +504,32 @@ rk_aiq_uapi_sysctl_upateCalib(const rk_aiq_sys_ctx_t* ctx, CamCalibDbContext_t* 
 XCamReturn
 rk_aiq_uapi_sysctl_getSensorDiscrib(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_exposure_sensor_descriptor *sensorDes);
 
+/*!
+ * \brief register mems sensor handler interface
+ *
+ * \param[in] intf          mems sensor interfaces
+ */
+XCamReturn
+rk_aiq_uapi_sysctl_regMemsSensorIntf(const rk_aiq_sys_ctx_t* sys_ctx,
+                                     const rk_aiq_mems_sensor_intf_t* intf);
+
+/*!
+ * \brief get working mode
+ *
+ * \param[in] ctx             context
+ * \param[out] working_mode   rk_aiq_working_mode_t
+ */
+XCamReturn
+rk_aiq_uapi_sysctl_getWorkingMode(const rk_aiq_sys_ctx_t* ctx, rk_aiq_working_mode_t* mode);
+
+XCamReturn
+rk_aiq_uapi_sysctl_setAinrAttrib(rk_aiq_sys_ctx_t *ctx, CalibDb_AINR_tool_t attrib);
+
+XCamReturn
+rk_aiq_uapi_sysctl_getAinrAttrib(const rk_aiq_sys_ctx_t *ctx, CalibDb_AINR_tool_t* attrib);
+
+XCamReturn
+rk_aiq_uapi_sysctl_getAinrParams(const rk_aiq_sys_ctx_t* ctx, rk_ainr_param* para);
 RKAIQ_END_DECLARE
 
 #endif

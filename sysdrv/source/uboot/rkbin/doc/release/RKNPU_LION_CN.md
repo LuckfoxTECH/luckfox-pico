@@ -1,5 +1,19 @@
 # RKNPU_LION Release Note
 
+## rknpu_lion_bl32_v2.02.bin
+
+| 时间       | 文件                      | 编译 commit | 重要程度 |
+| ---------- | :------------------------ | ----------- | -------- |
+| 2023-08-28 | rknpu_lion_bl32_v2.02.bin | b5340fd65   | 重要     |
+
+### New
+
+1. 添加 pstore 支持。
+2. 添加动态共享内存支持。
+3. 支持判断 ta encryption key 是否已经写入。
+
+------
+
 ## rknpu_lion_bl32_v2.01.bin
 
 | 时间       | 文件                      | 编译 commit | 重要程度 |

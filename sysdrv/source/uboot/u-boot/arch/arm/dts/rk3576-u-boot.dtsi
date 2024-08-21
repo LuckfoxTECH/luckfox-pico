@@ -1,0 +1,242 @@
+/*
+ * (C) Copyright 2023 Rockchip Electronics Co., Ltd
+ *
+ * SPDX-License-Identifier:     GPL-2.0+
+ */
+
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	aliases {
+		mmc0 = &sdhci;
+		mmc1 = &sdmmc;
+	};
+
+	chosen {
+		stdout-path = &uart0;
+		u-boot,spl-boot-order = &sdmmc, &spi_nand, &spi_nor, "same-as-spl";
+	};
+
+	secure-otp@2a480000 {
+		u-boot,dm-spl;
+		compatible = "rockchip,rk3576-secure-otp";
+		reg = <0x0 0x2a480000 0x0 0x10000>;
+	};
+};
+
+&firmware {
+	u-boot,dm-pre-reloc;
+};
+
+&gpio0 {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&gpio1 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&gpio2 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&gpio3 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&gpio4 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&scmi {
+	u-boot,dm-pre-reloc;
+};
+
+&scmi_clk {
+	u-boot,dm-pre-reloc;
+};
+
+&scmi_shmem {
+	u-boot,dm-pre-reloc;
+};
+
+&sys_grf {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&ioc_grf {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&cru {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&psci {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&crypto {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&uart0 {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&hw_decompress {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&rng {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&sfc0 {
+	u-boot,dm-spl;
+	status = "okay";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+	spi_nand: flash@0 {
+		u-boot,dm-spl;
+		compatible = "spi-nand";
+		reg = <0>;
+		spi-tx-bus-width = <1>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <80000000>;
+	};
+
+	spi_nor: flash@1 {
+		u-boot,dm-spl;
+		compatible = "jedec,spi-nor";
+		label = "sfc_nor";
+		reg = <0>;
+		spi-tx-bus-width = <1>;
+		spi-rx-bus-width = <4>;
+		spi-max-frequency = <80000000>;
+	};
+};
+
+&saradc {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&sdmmc {
+	bus-width = <4>;
+	u-boot,dm-spl;
+	pwr-en-gpios = <&gpio0 RK_PB6 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+};
+
+&sdhci {
+	bus-width = <8>;
+	u-boot,dm-spl;
+	mmc-hs400-1_8v;
+	mmc-hs400-enhanced-strobe;
+	non-removable;
+	status = "okay";
+};
+
+&sdmmc0 {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_bus4 {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_clk {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_cmd {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_det {
+	u-boot,dm-spl;
+};
+
+&pinctrl {
+	u-boot,dm-spl;
+};
+
+&pcfg_pull_up_drv_level_2 {
+	u-boot,dm-spl;
+};
+
+&pcfg_pull_up {
+	u-boot,dm-spl;
+};
+
+&pcfg_pull_none
+{
+	u-boot,dm-spl;
+};
+
+&php_grf {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&pipe_phy0_grf {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&pipe_phy1_grf {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&usbdpphy_grf {
+	u-boot,dm-pre-reloc;
+};
+
+&usbdp_phy {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&usbdp_phy_u3 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&usb_grf {
+	u-boot,dm-pre-reloc;
+};
+
+&usb2phy_grf {
+	u-boot,dm-pre-reloc;
+};
+
+&u2phy0 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&u2phy0_otg {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&ufs {
+	u-boot,dm-spl;
+	status = "okay";
+};

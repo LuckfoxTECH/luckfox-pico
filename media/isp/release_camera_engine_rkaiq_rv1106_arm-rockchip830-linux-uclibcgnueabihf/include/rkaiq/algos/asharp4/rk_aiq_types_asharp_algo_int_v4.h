@@ -27,25 +27,28 @@
 #include "RkAiqCalibDbTypes.h"
 #include "asharp4/rk_aiq_types_asharp_algo_v4.h"
 #include "sharp_head_v4.h"
+#include "sharp_uapi_head_v4.h"
 
 
 RKAIQ_BEGIN_DECLARE
 #define RK_SHARP_V4_MAX_ISO_NUM             CALIBDB_MAX_ISO_LEVEL
 
+#if 0
 #define RK_SHARP_V4_LUMA_POINT_NUM             (8)
+#define RK_SHARP_V4_PBF_DIAM                    3
+#define RK_SHARP_V4_RF_DIAM                     5
+#define RK_SHARP_V4_BF_DIAM                     3
+#endif
 
 #define ASHARPV4_RECALCULATE_DELTA_ISO        (10)
-#define RK_SHARPV4_PBF_DIAM                    3
-#define RK_SHARPV4_RF_DIAM                     5
-#define RK_SHARPV4_BF_DIAM                     3
-#define RK_SHARPV4_AVG_DIAM                    3
+#define RK_SHARP_V4_AVG_DIAM                    3
 
-#define rk_sharpV4_sharp_ratio_fix_bits        2
-#define rk_sharpV4_gaus_ratio_fix_bits         7
-#define rk_sharpV4_bf_ratio_fix_bits           7
-#define rk_sharpV4_pbfCoeff_fix_bits           7
-#define rk_sharpV4_rfCoeff_fix_bits            7
-#define rk_sharpV4_hbfCoeff_fix_bits           7
+#define rk_sharp_V4_sharp_ratio_fix_bits        2
+#define rk_sharp_V4_gaus_ratio_fix_bits         7
+#define rk_sharp_V4_bf_ratio_fix_bits           7
+#define rk_sharp_V4_pbfCoeff_fix_bits           7
+#define rk_sharp_V4_rfCoeff_fix_bits            7
+#define rk_sharp_V4_hbfCoeff_fix_bits           7
 
 #define INTERP_V4(x0, x1, ratio)            ((ratio) * ((x1) - (x0)) + x0)
 #define CLIP(a, min_v, max_v)               (((a) < (min_v)) ? (min_v) : (((a) > (max_v)) ? (max_v) : (a)))
@@ -93,16 +96,6 @@ typedef enum Asharp4_ParamMode_e {
 
 #endif
 
-typedef struct Asharp4_ExpInfo_s {
-    int hdr_mode;
-    float arTime[3];
-    float arAGain[3];
-    float arDGain[3];
-    int   arIso[3];
-    int   snr_mode;
-    int rawWidth;
-    int rawHeight;
-} Asharp4_ExpInfo_t;
 
 
 typedef struct RK_SHARP_Params_V4_s
@@ -124,9 +117,9 @@ typedef struct RK_SHARP_Params_V4_s
     float bf_ratio          [RK_SHARP_V4_MAX_ISO_NUM];
     short local_sharp_strength  [RK_SHARP_V4_MAX_ISO_NUM][RK_SHARP_V4_LUMA_POINT_NUM];
 
-    float prefilter_coeff[RK_SHARP_V4_MAX_ISO_NUM][RK_SHARPV4_PBF_DIAM * RK_SHARPV4_PBF_DIAM];
-    float GaussianFilter_coeff   [RK_SHARP_V4_MAX_ISO_NUM][RK_SHARPV4_RF_DIAM * RK_SHARPV4_RF_DIAM];
-    float hfBilateralFilter_coeff    [RK_SHARP_V4_MAX_ISO_NUM][RK_SHARPV4_BF_DIAM * RK_SHARPV4_BF_DIAM];
+    float prefilter_coeff[RK_SHARP_V4_MAX_ISO_NUM][3];
+    float GaussianFilter_coeff   [RK_SHARP_V4_MAX_ISO_NUM][6];
+    float hfBilateralFilter_coeff    [RK_SHARP_V4_MAX_ISO_NUM][3];
 
     float prefilter_sigma[RK_SHARP_V4_MAX_ISO_NUM];
     float GaussianFilter_sigma[RK_SHARP_V4_MAX_ISO_NUM];
@@ -136,6 +129,7 @@ typedef struct RK_SHARP_Params_V4_s
 
 } RK_SHARP_Params_V4_t;
 
+#if 0
 typedef struct RK_SHARP_Params_V4_Select_s
 {
     int enable;
@@ -164,7 +158,7 @@ typedef struct RK_SHARP_Params_V4_Select_s
     float hfBilateralFilter_sigma;
 
 } RK_SHARP_Params_V4_Select_t;
-
+#endif
 
 typedef struct Asharp_Manual_Attr_V4_s
 {
@@ -187,13 +181,10 @@ typedef struct Asharp_ProcResult_V4_s {
     int sharpEn;
 
     //for sw simultaion
-    RK_SHARP_Params_V4_Select_t stSelect;
+    //RK_SHARP_Params_V4_Select_t stSelect;
 
     //for hw register
-    RK_SHARP_Fix_V4_t stFix;
-
-    bool isNeedUpdate;
-
+    RK_SHARP_Fix_V4_t* stFix;
 } Asharp_ProcResult_V4_t;
 
 
@@ -218,6 +209,7 @@ typedef struct rk_aiq_sharp_strength_v4_s {
     rk_aiq_uapi_sync_t sync;
 
     float percent;
+    bool strength_enable;
 } rk_aiq_sharp_strength_v4_t;
 
 

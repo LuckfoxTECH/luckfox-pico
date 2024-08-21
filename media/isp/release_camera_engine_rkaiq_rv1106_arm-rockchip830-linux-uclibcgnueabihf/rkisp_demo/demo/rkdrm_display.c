@@ -132,7 +132,7 @@ void drm_fb_get_bpp_depth(uint32_t format, unsigned int *depth, int *bpp)
         *bpp = 32;
         break;
     default:
-        printf("unsupported pixel format %d\n", format);
+        printf("unsupported pixel format %u\n", format);
         *depth = 0;
         *bpp = 0;
         break;
@@ -269,7 +269,7 @@ int drmSetDpmsMode(uint32_t dpms_mode, struct drm_dev *dev)
 
     ret = drmModeConnectorSetProperty(dev->drm_fd, connector_id, dpms_prop_id, dpms_mode);
     if (ret) {
-        printf("Failed to set dpms mode %d ret=%d\n", dpms_mode, ret);
+        printf("Failed to set dpms mode %u ret=%d\n", dpms_mode, ret);
         return ret;
     }
 

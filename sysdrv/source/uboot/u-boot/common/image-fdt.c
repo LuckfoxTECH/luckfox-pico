@@ -78,39 +78,16 @@ static const image_header_t *image_get_fdt(ulong fdt_addr)
 }
 #endif
 
-/**
- * boot_fdt_add_mem_rsv_regions - Mark the memreserve sections as unusable
- * @lmb: pointer to lmb handle, will be used for memory mgmt
- * @fdt_blob: pointer to fdt blob base address
- *
- * Adds the memreserve regions in the dtb to the lmb block.  Adding the
- * memreserve regions prevents u-boot from using them to store the initrd
- * or the fdt blob.
- */
-void boot_fdt_add_mem_rsv_regions(struct lmb *lmb, void *fdt_blob)
+void boot_mem_rsv_regions(struct lmb *lmb, void *fdt_blob)
 {
-	uint64_t addr, size;
-	int i, total;
 	int rsv_offset, offset;
 	fdt_size_t rsv_size;
 	fdt_addr_t rsv_addr;
-	/* we needn't repeat do reserve, do_bootm_linux would call this again */
-	static int rsv_done;
 	const void *prop;
+	int i = 0;
 
-	if (fdt_check_header(fdt_blob) != 0 || rsv_done)
+	if (fdt_check_header(fdt_blob) != 0)
 		return;
-
-	rsv_done = 1;
-
-	total = fdt_num_mem_rsv(fdt_blob);
-	for (i = 0; i < total; i++) {
-		if (fdt_get_mem_rsv(fdt_blob, i, &addr, &size) != 0)
-			continue;
-		printf("   reserving fdt memory region: addr=%llx size=%llx\n",
-		       (unsigned long long)addr, (unsigned long long)size);
-		lmb_reserve(lmb, addr, size);
-	}
 
 	rsv_offset = fdt_subnode_offset(fdt_blob, 0, "reserved-memory");
 	if (rsv_offset == -FDT_ERR_NOTFOUND)
@@ -128,11 +105,54 @@ void boot_fdt_add_mem_rsv_regions(struct lmb *lmb, void *fdt_blob)
 							      &rsv_size, false);
 		if (rsv_addr == FDT_ADDR_T_NONE || !rsv_size)
 			continue;
-		printf("  'reserved-memory' %s: addr=%llx size=%llx\n",
-			fdt_get_name(fdt_blob, offset, NULL),
-			(unsigned long long)rsv_addr, (unsigned long long)rsv_size);
-		lmb_reserve(lmb, rsv_addr, rsv_size);
+
+		i++;
+		/* be quiet while reserve */
+		if (lmb) {
+			lmb_reserve(lmb, rsv_addr, rsv_size);
+		} else {
+			if (i == 1)
+				printf("## reserved-memory:\n");
+
+			printf("  %s: addr=%llx size=%llx\n",
+				fdt_get_name(fdt_blob, offset, NULL),
+				(unsigned long long)rsv_addr, (unsigned long long)rsv_size);
+		}
 	}
+}
+
+/**
+ * boot_fdt_add_mem_rsv_regions - Mark the memreserve sections as unusable
+ * @lmb: pointer to lmb handle, will be used for memory mgmt
+ * @fdt_blob: pointer to fdt blob base address
+ *
+ * Adds the memreserve regions in the dtb to the lmb block.  Adding the
+ * memreserve regions prevents u-boot from using them to store the initrd
+ * or the fdt blob.
+ */
+void boot_fdt_add_mem_rsv_regions(struct lmb *lmb, void *fdt_blob)
+{
+	uint64_t addr, size;
+	int i, total;
+	/* we needn't repeat do reserve, do_bootm_linux would call this again */
+	static int rsv_done;
+
+	if (fdt_check_header(fdt_blob) != 0 || rsv_done)
+		return;
+
+	rsv_done = 1;
+
+	total = fdt_num_mem_rsv(fdt_blob);
+	for (i = 0; i < total; i++) {
+		if (fdt_get_mem_rsv(fdt_blob, i, &addr, &size) != 0)
+			continue;
+		printf("   reserving fdt memory region: addr=%llx size=%llx\n",
+		       (unsigned long long)addr, (unsigned long long)size);
+		lmb_reserve(lmb, addr, size);
+	}
+
+	/* lmb_reserve() for "reserved-memory" */
+	boot_mem_rsv_regions(lmb, fdt_blob);
 }
 
 #ifdef CONFIG_SYSMEM

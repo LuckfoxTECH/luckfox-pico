@@ -47,6 +47,7 @@ static void bu18rl82_bridge_reset(struct rockchip_bridge *bridge)
 			       (BU18RL82_SWRST_REG | BU18RL82_SWRST_EXCREG | BU18RL82_SWRST_ALL));
 	if (ret < 0)
 		printf("failed to reset bu18rl82(%s) ret=%d\n", bus->name, ret);
+	mdelay(5);
 }
 
 static int bu18rl82_serdes_init_sequence_write(struct bu18rl82_priv *priv)

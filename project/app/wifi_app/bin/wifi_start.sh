@@ -11,16 +11,23 @@ killall wpa_supplicant
 killall wpa_supplicant_nl80211
 sleep 1
 
+#AP6XXX
+cat /sys/bus/sdio/devices/*/uevent | grep "02D0"
+if [ $? -eq 0 ];then
+	insmod /oem/usr/ko/bcmdhd.ko
+	wpa_supplicant -B -i wlan0 -c $CONF
+fi
+
 #rtl8189fs
 cat /sys/bus/sdio/devices/*/uevent | grep "024C:F179"
 if [ $? -eq 0 ];then
-	wpa_supplicant_rtk -B -i wlan0 -c $CONF
+	wpa_supplicant -B -i wlan0 -c $CONF
 fi
 
 #rtl8188fu
 cat /sys/bus/usb/devices/*/uevent | grep "bda\/f179"
 if [ $? -eq 0 ];then
-	wpa_supplicant_rtk -B -i wlan0 -c $CONF
+	wpa_supplicant -B -i wlan0 -c $CONF
 fi
 
 #ssv6155p

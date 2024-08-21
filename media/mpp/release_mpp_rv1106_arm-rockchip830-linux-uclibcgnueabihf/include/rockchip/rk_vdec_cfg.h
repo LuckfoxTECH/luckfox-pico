@@ -17,10 +17,10 @@
 #ifndef __RK_VDEC_CFG_H__
 #define __RK_VDEC_CFG_H__
 
-#include "mpp_err.h"
 #include "rk_type.h"
+#include "mpp_err.h"
 
-typedef void *MppDecCfg;
+typedef void* MppDecCfg;
 
 #ifdef __cplusplus
 extern "C" {

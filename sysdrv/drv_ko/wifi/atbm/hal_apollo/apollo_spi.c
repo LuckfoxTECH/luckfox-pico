@@ -383,7 +383,12 @@ void atbm_spi_status_rx_ready(struct atbm_common *priv)
 {
 	int ret = 0;
 	u32 ready =0 ;
-	BUG_ON(!priv->sbus_ops);
+//	BUG_ON(!priv->sbus_ops);
+	if(!priv->sbus_ops){
+		atbm_printk_err("%s %d ,ERROR !!! priv->sbus_ops is NULL\n",__func__,__LINE__);
+		return;
+	}
+
 
 	ret = atbm_spi_read_ready(priv->sbus_priv, &ready);
 	atbm_printk_bus("[wtd] ready %d\n", ready);
@@ -685,3 +690,4 @@ static void  apollo_spi_module_exit(void)
 
 module_init(apollo_spi_module_init);
 module_exit(apollo_spi_module_exit);
+MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);

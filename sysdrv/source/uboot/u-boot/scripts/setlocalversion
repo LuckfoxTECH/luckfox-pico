@@ -60,8 +60,6 @@ scm_version()
 			# "v2.6.30-rc5-302-g72357d5"), we pretty print it.
 			if atag="`git describe 2>/dev/null`"; then
 				echo "$atag" | awk -F- '{printf("-%s", $(NF))}'
-				date=`git log -1 --author='@rock-chips' --date=format:%y%m%d | sed -n '/Date:/p' | awk '{ print "-"$2 }'`
-				printf '%s' $date
 
 			# If we don't have a tag at all we print -g{commitish}.
 			else
@@ -74,11 +72,16 @@ scm_version()
 			printf -- '-svn%s' "`git svn find-rev $head`"
 		fi
 
+		# Check submit date of the last rockchip commit
+		date=`git log -1 --author='@rock-chips' --date=format:%y%m%d | sed -n '/Date:/p' | awk '{ print "-"$2 }'`
+		printf '%s' $date
+
 		# Check for uncommitted changes
 		if git diff-index --name-only HEAD | grep -qv "^scripts/package"; then
 			printf '%s' -dirty
 		fi
 
+		# Print build user
 		printf ' \#%s' $USER
 
 		# All done with git

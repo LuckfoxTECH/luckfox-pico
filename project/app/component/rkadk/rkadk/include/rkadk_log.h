@@ -39,36 +39,32 @@ extern "C" {
 #define RKADK_LOGE(format, ...)                                                \
   do {                                                                         \
     RKADK_LOG_LEVEL_JUDGE(RKADK_LOG_LEVEL_ERROR);                              \
-    printf("[RKADK_E] %s[%d]: " format "\n", __func__, __LINE__,               \
-           ##__VA_ARGS__);                                                     \
+    printf("[RKADK_E] %s[%d]: " format "\n", __func__, __LINE__, ##__VA_ARGS__);\
   } while (0)
 
 #define RKADK_LOGW(format, ...)                                                \
   do {                                                                         \
     RKADK_LOG_LEVEL_JUDGE(RKADK_LOG_LEVEL_WARNING);                            \
-    printf("[RKADK_W] %s[%d]: " format "\n", __func__, __LINE__,               \
-           ##__VA_ARGS__);                                                     \
+    printf("[RKADK_W] %s[%d]: " format "\n", __func__, __LINE__, ##__VA_ARGS__);\
   } while (0)
 
 #define RKADK_LOGI(format, ...)                                                \
   do {                                                                         \
     RKADK_LOG_LEVEL_JUDGE(RKADK_LOG_LEVEL_INFO);                               \
-    printf("[RKADK_I] %s[%d]: " format "\n", __func__, __LINE__,               \
-           ##__VA_ARGS__);                                                     \
+    printf("[RKADK_I] %s[%d]: " format "\n", __func__, __LINE__, ##__VA_ARGS__);\
   } while (0)
 
 #define RKADK_LOGD(format, ...)                                                \
   do {                                                                         \
     RKADK_LOG_LEVEL_JUDGE(RKADK_LOG_LEVEL_DEBUG);                              \
-    printf("[RKADK_D] %s[%d]: " format "\n", __func__, __LINE__,               \
-           ##__VA_ARGS__);                                                     \
+    printf("[RKADK_D] %s[%d]: " format "\n", __func__, __LINE__, ##__VA_ARGS__);\
   } while (0)
 
 #define RKADK_KLOG(format, ...)                                                \
   do {                                                                         \
     FILE *fp = fopen("/dev/kmsg", "w");                                        \
     if (NULL != fp) {                                                          \
-      fprintf(fp, "[RKADK]: " format "\n", ##__VA_ARGS__);                     \
+      fprintf(fp, "[RKADK]: " format"\n", ##__VA_ARGS__);                      \
       fclose(fp);                                                              \
     }                                                                          \
   } while (0)

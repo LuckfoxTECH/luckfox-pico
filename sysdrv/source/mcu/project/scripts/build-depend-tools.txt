@@ -1,0 +1,4 @@
+#for gdb compile
+makeinfo --version,texinfo
+# for make
+make -v, make

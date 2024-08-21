@@ -1,8 +1,8 @@
-commit 9093280df536e902dd5125cdc9953509ebc59a74
-Author: Colum Jin <colum.jin@rock-chips.com>
-Date:   Tue Dec 20 14:35:57 2022 +0800
+commit 28ee389dbc33c2c7db812cd08e54fd3a0f2f992b
+Author: LongChang Ma <chad.ma@rock-chips.com>
+Date:   Sat Apr 20 20:35:07 2024 +0800
 
-    [vsys] replace if-else chains with switch
+    mpi: add mpi_node_queue* ops macro define
     
-    Signed-off-by: Colum Jin <colum.jin@rock-chips.com>
-    Change-Id: I440ee6be20ad658f831db4f91b5eb17380675450
+    Signed-off-by: LongChang Ma <chad.ma@rock-chips.com>
+    Change-Id: Ic8bf20706d98d14b52e73dd89513b079f7a862ab

@@ -14,14 +14,20 @@
 		stdout-path = &uart2;
 		u-boot,spl-boot-order = &sdmmc, &sdhci, &spi_nand, &spi_nor;
 	};
+
+	secure-otp@ffcd0000 {
+		compatible = "rockchip,rk3528-secure-otp";
+		reg = <0x0 0xffcd0000 0x0 0x4000>;
+		secure_conf = <0xff4500c0>;
+		mask_addr = <0x0>;
+		cru_rst_addr = <0xff4a8080>;
+		u-boot,dm-spl;
+		status = "okay";
+	};
+
 };
 
 &grf {
-	u-boot,dm-spl;
-	status = "okay";
-};
-
-&rng {
 	u-boot,dm-spl;
 	status = "okay";
 };
@@ -31,15 +37,19 @@
 	status = "okay";
 };
 
+&combphy_pu {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
 &cru {
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-rates;
 	u-boot,dm-spl;
 	status = "okay";
 };
 
 &crypto {
-	clocks = <&cru CLK_CORE_CRYPTO>, <&cru CLK_PKA_CRYPTO>;
-	clock-names = "sclk_crypto", "apkclk_crypto";
-	clock-frequency = <200000000>, <300000000>;
 	u-boot,dm-spl;
 	status = "okay";
 };
@@ -93,6 +103,8 @@
 &sdhci {
 	bus-width = <8>;
 	u-boot,dm-spl;
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-rates;
 	/delete-property/ pinctrl-names;
 	/delete-property/ pinctrl-0;
 	mmc-hs400-1_8v;
@@ -107,7 +119,7 @@
 };
 
 &saradc {
-	u-boot,dm-spl;
+	u-boot,dm-pre-reloc;
 	status = "okay";
 };
 
@@ -122,23 +134,23 @@
 };
 
 &firmware {
-	u-boot,dm-pre-reloc;
+	u-boot,dm-spl;
 };
 
 &scmi {
-	u-boot,dm-pre-reloc;
+	u-boot,dm-spl;
 };
 
 &scmi_clk {
-	u-boot,dm-pre-reloc;
+	u-boot,dm-spl;
 };
 
 &scmi_shmem {
-	u-boot,dm-pre-reloc;
+	u-boot,dm-spl;
 };
 
 &pinctrl {
-	u-boot,dm-pre-reloc;
+	u-boot,dm-spl;
 	status = "okay";
 };
 
@@ -151,15 +163,25 @@
 };
 
 &gpio2 {
+	u-boot,dm-spl;
+};
+
+/* Avaliable for PCIe */
+&gpio3 {
+	u-boot,dm-pre-reloc;
+};
+
+/* Avaliable for PCIe */
+&gpio4 {
 	u-boot,dm-pre-reloc;
 };
 
 &pcfg_pull_none_drv_level_1 {
-	u-boot,dm-pre-reloc;
+	u-boot,dm-spl;
 };
 
 &pcfg_pull_none_drv_level_2 {
-	u-boot,dm-pre-reloc;
+	u-boot,dm-spl;
 };
 
 &pcfg_pull_up_drv_level_1 {
@@ -175,7 +197,7 @@
 };
 
 &pcfg_pull_none {
-	u-boot,dm-pre-reloc;
+	u-boot,dm-spl;
 };
 
 &sdmmc_pins {
@@ -196,13 +218,4 @@
 
 &sdmmc_det {
 	u-boot,dm-spl;
-};
-
-&sdmmc_pwren {
-	u-boot,dm-spl;
-};
-
-&secure_otp {
-	u-boot,dm-spl;
-	status = "okay";
 };

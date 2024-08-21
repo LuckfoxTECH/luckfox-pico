@@ -20,8 +20,6 @@
 #ifndef _RK_AIQ_TYPES_ADEHAZE_ALGO_H_
 #define _RK_AIQ_TYPES_ADEHAZE_ALGO_H_
 
-#include "adehaze/rk_aiq_types_adehaze_hw.h"
-
 RKAIQ_BEGIN_DECLARE
 
 

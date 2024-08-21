@@ -179,9 +179,9 @@ h264e_sei_to_packet:
 	.size	h264e_sei_to_packet, .-h264e_sei_to_packet
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__func__.7931, %object
-	.size	__func__.7931, 20
-__func__.7931:
+	.type	__func__.7957, %object
+	.size	__func__.7957, 20
+__func__.7957:
 	.ascii	"h264e_sei_to_packet\000"
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:

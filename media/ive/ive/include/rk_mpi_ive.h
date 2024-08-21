@@ -649,7 +649,21 @@ RK_S32 RK_MPI_IVE_STCorner(IVE_HANDLE *pHandle, IVE_SRC_IMAGE_S *pstSrc,
                         IVE_DST_MEM_INFO_S *pstCandiCorner,
                         IVE_DST_MEM_INFO_S *pstCorner,
                         IVE_ST_CORNER_CTRL_S *pstStCornerCtrl, bool bInstant);
-
+/**
+ * @brief
+ * Prototype    : IVE_STCorner_Sorted
+ * Description  : The second part of corners detection using Shi-Tomasi-like method: select corners by certain rules.
+ * @param pHandle: Returned handle ID of a task
+ * @param pstSrc: Input source image
+ * @param pstCorner: Output result of Corner
+ * @param pstStCornerCtrl: Control parameters.
+ * @param bInstant: set bInstant to TRUE blocks the next operation.
+ * @return RK_S32: RVE_OK: Success.
+ *                 Error codes: Failure.
+ */
+RK_S32 RK_MPI_IVE_STCorner_Sorted(IVE_HANDLE *pHandle, IVE_SRC_IMAGE_S *pstSrc,
+                        IVE_DST_MEM_INFO_S *pstCorner,
+                        IVE_ST_CORNER_SORTED_CTRL_S *pstStCornerCtrl, bool bInstant);
 /**
  * @brief
  * Prototype    : IVE_MatchBgModel
@@ -705,35 +719,6 @@ RK_S32 RK_MPI_IVE_SAD(IVE_HANDLE *pHandle, IVE_SRC_IMAGE_S *pstSrc1,
                    IVE_SRC_IMAGE_S *pstSrc2, IVE_DST_IMAGE_S *pstSad,
                    IVE_DST_IMAGE_S *pstThr, IVE_SAD_CTRL_S *pstSadCtrl,
                    bool bInstant);
-
-/**
- * @brief
- * Prototype    : RK_MPI_IVE_Warp_Affine_Init
- * Description  : initialize staging memory of warp affine.
- * @param pstMem: initialize the staging memory.
- * @param u32Width: Width of input image.
- * @param u32Height: Height of input image.
- * @return RK_S32: RVE_OK: Success.
- *                 Error codes: Failure.
- */
-RK_S32 RK_MPI_IVE_Warp_Affine_Init(IVE_MEM_INFO_S *pstMem, RK_U32 u32Width, RK_U32 u32Height);
-
-/**
- * @brief
- * Prototype    : RK_MPI_IVE_Warp_Affine
- * Description  : Warp affine.
- * @param pHandle: Returned handle ID of a task
- * @param pstSrc: The input source, Only U8C1 input format is supported.
- * @param pstDst: Output result of warp affine result.
- * @param pstWarpAffineCtrl: Control parameter.
- * @param bInstant: set bInstant to TRUE blocks the next operation.
- * @return RK_S32: RVE_OK: Success.
- *                 Error codes: Failure.
- */
-RK_S32 RK_MPI_IVE_Warp_Affine(IVE_HANDLE *pHandle, IVE_SRC_IMAGE_S *pstSrc,
-                           IVE_DST_IMAGE_S *pstDst,
-                           IVE_WARP_AFFINE_CTRL_S *pstWarpAffineCtrl,
-                           bool bInstant);
 
 /**
  * @brief

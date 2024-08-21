@@ -226,6 +226,7 @@ static void RGA2_set_reg_src_info(u8 *base, struct rga2_req *msg)
 	u32 sw, sh;
 	u32 dw, dh;
 	u8 rotate_mode;
+	u8 vsp_scale_mode = 0;
 	u8 scale_w_flag, scale_h_flag;
 
 	bRGA_SRC_INFO = (u32 *) (base + RGA2_SRC_INFO_OFFSET);
@@ -287,6 +288,18 @@ static void RGA2_set_reg_src_info(u8 *base, struct rga2_req *msg)
 		/* uvvds need to force tile mode. */
 		if (msg->uvvds_mode && scale_w_flag == 0)
 			scale_w_flag = 3;
+	}
+
+	/* VSP scale mode select, HSD > VSD > VSP > HSP */
+	if (scale_h_flag == 0x2) {
+		/* After HSD, VSP needs to check dst_width */
+		if ((scale_w_flag == 0x1) && (dw < RGA2_VSP_BICUBIC_LIMIT))
+			vsp_scale_mode = 0x0;
+		else if (sw < RGA2_VSP_BICUBIC_LIMIT)
+			vsp_scale_mode = 0x0;
+		else
+			/* default select bilinear */
+			vsp_scale_mode = 0x1;
 	}
 
 	switch (msg->src.format) {
@@ -559,8 +572,7 @@ static void RGA2_set_reg_src_info(u8 *base, struct rga2_req *msg)
 		 ((msg->alpha_rop_flag >> 4) & 0x1)));
 	reg =
 		((reg & (~m_RGA2_SRC_INFO_SW_SW_VSP_MODE_SEL)) |
-		 (s_RGA2_SRC_INFO_SW_SW_VSP_MODE_SEL((
-			 msg->scale_bicu_mode >> 4))));
+		 (s_RGA2_SRC_INFO_SW_SW_VSP_MODE_SEL((vsp_scale_mode))));
 	reg =
 		((reg & (~m_RGA2_SRC_INFO_SW_SW_YUV10_E)) |
 		 (s_RGA2_SRC_INFO_SW_SW_YUV10_E((yuv10))));
@@ -1265,104 +1277,253 @@ static void RGA2_set_reg_alpha_info(u8 *base, struct rga2_req *msg)
 	u32 *bRGA_ALPHA_CTRL0;
 	u32 *bRGA_ALPHA_CTRL1;
 	u32 *bRGA_FADING_CTRL;
-	u32 reg0 = 0;
-	u32 reg1 = 0;
+	u32 reg = 0;
+	union rga2_color_ctrl color_ctrl;
+	union rga2_alpha_ctrl alpha_ctrl;
+	struct rga_alpha_config *config;
 
 	bRGA_ALPHA_CTRL0 = (u32 *) (base + RGA2_ALPHA_CTRL0_OFFSET);
 	bRGA_ALPHA_CTRL1 = (u32 *) (base + RGA2_ALPHA_CTRL1_OFFSET);
 	bRGA_FADING_CTRL = (u32 *) (base + RGA2_FADING_CTRL_OFFSET);
 
-	reg0 =
-		((reg0 & (~m_RGA2_ALPHA_CTRL0_SW_ALPHA_ROP_0)) |
+	color_ctrl.value = 0;
+	alpha_ctrl.value = 0;
+	config = &msg->alpha_config;
+
+	color_ctrl.bits.src_color_mode =
+		config->fg_pre_multiplied ? RGA_ALPHA_PRE_MULTIPLIED : RGA_ALPHA_NO_PRE_MULTIPLIED;
+	color_ctrl.bits.dst_color_mode =
+		config->bg_pre_multiplied ? RGA_ALPHA_PRE_MULTIPLIED : RGA_ALPHA_NO_PRE_MULTIPLIED;
+
+	if (config->fg_pixel_alpha_en)
+		color_ctrl.bits.src_blend_mode =
+			config->fg_global_alpha_en ? RGA_ALPHA_PER_PIXEL_GLOBAL :
+			RGA_ALPHA_PER_PIXEL;
+	else
+		color_ctrl.bits.src_blend_mode = RGA_ALPHA_GLOBAL;
+
+	if (config->bg_pixel_alpha_en)
+		color_ctrl.bits.dst_blend_mode =
+			config->bg_global_alpha_en ? RGA_ALPHA_PER_PIXEL_GLOBAL :
+			RGA_ALPHA_PER_PIXEL;
+	else
+		color_ctrl.bits.dst_blend_mode = RGA_ALPHA_GLOBAL;
+
+	/*
+	 * Since the hardware uses 256 as 1, the original alpha value needs to
+	 * be + (alpha >> 7).
+	 */
+	color_ctrl.bits.src_alpha_cal_mode = RGA_ALPHA_SATURATION;
+	color_ctrl.bits.dst_alpha_cal_mode = RGA_ALPHA_SATURATION;
+
+	/* porter duff alpha enable */
+	switch (config->mode) {
+	case RGA_ALPHA_BLEND_SRC:
+		/*
+		 * SRC mode:
+		 *	Sf = 1, Df = 0；
+		 *	[Rc,Ra] = [Sc,Sa]；
+		 */
+		color_ctrl.bits.src_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.src_factor_mode = RGA_ALPHA_ONE;
+
+		color_ctrl.bits.dst_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.dst_factor_mode = RGA_ALPHA_ZERO;
+
+		break;
+
+	case RGA_ALPHA_BLEND_DST:
+		/*
+		 * SRC mode:
+		 *	Sf = 0, Df = 1；
+		 *	[Rc,Ra] = [Dc,Da]；
+		 */
+		color_ctrl.bits.src_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.src_factor_mode = RGA_ALPHA_ZERO;
+
+		color_ctrl.bits.dst_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.dst_factor_mode = RGA_ALPHA_ONE;
+
+		break;
+
+	case RGA_ALPHA_BLEND_SRC_OVER:
+		/*
+		 * SRC-OVER mode:
+		 *	Sf = 1, Df = (1 - Sa)
+		 *	[Rc,Ra] = [ Sc + (1 - Sa) * Dc, Sa + (1 - Sa) * Da ]
+		 */
+		color_ctrl.bits.src_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.src_factor_mode = RGA_ALPHA_ONE;
+
+		color_ctrl.bits.dst_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.dst_factor_mode = RGA_ALPHA_OPPOSITE_INVERSE;
+
+		break;
+
+	case RGA_ALPHA_BLEND_DST_OVER:
+		/*
+		 * DST-OVER mode:
+		 *	Sf = (1 - Da) , Df = 1
+		 *	[Rc,Ra] = [ Sc * (1 - Da) + Dc, Sa * (1 - Da) + Da ]
+		 */
+		color_ctrl.bits.src_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.src_factor_mode = RGA_ALPHA_OPPOSITE_INVERSE;
+
+		color_ctrl.bits.dst_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.dst_factor_mode = RGA_ALPHA_ONE;
+
+		break;
+
+	case RGA_ALPHA_BLEND_SRC_IN:
+		/*
+		 * SRC-IN mode:
+		 *	Sf = Da , Df = 0
+		 *	[Rc,Ra] = [ Sc * Da, Sa * Da ]
+		 */
+		color_ctrl.bits.src_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.src_factor_mode = RGA_ALPHA_OPPOSITE;
+
+		color_ctrl.bits.dst_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.dst_factor_mode = RGA_ALPHA_ZERO;
+
+		break;
+
+	case RGA_ALPHA_BLEND_DST_IN:
+		/*
+		 * DST-IN mode:
+		 *	Sf = 0 , Df = Sa
+		 *	[Rc,Ra] = [ Dc * Sa, Da * Sa ]
+		 */
+		color_ctrl.bits.src_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.src_factor_mode = RGA_ALPHA_ZERO;
+
+		color_ctrl.bits.dst_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.dst_factor_mode = RGA_ALPHA_OPPOSITE;
+
+		break;
+
+	case RGA_ALPHA_BLEND_SRC_OUT:
+		/*
+		 * SRC-OUT mode:
+		 *	Sf = (1 - Da) , Df = 0
+		 *	[Rc,Ra] = [ Sc * (1 - Da), Sa * (1 - Da) ]
+		 */
+		color_ctrl.bits.src_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.src_factor_mode = RGA_ALPHA_OPPOSITE_INVERSE;
+
+		color_ctrl.bits.dst_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.dst_factor_mode = RGA_ALPHA_ZERO;
+
+		break;
+
+	case RGA_ALPHA_BLEND_DST_OUT:
+		/*
+		 * DST-OUT mode:
+		 *	Sf = 0 , Df = (1 - Sa)
+		 *	[Rc,Ra] = [ Dc * (1 - Sa), Da * (1 - Sa) ]
+		 */
+		color_ctrl.bits.src_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.src_factor_mode = RGA_ALPHA_ZERO;
+
+		color_ctrl.bits.dst_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.dst_factor_mode = RGA_ALPHA_OPPOSITE_INVERSE;
+
+		break;
+
+	case RGA_ALPHA_BLEND_SRC_ATOP:
+		/*
+		 * SRC-ATOP mode:
+		 *	Sf = Da , Df = (1 - Sa)
+		 *	[Rc,Ra] = [ Sc * Da + Dc * (1 - Sa), Sa * Da + Da * (1 - Sa) ]
+		 */
+		color_ctrl.bits.src_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.src_factor_mode = RGA_ALPHA_OPPOSITE;
+
+		color_ctrl.bits.dst_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.dst_factor_mode = RGA_ALPHA_OPPOSITE_INVERSE;
+
+		break;
+
+	case RGA_ALPHA_BLEND_DST_ATOP:
+		/*
+		 * DST-ATOP mode:
+		 *	Sf = (1 - Da) , Df = Sa
+		 *	[Rc,Ra] = [ Sc * (1 - Da) + Dc * Sa, Sa * (1 - Da) + Da * Sa ]
+		 */
+		color_ctrl.bits.src_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.src_factor_mode = RGA_ALPHA_OPPOSITE_INVERSE;
+
+		color_ctrl.bits.dst_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.dst_factor_mode = RGA_ALPHA_OPPOSITE;
+
+		break;
+
+	case RGA_ALPHA_BLEND_XOR:
+		/*
+		 * DST-XOR mode:
+		 *	Sf = (1 - Da) , Df = (1 - Sa)
+		 *	[Rc,Ra] = [ Sc * (1 - Da) + Dc * (1 - Sa), Sa * (1 - Da) + Da * (1 - Sa) ]
+		 */
+		color_ctrl.bits.src_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.src_factor_mode = RGA_ALPHA_OPPOSITE_INVERSE;
+
+		color_ctrl.bits.dst_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.dst_factor_mode = RGA_ALPHA_OPPOSITE_INVERSE;
+
+		break;
+
+	case RGA_ALPHA_BLEND_CLEAR:
+		/*
+		 * DST-CLEAR mode:
+		 *	Sf = 0 , Df = 0
+		 *	[Rc,Ra] = [ 0, 0 ]
+		 */
+		color_ctrl.bits.src_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.src_factor_mode = RGA_ALPHA_ZERO;
+
+		color_ctrl.bits.dst_alpha_mode = RGA_ALPHA_STRAIGHT;
+		color_ctrl.bits.dst_factor_mode = RGA_ALPHA_ZERO;
+
+		break;
+
+	default:
+		break;
+	}
+
+	alpha_ctrl.bits.src_blend_mode = color_ctrl.bits.src_blend_mode;
+	alpha_ctrl.bits.dst_blend_mode = color_ctrl.bits.dst_blend_mode;
+
+	alpha_ctrl.bits.src_alpha_cal_mode = color_ctrl.bits.src_alpha_cal_mode;
+	alpha_ctrl.bits.dst_alpha_cal_mode = color_ctrl.bits.dst_alpha_cal_mode;
+
+	alpha_ctrl.bits.src_alpha_mode = color_ctrl.bits.src_alpha_mode;
+	alpha_ctrl.bits.src_factor_mode = color_ctrl.bits.src_factor_mode;
+
+	alpha_ctrl.bits.dst_alpha_mode = color_ctrl.bits.dst_alpha_mode;
+	alpha_ctrl.bits.dst_factor_mode = color_ctrl.bits.dst_factor_mode;
+
+	reg =
+		((reg & (~m_RGA2_ALPHA_CTRL0_SW_ALPHA_ROP_0)) |
 		 (s_RGA2_ALPHA_CTRL0_SW_ALPHA_ROP_0(msg->alpha_rop_flag)));
-	reg0 =
-		((reg0 & (~m_RGA2_ALPHA_CTRL0_SW_ALPHA_ROP_SEL)) |
+	reg =
+		((reg & (~m_RGA2_ALPHA_CTRL0_SW_ALPHA_ROP_SEL)) |
 		 (s_RGA2_ALPHA_CTRL0_SW_ALPHA_ROP_SEL
 		 (msg->alpha_rop_flag >> 1)));
-	reg0 =
-		((reg0 & (~m_RGA2_ALPHA_CTRL0_SW_ROP_MODE)) |
+	reg =
+		((reg & (~m_RGA2_ALPHA_CTRL0_SW_ROP_MODE)) |
 		 (s_RGA2_ALPHA_CTRL0_SW_ROP_MODE(msg->rop_mode)));
-	reg0 =
-		((reg0 & (~m_RGA2_ALPHA_CTRL0_SW_SRC_GLOBAL_ALPHA)) |
+	reg =
+		((reg & (~m_RGA2_ALPHA_CTRL0_SW_SRC_GLOBAL_ALPHA)) |
 		 (s_RGA2_ALPHA_CTRL0_SW_SRC_GLOBAL_ALPHA
-		 (msg->src_a_global_val)));
-	reg0 =
-		((reg0 & (~m_RGA2_ALPHA_CTRL0_SW_DST_GLOBAL_ALPHA)) |
+		 ((uint8_t)config->fg_global_alpha_value)));
+	reg =
+		((reg & (~m_RGA2_ALPHA_CTRL0_SW_DST_GLOBAL_ALPHA)) |
 		 (s_RGA2_ALPHA_CTRL0_SW_DST_GLOBAL_ALPHA
-		 (msg->dst_a_global_val)));
+		 ((uint8_t)config->bg_global_alpha_value)));
 
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_DST_COLOR_M0)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_DST_COLOR_M0
-		 (msg->alpha_mode_0 >> 15)));
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_SRC_COLOR_M0)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_SRC_COLOR_M0
-		 (msg->alpha_mode_0 >> 7)));
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_DST_FACTOR_M0)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_DST_FACTOR_M0
-		 (msg->alpha_mode_0 >> 12)));
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_SRC_FACTOR_M0)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_SRC_FACTOR_M0
-		 (msg->alpha_mode_0 >> 4)));
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_DST_ALPHA_CAL_M0)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_DST_ALPHA_CAL_M0
-		 (msg->alpha_mode_0 >> 11)));
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_SRC_ALPHA_CAL_M0)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_SRC_ALPHA_CAL_M0
-		 (msg->alpha_mode_0 >> 3)));
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_DST_BLEND_M0)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_DST_BLEND_M0
-		 (msg->alpha_mode_0 >> 9)));
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_SRC_BLEND_M0)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_SRC_BLEND_M0
-		 (msg->alpha_mode_0 >> 1)));
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_DST_ALPHA_M0)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_DST_ALPHA_M0
-		 (msg->alpha_mode_0 >> 8)));
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_SRC_ALPHA_M0)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_SRC_ALPHA_M0
-		 (msg->alpha_mode_0 >> 0)));
+	*bRGA_ALPHA_CTRL0 = reg;
+	*bRGA_ALPHA_CTRL1 = color_ctrl.value | (alpha_ctrl.value << 16);
 
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_DST_FACTOR_M1)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_DST_FACTOR_M1
-		 (msg->alpha_mode_1 >> 12)));
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_SRC_FACTOR_M1)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_SRC_FACTOR_M1
-		 (msg->alpha_mode_1 >> 4)));
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_DST_ALPHA_CAL_M1)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_DST_ALPHA_CAL_M1
-		 (msg->alpha_mode_1 >> 11)));
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_SRC_ALPHA_CAL_M1)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_SRC_ALPHA_CAL_M1
-		 (msg->alpha_mode_1 >> 3)));
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_DST_BLEND_M1)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_DST_BLEND_M1(msg->alpha_mode_1 >> 9)));
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_SRC_BLEND_M1)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_SRC_BLEND_M1(msg->alpha_mode_1 >> 1)));
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_DST_ALPHA_M1)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_DST_ALPHA_M1(msg->alpha_mode_1 >> 8)));
-	reg1 =
-		((reg1 & (~m_RGA2_ALPHA_CTRL1_SW_SRC_ALPHA_M1)) |
-		 (s_RGA2_ALPHA_CTRL1_SW_SRC_ALPHA_M1(msg->alpha_mode_1 >> 0)));
-
-	*bRGA_ALPHA_CTRL0 = reg0;
-	*bRGA_ALPHA_CTRL1 = reg1;
 
 	if ((msg->alpha_rop_flag >> 2) & 1) {
 		*bRGA_FADING_CTRL = (1 << 24) | (msg->fading_b_value << 16) |
@@ -1764,8 +1925,6 @@ static int rga2_gen_reg_info(u8 *base, struct rga2_req *msg)
 static void rga_cmd_to_rga2_cmd(struct rga_scheduler_t *scheduler,
 				struct rga_req *req_rga, struct rga2_req *req)
 {
-	u16 alpha_mode_0, alpha_mode_1;
-
 	if (req_rga->render_mode == 6)
 		req->render_mode = UPDATE_PALETTE_TABLE_MODE;
 	else if (req_rga->render_mode == 7)
@@ -1843,9 +2002,6 @@ static void rga_cmd_to_rga2_cmd(struct rga_scheduler_t *scheduler,
 		break;
 	}
 
-	if ((req->dst.act_w > 2048) && (req->src.act_h < req->dst.act_h))
-		req->scale_bicu_mode |= (1 << 4);
-
 	req->LUT_addr = req_rga->LUT_addr;
 	req->rop_mask_addr = req_rga->rop_mask_addr;
 
@@ -1868,6 +2024,8 @@ static void rga_cmd_to_rga2_cmd(struct rga_scheduler_t *scheduler,
 
 	req->palette_mode = req_rga->palette_mode;
 	req->yuv2rgb_mode = req_rga->yuv2rgb_mode;
+	if (req_rga->full_csc.flag & 0x1)
+		req->full_csc_en = 1;
 	req->endian_mode = req_rga->endian_mode;
 	req->rgb2yuv_mode = 0;
 
@@ -1909,110 +2067,52 @@ static void rga_cmd_to_rga2_cmd(struct rga_scheduler_t *scheduler,
 
 	if (((req_rga->alpha_rop_flag) & 1)) {
 		if ((req_rga->alpha_rop_flag >> 3) & 1) {
-			/* porter duff alpha enable */
-			switch (req_rga->PD_mode) {
-			/* dst = 0 */
-			case 0:
-				break;
-			/* dst = src */
-			case 1:
-				req->alpha_mode_0 = 0x0212;
-				req->alpha_mode_1 = 0x0212;
-				break;
-			/* dst = dst */
-			case 2:
-				req->alpha_mode_0 = 0x1202;
-				req->alpha_mode_1 = 0x1202;
-				break;
-			/* dst = (256*sc + (256 - sa)*dc) >> 8 */
-			case 3:
-				if ((req_rga->alpha_rop_mode & 3) == 0) {
-					/* both use globalAlpha. */
-					alpha_mode_0 = 0x3010;
-					alpha_mode_1 = 0x3010;
-				} else if ((req_rga->alpha_rop_mode & 3) == 1) {
-					/* Do not use globalAlpha. */
-					alpha_mode_0 = 0x3212;
-					alpha_mode_1 = 0x3212;
-				} else if ((req_rga->alpha_rop_mode & 3) == 2) {
-					/*
-					 * dst use globalAlpha,
-					 * and dst has pixelAlpha.
-					 */
-					alpha_mode_0 = 0x3014;
-					alpha_mode_1 = 0x3014;
-				} else {
-					/*
-					 * dst use globalAlpha, and
-					 * dst does not have pixelAlpha.
-					 */
-					alpha_mode_0 = 0x3012;
-					alpha_mode_1 = 0x3012;
-				}
-				req->alpha_mode_0 = alpha_mode_0;
-				req->alpha_mode_1 = alpha_mode_1;
-				break;
-			/* dst = (sc*(256-da) + 256*dc) >> 8 */
-			case 4:
-				/* Do not use globalAlpha. */
-				req->alpha_mode_0 = 0x1232;
-				req->alpha_mode_1 = 0x1232;
-				break;
-			/* dst = (da*sc) >> 8 */
-			case 5:
-				break;
-			/* dst = (sa*dc) >> 8 */
-			case 6:
-				break;
-			/* dst = ((256-da)*sc) >> 8 */
-			case 7:
-				break;
-			/* dst = ((256-sa)*dc) >> 8 */
-			case 8:
-				break;
-			/* dst = (da*sc + (256-sa)*dc) >> 8 */
-			case 9:
-				req->alpha_mode_0 = 0x3040;
-				req->alpha_mode_1 = 0x3040;
-				break;
-			/* dst = ((256-da)*sc + (sa*dc)) >> 8 */
-			case 10:
-				break;
-			/* dst = ((256-da)*sc + (256-sa)*dc) >> 8 */
-			case 11:
-				break;
-			case 12:
-				req->alpha_mode_0 = 0x0010;
-				req->alpha_mode_1 = 0x0820;
-				break;
-			default:
-				break;
-			}
+			req->alpha_config.enable = true;
 
-			if (req->osd_info.enable) {
-				/* set dst(osd_block) real color mode */
-				if (req->alpha_mode_0 & (0x01 << 9))
-					req->alpha_mode_0 |= (1 << 15);
-			}
-
-			/* Real color mode */
 			if ((req_rga->alpha_rop_flag >> 9) & 1) {
-				if (req->alpha_mode_0 & (0x01 << 1))
-					req->alpha_mode_0 |= (1 << 7);
-				if (req->alpha_mode_0 & (0x01 << 9))
-					req->alpha_mode_0 |= (1 << 15);
+				req->alpha_config.fg_pre_multiplied = false;
+				req->alpha_config.bg_pre_multiplied = false;
+			} else if (req->osd_info.enable) {
+				req->alpha_config.fg_pre_multiplied = true;
+				/* set dst(osd_block) real color mode */
+				req->alpha_config.bg_pre_multiplied = false;
+			} else {
+				req->alpha_config.fg_pre_multiplied = true;
+				req->alpha_config.bg_pre_multiplied = true;
 			}
-		} else {
-			if ((req_rga->alpha_rop_mode & 3) == 0) {
-				req->alpha_mode_0 = 0x3040;
-				req->alpha_mode_1 = 0x3040;
-			} else if ((req_rga->alpha_rop_mode & 3) == 1) {
-				req->alpha_mode_0 = 0x3042;
-				req->alpha_mode_1 = 0x3242;
-			} else if ((req_rga->alpha_rop_mode & 3) == 2) {
-				req->alpha_mode_0 = 0x3044;
-				req->alpha_mode_1 = 0x3044;
+
+			req->alpha_config.fg_pixel_alpha_en = rga_is_alpha_format(req->src.format);
+			if (req->bitblt_mode)
+				req->alpha_config.bg_pixel_alpha_en =
+					rga_is_alpha_format(req->src1.format);
+			else
+				req->alpha_config.bg_pixel_alpha_en =
+					rga_is_alpha_format(req->dst.format);
+
+			if (req_rga->feature.global_alpha_en) {
+				if (req_rga->fg_global_alpha < 0xff) {
+					req->alpha_config.fg_global_alpha_en = true;
+					req->alpha_config.fg_global_alpha_value =
+						req_rga->fg_global_alpha;
+				} else if (!req->alpha_config.fg_pixel_alpha_en) {
+					req->alpha_config.fg_global_alpha_en = true;
+					req->alpha_config.fg_global_alpha_value = 0xff;
+				}
+
+				if (req_rga->bg_global_alpha < 0xff) {
+					req->alpha_config.bg_global_alpha_en = true;
+					req->alpha_config.bg_global_alpha_value =
+						req_rga->bg_global_alpha;
+				} else if (!req->alpha_config.bg_pixel_alpha_en) {
+					req->alpha_config.bg_global_alpha_en = true;
+					req->alpha_config.bg_global_alpha_value = 0xff;
+				}
+			} else {
+				req->alpha_config.bg_global_alpha_value = 0xff;
+				req->alpha_config.bg_global_alpha_value = 0xff;
 			}
+
+			req->alpha_config.mode = req_rga->PD_mode;
 		}
 	}
 
@@ -2059,7 +2159,7 @@ static void rga2_soft_reset(struct rga_scheduler_t *scheduler)
 {
 	u32 i;
 	u32 reg;
-	u32 iommu_dte_addr;
+	u32 iommu_dte_addr = 0;
 
 	if (scheduler->data->mmu == RGA_IOMMU)
 		iommu_dte_addr = rga_read(RGA_IOMMU_DTE_ADDR, scheduler);
@@ -2085,9 +2185,9 @@ static void rga2_soft_reset(struct rga_scheduler_t *scheduler)
 	}
 
 	if (i == RGA_RESET_TIMEOUT)
-		pr_err("RAG2 soft reset timeout.\n");
+		pr_err("RAG2 core[%d] soft reset timeout.\n", scheduler->core);
 	else
-		pr_info("RGA2 soft reset complete.\n");
+		pr_info("RGA2 core[%d] soft reset complete.\n", scheduler->core);
 
 }
 
@@ -2207,11 +2307,14 @@ static void print_debug_info(struct rga2_req *req)
 	pr_info("mmu: src=%.2x src1=%.2x dst=%.2x els=%.2x\n",
 		req->mmu_info.src0_mmu_flag, req->mmu_info.src1_mmu_flag,
 		req->mmu_info.dst_mmu_flag, req->mmu_info.els_mmu_flag);
-	pr_info("alpha: flag %x mode0=%x mode1=%x\n", req->alpha_rop_flag,
-		req->alpha_mode_0, req->alpha_mode_1);
-	pr_info("blend mode is %s\n",
-		rga_get_blend_mode_str(req->alpha_rop_flag, req->alpha_mode_0,
-					req->alpha_mode_1));
+	pr_info("alpha: flag %x mode=%s\n",
+		req->alpha_rop_flag, rga_get_blend_mode_str(req->alpha_config.mode));
+	pr_info("alpha: pre_multi=[%d,%d] pixl=[%d,%d] glb=[%d,%d]\n",
+		req->alpha_config.fg_pre_multiplied, req->alpha_config.bg_pre_multiplied,
+		req->alpha_config.fg_pixel_alpha_en, req->alpha_config.bg_pixel_alpha_en,
+		req->alpha_config.fg_global_alpha_en, req->alpha_config.bg_global_alpha_en);
+	pr_info("alpha: fg_global_alpha=%x bg_global_alpha=%x\n",
+		req->alpha_config.fg_global_alpha_value, req->alpha_config.bg_global_alpha_value);
 	pr_info("yuv2rgb mode is %x\n", req->yuv2rgb_mode);
 }
 
@@ -2220,6 +2323,7 @@ static int rga2_init_reg(struct rga_job *job)
 	struct rga2_req req;
 	int ret = 0;
 	struct rga_scheduler_t *scheduler = NULL;
+	ktime_t timestamp = ktime_get();
 
 	scheduler = job->scheduler;
 	if (unlikely(scheduler == NULL)) {
@@ -2230,7 +2334,24 @@ static int rga2_init_reg(struct rga_job *job)
 	memset(&req, 0x0, sizeof(req));
 
 	rga_cmd_to_rga2_cmd(scheduler, &job->rga_command_base, &req);
-	memcpy(&job->full_csc, &job->rga_command_base.full_csc, sizeof(job->full_csc));
+	if (req.full_csc_en) {
+		memcpy(&job->full_csc, &job->rga_command_base.full_csc, sizeof(job->full_csc));
+		if (job->rga_command_base.feature.full_csc_clip_en) {
+			memcpy(&job->full_csc_clip, &job->rga_command_base.full_csc_clip,
+			       sizeof(job->full_csc_clip));
+		} else {
+			job->full_csc_clip.y.max = 0xff;
+			job->full_csc_clip.y.min = 0x0;
+			job->full_csc_clip.uv.max = 0xff;
+			job->full_csc_clip.uv.min = 0x0;
+		}
+
+	} else {
+		job->full_csc_clip.y.max = 0xff;
+		job->full_csc_clip.y.min = 0x0;
+		job->full_csc_clip.uv.max = 0xff;
+		job->full_csc_clip.uv.min = 0x0;
+	}
 	memcpy(&job->pre_intr_info, &job->rga_command_base.pre_intr_info,
 	       sizeof(job->pre_intr_info));
 
@@ -2275,6 +2396,10 @@ static int rga2_init_reg(struct rga_job *job)
 		pr_err("gen reg info error\n");
 		return -EINVAL;
 	}
+
+	if (DEBUGGER_EN(TIME))
+		pr_info("request[%d], generate register cost time %lld us\n",
+			job->request_id, ktime_us_delta(ktime_get(), timestamp));
 
 	return ret;
 }
@@ -2381,19 +2506,13 @@ static void rga2_set_pre_intr_reg(struct rga_job *job, struct rga_scheduler_t *s
 
 static void rga2_set_reg_full_csc(struct rga_job *job, struct rga_scheduler_t *scheduler)
 {
-	uint8_t clip_y_max, clip_y_min;
-	uint8_t clip_uv_max, clip_uv_min;
-
-	clip_y_max = 0xff;
-	clip_y_min = 0x0;
-	clip_uv_max = 0xff;
-	clip_uv_min = 0;
-
 	/* full csc coefficient */
 	/* Y coefficient */
-	rga_write(job->full_csc.coe_y.r_v | (clip_y_max << 16) | (clip_y_min << 24),
+	rga_write(job->full_csc.coe_y.r_v |
+		  (job->full_csc_clip.y.max << 16) | (job->full_csc_clip.y.min << 24),
 		  RGA2_DST_CSC_00, scheduler);
-	rga_write(job->full_csc.coe_y.g_y | (clip_uv_max << 16) | (clip_uv_min << 24),
+	rga_write(job->full_csc.coe_y.g_y |
+		  (job->full_csc_clip.uv.max << 16) | (job->full_csc_clip.uv.min << 24),
 		  RGA2_DST_CSC_01, scheduler);
 	rga_write(job->full_csc.coe_y.b_u, RGA2_DST_CSC_02, scheduler);
 	rga_write(job->full_csc.coe_y.off, RGA2_DST_CSC_OFF0, scheduler);
@@ -2485,8 +2604,8 @@ static int rga2_set_reg(struct rga_job *job, struct rga_scheduler_t *scheduler)
 			rga_read(RGA2_INT, scheduler));
 
 	if (DEBUGGER_EN(TIME))
-		pr_info("set cmd use time = %lld\n",
-			ktime_us_delta(now, job->timestamp));
+		pr_info("request[%d], set register cost time %lld us\n",
+			job->request_id, ktime_us_delta(now, job->timestamp));
 
 	job->hw_running_time = now;
 	job->hw_recoder_time = now;

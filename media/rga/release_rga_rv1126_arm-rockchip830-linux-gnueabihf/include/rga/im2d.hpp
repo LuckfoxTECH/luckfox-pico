@@ -20,22 +20,8 @@
 #define _im2d_hpp_
 
 #include "im2d.h"
-#include "RgaUtils.h"
+#include "im2d_expand.h"
 
-#ifdef ANDROID
+#endif /* #ifndef _im2d_hpp_ */
 
-#include <ui/GraphicBuffer.h>
-
-using namespace android;
-
-IM_API rga_buffer_t wrapbuffer_handle(buffer_handle_t hnd);
-IM_API rga_buffer_t wrapbuffer_GraphicBuffer(sp<GraphicBuffer> buf);
-
-#if USE_AHARDWAREBUFFER
-#include <android/hardware_buffer.h>
-IM_API rga_buffer_t wrapbuffer_AHardwareBuffer(AHardwareBuffer *buf);
-
-#endif /* USE_AHARDWAREBUFFER */
-#endif /* ANDROID */
-#endif /* _im2d_hpp_ */
 

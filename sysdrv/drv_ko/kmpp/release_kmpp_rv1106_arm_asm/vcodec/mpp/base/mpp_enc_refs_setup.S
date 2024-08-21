@@ -274,9 +274,9 @@ mpi_enc_gen_hir_skip_ref:
 	.size	mpi_enc_gen_hir_skip_ref, .-mpi_enc_gen_hir_skip_ref
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__func__.7562, %object
-	.size	__func__.7562, 20
-__func__.7562:
+	.type	__func__.7568, %object
+	.size	__func__.7568, 20
+__func__.7568:
 	.ascii	"mpi_enc_gen_ref_cfg\000"
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:

@@ -1,0 +1,17 @@
+from building import *
+  
+cwd     = GetCurrentDir()
+src     = Split('''
+    core_main.c
+    core_list_join.c
+    core_matrix.c
+    core_state.c
+    core_util.c
+    barebones/core_portme.c
+    barebones/ee_printf.c
+    ''')
+CPPPATH = [cwd, os.path.join(cwd, 'barebones')]
+LOCAL_CCFLAGS = ' -funroll-loops -fpeel-loops -fgcse-sm -fgcse-las'
+group   = DefineGroup('Coremark', src, depend = ['RT_USING_COREMARK'], CPPPATH = CPPPATH, LOCAL_CCFLAGS = LOCAL_CCFLAGS)
+
+Return('group')

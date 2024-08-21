@@ -1,0 +1,27 @@
+Import('RTT_ROOT')
+Import('rtconfig')
+from building import *
+
+cwd = GetCurrentDir()
+src = Glob('*.c') \
+
+# benchmark demo.
+src += Glob('benchmark/*.c') \
+        + Glob('benchmark/assets/*.c') 
+
+# music demo
+src += Glob('music/*.c') \
+        + Glob('music/assets/*.c') 
+
+CPPPATH = [cwd]
+
+# benchmark demo.
+CPPPATH += [cwd + '/benchmark']
+
+# music demo.
+CPPPATH += [cwd + '/music']
+
+group = DefineGroup('Applications', src, depend = ['RT_USING_LVGL_DEMO'], CPPPATH = CPPPATH)
+
+Return('group')
+

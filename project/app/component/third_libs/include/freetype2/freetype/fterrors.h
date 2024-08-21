@@ -165,10 +165,10 @@
 
 #define FT_ERRORDEF(e, v, s) e = v,
 #define FT_ERROR_START_LIST enum {
-#define FT_ERROR_END_LIST                                                      \
-  FT_ERR_CAT(FT_ERR_PREFIX, Max)                                               \
-  }                                                                            \
-  ;
+#define FT_ERROR_END_LIST                                                                          \
+	FT_ERR_CAT(FT_ERR_PREFIX, Max)                                                                 \
+	}                                                                                              \
+	;
 
 #ifdef __cplusplus
 #define FT_NEED_EXTERN_C
@@ -178,8 +178,7 @@ extern "C" {
 #endif /* !FT_ERRORDEF */
 
 /* this macro is used to define an error */
-#define FT_ERRORDEF_(e, v, s)                                                  \
-  FT_ERRORDEF(FT_ERR_CAT(FT_ERR_PREFIX, e), v + FT_ERR_BASE, s)
+#define FT_ERRORDEF_(e, v, s) FT_ERRORDEF(FT_ERR_CAT(FT_ERR_PREFIX, e), v + FT_ERR_BASE, s)
 
 /* this is only used for <module>_Err_Ok, which must be 0! */
 #define FT_NOERRORDEF_(e, v, s) FT_ERRORDEF(FT_ERR_CAT(FT_ERR_PREFIX, e), v, s)

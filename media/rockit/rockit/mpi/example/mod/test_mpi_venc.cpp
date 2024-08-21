@@ -596,7 +596,7 @@ RK_S32 unit_test_mpi_venc(TEST_VENC_CTX_S *ctx) {
     // for input image pool
     memset(&stMbPoolCfg, 0, sizeof(MB_POOL_CONFIG_S));
     stMbPoolCfg.u64MBSize = ctx->u32BufferSize;
-    stMbPoolCfg.u32MBCnt  = 3;
+    stMbPoolCfg.u32MBCnt  = 1;
     stMbPoolCfg.enAllocType = MB_ALLOC_TYPE_DMA;
     stMbPoolCfg.bPreAlloc = RK_TRUE;
     ctx->vencPoolInput = RK_MPI_MB_CreatePool(&stMbPoolCfg);
@@ -699,7 +699,7 @@ RK_S32 unit_test_mpi_venc(TEST_VENC_CTX_S *ctx) {
             // for output stream pool
             memset(&stMbPoolCfg, 0, sizeof(MB_POOL_CONFIG_S));
             stMbPoolCfg.u64MBSize = ctx->u32StreamSize;
-            stMbPoolCfg.u32MBCnt  = 3;
+            stMbPoolCfg.u32MBCnt  = 1;
             stMbPoolCfg.enAllocType = MB_ALLOC_TYPE_DMA;
             stMbPoolCfg.bPreAlloc = RK_TRUE;  //  this must prealloc if attach enc output
             ctx->vencPoolOutput[u32Ch] = RK_MPI_MB_CreatePool(&stMbPoolCfg);

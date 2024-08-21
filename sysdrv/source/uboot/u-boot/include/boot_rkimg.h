@@ -19,7 +19,7 @@ enum _boot_mode {
 	BOOT_MODE_PANIC,
 	BOOT_MODE_WATCHDOG,
 	BOOT_MODE_DFU,
-	BOOT_MODE_UBOOT_TERMINAL,
+	BOOT_MODE_QUIESCENT,
 	BOOT_MODE_UNDEFINE,
 };
 
@@ -60,6 +60,7 @@ struct rockchip_image {
 #define PART_RECOVERY			"recovery"
 #define PART_DTBO			"dtbo"
 #define PART_LOGO			"logo"
+#define PART_ROOTFS			"rootfs"
 #define PART_SYSTEM			"system"
 #define PART_METADATA			"metadata"
 #define PART_USERDATA			"userdata"

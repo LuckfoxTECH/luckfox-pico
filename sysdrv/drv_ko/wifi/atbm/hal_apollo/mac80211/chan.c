@@ -72,7 +72,12 @@ bool ieee80211_set_channel_type(struct ieee80211_local *local,
 #ifdef CONFIG_ATBM_SUPPORT_MULTI_CHANNEL
 	if (local->hw.flags & IEEE80211_HW_SUPPORTS_MULTI_CHANNEL) {
 		/* XXX: COMBO: TBD - is this ok? */
-		BUG_ON(!sdata);
+		//BUG_ON(!sdata);
+		if(!sdata){
+			atbm_printk_err("%s %d ,ERROR !!! sdata is NULL\n",__func__,__LINE__);
+			result = false;
+			goto out;
+		}
 		sdata->chan_state._oper_channel_type = chantype;
 		sdata->vif.bss_conf.channel_type = chantype;
 		result = true;

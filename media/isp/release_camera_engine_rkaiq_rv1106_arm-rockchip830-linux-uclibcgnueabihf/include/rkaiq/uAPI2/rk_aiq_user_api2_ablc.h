@@ -20,7 +20,10 @@
 
 #include "ablc/rk_aiq_uapi_ablc_int.h"
 
+#ifndef RK_AIQ_SYS_CTX_T
+#define RK_AIQ_SYS_CTX_T
 typedef struct rk_aiq_sys_ctx_s rk_aiq_sys_ctx_t;
+#endif
 
 RKAIQ_BEGIN_DECLARE
 
@@ -28,6 +31,8 @@ XCamReturn
 rk_aiq_user_api2_ablc_SetAttrib(const rk_aiq_sys_ctx_t* sys_ctx, const rk_aiq_blc_attrib_t *attr);
 XCamReturn
 rk_aiq_user_api2_ablc_GetAttrib(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_blc_attrib_t *attr);
+XCamReturn
+rk_aiq_user_api2_ablc_GetInfo(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_ablc_info_t *pInfo);
 
 RKAIQ_END_DECLARE
 

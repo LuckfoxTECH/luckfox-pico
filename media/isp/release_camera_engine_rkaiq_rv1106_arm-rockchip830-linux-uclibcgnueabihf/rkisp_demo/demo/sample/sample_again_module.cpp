@@ -17,6 +17,10 @@
 
 #include "sample_comm.h"
 
+#define RK_AGAIN_GAIN2DDR_MODE_4X8      0
+#define RK_AGAIN_GAIN2DDR_MODE_2X8      1
+#define RK_AGAIN_GAIN2DDR_MODE_1X8      2
+
 static void sample_again_usage()
 {
     printf("Usage : \n");
@@ -28,6 +32,9 @@ static void sample_again_usage()
     printf("\t 5) AGAIN:         set again attri auto on async mode.\n");
     printf("\t 6) AGAIN:         set again attri manual on async mode.\n");
     printf("\t 7) AGAIN:         set again attri to default vaule on async mode.\n");
+    printf("\t 8) AGAIN:         set local gain write mode 4*8.\n");
+    printf("\t 9) AGAIN:         set local gain write mode 2*8.\n");
+    printf("\t a) AGAIN:         set local gain write mode 1*8.\n");
     printf("\t q) AGAIN:         press key q or Q to quit.\n");
 
 }
@@ -116,6 +123,28 @@ XCamReturn sample_again_setDefault_v2 (const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_
     return ret;
 }
 
+XCamReturn sample_agin_WriteLocalGain(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode_sync_e sync_mode, int mode)
+{
+    rk_aiq_uapiV2_again_wrtIn_attr_t attr;
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    attr.call_cnt = 1;
+    attr.enable = true;
+    attr.mode = mode;
+    sprintf(attr.path, "/tmp");
+    ret = rk_aiq_user_api2_againV2_WriteInput(ctx, &attr, sync_mode);
+
+    if (!ret) {
+        if (mode == RK_AGAIN_GAIN2DDR_MODE_4X8)
+            printf("Write local gain input 4X8_mode \n\n");
+        if (mode == RK_AGAIN_GAIN2DDR_MODE_2X8)
+            printf("Write local gain input 2X8_mode \n\n");
+        if (mode == RK_AGAIN_GAIN2DDR_MODE_1X8)
+            printf("Write local gain input 1X8_mode \n\n");
+    }
+
+    return ret;
+}
 XCamReturn sample_again_module (const void *arg)
 {
     int key = -1;
@@ -138,7 +167,7 @@ XCamReturn sample_again_module (const void *arg)
     }
 
     rk_aiq_gain_attrib_v2_t default_gainV2_attr;
-    if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32()) {
+    if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
         ret = rk_aiq_user_api2_againV2_GetAttrib(ctx, &default_gainV2_attr);
         printf("get again v2 default attri ret:%d \n\n", ret);
     }
@@ -153,43 +182,58 @@ XCamReturn sample_again_module (const void *arg)
 
         switch (key) {
         case '0':
-            if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_again_getAttr_v2(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
         case '1':
-            if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_again_setAuto_v2(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
         case '2':
-            if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_again_setManual_v2(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
         case '3':
-            if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_again_setDefault_v2(ctx, RK_AIQ_UAPI_MODE_SYNC, default_gainV2_attr);
             }
             break;
         case '4':
-            if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_again_getAttr_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
             break;
         case '5':
-            if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_again_setAuto_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
             break;
         case '6':
-            if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_again_setManual_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
             break;
         case '7':
-            if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V30() || CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_again_setDefault_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC, default_gainV2_attr);
+            }
+            break;
+        case '8':
+            if (CHECK_ISP_HW_V32()) {
+                sample_agin_WriteLocalGain(ctx, RK_AIQ_UAPI_MODE_SYNC, RK_AGAIN_GAIN2DDR_MODE_4X8);
+            }
+            break;
+        case '9':
+            if (CHECK_ISP_HW_V32()) {
+                sample_agin_WriteLocalGain(ctx, RK_AIQ_UAPI_MODE_SYNC, RK_AGAIN_GAIN2DDR_MODE_2X8);
+            }
+            break;
+        case 'a':
+            if (CHECK_ISP_HW_V32()) {
+                sample_agin_WriteLocalGain(ctx, RK_AIQ_UAPI_MODE_SYNC, RK_AGAIN_GAIN2DDR_MODE_1X8);
             }
             break;
         default:

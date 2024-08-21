@@ -38,8 +38,8 @@ static void SigtermHandler(int sig) {
 }
 
 static RKADK_VOID MountStatusCallback(RKADK_MW_PTR pHandle,
-                                      RKADK_MOUNT_STATUS status) {
-  switch (status) {
+              RKADK_MOUNT_STATUS status) {
+  switch(status) {
   case DISK_UNMOUNTED:
     RKADK_LOGD("+++++ DISK_UNMOUNTED +++++");
     break;
@@ -228,6 +228,13 @@ static void sigterm_handler(int sig) {
   quit = true;
 }
 
+bool FileFilterCb(const char *fileName) {
+  if (!strstr(fileName, "sub"))
+    return true;
+
+  return false;
+}
+
 int main(int argc, char *argv[]) {
   RKADK_S32 i;
   RKADK_MW_PTR pHandle = NULL;
@@ -250,6 +257,8 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
+  RKADK_STORAGE_RegisterFileFilterCB(pHandle, FileFilterCb);
+
   RKADK_LOGI("Dev path: %s", RKADK_STORAGE_GetDevPath(pHandle));
   signal(SIGINT, SigtermHandler);
   sleep(10);
@@ -263,13 +272,21 @@ int main(int argc, char *argv[]) {
   }
 
   if (!RKADK_STORAGE_GetFileList(&list, pHandle, LIST_DESCENDING)) {
-    for (i = 0; i < list.s32FileNum; i++) {
+    RKADK_LOGD("LIST_DESCENDING: %d", list.s32FileNum);
+    for (i = 0; i < list.s32FileNum; i++)
       RKADK_LOGI("%s  %lld", list.file[i].filename, list.file[i].stSize);
-    }
   }
-
   RKADK_STORAGE_FreeFileList(&list);
+
+  if (!RKADK_STORAGE_GetFileList(&list, pHandle, LIST_ASCENDING)) {
+    RKADK_LOGD("LIST_ASCENDING: %d", list.s32FileNum);
+    for (i = 0; i < list.s32FileNum; i++)
+      RKADK_LOGI("%s  %lld", list.file[i].filename, list.file[i].stSize);
+  }
+  RKADK_STORAGE_FreeFileList(&list);
+
   FreeDevAttr(stDevAttr);
+  RKADK_STORAGE_UnRegisterFileFilterCB(pHandle);
   RKADK_STORAGE_Deinit(pHandle);
   RKADK_LOGD("%s out", argv[0]);
 

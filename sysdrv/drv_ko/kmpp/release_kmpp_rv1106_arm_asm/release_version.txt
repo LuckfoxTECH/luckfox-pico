@@ -1,8 +1,16 @@
-commit 0cf529e00c8e27cb06b40f4f4a5b411fdd771632
-Author: Zhihua Wang <hogan.wang@rock-chips.com>
-Date:   Fri Dec 30 11:37:41 2022 +0800
+commit 424abb9bffcc6f077daa00572bca1301c757e079
+Author: Yandong Lin <yandong.lin@rock-chips.com>
+Date:   Thu Apr 25 11:21:07 2024 +0800
 
-    [vcodec]: add packet num module parameter
+    [mpp_enc]: fix wrap enc sw timeout when resolution switch
     
-    Signed-off-by: Zhihua Wang <hogan.wang@rock-chips.com>
-    Change-Id: Iebacf1a6e3dc80e3aa3eb82298baaad6bf932fe7
+    1. Drop task if resolution mismatch that will happen in resolution switch
+    case.
+    2. In the case of wrapping, when switching resolutions, need to ensure
+    that the wrapping frame being encoded finish.
+    
+    relative redmine:
+    https://redmine.rock-chips.com/issues/479306
+    
+    Signed-off-by: Yandong Lin <yandong.lin@rock-chips.com>
+    Change-Id: I68777eb1bb2a2ddd9bad6ee2f610ff6d3e487544

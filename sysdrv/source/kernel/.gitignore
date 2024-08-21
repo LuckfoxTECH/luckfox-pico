@@ -130,7 +130,7 @@ ID
 
 *.orig
 *~
-/#*#
+\#*#
 
 #
 # Leavings from module signing
@@ -160,14 +160,3 @@ x509.genkey
 
 # Documentation toolchain
 sphinx_*/
-
-#drv_ko
-drv_ko/
-
-# !drivers/staging/media/atomisp/pci/isp/kernels/output/output_1.0/*.c
-# !drivers/staging/media/atomisp/pci/isp/kernels/output/output_1.0/*.h
-!drivers/staging/media/atomisp/pci/isp/kernels/output/
-!drivers/staging/media/atomisp/pci/isp/kernels/output/output_1.0/*.c
-!drivers/staging/media/atomisp/pci/isp/kernels/output/output_1.0/*.h
-
-!.scmversion

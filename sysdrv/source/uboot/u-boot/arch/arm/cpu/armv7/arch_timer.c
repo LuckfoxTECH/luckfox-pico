@@ -41,5 +41,5 @@ ulong timer_get_boot_us(void)
 
 ulong get_tbclk(void)
 {
-	return gd->arch.timer_rate_hz;
+	return gd->arch.timer_rate_hz ? : CONFIG_SYS_HZ_CLOCK;
 }

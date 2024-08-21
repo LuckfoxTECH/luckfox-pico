@@ -23,18 +23,18 @@ extern "C" {
 #endif
 #endif /* End of #ifdef __cplusplus */
 
-#include "rk_comm_video.h"
 #include "rk_debug.h"
+#include "rk_comm_video.h"
 
-#define DEFAULT_IMAGE_FUZZY_DIFF_THRESHOLD 0.1
+#define DEFAULT_IMAGE_FUZZY_DIFF_THRESHOLD      0.1
 
 RK_S32 TEST_COMM_FillImage(RK_U8 *buf, RK_U32 width, RK_U32 height,
-                           RK_U32 hor_stride, RK_U32 ver_stride,
-                           PIXEL_FORMAT_E fmt, RK_U32 frame_count);
+                   RK_U32 hor_stride, RK_U32 ver_stride, PIXEL_FORMAT_E fmt,
+                   RK_U32 frame_count);
 
-RK_BOOL TEST_COMM_CompareImageFuzzy(RK_U8 *pu8Src, RK_U8 *pu8Dst,
-                                    RK_U32 u32Stride, RK_U32 u32Width,
-                                    RK_U32 u32Height, RK_DOUBLE dThreshold);
+RK_BOOL TEST_COMM_CompareImageFuzzy(
+        RK_U8 *pu8Src, RK_U8 *pu8Dst, RK_U32 u32Stride,
+        RK_U32 u32Width, RK_U32 u32Height, RK_DOUBLE dThreshold);
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -42,4 +42,5 @@ RK_BOOL TEST_COMM_CompareImageFuzzy(RK_U8 *pu8Src, RK_U8 *pu8Dst,
 #endif
 #endif /* End of #ifdef __cplusplus */
 
-#endif // SRC_TESTS_RT_MPI_COMMON_TEST_COMM_IMGPROC_H_
+#endif  // SRC_TESTS_RT_MPI_COMMON_TEST_COMM_IMGPROC_H_
+

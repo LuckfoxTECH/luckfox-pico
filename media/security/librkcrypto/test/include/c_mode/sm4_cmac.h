@@ -7,7 +7,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *    notice, this list of conditions and the following disclaimer. 
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -53,18 +53,17 @@
 #define __SM4_CMAC_H__
 #include "sm4_core.h"
 
-#ifdef __cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
 
-int rk_sm4_genarate_cmac(unsigned char *key, unsigned int key_len,
-                         unsigned char *msg, unsigned int msg_len,
-                         unsigned char *macvalue);
-int rk_sm4_verify_cmac(unsigned char *key, unsigned int key_len,
-                       unsigned char *msg, unsigned int msg_len,
-                       unsigned char *macvalue);
+int rk_sm4_genarate_cmac(unsigned char *key, unsigned int key_len, 
+					unsigned char *msg, unsigned int msg_len, unsigned char *macvalue);
+int rk_sm4_verify_cmac(unsigned char *key, unsigned int key_len, 
+					unsigned char *msg, unsigned int msg_len, unsigned char *macvalue);
 
-#ifdef __cplusplus
+
+#ifdef  __cplusplus
 }
 #endif
 

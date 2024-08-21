@@ -21,11 +21,11 @@
  *=========================*/
 
 #ifdef RT_USING_HEAP
-#define LV_MEM_CUSTOM 1
-#define LV_MEM_CUSTOM_INCLUDE LV_RTTHREAD_INCLUDE
-#define LV_MEM_CUSTOM_ALLOC rt_malloc
-#define LV_MEM_CUSTOM_FREE rt_free
-#define LV_MEM_CUSTOM_REALLOC rt_realloc
+#  define LV_MEM_CUSTOM 1
+#  define LV_MEM_CUSTOM_INCLUDE LV_RTTHREAD_INCLUDE
+#  define LV_MEM_CUSTOM_ALLOC   rt_malloc
+#  define LV_MEM_CUSTOM_FREE    rt_free
+#  define LV_MEM_CUSTOM_REALLOC rt_realloc
 #endif
 
 /*====================
@@ -34,9 +34,7 @@
 
 #define LV_TICK_CUSTOM 1
 #define LV_TICK_CUSTOM_INCLUDE LV_RTTHREAD_INCLUDE
-#define LV_TICK_CUSTOM_SYS_TIME_EXPR                                           \
-  (rt_tick_get_millisecond()) /*Expression evaluating to current system time   \
-                                 in ms*/
+#define LV_TICK_CUSTOM_SYS_TIME_EXPR (rt_tick_get_millisecond())    /*Expression evaluating to current system time in ms*/
 
 /*=======================
  * FEATURE CONFIGURATION
@@ -47,9 +45,9 @@
  *-----------*/
 
 #ifdef PKG_LVGL_ENABLE_LOG
-#define LV_USE_LOG 1
+#  define LV_USE_LOG 1
 #else
-#define LV_USE_LOG 0
+#  define LV_USE_LOG 0
 #endif
 
 /*-------------
@@ -65,7 +63,7 @@
 
 #define LV_SPRINTF_CUSTOM 1
 #define LV_SPRINTF_INCLUDE LV_RTTHREAD_INCLUDE
-#define lv_snprintf rt_snprintf
+#define lv_snprintf  rt_snprintf
 #define lv_vsnprintf rt_vsnprintf
 #define LV_SPRINTF_USE_FLOAT 0
 
@@ -74,19 +72,19 @@
  *====================*/
 
 #ifdef ARCH_CPU_BIG_ENDIAN
-#define LV_BIG_ENDIAN_SYSTEM 1
+#  define LV_BIG_ENDIAN_SYSTEM 1
 #else
-#define LV_BIG_ENDIAN_SYSTEM 0
+#  define LV_BIG_ENDIAN_SYSTEM 0
 #endif
 
 #define LV_ATTRIBUTE_MEM_ALIGN ALIGN(4)
 
 /*==================
- * EXAMPLES
- *==================*/
+* EXAMPLES
+*==================*/
 
 #ifdef PKG_USING_LVGL_EXAMPLES
-#define LV_BUILD_EXAMPLES 1
+#  define LV_BUILD_EXAMPLES 1
 #endif
 
 /*--END OF LV_RT_THREAD_CONF_H--*/

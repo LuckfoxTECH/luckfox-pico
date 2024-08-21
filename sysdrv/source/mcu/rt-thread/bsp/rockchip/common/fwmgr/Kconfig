@@ -1,0 +1,5 @@
+config RT_USING_FWANALYSIS
+    bool "Enable firmware analysis"
+    default n
+    help
+        Select this option to enable firmware analysis

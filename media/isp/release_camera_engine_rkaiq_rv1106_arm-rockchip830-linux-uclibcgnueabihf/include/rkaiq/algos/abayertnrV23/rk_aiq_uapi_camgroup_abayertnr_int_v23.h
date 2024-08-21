@@ -12,14 +12,18 @@
 // sync should be done in inner. now we just need implement
 // the case of need_sync == false; need_sync is for future usage.
 
-XCamReturn
-rk_aiq_uapi_camgroup_abayertnrV23_SetAttrib(RkAiqAlgoContext *ctx,
-        const rk_aiq_bayertnr_attrib_v23_t *attr,
-        bool need_sync);
+XCamReturn rk_aiq_uapi_camgroup_abayertnrV23_SetAttrib(RkAiqAlgoContext* ctx,
+                                                       const rk_aiq_bayertnr_attrib_v23_t* attr,
+                                                       bool need_sync);
 
-XCamReturn
-rk_aiq_uapi_camgroup_abayertnrV23_GetAttrib(const RkAiqAlgoContext *ctx,
-        rk_aiq_bayertnr_attrib_v23_t *attr);
+XCamReturn rk_aiq_uapi_camgroup_abayertnrV23_GetAttrib(const RkAiqAlgoContext* ctx,
+                                                       rk_aiq_bayertnr_attrib_v23_t* attr);
+
+XCamReturn rk_aiq_uapi_camgroup_abayertnrV23Lite_SetAttrib(
+    RkAiqAlgoContext* ctx, const rk_aiq_bayertnr_attrib_v23L_t* attr, bool need_sync);
+
+XCamReturn rk_aiq_uapi_camgroup_abayertnrV23Lite_GetAttrib(const RkAiqAlgoContext* ctx,
+                                                           rk_aiq_bayertnr_attrib_v23L_t* attr);
 
 XCamReturn
 rk_aiq_uapi_camgroup_abayertnrV23_SetStrength(const RkAiqAlgoContext *ctx,

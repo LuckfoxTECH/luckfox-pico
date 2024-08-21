@@ -28,8 +28,8 @@ extern "C" {
 #define SIZEOF(struct, member) sizeof(((struct *)0)->member)
 #define DEFINE_MAP(variable, structName, type, member)                         \
   {                                                                            \
-#variable, #member, type, SIZEOF(struct structName, member),               \
-        OFFSET(struct structName, member)                                      \
+    #variable, #member, type, SIZEOF(struct structName, member),               \
+                                     OFFSET(struct structName, member)         \
   }
 
 #define SI_CONFIG_MAP_STR_LENGTH_MAX 200

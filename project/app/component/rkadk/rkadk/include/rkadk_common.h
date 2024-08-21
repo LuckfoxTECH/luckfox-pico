@@ -25,7 +25,7 @@ extern "C" {
 #include <pthread.h>
 
 // dump config info for debug
-#define RKADK_DUMP_CONFIG
+ #define RKADK_DUMP_CONFIG
 
 // dump isp process result
 //#define RKADK_DUMP_ISP_RESULT
@@ -36,8 +36,17 @@ extern "C" {
 // simultaneous record files num
 #define RECORD_FILE_NUM_MAX 2
 
-#define RKADK_MAX_FILE_PATH_LEN 256
+#define RKADK_MAX_FILE_PATH_LEN 128
 #define RKADK_PIX_FMT_LEN 32
+#define RKADK_INTF_FMT_LEN 32
+#define RKADK_SPLICE_MODE_LEN 10
+#define RKADK_THREAD_NAME_LEN 32
+
+#define JPEG_SLICE_WIDTH_MAX 8192
+#define JPEG_SLICE_HEIGHT_MAX 8192
+
+#define RKADK_BUFFER_LEN 64
+#define RKADK_PATH_LEN 128
 
 typedef unsigned char RKADK_U8;
 typedef unsigned short RKADK_U16;
@@ -79,8 +88,8 @@ typedef enum {
   RKADK_THUMB_TYPE_NV12 = 0,
   RKADK_THUMB_TYPE_JPEG,
   RKADK_THUMB_TYPE_RGB565,
-  RKADK_THUMB_TYPE_RGB888,
-  RKADK_THUMB_TYPE_RGBA8888
+  RKADK_THUMB_TYPE_RGBA8888,
+  RKADK_THUMB_TYPE_BGRA8888
 } RKADK_THUMB_TYPE_E;
 
 typedef struct {
@@ -102,6 +111,10 @@ typedef struct {
   RKADK_U32 u32VirHeight;
   RKADK_U8 *pu8Buf;
   RKADK_U32 u32BufSize;
+
+  RKADK_S32 s32VdecChn;
+  RKADK_S32 s32VpssGrp;
+  RKADK_S32 s32VpssChn;
 } RKADK_THUMB_ATTR_S;
 
 typedef RKADK_THUMB_ATTR_S RKADK_FRAME_ATTR_S;
@@ -131,11 +144,11 @@ typedef enum {
 typedef enum {
   RKADK_VQE_MODE_AI_TALK = 0,
   RKADK_VQE_MODE_AI_RECORD,
-  RKADK_VQE_MODE_AO,
   RKADK_VQE_MODE_BUTT
 } RKADK_VQE_MODE_E;
 
 typedef enum {
+  RKADK_STREAM_TYPE_SENSOR,
   RKADK_STREAM_TYPE_VIDEO_MAIN,
   RKADK_STREAM_TYPE_VIDEO_SUB,
   RKADK_STREAM_TYPE_SNAP,
@@ -147,21 +160,56 @@ typedef enum {
 } RKADK_STREAM_TYPE_E;
 
 typedef enum {
-  RKADK_FMT_ARGB1555, /* 16-bit RGB               */
-  RKADK_FMT_ABGR1555, /* 16-bit RGB               */
-  RKADK_FMT_RGBA5551, /* 16-bit RGB               */
-  RKADK_FMT_BGRA5551, /* 16-bit RGB               */
-  RKADK_FMT_ARGB4444, /* 16-bit RGB               */
-  RKADK_FMT_ABGR4444, /* 16-bit RGB               */
-  RKADK_FMT_RGBA4444, /* 16-bit RGB               */
-  RKADK_FMT_BGRA4444, /* 16-bit RGB               */
-  RKADK_FMT_ARGB8888, /* 32-bit RGB               */
-  RKADK_FMT_ABGR8888, /* 32-bit RGB               */
-  RKADK_FMT_RGBA8888, /* 32-bit RGB               */
-  RKADK_FMT_BGRA8888, /* 32-bit RGB               */
+  RKADK_FMT_ARGB1555,                                   /* 16-bit RGB               */
+  RKADK_FMT_ABGR1555,                                   /* 16-bit RGB               */
+  RKADK_FMT_RGBA5551,                                   /* 16-bit RGB               */
+  RKADK_FMT_BGRA5551,                                   /* 16-bit RGB               */
+  RKADK_FMT_ARGB4444,                                   /* 16-bit RGB               */
+  RKADK_FMT_ABGR4444,                                   /* 16-bit RGB               */
+  RKADK_FMT_RGBA4444,                                   /* 16-bit RGB               */
+  RKADK_FMT_BGRA4444,                                   /* 16-bit RGB               */
+  RKADK_FMT_ARGB8888,                                   /* 32-bit RGB               */
+  RKADK_FMT_ABGR8888,                                   /* 32-bit RGB               */
+  RKADK_FMT_RGBA8888,                                   /* 32-bit RGB               */
+  RKADK_FMT_BGRA8888,                                   /* 32-bit RGB               */
   RKADK_FMT_2BPP,
+  RKADK_FMT_YUV420SP,
+  RKADK_FMT_YUV420SP_10BIT,
+  RKADK_FMT_YUV422SP,
+  RKADK_FMT_YUV422_UYVY,
   RKADK_FMT_BUTT,
 } RKADK_FORMAT_E;
+
+typedef enum {
+  VO_FORMAT_ARGB8888 = 0,
+  VO_FORMAT_ABGR8888,
+  VO_FORMAT_RGB888,
+  VO_FORMAT_BGR888,
+  VO_FORMAT_ARGB1555,
+  VO_FORMAT_ABGR1555,
+  VO_FORMAT_RGB565,
+  VO_FORMAT_BGR565,
+  VO_FORMAT_RGB444,
+  VO_FORMAT_NV12,
+  VO_FORMAT_NV21
+} RKADK_VO_FORMAT_E;
+
+typedef enum {
+  SPLICE_MODE_RGA = 0,
+  SPLICE_MODE_GPU,
+  SPLICE_MODE_BYPASS
+} RKADK_VO_SPLICE_MODE_E;
+
+typedef enum {
+  DISPLAY_TYPE_HDMI = 0,
+  DISPLAY_TYPE_EDP,
+  DISPLAY_TYPE_VGA,
+  DISPLAY_TYPE_DP,
+  DISPLAY_TYPE_HDMI_EDP,
+  DISPLAY_TYPE_MIPI,
+  DISPLAY_TYPE_LCD,
+  DISPLAY_TYPE_DEFAULT,
+} RKADK_VO_INTF_TYPE_E;
 
 #ifndef NULL
 #define NULL 0L
@@ -171,9 +219,12 @@ typedef enum {
 #define RKADK_SUCCESS 0
 #define RKADK_FAILURE (-1)
 #define RKADK_PARAM_NOT_EXIST (-2)
+#define RKADK_STATE_ERR (-3)
+
+#define RKADK_ABS(x)              ((x) < (0) ? -(x) : (x))
 
 #ifndef UPALIGNTO
-#define UPALIGNTO(value, align) ((value + align - 1) & (~(align - 1)))
+#define UPALIGNTO(value, align) (((value) + (align) - 1) / (align) * (align))
 #endif
 
 /* Pointer Check */

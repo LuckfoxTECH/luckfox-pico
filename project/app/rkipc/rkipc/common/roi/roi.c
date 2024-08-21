@@ -34,6 +34,12 @@ int rk_roi_set_all() {
 		} else {
 			stream_id = 2;
 		}
+		snprintf(entry, 127, "video.%d:smart", stream_id);
+		char *smart = rk_param_get_string(entry, "close");
+		if (!strcmp(smart, "open")) {
+			LOG_INFO("video.%d:smart is open, skip roi set\n", stream_id);
+			continue;
+		}
 		if (rotation == 90 || rotation == 270) {
 			snprintf(entry, 127, "video.%d:width", stream_id);
 			video_height = rk_param_get_int(entry, -1);

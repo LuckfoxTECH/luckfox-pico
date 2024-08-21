@@ -8,7 +8,7 @@
 #include "rockiva.h"
 #include "roi.h"
 #include "rtmp.h"
-#include "rtsp_demo.h"
+#include "rtsp.h"
 #include "storage.h"
 
 #include "rk_mpi_mmz.h"
@@ -53,6 +53,7 @@ int rk_video_get_resolution(int stream_id, char **value);
 int rk_video_set_resolution(int stream_id, const char *value);
 int rk_video_get_frame_rate(int stream_id, char **value);
 int rk_video_set_frame_rate(int stream_id, const char *value);
+int rk_video_reset_frame_rate(int stream_id);
 int rk_video_get_frame_rate_in(int stream_id, char **value);
 int rk_video_set_frame_rate_in(int stream_id, const char *value);
 int rk_video_get_rotation(int *value);

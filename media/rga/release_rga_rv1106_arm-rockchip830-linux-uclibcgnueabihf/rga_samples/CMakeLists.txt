@@ -1,0 +1,23 @@
+cmake_minimum_required(VERSION 3.12)
+
+if (EXISTS ${BUILD_TOOLCHAINS_PATH})
+    message("load ${BUILD_TOOLCHAINS_PATH}")
+    include(${BUILD_TOOLCHAINS_PATH})
+endif()
+
+get_filename_component(TARGET_NAME ${CMAKE_CURRENT_LIST_DIR} NAME)
+project(rga_${TARGET_NAME})
+
+add_subdirectory(allocator_demo)
+add_subdirectory(alpha_demo)
+add_subdirectory(async_demo)
+add_subdirectory(config_demo)
+add_subdirectory(copy_demo)
+add_subdirectory(crop_demo)
+add_subdirectory(cvtcolor_demo)
+add_subdirectory(fill_demo)
+add_subdirectory(mosaic_demo)
+add_subdirectory(padding_demo)
+add_subdirectory(resize_demo)
+add_subdirectory(rop_demo)
+add_subdirectory(transform_demo)

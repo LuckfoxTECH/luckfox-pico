@@ -955,8 +955,6 @@ enum usb_device_speed {
 	USB_SPEED_SUPER,			/* usb 3.0 */
 };
 
-#ifdef __KERNEL__
-
 /**
  * usb_speed_string() - Returns human readable-name of the speed.
  * @speed: The speed to return human-readable name for.  If it's not
@@ -964,8 +962,6 @@ enum usb_device_speed {
  *   USB_SPEED_UNKNOWN will be returned.
  */
 extern const char *usb_speed_string(enum usb_device_speed speed);
-
-#endif
 
 enum usb_device_state {
 	/* NOTATTACHED isn't in the USB spec, and this state acts

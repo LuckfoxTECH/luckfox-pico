@@ -18,24 +18,25 @@
 #ifndef SRC_RT_PLAYER_RTMETADATARETRIEVER_H_
 #define SRC_RT_PLAYER_RTMETADATARETRIEVER_H_
 
-#include "rt_error.h"    // NOLINT
-#include "rt_metadata.h" // NOLINT
+
+#include "rt_error.h"         // NOLINT
+#include "rt_metadata.h"      // NOLINT
 
 class RTMediaBuffer;
 class RTMediaExtractor;
 
 class RTMetadataRetriever {
-public:
-  RTMetadataRetriever();
-  virtual ~RTMetadataRetriever();
-  virtual RT_RET setDataSource(const char *url, const char *headers);
-  virtual RT_RET setDataSource(int fd, int64_t offset, int64_t length);
-  virtual RT_RET query(RtMetaData *metaData);
-  virtual RT_RET getFrameAtTime(RtMetaData *metaData);
-  RTMediaBuffer *getSingleFrameAtTime(RtMetaData *metaData);
+ public:
+    RTMetadataRetriever();
+    virtual ~RTMetadataRetriever();
+    virtual RT_RET       setDataSource(const char *url, const char *headers);
+    virtual RT_RET       setDataSource(int fd, int64_t offset, int64_t length);
+    virtual RT_RET       query(RtMetaData* metaData);
+    virtual RT_RET       getFrameAtTime(RtMetaData* metaData);
+    RTMediaBuffer*       getSingleFrameAtTime(RtMetaData* metaData);
 
-private:
-  RTMediaExtractor *mExtractor;
+ private:
+    RTMediaExtractor* mExtractor;
 };
 
-#endif // SRC_RT_PLAYER_RTMETADATARETRIEVER_H_
+#endif  // SRC_RT_PLAYER_RTMETADATARETRIEVER_H_

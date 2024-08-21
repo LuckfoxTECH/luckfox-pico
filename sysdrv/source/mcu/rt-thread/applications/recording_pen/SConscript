@@ -1,0 +1,11 @@
+Import('RTT_ROOT')
+Import('rtconfig')
+from building import *
+
+cwd = GetCurrentDir()
+src = Glob('*.c') + Glob('display/*.c') + Glob('display/resource/*.c')
+LOCAL_CPPPATH = [cwd] + [cwd + '/display'] + [cwd + '/display/resource']
+
+group = DefineGroup('Applications', src, depend = ['RT_USING_RECORDING_PEN_APP'], LOCAL_CPPPATH = LOCAL_CPPPATH)
+
+Return('group')

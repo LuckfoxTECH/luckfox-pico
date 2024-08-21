@@ -42,7 +42,7 @@ static void fpga_init_atags(void)
 	t_ddrmem.version = 0;
 	t_ddrmem.count = 1;
 	t_ddrmem.bank[0] = CONFIG_SYS_SDRAM_BASE;
-	t_ddrmem.bank[1] = SZ_1G;
+	t_ddrmem.bank[1] = SZ_512M;
 	atags_set_tag(ATAG_DDR_MEM, &t_ddrmem);
 
 	/* bootdev */

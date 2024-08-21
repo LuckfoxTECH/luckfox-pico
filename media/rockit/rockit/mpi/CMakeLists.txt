@@ -3,7 +3,7 @@ project (rockit)
 include_directories(sdk/include)
 if(ARCH64)
 set(ROCKIT_DEP_COMMON_LIBS
-    ${CMAKE_CURRENT_LIST_DIR}/../lib/lib64/librockit.so
+    ${CMAKE_CURRENT_LIST_DIR}/../lib/lib64/librockit_full.so
 )
 set(ROCKIT_FILE_LIBS
     ${ROCKIT_DEP_COMMON_LIBS}
@@ -13,6 +13,12 @@ set(ROCKIT_FILE_LIBS
 )
 set(ROCKIT_DUMPSYS_FILE ${CMAKE_CURRENT_LIST_DIR}/example/bin/bin64/dumpsys)
 else()
+set(ROCKIT_DEP_COMMON_LIBS_FULL
+    ${CMAKE_CURRENT_LIST_DIR}/../lib/lib32/librockit_full.so
+)
+set(ROCKIT_DEP_COMMON_LIBS_STATIC_FULL
+    ${CMAKE_CURRENT_LIST_DIR}/../lib/lib32/librockit_full.a
+)
 set(ROCKIT_DEP_COMMON_LIBS
     ${CMAKE_CURRENT_LIST_DIR}/../lib/lib32/librockit.so
 )
@@ -20,11 +26,12 @@ set(ROCKIT_DEP_COMMON_LIBS_STATIC
     ${CMAKE_CURRENT_LIST_DIR}/../lib/lib32/librockit.a
 )
 set(ROCKIT_FILE_LIBS
-    ${ROCKIT_DEP_COMMON_LIBS}
-    ${CMAKE_CURRENT_LIST_DIR}/../lib/lib32/librockit_tiny.so
-    ${CMAKE_CURRENT_LIST_DIR}/../lib/lib32/librockit_tiny.a
     ${CMAKE_CURRENT_LIST_DIR}/../lib/lib32/librockit_full.so
     ${CMAKE_CURRENT_LIST_DIR}/../lib/lib32/librockit_full.a
+    ${CMAKE_CURRENT_LIST_DIR}/../lib/lib32/librockit_tiny.so
+    ${CMAKE_CURRENT_LIST_DIR}/../lib/lib32/librockit_tiny.a
+    ${CMAKE_CURRENT_LIST_DIR}/../lib/lib32/librockit.so
+    ${CMAKE_CURRENT_LIST_DIR}/../lib/lib32/librockit.a
 )
 set(ROCKIT_DUMPSYS_FILE ${CMAKE_CURRENT_LIST_DIR}/example/bin/bin32/dumpsys)
 endif()

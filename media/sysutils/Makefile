@@ -19,15 +19,18 @@ PKG_BUILD ?= build
 
 RK_MEDIA_OPTS += -Wl,-rpath-link,${RK_MEDIA_OUTPUT}/lib:$(RK_MEDIA_OUTPUT)/root/usr/lib
 PKG_CONF_OPTS += $(RK_MEDIA_OPTS)
-PKG_CONF_OPTS += -DRKPLATFORM=ON
 
 ifeq ($(RK_MEDIA_CHIP), rv1126)
 PKG_CONF_OPTS += -DCMAKE_SYSTEM_PROCESSOR=armv7l
-PKG_CONF_OPTS += -DARCH64=OFF
+PKG_CONF_OPTS += -DRV1126_RV1109
+endif
+
+ifeq ($(RK_MEDIA_CHIP), rv1106)
+PKG_CONF_OPTS += -DRV1106_RV1103
 endif
 
 ifeq ($(RK_MEDIA_CHIP), rk3588)
-PKG_CONF_OPTS += -DARCH64=ON
+PKG_CONF_OPTS += -DRK3588
 endif
 
 ifeq ($(CONFIG_RK_SYSUTILS),y)
@@ -47,8 +50,6 @@ OBJ := $(SRC:%.c=%.o)
 INC_FLAGS := -I$(CURRENT_DIR)/include
 INC_FLAGS += -I$(RK_MEDIA_OUTPUT)/include
 CFLAGS += -g -Wall $(INC_FLAGS) $(PKG_CONF_OPTS) -fPIC -lpthread -lm -ldl
-LD_FLAGS += -L$(RK_MEDIA_OUTPUT)/lib  -lrockit -lrockchip_mpp -lasound -ldrm -lrkaiq
-LD_FLAGS += -L$(RK_MEDIA_OUTPUT)/root/usr/lib -lasound
 
 export SYSUTILS_OUT_DIR=$(CURRENT_DIR)/out
 export PKG_CONF_OPTS

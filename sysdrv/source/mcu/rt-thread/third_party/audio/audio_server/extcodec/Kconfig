@@ -1,0 +1,35 @@
+menuconfig RT_USING_EXT_CODEC
+    bool "Enable external encode and decode"
+    default n
+
+if RT_USING_EXT_CODEC
+
+    config RT_USING_LIB_OPUS
+        bool
+        default n
+
+    config RT_USING_LIB_OPUSENC
+        bool
+        default n
+
+    config RT_USING_LIB_OGG
+        bool
+        default n
+
+    config RT_USING_EXT_OPUS_DECODER
+        bool "Enable external opus decode"
+        select RT_USING_LIB_OPUS
+        select RT_USING_LIB_OGG
+        default n
+
+    config RT_USING_EXT_OPUS_ENCODER
+        bool "Enable external opus encode"
+        select RT_USING_LIB_OPUS
+        select RT_USING_LIB_OPUSENC
+        default n
+
+    config RT_USING_EXT_FLAC_DECODER
+        bool "Enable external flac decode"
+        default n
+
+endif

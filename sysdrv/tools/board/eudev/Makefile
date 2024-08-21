@@ -34,7 +34,7 @@ PKG_PATCHES_UTIL_LINUX := util-linux-2.37.2-patches
 
 PKG_BIN := out
 
-PKG_CONF_OPTS += $(SYSDRV_OPTS) -Os -I$(CURRENT_DIR)/$(PKG_BIN)/include -L$(CURRENT_DIR)/$(PKG_BIN)/lib
+PKG_CONF_OPTS += $(SYSDRV_CROSS_CFLAGS) $(SYSDRV_OPTS) -Os -I$(CURRENT_DIR)/$(PKG_BIN)/include -L$(CURRENT_DIR)/$(PKG_BIN)/lib
 
 ifeq ($(PKG_USE_THUMB2),YES)
 PKG_CONF_OPTS += -mthumb -Wa,-mimplicit-it=thumb -mthumb-interwork

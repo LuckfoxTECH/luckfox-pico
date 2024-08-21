@@ -12,6 +12,32 @@ __insmod()
 	fi
 }
 
+__rmmod_camera_sensor()
+{
+	for item in `echo "imx415 os04a10 sc4336 sc3336 sc530ai gc2053 sc200ai sc401ai sc450ai techpoint"`
+	do
+		if lsmod | grep $item | awk '{print $3}' |grep -w 0;then
+			rmmod $item
+		fi
+	done
+}
+
+__chk_camera_sensor_height()
+{
+	# TODO: Do Not Support dual Camera Sensor
+	sensor_height=0
+	for item in `echo "/proc/rkisp-vir0 /proc/rkisp0"`
+	do
+		if grep -w "Input.*Format" $item; then
+			msg_sen=`grep -w "Input.*Format" $item`
+			msg_sen=${msg_sen##*Size:*x}
+			msg_sen=${msg_sen%%@*}
+			sensor_height="$msg_sen"
+			break
+		fi
+	done
+}
+
 __insmod rk_dvbm.ko
 
 __insmod videobuf2-memops.ko
@@ -20,15 +46,23 @@ __insmod videobuf2-v4l2.ko
 __insmod videobuf2-vmalloc.ko
 __insmod videobuf2-cma-sg.ko
 
+__insmod imx415.ko
+__insmod os04a10.ko
+__insmod sc4336.ko
+__insmod sc3336.ko
+__insmod sc530ai.ko
+__insmod gc2053.ko
+__insmod sc200ai.ko
+__insmod sc401ai.ko
+__insmod sc450ai.ko
+__insmod techpoint.ko
+
 __insmod video_rkcif.ko
 __insmod video_rkisp.ko
 __insmod phy-rockchip-csi2-dphy-hw.ko
 __insmod phy-rockchip-csi2-dphy.ko
 
-__insmod os04a10.ko
-__insmod sc4336.ko
-__insmod sc3336.ko
-__insmod sc530ai.ko
+__rmmod_camera_sensor
 
 echo 1 > /sys/module/video_rkcif/parameters/clr_unready_dev
 echo 1 > /sys/module/video_rkisp/parameters/clr_unready_dev
@@ -42,35 +76,11 @@ __insmod snd-soc-rv1106.ko
 
 __insmod motor.ko
 
-# rmmod non-exist camera driver
-for drv_name in `ls /sys/devices/platform/ff470000.i2c/i2c-4/4*/name`; do
-	dir=`dirname $drv_name`
-	if [ ! -L $dir/driver ]; then
-		rmmod `cat $drv_name`
-	fi
-done
+__chk_camera_sensor_height
 
-# rv1103 unsupport 5M
-grep -q "rockchip,rv1103" /proc/device-tree/compatible
-if [ $? == 0 ]; then
-	rmmod sc530ai
-fi
+__insmod rockit.ko mcu_fw_path="./hpmcu_wrap.bin" mcu_fw_addr=0xff6fe000 isp_max_h=$sensor_height
 
-sensor_height=0
-lsmod | grep sc530ai
-if [ $? -eq 0 ] ;then
-    sensor_height=1616
-fi
-lsmod | grep sc4336
-if [ $? -eq 0 ] ;then
-    sensor_height=1440
-fi
-lsmod | grep sc3336
-if [ $? -eq 0 ] ;then
-    sensor_height=1296
-fi
-
-__insmod rockit.ko mcu_fw_path="./hpmcu_wrap.bin" mcu_fw_addr=0xff6ff000 isp_max_h=$sensor_height
+__insmod rve.ko
 
 udevadm control --start-exec-queue
 

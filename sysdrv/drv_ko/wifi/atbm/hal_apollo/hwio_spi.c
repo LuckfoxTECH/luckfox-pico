@@ -10,7 +10,11 @@ int atbm_read_status(struct atbm_common *priv, u32 *status)
 	int ret = 0;
 	u32 stat= 0;
 	
-	BUG_ON(!priv->sbus_ops);
+	//BUG_ON(!priv->sbus_ops);
+		if(!priv->sbus_ops){
+			atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+			return -1;
+		}
 	ret = priv->sbus_ops->sbus_read_status(priv->sbus_priv,
 					&stat, sizeof(stat));
 	if (ret == 0)
@@ -25,7 +29,11 @@ int atbm_read_status_ready(struct atbm_common *priv, u32 *ready)
 	int ret = 0;
 	u32 rdy = 0;
 	
-	BUG_ON(!priv->sbus_ops);
+	//BUG_ON(!priv->sbus_ops);
+		if(!priv->sbus_ops){
+			atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+			return -1;
+		}
 	ret = priv->sbus_ops->sbus_read_ready(priv->sbus_priv,
 					&rdy);
 	if (ret == 0)
@@ -41,6 +49,7 @@ int atbm_read_status_channelflag(struct atbm_common *priv, u32 *channelflag)
 	u32 chanflag = 0;
 	
 	BUG_ON(!priv->sbus_ops);
+	
 	ret = priv->sbus_ops->sbus_read_channelflag(priv->sbus_priv,
 					&chanflag);
 	if (ret == 0)
@@ -55,7 +64,11 @@ int atbm_update_status_channelflag(struct atbm_common *priv)
 {
 	int ret = 0;
 	
-	BUG_ON(!priv->sbus_ops);
+	//BUG_ON(!priv->sbus_ops);
+			if(!priv->sbus_ops){
+				atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+				return -1;
+			}
 	ret = priv->sbus_ops->sbus_update_channelflag(priv->sbus_priv);
 	return ret;
 }
@@ -65,7 +78,11 @@ static int atbm_read_block(struct atbm_common *priv, void *buf, u32 buf_len)
 {
 	int ret = 0;
 	
-	BUG_ON(!priv->sbus_ops);
+	//BUG_ON(!priv->sbus_ops);
+			if(!priv->sbus_ops){
+				atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+				return -1;
+			}
 	ret = priv->sbus_ops->sbus_read_data(priv->sbus_priv,
 					buf, buf_len);
 	
@@ -75,7 +92,11 @@ static int atbm_read_block(struct atbm_common *priv, void *buf, u32 buf_len)
 static int atbm_write_block(struct atbm_common *priv,  const void *buf, u32 buf_len)
 {
 	int ret = 0;	
-	BUG_ON(!priv->sbus_ops);
+	//BUG_ON(!priv->sbus_ops);
+			if(!priv->sbus_ops){
+				atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+				return -1;
+			}
 	
 	ret = priv->sbus_ops->sbus_write_data(priv->sbus_priv,
 					buf, buf_len);
@@ -186,7 +207,11 @@ int atbm_fw_write(struct atbm_common *priv, u32 addr, const void *buf,
 {
 	int ret = 0;
 	
-	BUG_ON(!priv->sbus_ops);
+	//BUG_ON(!priv->sbus_ops);
+			if(!priv->sbus_ops){
+				atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+				return -1;
+			}
 	
 	ret = priv->sbus_ops->sbus_write_firmware(priv->sbus_priv,
 							addr, buf, buf_len);
@@ -245,7 +270,11 @@ int atbm_after_load_firmware(struct atbm_common *hw_priv)
 	int ret;
 	int count = 0;
 	u32 ready;
-	BUG_ON(!hw_priv->sbus_ops);
+	//BUG_ON(!hw_priv->sbus_ops);
+			if(!hw_priv->sbus_ops){
+				atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+				return -1;
+			}
 	ret = hw_priv->sbus_ops->sbus_reset_cpu(hw_priv->sbus_priv);
 
 	do{

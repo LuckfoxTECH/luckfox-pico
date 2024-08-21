@@ -32,8 +32,15 @@ rk_aiq_user_api_asharp_SetIQPara(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_sharp_I
 XCamReturn
 rk_aiq_user_api_asharp_GetIQPara(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_sharp_IQpara_t *para);
 XCamReturn
+rk_aiq_user_api_asharp_SetManualIQPara(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_sharp_manual_IQPara_t *para);
+XCamReturn
+rk_aiq_user_api_asharp_GetManualIQPara(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_sharp_manual_IQPara_t *para);
+XCamReturn
+rk_aiq_user_api_edgeFilter_SetManualIQPara(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_edgeFilter_manual_IQPara_t *para);
+XCamReturn
+rk_aiq_user_api_edgeFilter_GetManualIQPara(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_edgeFilter_manual_IQPara_t *para);
+XCamReturn
 rk_aiq_user_api_asharp_SetStrength(const rk_aiq_sys_ctx_t* sys_ctx, float fPercent);
-
 XCamReturn
 rk_aiq_user_api_asharp_GetStrength(const rk_aiq_sys_ctx_t* sys_ctx, float *pPercent);
 

@@ -120,10 +120,10 @@
 #endif
 
 #define FT_MODERR_START_LIST enum {
-#define FT_MODERR_END_LIST                                                     \
-  FT_Mod_Err_Max                                                               \
-  }                                                                            \
-  ;
+#define FT_MODERR_END_LIST                                                                         \
+	FT_Mod_Err_Max                                                                                 \
+	}                                                                                              \
+	;
 
 #ifdef __cplusplus
 #define FT_NEED_EXTERN_C

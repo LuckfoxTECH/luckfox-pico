@@ -7,6 +7,9 @@
 #ifndef __PINCTRL_H
 #define __PINCTRL_H
 
+#define PINNAME_SIZE	10
+#define PINMUX_SIZE	40
+
 /**
  * struct pinconf_param - pin config parameters
  *
@@ -32,29 +35,33 @@ struct pinconf_param {
  * depending on your necessity.
  *
  * @get_pins_count: return number of selectable named pins available
- *	in this driver.  (necessary to parse "pins" property in DTS)
+ *	in this driver. (necessary to parse "pins" property in DTS)
  * @get_pin_name: return the pin name of the pin selector,
  *	called by the core to figure out which pin it shall do
- *	operations to.  (necessary to parse "pins" property in DTS)
+ *	operations to. (necessary to parse "pins" property in DTS)
  * @get_groups_count: return number of selectable named groups available
- *	in this driver.  (necessary to parse "groups" property in DTS)
+ *	in this driver. (necessary to parse "groups" property in DTS)
  * @get_group_name: return the group name of the group selector,
  *	called by the core to figure out which pin group it shall do
- *	operations to.  (necessary to parse "groups" property in DTS)
+ *	operations to. (necessary to parse "groups" property in DTS)
  * @get_functions_count: return number of selectable named functions available
- *	in this driver.  (necessary for pin-muxing)
+ *	in this driver. (necessary for pin-muxing)
  * @get_function_name: return the function name of the muxing selector,
  *	called by the core to figure out which mux setting it shall map a
- *	certain device to.  (necessary for pin-muxing)
+ *	certain device to. (necessary for pin-muxing)
  * @pinmux_set: enable a certain muxing function with a certain pin.
  *	The @func_selector selects a certain function whereas @pin_selector
  *	selects a certain pin to be used. On simple controllers one of them
- *	may be ignored.  (necessary for pin-muxing against a single pin)
+ *	may be ignored. (necessary for pin-muxing against a single pin)
  * @pinmux_group_set: enable a certain muxing function with a certain pin
- *	group.  The @func_selector selects a certain function whereas
+ *	group. The @func_selector selects a certain function whereas
  *	@group_selector selects a certain set of pins to be used. On simple
  *	controllers one of them may be ignored.
  *	(necessary for pin-muxing against a pin group)
+ * @pinmux_property_set: enable a pinmux group. @pinmux_group should specify the
+ *      pin identifier and mux settings. The exact format of a pinmux group is
+ *      left up to the driver. The pin selector for the mux-ed pin should be
+ *      returned on success. (necessary to parse the "pinmux" property in DTS)
  * @pinconf_num_params: number of driver-specific parameters to be parsed
  *	from device trees  (necessary for pin-configuration)
  * @pinconf_params: list of driver_specific parameters to be parsed from
@@ -67,6 +74,14 @@ struct pinconf_param {
  *	pointing a config node. (necessary for pinctrl_full)
  * @set_state_simple: do needed pinctrl operations for a peripherl @periph.
  *	(necessary for pinctrl_simple)
+ * @get_pin_muxing: display the muxing of a given pin.
+ * @gpio_request_enable: requests and enables GPIO on a certain pin.
+ *	Implement this only if you can mux every pin individually as GPIO. The
+ *	affected GPIO range is passed along with an offset(pin number) into that
+ *	specific GPIO range - function selectors and pin groups are orthogonal
+ *	to this, the core will however make sure the pins do not collide.
+ * @gpio_disable_free: free up GPIO muxing on a certain pin, the reverse of
+ *	@gpio_request_enable
  */
 struct pinctrl_ops {
 	int (*get_pins_count)(struct udevice *dev);
@@ -80,6 +95,7 @@ struct pinctrl_ops {
 			  unsigned func_selector);
 	int (*pinmux_group_set)(struct udevice *dev, unsigned group_selector,
 				unsigned func_selector);
+	int (*pinmux_property_set)(struct udevice *dev, u32 pinmux_group);
 	unsigned int pinconf_num_params;
 	const struct pinconf_param *pinconf_params;
 	int (*pinconf_set)(struct udevice *dev, unsigned pin_selector,
@@ -130,6 +146,42 @@ struct pinctrl_ops {
 	* @return mux value (SoC-specific, e.g. 0 for input, 1 for output)
 	 */
 	int (*get_gpio_mux)(struct udevice *dev, int banknum, int index);
+
+	/**
+	 * get_pin_muxing() - show pin muxing
+	 *
+	 * This allows to display the muxing of a given pin. It's useful for
+	 * debug purpose to know if a pin is configured as GPIO or as an
+	 * alternate function and which one.
+	 * Typically it is used by a PINCTRL driver with knowledge of the SoC
+	 * pinctrl setup.
+	 *
+	 * @dev:	Pinctrl device to use
+	 * @selector:	Pin selector
+	 * @buf		Pin's muxing description
+	 * @size	Pin's muxing description length
+	 * return 0 if OK, -ve on error
+	 */
+	 int (*get_pin_muxing)(struct udevice *dev, unsigned int selector,
+			       char *buf, int size);
+
+	/**
+	 * gpio_request_enable: requests and enables GPIO on a certain pin.
+	 *
+	 * @dev:	Pinctrl device to use
+	 * @selector:	Pin selector
+	 * return 0 if OK, -ve on error
+	 */
+	int (*gpio_request_enable)(struct udevice *dev, unsigned int selector);
+
+	/**
+	 * gpio_disable_free: free up GPIO muxing on a certain pin.
+	 *
+	 * @dev:	Pinctrl device to use
+	 * @selector:	Pin selector
+	 * return 0 if OK, -ve on error
+	 */
+	int (*gpio_disable_free)(struct udevice *dev, unsigned int selector);
 };
 
 #define pinctrl_get_ops(dev)	((struct pinctrl_ops *)(dev)->driver->ops)
@@ -331,6 +383,53 @@ int pinctrl_get_gpio_mux(struct udevice *dev, int banknum, int index);
  * @return pins count
 */
 int pinctrl_get_pins_count(struct udevice *dev);
+
+/**
+ * pinctrl_get_pin_name() - Returns the pin's name
+ *
+ * This allows to display the pin's name for debug purpose
+ *
+ * @dev:	Pinctrl device to use
+ * @selector	Pin index within pin-controller
+ * @buf		Pin's name
+ * @return 0 if OK, -ve on error
+ */
+int pinctrl_get_pin_name(struct udevice *dev, int selector, char *buf,
+			 int size);
+
+/**
+ * pinctrl_get_pin_muxing() - Returns the muxing description
+ *
+ * This allows to display the muxing description of the given pin for
+ * debug purpose
+ *
+ * @dev:	Pinctrl device to use
+ * @selector	Pin index within pin-controller
+ * @buf		Pin's muxing description
+ * @size	Pin's muxing description length
+ * @return 0 if OK, -ve on error
+ */
+int pinctrl_get_pin_muxing(struct udevice *dev, int selector, char *buf,
+			   int size);
+
+/**
+ * pinctrl_gpio_request() - request a single pin to be used as GPIO
+ *
+ * @dev: GPIO peripheral device
+ * @offset: the GPIO pin offset from the GPIO controller
+ * @return: 0 on success, or negative error code on failure
+ */
+int pinctrl_gpio_request(struct udevice *dev, unsigned offset);
+
+/**
+ * pinctrl_gpio_free() - free a single pin used as GPIO
+ *
+ * @dev: GPIO peripheral device
+ * @offset: the GPIO pin offset from the GPIO controller
+ * @return: 0 on success, or negative error code on failure
+ */
+int pinctrl_gpio_free(struct udevice *dev, unsigned offset);
+
 #else
 static inline int pinctrl_select_state(struct udevice *dev,
 				       const char *statename)
@@ -367,6 +466,29 @@ static inline int pinctrl_get_pins_count(struct udevice *dev)
 {
 	return -EINVAL;
 }
+
+static inline int pinctrl_get_pin_name(struct udevice *dev, int selector, char *buf,
+			 int size)
+{
+	return -EINVAL;
+}
+
+static inline int pinctrl_get_pin_muxing(struct udevice *dev, int selector, char *buf,
+			   int size)
+{
+	return -EINVAL;
+}
+
+static inline int pinctrl_gpio_request(struct udevice *dev, unsigned offset)
+{
+	return -EINVAL;
+}
+
+static inline int pinctrl_gpio_free(struct udevice *dev, unsigned offset)
+{
+	return -EINVAL;
+}
+
 #endif
 
 #endif /* __PINCTRL_H */

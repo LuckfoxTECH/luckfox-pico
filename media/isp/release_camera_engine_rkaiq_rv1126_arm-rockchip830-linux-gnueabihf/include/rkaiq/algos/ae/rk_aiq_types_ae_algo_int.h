@@ -283,6 +283,7 @@ typedef enum {
     AEC_HDR_2FRAME_S = 0,
     AEC_HDR_2FRAME_L = 1,
 
+    AEC_EXTRA_FRAME = 3,
     AEC_NORMAL_FRAME = 0
 } AecFrameMode_t;
 
@@ -531,7 +532,7 @@ typedef struct AecProcResult_s {
 
 typedef struct AecPostResult_s {
     RkAiqDCIrisParam_t      DCIris;
-
+    RkAiqHDCIrisParam_t     HDCIris;
 } AecPostResult_t;
 
 /* @} AEC */

@@ -1,0 +1,55 @@
+{
+  "skv_ao_configs": {
+    "anr": {
+      "status" : "enable",
+      "noiseFactor": "float:0.99",
+      "swU": 10,
+      "psiMin": "float:0.05",
+      "psiMax": "float:0.516",
+      "fGmin": "float:0.05",
+      "Sup_Freq1": -3588,
+      "Sup_Freq2": -3588,
+      "Sup_Energy1" : "float:100000.0",
+      "Sup_Energy2" : "float:100000.0",
+      "InterV" : 8,
+      "BiasMin" : "float:1.67",
+      "UpdateFrm":15,
+      "NPreGammaThr" : "float:4.6",
+      "NPreZetaThr" : "float:1.67",
+      "SabsGammaThr0" : "float:1.0",
+      "SabsGammaThr1" : "float:3.0",
+      "InfSmooth" : "float:0.8",
+      "ProbSmooth" : "float:0.7",
+      "CompCoeff" : "float:1.4",
+      "PrioriMin" : "float:0.0316",
+      "PostMax" : "float:40.0",
+      "PrioriRatio":"float:0.8",
+      "PrioriRatioLow" : "float:0.95",
+      "SplitBand" : 20,
+      "PrioriSmooth": "float:0.7",
+      "TranMode": 0
+    },
+    "agc": {
+      "status" : "enable",
+      "attack_time"  : "float:200.0",
+      "release_time" : "float:200.0",
+      "attenuate_time" : "float:1000",
+      "max_gain": "float:5.0",
+      "max_peak": "float:-1.0",
+      "fRth0": "float:-45",
+      "fRth1": "float:-35",
+      "fRth2": "float:-25",
+      "fRk0" : "float:2.0",
+      "fRk1" : "float:0.8",
+      "fRk2" : "float:0.4",
+      "fLineGainDb" : "float:-25.0",
+      "swSmL0" : 40,
+      "swSmL1" : 80,
+      "swSmL2" : 80
+    },
+    "howl": {
+      "status" : "enable",
+      "mode" : 2
+    }
+  }
+}

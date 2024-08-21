@@ -19,38 +19,40 @@
 #define _RK_AIQ_TYPES_H_
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include "rk_aiq_comm.h"
-#include "rk_aiq_offline_raw.h"
-#include "rk-camera-module.h"
-#include "adebayer/rk_aiq_types_algo_adebayer.h"
-#include "ae/rk_aiq_types_ae_algo.h"
-#include "awb/rk_aiq_types_awb_algo.h"
-#include "alsc/rk_aiq_types_alsc_algo.h"
-#include "accm/rk_aiq_types_accm_algo.h"
+#include <stdlib.h>
+
 #include "a3dlut/rk_aiq_types_a3dlut_algo.h"
-#include "ahdr/rk_aiq_types_ahdr_algo_int.h"
-#include "ahdr/rk_aiq_types_ahdr_algo.h"
-#include "awdr/rk_aiq_types_awdr_algo_int.h"
-#include "agamma/rk_aiq_types_agamma_algo_int.h"
-#include "adegamma/rk_aiq_types_adegamma_algo_int.h"
-#include "adehaze/rk_aiq_types_adehaze_algo.h"
-#include "acp/rk_aiq_types_acp_algo.h"
-#include "aie/rk_aiq_types_aie_algo_int.h"
-#include "aorb/rk_aiq_types_orb_algo.h"
-#include "asd/rk_aiq_types_asd_algo.h"
-#include "anr/rk_aiq_types_anr_algo.h"
-#include "anr/rk_aiq_types_anr_algo_int.h"
-#include "asharp/rk_aiq_types_asharp_algo.h"
-#include "asharp/rk_aiq_types_asharp_algo_int.h"
-#include "adpcc/rk_aiq_types_adpcc_algo.h"
-#include "adpcc/rk_aiq_types_adpcc_algo_int.h"
 #include "ablc/rk_aiq_types_ablc_algo.h"
 #include "ablc/rk_aiq_types_ablc_algo_int.h"
-#include "agic/rk_aiq_types_algo_agic.h"
-#include "aldch/rk_aiq_types_aldch_algo.h"
+#include "accm/rk_aiq_types_accm_algo.h"
+#include "acp/rk_aiq_types_acp_algo.h"
+#include "adebayer/rk_aiq_types_algo_adebayer.h"
+#include "adegamma/rk_aiq_types_adegamma_algo_int.h"
+#include "adehaze/rk_aiq_types_adehaze_algo_int.h"
+#include "adpcc/rk_aiq_types_adpcc_algo.h"
+#include "adpcc/rk_aiq_types_adpcc_algo_int.h"
+#include "ae/rk_aiq_types_ae_algo.h"
 #include "afec/rk_aiq_types_afec_algo.h"
+#include "agamma/rk_aiq_types_agamma_algo_int.h"
+#include "agic/rk_aiq_types_algo_agic.h"
+#include "ahdr/rk_aiq_types_ahdr_algo.h"
+#include "ahdr/rk_aiq_types_ahdr_algo_int.h"
+#include "aie/rk_aiq_types_aie_algo_int.h"
+#include "aldch/rk_aiq_types_aldch_algo.h"
+#include "alsc/rk_aiq_types_alsc_algo.h"
+#include "anr/rk_aiq_types_anr_algo.h"
+#include "anr/rk_aiq_types_anr_algo_int.h"
+#include "aorb/rk_aiq_types_orb_algo.h"
+#include "asd/rk_aiq_types_asd_algo.h"
+#include "asharp/rk_aiq_types_asharp_algo.h"
+#include "asharp/rk_aiq_types_asharp_algo_int.h"
+#include "awb/rk_aiq_types_awb_algo.h"
+#include "awdr/rk_aiq_types_awdr_algo_int.h"
+#include "rk-camera-module.h"
+#include "rk_aiq_comm.h"
+#include "rk_aiq_mems_sensor.h"
+#include "rk_aiq_offline_raw.h"
 
 #ifdef RK_SIMULATOR_HW
 #include "simulator/isp20_hw_simulator.h"
@@ -287,6 +289,7 @@ typedef struct {
     int32_t num;
     /* binded pp stream media index */
     int8_t binded_strm_media_idx;
+    int phyId;
 } rk_aiq_sensor_info_t;
 
 typedef struct {
@@ -389,6 +392,7 @@ typedef struct {
     rk_aiq_lens_descriptor lens_des;
     struct rkmodule_awb_inf otp_awb;
     struct rkmodule_lsc_inf *otp_lsc;
+    uint32_t sensor_readout_linecnt_perline;
 } rk_aiq_exposure_sensor_descriptor;
 
 // exposure
@@ -499,6 +503,8 @@ typedef struct {
 
 typedef struct {
     unsigned char fec_en;
+    int usage;
+    unsigned char config;
     unsigned char crop_en;
     unsigned int crop_width;
     unsigned int crop_height;
@@ -509,6 +515,9 @@ typedef struct {
     //unsigned char sw_mesh_xf[FEC_MESH_XY_NUM_ALGO];
     //unsigned short sw_mesh_yi[FEC_MESH_XY_NUM_ALGO];
     //unsigned char sw_mesh_yf[FEC_MESH_XY_NUM_ALGO];
+    int img_buf_index;
+    int img_buf_size;
+    int32_t frame_id;
 } rk_aiq_isp_fec_t;
 
 typedef struct {
@@ -724,5 +733,7 @@ typedef struct rk_aiq_ae_register_s
 {
     rk_aiq_ae_func_t stAeExpFunc;
 } rk_aiq_ae_register_t;
+
+#define RK_AIQ_CAM_GROUP_MAX_CAMS (8)
 
 #endif

@@ -70,7 +70,7 @@
 #define IMX577_REG_GAIN_L		0x0205
 #define IMX577_GAIN_MIN			0x10
 #define IMX577_GAIN_MAX			0x1600
-#define IMX577_GAIN_STEP		0x10
+#define IMX577_GAIN_STEP		0x1
 #define IMX577_GAIN_DEFAULT		0x20
 
 #define IMX577_REG_DGAIN		0x3ff9
@@ -1268,9 +1268,7 @@ static int imx577_g_frame_interval(struct v4l2_subdev *sd,
 	struct imx577 *imx577 = to_imx577(sd);
 	const struct imx577_mode *mode = imx577->cur_mode;
 
-	mutex_lock(&imx577->mutex);
 	fi->interval = mode->max_fps;
-	mutex_unlock(&imx577->mutex);
 
 	return 0;
 }

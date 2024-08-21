@@ -73,7 +73,8 @@ static void run_again(struct ieee80211_local *local,
 #if ((LINUX_VERSION_CODE < KERNEL_VERSION(2,6,40)) || (defined (ATBM_ALLOC_MEM_DEBUG)))
 static void work_free_rcu(struct rcu_head *head)
 {
-	struct ieee80211_work *wk = container_of(head, struct ieee80211_work, rcu_head);
+	struct ieee80211_work *wk =
+		container_of(head, struct ieee80211_work, rcu_head);
 
 	atbm_kfree(wk);
 }
@@ -157,7 +158,10 @@ static void ieee80211_add_ht_ie(struct sk_buff *skb, const u8 *ht_info_ie,
 	case IEEE80211_SMPS_AUTOMATIC:
 	case IEEE80211_SMPS_NUM_MODES:
 		WARN_ON(1);
-   		fallthrough;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 10, 60))
+	
+		fallthrough;
+#endif
 	case IEEE80211_SMPS_OFF:
 		cap |= WLAN_HT_CAP_SM_PS_DISABLED <<
 			IEEE80211_HT_CAP_SM_PS_SHIFT;
@@ -575,13 +579,15 @@ ieee80211_authenticate(struct ieee80211_work *wk)
 
 	wk->probe_auth.transaction = 2;
 #ifdef CONFIG_ATBM_SUPPORT_SAE
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 8, 0))
+
 //#if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 0, 0))
 	if (wk->probe_auth.algorithm == WLAN_AUTH_SAE) {
 		trans = wk->probe_auth.sae_trans;
 		status = wk->probe_auth.sae_status;
 		wk->probe_auth.transaction = trans;
 	}
-//#endif
+#endif
 #endif
 	ieee80211_send_auth(sdata, trans, wk->probe_auth.algorithm, status, wk->ie,
 			    wk->ie_len, wk->filter_ta, NULL, 0, 0);
@@ -812,9 +818,11 @@ ieee80211_rx_mgmt_auth(struct ieee80211_work *wk,
 	case WLAN_AUTH_LEAP:
 	case WLAN_AUTH_FT:
 #ifdef CONFIG_ATBM_SUPPORT_SAE
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 8, 0))
+
 //#if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 0, 0))
 	case WLAN_AUTH_SAE:
-//#endif
+#endif
 #endif
 		break;
 	case WLAN_AUTH_SHARED_KEY:
@@ -1127,7 +1135,10 @@ static void ieee80211_work_empty_start_pendding(struct ieee80211_local *local)
 					ret = -1;
 				}
 			}else{
-				BUG_ON(1);
+				//ret = -1;
+				//BUG_ON(1);
+				atbm_printk_err("%s %d ,ERROR !!! \n",__func__,__LINE__);
+				return;
 			}
 
 			if(ret)
@@ -1140,8 +1151,14 @@ static void ieee80211_work_empty_start_pendding(struct ieee80211_local *local)
 			#else
 				atbm_printk_mgmt("%s:pennding roc err roc_timeout(%d),roc_duration(%d),cookie(%llx)\n",
 					__func__,roc_timeout,roc_duration,roc->mgmt_tx_cookie ? roc->mgmt_tx_cookie: roc->cookie);
-				BUG_ON(local->scanning);
-				BUG_ON(!list_empty(&local->roc_list));
+			//	BUG_ON(local->scanning);
+				//BUG_ON(!list_empty(&local->roc_list));
+				if((local->scanning) || (!list_empty(&local->roc_list))){
+					atbm_printk_err("%s %d ,ERROR !!!local->scanning = %ld ,list_empty=%d \n",
+						__func__,__LINE__,local->scanning,list_empty(&local->roc_list));
+					return;
+				}
+				
 				roc->started = true;
 				list_add_tail(&roc->list, &local->roc_list);
 				/*
@@ -1183,7 +1200,9 @@ static void ieee80211_work_empty_start_pendding(struct ieee80211_local *local)
 					     round_jiffies_relative(0));
 			}
 			else{
-				BUG_ON(1);
+				atbm_printk_err("%s %d ,ERROR !!! \n",__func__,__LINE__);
+				//WARN_ON(1);
+				return;
 			}
 		}
 	}

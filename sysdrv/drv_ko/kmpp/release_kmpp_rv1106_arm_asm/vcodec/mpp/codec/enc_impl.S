@@ -143,7 +143,7 @@ enc_impl_deinit:
 	.save {r4, lr}
 	mov	r4, r0
 	cbnz	r0, .L21
-	movs	r2, #100
+	movs	r2, #101
 	ldr	r1, .L27
 	ldr	r0, .L27+4
 	bl	printk
@@ -187,7 +187,7 @@ enc_impl_proc_cfg:
 	push	{r4, lr}
 	.save {r4, lr}
 	cbnz	r0, .L30
-	movs	r2, #118
+	movs	r2, #120
 	ldr	r1, .L33
 	ldr	r0, .L33+4
 	bl	printk
@@ -225,7 +225,7 @@ enc_impl_gen_hdr:
 	push	{r4, lr}
 	.save {r4, lr}
 	cbnz	r0, .L36
-	movs	r2, #135
+	movs	r2, #137
 	ldr	r1, .L39
 	ldr	r0, .L39+4
 	bl	printk
@@ -263,7 +263,7 @@ enc_impl_start:
 	push	{r4, lr}
 	.save {r4, lr}
 	cbnz	r0, .L42
-	movs	r2, #151
+	movs	r2, #154
 	ldr	r1, .L45
 	ldr	r0, .L45+4
 	bl	printk
@@ -301,7 +301,7 @@ enc_impl_proc_dpb:
 	push	{r4, lr}
 	.save {r4, lr}
 	cbnz	r0, .L48
-	movs	r2, #167
+	movs	r2, #171
 	ldr	r1, .L51
 	ldr	r0, .L51+4
 	bl	printk
@@ -341,7 +341,7 @@ enc_impl_proc_hal:
 	cbz	r0, .L54
 	cbnz	r1, .L55
 .L54:
-	movs	r2, #184
+	movs	r2, #188
 	ldr	r1, .L61
 	ldr	r0, .L61+4
 	bl	printk
@@ -386,7 +386,7 @@ enc_impl_add_prefix:
 	cbz	r1, .L64
 	cbnz	r3, .L65
 .L64:
-	movs	r2, #202
+	movs	r2, #206
 	ldr	r1, .L71
 	ldr	r0, .L71+4
 	bl	printk
@@ -428,7 +428,7 @@ enc_impl_sw_enc:
 	cbz	r0, .L74
 	cbnz	r1, .L75
 .L74:
-	movs	r2, #223
+	movs	r2, #227
 	ldr	r1, .L81
 	ldr	r0, .L81+4
 	bl	printk
@@ -467,7 +467,7 @@ enc_impl_proc_debug:
 	cbz	r1, .L84
 	cbnz	r0, .L85
 .L84:
-	movs	r2, #239
+	movs	r2, #243
 	ldr	r1, .L90
 	ldr	r0, .L90+4
 	b	printk
@@ -488,53 +488,53 @@ enc_impl_proc_debug:
 	.size	enc_impl_proc_debug, .-enc_impl_proc_debug
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__func__.9292, %object
-	.size	__func__.9292, 14
-__func__.9292:
+	.type	__func__.9344, %object
+	.size	__func__.9344, 14
+__func__.9344:
 	.ascii	"enc_impl_init\000"
-	.type	__FUNCTION__.9295, %object
-	.size	__FUNCTION__.9295, 14
-__FUNCTION__.9295:
+	.type	__FUNCTION__.9347, %object
+	.size	__FUNCTION__.9347, 14
+__FUNCTION__.9347:
 	.ascii	"enc_impl_init\000"
-	.type	__func__.9305, %object
-	.size	__func__.9305, 16
-__func__.9305:
+	.type	__func__.9357, %object
+	.size	__func__.9357, 16
+__func__.9357:
 	.ascii	"enc_impl_deinit\000"
-	.type	__FUNCTION__.9306, %object
-	.size	__FUNCTION__.9306, 16
-__FUNCTION__.9306:
+	.type	__FUNCTION__.9358, %object
+	.size	__FUNCTION__.9358, 16
+__FUNCTION__.9358:
 	.ascii	"enc_impl_deinit\000"
-	.type	__func__.9314, %object
-	.size	__func__.9314, 18
-__func__.9314:
+	.type	__func__.9366, %object
+	.size	__func__.9366, 18
+__func__.9366:
 	.ascii	"enc_impl_proc_cfg\000"
-	.type	__func__.9321, %object
-	.size	__func__.9321, 17
-__func__.9321:
+	.type	__func__.9373, %object
+	.size	__func__.9373, 17
+__func__.9373:
 	.ascii	"enc_impl_gen_hdr\000"
-	.type	__func__.9328, %object
-	.size	__func__.9328, 15
-__func__.9328:
+	.type	__func__.9380, %object
+	.size	__func__.9380, 15
+__func__.9380:
 	.ascii	"enc_impl_start\000"
-	.type	__func__.9335, %object
-	.size	__func__.9335, 18
-__func__.9335:
+	.type	__func__.9387, %object
+	.size	__func__.9387, 18
+__func__.9387:
 	.ascii	"enc_impl_proc_dpb\000"
-	.type	__func__.9342, %object
-	.size	__func__.9342, 18
-__func__.9342:
+	.type	__func__.9394, %object
+	.size	__func__.9394, 18
+__func__.9394:
 	.ascii	"enc_impl_proc_hal\000"
-	.type	__func__.9353, %object
-	.size	__func__.9353, 20
-__func__.9353:
+	.type	__func__.9405, %object
+	.size	__func__.9405, 20
+__func__.9405:
 	.ascii	"enc_impl_add_prefix\000"
-	.type	__func__.9360, %object
-	.size	__func__.9360, 16
-__func__.9360:
+	.type	__func__.9412, %object
+	.size	__func__.9412, 16
+__func__.9412:
 	.ascii	"enc_impl_sw_enc\000"
-	.type	__func__.9367, %object
-	.size	__func__.9367, 20
-__func__.9367:
+	.type	__func__.9419, %object
+	.size	__func__.9419, 20
+__func__.9419:
 	.ascii	"enc_impl_proc_debug\000"
 	.data
 	.align	2

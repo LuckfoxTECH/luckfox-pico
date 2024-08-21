@@ -33,7 +33,7 @@
 #include "ieee80211_atbm_mem.h"
 #include "ieee80211_atbm_skb.h"
 #include "atbm_workqueue.h"
-
+#include "atbm_common.h"
 #ifdef SIGMSTAR_SCAN_FEATURE
 #define CHANNEL_NUM 14
 #endif  //SIGMSTAR_SCAN_FEATURE
@@ -612,7 +612,9 @@ struct ieee80211_work {
 			bool privacy;
 			bool synced;
 #ifdef CONFIG_ATBM_SUPPORT_SAE
+#if  (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 8, 0))
 			u16 sae_trans, sae_status;
+#endif
 #endif
 			struct cfg80211_bss *bss;
 		} probe_auth;
@@ -1096,6 +1098,8 @@ struct ieee80211_sub_if_data {
 	struct list_head filter_list;
 	struct sk_buff_head special_filter_skb_queue;
 	struct atbm_work_struct special_filter_work;
+//	struct atbm_work_struct send_prbresp_work;
+//	struct mutex stop_send_prbresp_lock;
 	atomic_t special_enable;
 	bool special_running;
 #endif
@@ -1659,6 +1663,7 @@ struct ieee80211_local {
 	struct atbm_work_struct sched_scan_stopped_work;
 #endif
 	char country_code[2];
+	int country_support_chan;
 	unsigned long leave_oper_channel_time;
 	enum mac80211_scan_state next_scan_state;
 	struct atbm_delayed_work scan_work;
@@ -2153,7 +2158,11 @@ static inline struct ieee80211_channel_state *ieee80211_get_channel_state(
 			struct ieee80211_sub_if_data *sdata) {
 #ifdef CONFIG_ATBM_SUPPORT_MULTI_CHANNEL
 	if (local->hw.flags & IEEE80211_HW_SUPPORTS_MULTI_CHANNEL) {
-		BUG_ON(!sdata);
+	//	BUG_ON(!sdata);
+		if(!sdata){
+			atbm_printk_err("%s %d ,ERROR !!! sdata is NULL\n",__func__,__LINE__);
+			return NULL;
+		}
 		return &sdata->chan_state;
 	} else
 #endif
@@ -2380,6 +2389,9 @@ bool ieee80211_ap_update_special_probe_response(struct ieee80211_sub_if_data *sd
 		const u8 *special_ie, size_t special_ie_len);
 bool ieee80211_ap_update_special_probe_request(struct ieee80211_sub_if_data *sdata,
 		const u8 *special_ie, size_t special_ie_len);
+bool ieee80211_ap_update_vendor_probe_request(struct ieee80211_sub_if_data *sdata,
+		const u8 *special_ie, size_t special_ie_len);
+
 
 bool ieee80211_updata_extra_ie(struct ieee80211_sub_if_data *sdata,enum ieee80211_special_work_type type,
 		union iee80211_extra_ie *extra);

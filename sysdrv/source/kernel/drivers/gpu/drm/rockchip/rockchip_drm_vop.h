@@ -27,6 +27,7 @@
 #define VOP2_BUILD(version)		((version) & 0xffff)
 
 #define VOP_VERSION_RK3528	VOP2_VERSION(0x50, 0x17, 0x1263)
+#define VOP_VERSION_RK3562	VOP2_VERSION(0x50, 0x17, 0x4350)
 #define VOP_VERSION_RK3568	VOP2_VERSION(0x40, 0x15, 0x8023)
 #define VOP_VERSION_RK3588	VOP2_VERSION(0x40, 0x17, 0x6786)
 
@@ -304,6 +305,11 @@ struct vop_ctrl {
 	struct vop_reg sw_uv_offset_en;
 	struct vop_reg dsp_out_yuv;
 	struct vop_reg dsp_data_swap;
+	struct vop_reg dsp_bg_swap;
+	struct vop_reg dsp_rb_swap;
+	struct vop_reg dsp_rg_swap;
+	struct vop_reg dsp_delta_swap;
+	struct vop_reg dsp_dummy_swap;
 	struct vop_reg yuv_clip;
 	struct vop_reg dsp_ccir656_avg;
 	struct vop_reg dsp_black;
@@ -723,6 +729,7 @@ struct vop2_cluster_regs {
 	struct vop_reg afbc_enable;
 	struct vop_reg lb_mode;
 	struct vop_reg scl_lb_mode;
+	struct vop_reg frm_reset_en;
 
 	struct vop_reg src_color_ctrl;
 	struct vop_reg dst_color_ctrl;

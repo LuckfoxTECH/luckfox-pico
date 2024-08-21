@@ -1,0 +1,35 @@
+menuconfig RT_USING_DRIVER_AUDIO_PCM_PLUGIN
+    bool "Audio PCM Plugins"
+    default n
+
+if RT_USING_DRIVER_AUDIO_PCM_PLUGIN
+    config RT_USING_DRIVER_AUDIO_PCM_PLUGIN_HW
+        bool "Enable PCM Hardware Plugin"
+        default n
+
+    config RT_USING_DRIVER_AUDIO_PCM_PLUGIN_SOFTVOL
+        bool "Enable PCM Softvol Plugin"
+        select RT_USING_DRIVER_AUDIO_PCM_PLUGIN_HW
+        default n
+        help
+          Say Y if you would like to use softvol plugin.
+
+    menu "PCM Softvol Configuration"
+        depends on RT_USING_DRIVER_AUDIO_PCM_PLUGIN_SOFTVOL
+        config SOFTVOL_MIN_DB
+            string "PCM Softvol Plugin min dB"
+            default "-50.0"
+        config SOFTVOL_MAX_DB
+            string "PCM Softvol Plugin max dB"
+            default "0.0"
+        config SOFTVOL_FORMAT
+            string "PCM Softvol Plugin format"
+            default "S16_LE"
+        config SOFTVOL_CHANNELS
+            int "PCM Softvol Plugin channels"
+            default 2
+        config SOFTVOL_RESOLUTION
+            int "PCM Softvol Plugin resolution"
+            default 100
+    endmenu
+endif

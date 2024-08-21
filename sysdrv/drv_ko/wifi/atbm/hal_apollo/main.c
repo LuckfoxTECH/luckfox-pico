@@ -27,6 +27,8 @@
 //#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0))
 #include<linux/module.h>
 //#endif
+#include <linux/kthread.h>
+
 #include <linux/init.h>
 #include <linux/firmware.h>
 #include <linux/etherdevice.h>
@@ -55,6 +57,8 @@
 #endif
 #include "svn_version.h"
 
+#include "mac80211/driver-ops.h"
+
 MODULE_AUTHOR("wifi_software <wifi_software@altobeam.com>");
 MODULE_DESCRIPTION("Softmac altobeam apollo wifi common code");
 MODULE_LICENSE("GPL");
@@ -70,15 +74,28 @@ void atbm_hif_status_set(int status)
 }
 
 
-
 #define CHIP_NAME_LEN 10
 #if (PROJ_TYPE>=ARES_A)
 
 const char chip_str[7][CHIP_NAME_LEN]={
+#ifdef SDIO_BUS
+"6031",
+#else
+
 "6032i",
+#endif
+
+#ifdef SDIO_BUS
+"6031s",
+#else
 "6032is",
+#endif
 "6032it",
+#ifdef SDIO_BUS
+"6031B",
+#else
 "6012B",
+#endif
 "NULL",
 "NULL",
 "NULL"
@@ -98,7 +115,10 @@ void set_chip_type(const char *chip)
 		atbm_printk_init("current chiptype %s \n",chip_type_str);
 	}
 }
-
+char * get_chip_type(void)
+{
+		return chip_type_str;
+}
 
 extern int wifi_run_sta;
 module_param(wifi_run_sta, int, 0644);
@@ -1721,6 +1741,147 @@ void atbm_get_mac_address(struct atbm_common *hw_priv)
 	SET_IEEE80211_PERM_ADDR(hw_priv->hw, hw_priv->addresses[0].addr);
 
 }
+
+int ieee80211_send_probe_resp_packet(struct ieee80211_sub_if_data *sdata,struct atbm_common *hw_priv)
+{
+	struct sk_buff *skb;
+	struct atbm_ieee80211_mgmt *mgmt = NULL;
+	u8 dest[6]={0xff,0xff,0xff,0xff,0xff,0xff};
+	u8 *special = NULL;
+	
+#ifdef ATBM_PROBE_RESP_EXTRA_IE
+	skb = ieee80211_proberesp_get(&sdata->local->hw,&sdata->vif);
+#endif
+	if(skb == NULL){
+		atbm_printk_err("atbm_ieee80211_send_probe_resp  skb err! \n");
+		return -1;
+	}
+
+	/*
+	*add special ie
+	*/
+	if(atbm_pskb_expand_head(skb,0,sizeof(struct atbm_vendor_cfg_ie),GFP_ATOMIC)){
+		//atbm_printk_err("atbm_pskb_expand_head   err! sizeof(struct atbm_vendor_cfg_ie) = %d\n",sizeof(struct atbm_vendor_cfg_ie));
+		atbm_dev_kfree_skb(skb);
+		return 0;
+	}
+	special = skb->data + skb->len;
+	//atbm_printk_err("atbm_ieee80211_send_probe_resp  special=%x \n",special);
+	memcpy(special,&hw_priv->private_ie,sizeof(struct atbm_vendor_cfg_ie));
+
+	atbm_skb_put(skb,sizeof(struct atbm_vendor_cfg_ie));
+	
+
+	mgmt = (struct atbm_ieee80211_mgmt *)skb->data;
+	memcpy(mgmt->da,dest,6);
+
+	IEEE80211_SKB_CB(skb)->flags |=
+			IEEE80211_TX_CTL_NO_CCK_RATE;
+
+	ieee80211_tx_skb(sdata, skb);
+	return 0;
+
+}
+
+static int atbm_ieee80211_send_probe_resp(void *arg)
+{
+	
+	struct atbm_common *hw_priv = arg;
+	struct ieee80211_hw *hw = hw_priv->hw;
+	struct ieee80211_local *local = 
+		container_of(hw, struct ieee80211_local, hw);
+	
+	struct ieee80211_sub_if_data *sdata = NULL;
+	struct ieee80211_sub_if_data *sdata_update;    
+	
+		//sdata->local;
+	
+//	struct atbm_common *hw_priv = (struct atbm_common *) hw->priv;
+	hw_priv->stop_prbresp_thread = false;
+	hw_priv->start_send_prbresp = false;
+	while(1){
+		atbm_printk_err(" wait_event_interruptible from  send_prbresp_wq\n");
+		wait_event_interruptible(hw_priv->send_prbresp_wq, hw_priv->start_send_prbresp);
+
+		if(hw_priv->stop_prbresp_thread)
+			break;
+		list_for_each_entry(sdata_update, &local->interfaces, list){
+			if(sdata_update->vif.type == NL80211_IFTYPE_AP){
+				sdata = sdata_update;
+				break;
+			}	
+		}
+		if(sdata == NULL){
+			atbm_printk_err("atbm_ieee80211_send_probe_resp not found ap mode! \n");
+			msleep(1000);
+			continue ;
+		}
+		
+		if (!ieee80211_sdata_running(sdata)){
+			atbm_printk_err("atbm_ieee80211_send_probe_resp net interface not runing! \n");
+			msleep(1000);
+			continue ;
+		}
+		if(sdata->vif.type != NL80211_IFTYPE_AP){
+			atbm_printk_err("atbm_ieee80211_send_probe_resp , not ap mode! \n");
+			msleep(1000);
+			continue ;
+		}
+		atbm_printk_err(" start_send_prbresp +++++++++++++\n");
+		while(hw_priv->start_send_prbresp){
+			msleep(2);
+			if(ieee80211_send_probe_resp_packet(sdata,hw_priv)){
+				atbm_printk_err("ieee80211_send_probe_resp_packet err! \n");
+				break;
+			}
+		}
+		
+	}
+
+	atbm_printk_err("atbm_ieee80211_send_probe_resp drv_flush! \n");
+	return 0;
+}
+
+
+int atbm_send_probe_resp_init(struct atbm_common *hw_priv)
+{
+
+	if(!hw_priv){
+		atbm_printk_err("atbm_send_probe_resp_init : hw_priv is NULL\n");
+		return -1;
+	}
+	hw_priv->send_prbresp_work = NULL;
+	//hw_priv->bh_wq
+	init_waitqueue_head(&hw_priv->send_prbresp_wq);
+	hw_priv->stop_prbresp_thread = false;
+	hw_priv->start_send_prbresp = false;
+	hw_priv->send_prbresp_work = 
+	kthread_create(&atbm_ieee80211_send_probe_resp, hw_priv, ieee80211_alloc_name(hw_priv->hw,"atbm_prbrp"));
+	
+	if (!hw_priv->send_prbresp_work){
+		atbm_printk_err("kthread_create :error!! \n");
+		hw_priv->send_prbresp_work = NULL;
+		return -1;
+	}else{
+		wake_up_process(hw_priv->send_prbresp_work);
+	}
+	//ATBM_INIT_WORK(&hw_priv->send_prbresp_work, atbm_ieee80211_send_probe_resp);
+	//mutex_init(&hw_priv->stop_send_prbresp_lock);
+	return 0;
+}
+int atbm_send_probe_resp_uninit(struct atbm_common *hw_priv) 
+{
+	struct task_struct *thread = hw_priv->send_prbresp_work;
+	if (WARN_ON(!thread))
+		return -1;
+	hw_priv->bh_thread = NULL;
+	hw_priv->stop_prbresp_thread = true;
+	hw_priv->start_send_prbresp = true;
+	wake_up(&hw_priv->send_prbresp_wq);
+	kthread_stop(thread);
+	return 0;
+}
+
 struct ieee80211_hw *atbm_init_common(size_t hw_priv_data_len)
 {
 	int i;
@@ -1887,7 +2048,7 @@ struct ieee80211_hw *atbm_init_common(size_t hw_priv_data_len)
 
 //#ifdef  CONFIG_ATBM_5G_PRETEND_2G
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0))
-	hw->wiphy->regulatory_flags = REGULATORY_CUSTOM_REG |REGULATORY_DISABLE_BEACON_HINTS|REGULATORY_COUNTRY_IE_IGNORE;
+	hw->wiphy->regulatory_flags = REGULATORY_CUSTOM_REG |REGULATORY_DISABLE_BEACON_HINTS;//|REGULATORY_COUNTRY_IE_IGNORE;
 #else
 	hw->wiphy->flags |= WIPHY_FLAG_CUSTOM_REGULATORY;
 #endif
@@ -1949,6 +2110,11 @@ struct ieee80211_hw *atbm_init_common(size_t hw_priv_data_len)
 	ATBM_INIT_DELAYED_WORK(&hw_priv->scan.scan_spilt, atbm_scan_split_work);
 #endif
 //#ifdef CONFIG_WIRELESS_EXT
+
+
+	atbm_send_probe_resp_init(hw_priv);
+	
+
 	ATBM_INIT_WORK(&hw_priv->etf_tx_end_work, etf_scan_end_work);
 	//init_timer(&hw_priv->etf_expire_timer);	
 	//hw_priv->etf_expire_timer.expires = jiffies+1000*HZ;
@@ -2061,6 +2227,10 @@ struct ieee80211_hw *atbm_init_common(size_t hw_priv_data_len)
 	init_waitqueue_head(&hw_priv->wsm_startup_done);
 	init_waitqueue_head(&hw_priv->offchannel_wq);
 	hw_priv->offchannel_done = 0;
+#ifdef SDIO_BUS
+	hw_priv->sdio_status = 1;
+	//atmb_printk_err("hw_priv->sdio_status:%d \n",hw_priv->sdio_status);
+#endif
 	wsm_buf_init(&hw_priv->wsm_cmd_buf);
 	spin_lock_init(&hw_priv->wsm_cmd.lock);
 #ifndef CONFIG_RATE_HW_CONTROL
@@ -2100,9 +2270,17 @@ int atbm_register_common(struct ieee80211_hw *dev)
 
 void atbm_free_common(struct ieee80211_hw *dev)
 {
-	/* struct atbm_common *hw_priv = dev->priv; */
+	 struct atbm_common *hw_priv = dev->priv; 
 	/* unsigned int i; */
-
+	atbm_printk_err("atbm_free_common : stop send_prbresp_work ++++++++++\n");
+//	hw_priv->start_send_prbresp = false;
+//	msleep(5);
+	//atbm_cancel_work_sync(&hw_priv->send_prbresp_work);	
+	atbm_send_probe_resp_uninit(hw_priv);
+//	atbm_flush_workqueue(hw_priv->send_prbresp_work);
+//	atbm_destroy_workqueue(hw_priv->send_prbresp_work);
+//	hw_priv->send_prbresp_work = NULL;
+	atbm_printk_err("atbm_free_common : stop send_prbresp_work ----------\n");
 	ieee80211_free_hw(dev);
 }
 //EXPORT_SYMBOL_GPL(atbm_free_common);
@@ -2114,6 +2292,9 @@ void atbm_unregister_common(struct ieee80211_hw *dev)
 #ifdef USB_BUS
 	atomic_set(&hw_priv->atbm_pluged,0);
 #endif
+	
+
+	
 	atbm_printk_exit("atbm_unregister_common.++\n");
 	ieee80211_unregister_hw(dev);
 	
@@ -2151,7 +2332,7 @@ void atbm_unregister_common(struct ieee80211_hw *dev)
 	atbm_flush_workqueue(hw_priv->workqueue);
 	atbm_destroy_workqueue(hw_priv->workqueue);
 	hw_priv->workqueue = NULL;
-
+	
 #ifdef CONFIG_HAS_WAKELOCK
 	hw_priv->wakelock_hw_counter = 0;
 	hw_priv->wakelock_bh_counter = 0;
@@ -2349,6 +2530,8 @@ int get_rate_delta_gain(s8 *dst)
 			}
 				
 		}
+	}else{
+		return -1;
 	}
 		
 	return 0;
@@ -2637,6 +2820,21 @@ reload_fw:
 			wsm_set_rate_power(hw_priv,1);
 	}	
 
+
+	
+	{
+		// open Automatic calibration ppm
+		char *ppm_buf="cfo 1";
+		err = wsm_write_mib(hw_priv, WSM_MIB_ID_FW_CMD, ppm_buf, 6, if_id);
+		if(err < 0){
+			atbm_printk_err("open cfo fail!!!. \n");
+		}
+		
+		
+	}
+
+	
+
 	{
 		atbm_printk_err("get chip id [%x][%x][%x] \n",
 							hw_priv->wsm_caps.firmeareExCap,
@@ -2737,7 +2935,7 @@ int access_file(char *path, char *buffer, int size, int isRead)
 #endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0))
 			ret = kernel_read(fp,buffer,size,&fp->f_pos);
-#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 84))
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 37))
 			ret = kernel_read(fp,fp->f_pos,buffer,size);
 
 #elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 14))
@@ -2763,7 +2961,7 @@ int access_file(char *path, char *buffer, int size, int isRead)
 #endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0))
 			ret = kernel_write(fp,buffer,size,&fp->f_pos);
-#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 84))
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 37))
 			ret = kernel_write(fp,buffer,size,fp->f_pos);
 
 #elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 14))

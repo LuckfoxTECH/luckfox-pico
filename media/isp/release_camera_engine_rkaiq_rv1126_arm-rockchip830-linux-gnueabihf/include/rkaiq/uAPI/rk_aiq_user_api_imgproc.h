@@ -34,6 +34,7 @@
 #include "rk_aiq_user_api_afec.h"
 #include "rk_aiq_user_api_aldch.h"
 #include "rk_aiq_user_api_acp.h"
+#include "rk_aiq_user_api_ablc.h"
 
 /*
 *****************************
@@ -189,6 +190,8 @@ XCamReturn rk_aiq_uapi_getExpGainRange(const rk_aiq_sys_ctx_t* ctx, paRange_t *g
 XCamReturn rk_aiq_uapi_setExpTimeRange(const rk_aiq_sys_ctx_t* ctx, paRange_t *time);
 XCamReturn rk_aiq_uapi_getExpTimeRange(const rk_aiq_sys_ctx_t* ctx, paRange_t *time);
 
+XCamReturn rk_aiq_uapi_setInitExp(const rk_aiq_sys_ctx_t* ctx, float time, float gain);
+
 /*
 **********************************************************
 * Auto exposure advanced features
@@ -340,8 +343,22 @@ XCamReturn rk_aiq_uapi_getMWBCT(const rk_aiq_sys_ctx_t* ctx, unsigned int *ct);
 *
 *****************************
 */
-
 XCamReturn rk_aiq_uapi_setLut3dstrth(const rk_aiq_sys_ctx_t* ctx, float alpha);
+
+/*
+*****************************
+*
+* Desc: set multi window
+* Argument:
+*   mode: bool, 0 unable / 1 enable
+*   multiwindow[RK_AIQ_AWB_MULTIWINDOW_NUM][4]: unsigned short,
+*                num of window :[0, RK_AIQ_AWB_MULTIWINDOW_NUM]
+*                each window para: [h_off, v_off, h_size, v_size]
+*
+*****************************
+*/
+XCamReturn rk_aiq_uapi_setMultiWin(const rk_aiq_sys_ctx_t* ctx, rk_aiq_wb_multiwin_t multiwin);
+XCamReturn rk_aiq_uapi_getMultiWin(const rk_aiq_sys_ctx_t* ctx, rk_aiq_wb_multiwin_t *multiwin);
 
 /*
 *****************************

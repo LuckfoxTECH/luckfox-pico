@@ -17,6 +17,7 @@ aux_source_directory(video SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rv1126 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/ SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/param SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/rtsp SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/tuya_ipc/4.1.1 SRCS)
 
 include_directories(audio

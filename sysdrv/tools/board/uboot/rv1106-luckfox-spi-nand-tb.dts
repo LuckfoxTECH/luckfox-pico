@@ -1,0 +1,131 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2022 Rockchip Electronics Co., Ltd.
+ */
+
+/dts-v1/;
+
+#include "rv1106.dtsi"
+#include "rv1106-u-boot.dtsi"
+#include <dt-bindings/input/input.h>
+
+/ {
+	model = "Rockchip RV1106 EVB2 Board";
+	compatible = "rockchip,rv1106-evb2", "rockchip,rv1106";
+
+	chosen {
+		stdout-path = &uart2;
+		u-boot,spl-boot-order = &spi_nand, &emmc;
+	};
+
+  adc-keys {
+    compatible = "adc-keys";
+    io-channels = <&saradc 0>;
+    io-channel-names = "buttons";
+    poll-interval = <100>;
+    keyup-threshold-microvolt = <1800000>;
+    u-boot,dm-spl;
+    status = "okay";
+
+    volumeup-key {
+      u-boot,dm-spl;
+      linux,code = <KEY_VOLUMEUP>;
+      label = "volume up";
+      press-threshold-microvolt = <0>;
+    };
+
+    volumedown-key {
+      u-boot,dm-spl;
+      linux,code = <KEY_VOLUMEDOWN>;
+      label = "volume down";
+      press-threshold-microvolt = <400781>;
+    };
+  };
+
+};
+
+&hw_decompress {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+//&gmac {
+//	/delete-property/ u-boot,dm-spl;
+//	status = "disabled";
+//};
+
+//&mdio {
+//	/delete-property/ u-boot,dm-spl;
+//	status = "disabled";
+//};
+
+//&pinctrl {
+//	/delete-property/ u-boot,dm-spl;
+//	status = "disabled";
+//};
+
+//&pcfg_pull_up_drv_level_2 {
+//	/delete-property/ u-boot,dm-spl;
+//	status = "disabled";
+//};
+
+//&pcfg_pull_up {
+//	/delete-property/ u-boot,dm-spl;
+//	status = "disabled";
+//};
+
+//&gpio3 {
+//	/delete-property/ u-boot,dm-spl;
+//	status = "disabled";
+//};
+
+//&rmii_phy {
+//	/delete-property/ u-boot,dm-spl;
+//	status = "disabled";
+//};
+
+//&rng {
+//	/delete-property/ u-boot,dm-spl;
+//	status = "disabled";
+//};
+
+&saradc {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&sdmmc {
+	/delete-property/ u-boot,dm-spl;
+	status = "disabled";
+};
+
+&sdmmc0 {
+	/delete-property/ u-boot,dm-spl;
+};
+
+&sdmmc0_bus4 {
+	/delete-property/ u-boot,dm-spl;
+};
+
+&sdmmc0_clk {
+	/delete-property/ u-boot,dm-spl;
+};
+
+&sdmmc0_cmd {
+	/delete-property/ u-boot,dm-spl;
+};
+
+&sdmmc0_det {
+	/delete-property/ u-boot,dm-spl;
+};
+
+//&spi_nand {
+//	/delete-property/ u-boot,dm-spl;
+//	status = "disabled";
+//};
+
+&spi_nor {
+	/delete-property/ u-boot,dm-spl;
+	status = "disabled";
+	//spi-max-frequency = <125000000>;
+};

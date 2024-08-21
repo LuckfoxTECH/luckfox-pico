@@ -9,6 +9,8 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <time.h>
+#include <stdbool.h>
 
 #include "Rk_wifi.h"
 #include "Rk_softap.h"
@@ -60,18 +62,16 @@ static int rk_wifi_softap_state_callback(RK_SOFTAP_STATE state, const char* data
 	return true;
 }
 
-void rk_wifi_softap_start(int argc, char *argv[])
+int rk_wifi_softap_start(int argc, char *argv[])
 {
 	printf("%s enter\n", __func__);
 	RK_softap_register_callback(rk_wifi_softap_state_callback);
-	if (0 != RK_softap_start("Rockchip-SoftAp", RK_SOFTAP_TCP_SERVER)) {
-		return;
-	}
+	return RK_softap_start("Rockchip-SoftAp", RK_SOFTAP_TCP_SERVER);
 }
 
-void rk_wifi_softap_stop(int argc, char *argv[])
+int rk_wifi_softap_stop(int argc, char *argv[])
 {
-	RK_softap_stop();
+	return RK_softap_stop();
 }
 /* SOFTAP TEST END */
 
@@ -105,6 +105,8 @@ static int rk_wifi_state_callback(RK_WIFI_RUNNING_State_e state, RK_WIFI_INFO_Co
 			printf("RK_WIFI_MCU_PIR_DETECT: %d\n", info->lp_data[0]);
 		} else if (info->lp_event_type == RK_WIFI_LP_LONG_PRESS) {
 			printf("RK_WIFI_MCU_LONG_PRESS_KEY\n");
+		} else if(info->lp_event_type == RK_WIFI_LP_DOORBELL) {
+			printf("RK_WIFI_MCU_DOORBELL_PRESS_KEY\n");
 		} else if (info->lp_event_type == RK_WIFI_LP_SHORT_PRESS) {
 			printf("RK_WIFI_MCU_SHORT_PRESS_KEY\n");
 		} else if (info->lp_event_type == RK_WIFI_LP_KEEPALIVE_OK) {
@@ -121,14 +123,14 @@ static int rk_wifi_state_callback(RK_WIFI_RUNNING_State_e state, RK_WIFI_INFO_Co
 
 int rk_wifi_open(void)
 {
-	pthread_t thread;
+	//pthread_t thread;
 	int timeout = 200; //200 * 10ms == 2s
 	RK_WIFI_INFO_Connection_s Info;
 
 	printf("%s\n", __func__);
 
 	RK_wifi_register_callback(rk_wifi_state_callback);
-	if (!RK_wifi_enable(1))
+	if (RK_wifi_enable(1) != true)
 		goto fail;
 
 	while ((timeout--) && (g_wifi_state == RK_WIFI_State_OFF)) {
@@ -149,29 +151,39 @@ fail:
 	return false;
 }
 
-void rk_wifi_close(int argc, char *argv[])
+int rk_wifi_close(int argc, char *argv[])
 {
-	if (!RK_wifi_enable(0))
+	if (RK_wifi_enable(0) != true)
 		printf("RK_wifi_enable 0 fail!\n");
+
+	return true;
 }
 
 //9 input fish1:rk12345678
-void rk_wifi_connect(int argc, char *argv[])
+int rk_wifi_connect(int argc, char *argv[])
 {
+	if (argv[0] == NULL || argv[1] == NULL) {
+		printf("ssid or psk is NULL\n");
+		return false;
+	}
+
 	printf("%s: ssid: %s, psk: %s\n", __func__, argv[0], argv[1]);
-	if (!RK_wifi_connect(argv[0], argv[1]))
+
+	if (RK_wifi_connect(argv[0], argv[1]) == false)
 		printf("rk_wifi_connect fail!\n");
 
-	return;
+	return true;
 }
 
-void rk_wifi_scan(int argc, char *argv[])
+int rk_wifi_scan(int argc, char *argv[])
 {
-	if (!RK_wifi_scan())
+	if (RK_wifi_scan() != true)
 		printf("RK_wifi_scan fail!\n");
+
+	return true;
 }
 
-void rk_wifi_getSavedInfo(int argc, char *argv[])
+int rk_wifi_getSavedInfo(int argc, char *argv[])
 {
 	RK_WIFI_SAVED_INFO_s *wsi;
 	int ap_cnt = 0;
@@ -186,64 +198,80 @@ void rk_wifi_getSavedInfo(int argc, char *argv[])
 
 	if (wsi != NULL)
 		free(wsi);
+
+	return true;
 }
 
-void rk_wifi_getConnectionInfo(int argc, char *argv[])
+int rk_wifi_getConnectionInfo(int argc, char *argv[])
 {
 	RK_WIFI_INFO_Connection_s info;
 
 	if (RK_wifi_running_getConnectionInfo(&info))
 		printf_wifi_link_info(&info);
+
+	return true;
 }
 
-void rk_wifi_connect_with_ssid(int argc, char *argv[])
+int rk_wifi_connect_with_ssid(int argc, char *argv[])
 {
-	if (!RK_wifi_connect_with_ssid(argv[0]))
+	if (RK_wifi_connect_with_ssid(argv[0]) != true)
 		printf("RK_wifi_connect_with_ssid fail!\n");
+
+	return true;
 }
 
-void rk_wifi_stop_keepalive(int argc, char *argv[])
+int rk_wifi_stop_keepalive(int argc, char *argv[])
 {
 	if (!RK_wifi_stop_keepalive(866))
 		printf("RK_wifi_stop_keepalive fail!\n");
+
+	return true;
 }
 
-void rk_wifi_reset(int argc, char *argv[])
+int rk_wifi_reset(int argc, char *argv[])
 {
 	if (!RK_wifi_reset())
 		printf("RK_wifi_reset fail!\n");
+
+	return true;
 }
 
-void rk_wifi_cancel(int argc, char *argv[])
+int rk_wifi_cancel(int argc, char *argv[])
 {
-	if (!RK_wifi_cancel())
+	if (RK_wifi_cancel() != true)
 		printf("RK_wifi_cancel fail!\n");
+
+	return true;
 }
 
-void rk_wifi_forget_with_ssid(int argc, char *argv[])
+int rk_wifi_forget_with_ssid(int argc, char *argv[])
 {
-	if (!RK_wifi_forget_with_ssid(argv[0])) {
+	if (RK_wifi_forget_with_ssid(argv[0]) != true) {
 		printf("rk_wifi_forget_with_ssid fail!\n");
 	}
+
+	return true;
 }
 
-void rk_wifi_disconnect(int argc, char *argv[])
+int rk_wifi_disconnect(int argc, char *argv[])
 {
 	RK_wifi_disconnect_network();
+
+	return true;
 }
 
-void rk_wifi_set_pir(int argc, char *argv[])
+int rk_wifi_set_pir(int argc, char *argv[])
 {
 	int enable = atoi(argv[0]);
 
 	printf("%s: %s\n", __func__, enable ? "enable" : "disable");
-	if (RK_wifi_set_pir(enable) < 0)
+	if (RK_wifi_set_pir(enable) != true)
 		printf("rk_wifi_set_pir fail!\n");
 
-	return;
+	return true;
 }
 
-void rk_wifi_set_keepalive(int argc, char *argv[])
+int rk_wifi_set_keepalive(int argc, char *argv[])
 {
 	RK_WIFI_LOW_POWER_KEEPALIVE_s kp;
 	printf("argv: %s:%s:%s\n", argv[0], argv[1], argv[2]);
@@ -255,10 +283,10 @@ void rk_wifi_set_keepalive(int argc, char *argv[])
 
 	printf("domain:%s, port:%s, period:%s\n",
 			 kp.domain, kp.port, kp.period);
-	if (RK_wifi_start_keepalive(&kp) < 0)
+	if (RK_wifi_start_keepalive(&kp) != true)
 		printf("RK_wifi_start_keepalive fail!\n");
 
-	return;
+	return true;
 }
 
 /* WIFI ON/OFF LOOP TEST */
@@ -267,7 +295,7 @@ void *wifi_test_onff_thread(void *arg)
 	while (1) {
 		//open
 		RK_wifi_register_callback(rk_wifi_state_callback);
-		if (!RK_wifi_enable(1))
+		if (RK_wifi_enable(1) != true)
 			printf("RK_wifi_enable 1 fail!\n");
 
 		while (g_wifi_state == RK_WIFI_State_OPEN) {
@@ -281,7 +309,7 @@ void *wifi_test_onff_thread(void *arg)
 
 		//close
 		printf("%s: RKWIFI DEINIT\n", __func__);
-		if (!RK_wifi_enable(0))
+		if (RK_wifi_enable(0) != true)
 			printf("RK_wifi_enable 0 fail!\n");
 
 		while (g_wifi_state == RK_WIFI_State_OFF) {
@@ -292,28 +320,32 @@ void *wifi_test_onff_thread(void *arg)
 	}
 }
 
-void rk_wifi_openoff_test(int argc, char *argv[])
+int rk_wifi_openoff_test(int argc, char *argv[])
 {
 	printf("%s: ", __func__);
 
 	if (rkwifi_init_thread) {
 		printf("rkwifi_init_thread already exist\n");
-		return;
+		return false;
 	}
 
 	if (pthread_create(&rkwifi_init_thread, NULL, wifi_test_onff_thread, NULL)) {
 		printf("Createrkwifi_init_thread failed\n");
-		return;
+		return false;
 	}
+
+	return true;
 }
 
-void rk_wifi_ota(int argc,char *argv[])
+int rk_wifi_ota(int argc,char *argv[])
 {
+	printf("arg nums is %d \n",argc);
 	if (argc < 1) {
 		printf("no path,pls enter correct path \n");
-		return;
+		return false;
 	}
-	Rk_wifi_ota(argv[0]);
+
+	return Rk_wifi_ota(argv[0]);
 }
 
 #define CLI_SOCKET_PATH "/tmp/rkserver_socket"
@@ -346,6 +378,8 @@ static command_t socket_cmd_table[] = {
 	{"start_kp", "rkwifi_server start_kp <ip:port:expire>", rk_wifi_set_keepalive},
 	{"stop_kp", "rkwifi_server stop_kp", rk_wifi_stop_keepalive},
 };
+
+
 
 static int rk_tokenize_cmd(char *cmd, char *argv[], int is_at_cmd)
 {
@@ -397,9 +431,9 @@ static int rk_cmd_parse(char *arg)
 			if (!strcmp(socket_cmd_table[i].cmd, argv[0])) {
 				ret = socket_cmd_table[i].exec(argc - 1, &argv[1]);
 				if (ret == false) {
-					printf("FAIL\n");
+					//printf("FAIL\n");
 				} else {
-					printf("OK\n");
+					//printf("OK\n");
 				}
 				break;
 			}
@@ -479,7 +513,6 @@ static void show_help(void) {
 extern int rkwifi_cli(int argc, char *argv[]);
 int main(int argc, char *argv[])
 {
-	int i, item_cnt;
 	pthread_t sock_tid;
 
 	if (argc <= 1) {

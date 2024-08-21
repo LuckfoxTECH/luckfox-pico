@@ -1,0 +1,67 @@
+
+menuconfig RT_USING_CMBACKTRACE
+    bool "CmBacktrace: Advanced fault backtrace library for ARM Cortex-M series MCU."
+    default n
+
+if RT_USING_CMBACKTRACE
+
+    choice
+        prompt "CPU Platform"
+        default PKG_CMBACKTRACE_PLATFORM_NOT_SELECTED
+        help
+          Select the ARM Cortex-M CPU Platform of your device
+        config PKG_CMBACKTRACE_PLATFORM_M0_M0PLUS
+            bool "Cortex-M0/M0+"
+        config PKG_CMBACKTRACE_PLATFORM_M3
+            bool "Cortex-M3"
+        config PKG_CMBACKTRACE_PLATFORM_M4
+            bool "Cortex-M4"
+        config PKG_CMBACKTRACE_PLATFORM_M7
+            bool "Cortex-M7"
+        config PKG_CMBACKTRACE_PLATFORM_NOT_SELECTED
+            bool "Not selected, please select"
+    endchoice
+
+    config PKG_CMBACKTRACE_DUMP_STACK
+        bool
+        prompt "Dump the thread or main stack info"
+        default y
+        help
+          Dump the stack information when a fault occurs. It will add a lot of print information.
+
+    choice
+        prompt "Language of print information"
+        default PKG_CMBACKTRACE_PRINT_ENGLISH
+        help
+          Select the language of print information when a fault occurs
+        config PKG_CMBACKTRACE_PRINT_ENGLISH
+            bool "Engish"
+        config PKG_CMBACKTRACE_PRINT_CHINESE
+            bool "Chinese"
+    endchoice
+
+    config PKG_CMBACKTRACE_FAULT_REBOOT
+        bool "force reboot after a fault occur"
+        default n
+        depends on RT_USING_RESET
+
+    config PKG_CMBACKTRACE_FAULT_DUMP_TO_FLASH
+        bool
+        prompt "Dump the fault to flash"
+        default n
+        help
+          Dump the fault information to flash, you need a breakpad partition.
+
+    if PKG_CMBACKTRACE_FAULT_DUMP_TO_FLASH
+
+        config PKG_CMBACKTRACE_FLASH_PARTITION_NAME
+            string "the name of partition which you want store fault information."
+            default "breakpad"
+
+        config PKG_CMBACKTRACE_DUMP_BUF_SIZE
+            int "the buffer size for dump fault information to flash."
+            default 4096
+
+    endif
+
+endif

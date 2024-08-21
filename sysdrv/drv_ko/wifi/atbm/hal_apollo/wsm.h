@@ -608,6 +608,15 @@ struct atbm_common;
 #define WSM_MIB_ID_GET_CUR_MAX_RATE				0x105a
 #define WSM_MIB_ID_GET_EFUSE_ALL_DATA			0x105b
 #define WSM_MIB_ID_GET_CONFIG_TX_POWER			0x105c
+#define WSM_MIB_ID_GET_CFO_PPM_CORRECTION_VALUE	0x105d
+#define WSM_MIB_ID_GET_CCA_THRESHOLD				0x105e //s32 manual_cca_thr = 0;
+#define WSM_MIB_ID_GET_RTS_DURATION					0x105f //uint32 rtsDuration = 0;
+#define WSM_MIB_ID_GET_RTS_THRESHOLD				0x1060 //uint32 dot11RTSThreshold = 0;
+#define WSM_MIB_ID_GET_SNR							0x1062 //uint32 uRxEvm = 0;
+#define WSM_MIB_ID_GET_NOISE_LEVEL					0x1061 //struct RX_QA_STATUS_S snr;
+#define WSM_MIB_ID_SET_TIM 						0x1063
+#define WSM_MIB_ID_GET_TIM 						0x1064
+
 
 
 
@@ -1716,6 +1725,14 @@ static inline int wsm_get_efuse_data(struct atbm_common *hw_priv, void *efuse, i
 			    len,-1);
 }
 
+static inline int wsm_get_cfo_ppm_correction_value(struct atbm_common *hw_priv, void *buf, int len)
+{
+	if(buf == NULL)
+		return -1;
+	return wsm_read_mib(hw_priv, WSM_MIB_ID_GET_CFO_PPM_CORRECTION_VALUE, buf,
+				len, -1);
+}
+
 static inline int wsm_get_efuse_first_data(struct atbm_common *hw_priv, void *efuse, int len)
 {
 	return wsm_read_mib(hw_priv, WSM_MIB_ID_GET_FIRST_BLOCK_EFUSE, efuse,
@@ -1762,6 +1779,60 @@ static inline int wsm_get_cfg_txpower(struct atbm_common *hw_priv, void *buf, in
 	return wsm_read_mib(hw_priv, WSM_MIB_ID_GET_CONFIG_TX_POWER, buf,
 				len, -1);
 }
+
+
+struct RX_QA_STATUS_S{
+	char initial_gain;
+	char noise_level_dBm;
+	unsigned char cca_indication;
+	char update_gain;
+	unsigned int reserved;
+};
+static inline int wsm_get_cca_threshold(struct atbm_common *hw_priv,void *cca_threshold,int len)
+{
+	return wsm_read_mib(hw_priv, WSM_MIB_ID_GET_CCA_THRESHOLD, cca_threshold,
+				len, -1);
+}
+
+static inline int wsm_get_rts_duration(struct atbm_common *hw_priv,void *rts_duration,int len)
+{
+	return wsm_read_mib(hw_priv, WSM_MIB_ID_GET_RTS_DURATION, rts_duration,
+				len, -1);
+}
+
+static inline int wsm_get_rts_threshold(struct atbm_common *hw_priv,void *rts_threshold,int len)
+{
+	return wsm_read_mib(hw_priv, WSM_MIB_ID_GET_RTS_THRESHOLD, rts_threshold,
+				len, -1);
+}
+static inline int wsm_get_noise_level(struct atbm_common *hw_priv,void *noise_level,int len)
+{
+	return wsm_read_mib(hw_priv, WSM_MIB_ID_GET_NOISE_LEVEL, noise_level,
+				len, -1);
+}
+static inline int wsm_get_snr(struct atbm_common *hw_priv,void *snr,int len)
+{
+	return wsm_read_mib(hw_priv, WSM_MIB_ID_GET_SNR, snr,
+				len, -1);
+}
+
+
+struct TIM_Parameters{
+	uint32_t tim_user_control_ena;
+	uint32_t tim_val;	
+};
+static inline int wsm_get_tim(struct atbm_common *hw_priv,void *tim,int len)
+{
+	return wsm_read_mib(hw_priv, WSM_MIB_ID_GET_TIM, tim,
+				len, -1);
+}
+
+static inline int wsm_set_tim(struct atbm_common *hw_priv,void *tim,int len)
+{
+	return wsm_write_mib(hw_priv, WSM_MIB_ID_SET_TIM, tim,
+				len, -1);
+}
+
 
 
 struct wsm_rx_filter {

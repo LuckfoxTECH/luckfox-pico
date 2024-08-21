@@ -1,0 +1,25 @@
+import os
+from building import * 
+
+# get current dir path
+cwd = GetCurrentDir()
+
+# init src and inc vars
+src = []
+inc = []
+
+# add LittlevGL2RTT common include
+inc = inc + [cwd]
+
+# add group to IDE project
+objs = DefineGroup('LittlevGL2RTT', src, depend = ['RT_USING_LITTLEVGL2RTT'], CPPPATH = inc)
+
+list = os.listdir(cwd)
+
+if GetDepend('RT_USING_LITTLEVGL2RTT'):
+    for d in list:
+        path = os.path.join(cwd, d)
+        if os.path.isfile(os.path.join(path, 'SConscript')):
+            objs = objs + SConscript(os.path.join(d, 'SConscript'))
+
+Return('objs')

@@ -10,7 +10,7 @@ extern "C"
 
 int initDrmDsp();
 int drmDspFrame(int srcWidth, int srcHeight, int dispWidth, int dispHeight,
-		int dmaFd, int fmt);
+		int dmaFd, void* dstAddr, int fmt);
 void deInitDrmDsp();
 #ifdef __cplusplus
 }

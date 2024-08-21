@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include "video.h"
+#include "rk_algo_avs_tool_api.h"
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -36,14 +37,12 @@
 #define RTMP_URL_0 "rtmp://127.0.0.1:1935/live/mainstream"
 #define RTMP_URL_1 "rtmp://127.0.0.1:1935/live/substream"
 #define RTMP_URL_2 "rtmp://127.0.0.1:1935/live/thirdstream"
+#define MAX_PACKET_NUM 16
 
 int g_sensor_num = 6;
 int g_format;
-static pthread_mutex_t g_rtsp_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int g_video_run_ = 1;
 static int g_enable_vo, g_vo_dev_id;
-static rtsp_demo_handle g_rtsplive = NULL;
-static rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1, g_rtsp_session_2;
 static const char *tmp_output_data_type = "H.264";
 static const char *tmp_rc_mode;
 static const char *tmp_h264_profile;
@@ -65,7 +64,7 @@ MPP_CHN_S vi_chn[MAX_RKIPC_SENSOR_NUM], avs_in_chn[MAX_RKIPC_SENSOR_NUM],
 static VO_DEV VoLayer = RK3588_VOP_LAYER_CLUSTER0;
 
 // static void *test_get_vi(void *arg) {
-// 	printf("#Start %s thread, arg:%p\n", __func__, arg);
+// 	LOG_INFO("#Start %s thread, arg:%p\n", __func__, arg);
 // 	VI_FRAME_S stViFrame;
 // 	VI_CHN_STATUS_S stChnStatus;
 // 	int loopCount = 0;
@@ -100,9 +99,8 @@ static VO_DEV VoLayer = RK3588_VOP_LAYER_CLUSTER0;
 // 	return 0;
 // }
 
-#define MAX_PACKET_NUM 16
 static void *rkipc_get_venc_0(void *arg) {
-	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	LOG_INFO("#Start %s thread, arg:%p\n", __func__, arg);
 	VENC_STREAM_S stFrame;
 	int ret = 0;
 
@@ -117,7 +115,7 @@ static void *rkipc_get_venc_0(void *arg) {
 		if (!rk_param_get_int("video.0:one_stream_buffer", 0))
 			stFrame.u32PackCount = MAX_PACKET_NUM;
 		// get the frame
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_0, &stFrame, 1000);
+		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_0, &stFrame, 2500);
 		if (ret != RK_SUCCESS) {
 			LOG_ERROR("RK_MPI_VENC_GetStream timeout %#x\n", ret);
 			continue;
@@ -127,14 +125,8 @@ static void *rkipc_get_venc_0(void *arg) {
 			// LOG_DEBUG("packet(%d) eoi(%d) type(%d) offset(%d) lenth(%d) pts is %lld\n",
 			// 	i, stFrame.pstPack[i].bFrameEnd, stFrame.pstPack[i].DataType,
 			// 	stFrame.pstPack[i].u32Offset, stFrame.pstPack[i].u32Len, stFrame.pstPack[i].u64PTS);
-			if (g_rtsplive && g_rtsp_session_0) {
-				pthread_mutex_lock(&g_rtsp_mutex);
-				rtsp_tx_video(g_rtsp_session_0, data + stFrame.pstPack[i].u32Offset,
-				              stFrame.pstPack[i].u32Len, stFrame.pstPack[i].u64PTS);
-				rtsp_do_event(g_rtsplive);
-				pthread_mutex_unlock(&g_rtsp_mutex);
-			}
-
+			rkipc_rtsp_write_video_frame(VIDEO_PIPE_0, data + stFrame.pstPack[i].u32Offset,
+			                             stFrame.pstPack[i].u32Len, stFrame.pstPack[i].u64PTS);
 			// rkmuxer currently requires full I and P frame to parse
 			if (!stFrame.pstPack[i].bFrameEnd)
 				continue;
@@ -143,16 +135,16 @@ static void *rkipc_get_venc_0(void *arg) {
 			    (stFrame.pstPack[i].DataType.enH265EType == H265E_NALU_IDRSLICE) ||
 			    (stFrame.pstPack[i].DataType.enH265EType == H265E_NALU_ISLICE)) {
 				rk_storage_write_video_frame(
-				    0, data, stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
+				    VIDEO_PIPE_0, data, stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
 				    stFrame.pstPack[i].u64PTS, 1);
-				rk_rtmp_write_video_frame(0, data,
+				rk_rtmp_write_video_frame(VIDEO_PIPE_0, data,
 				                          stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
 				                          stFrame.pstPack[i].u64PTS, 1);
 			} else {
 				rk_storage_write_video_frame(
-				    0, data, stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
+				    VIDEO_PIPE_0, data, stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
 				    stFrame.pstPack[i].u64PTS, 0);
-				rk_rtmp_write_video_frame(0, data,
+				rk_rtmp_write_video_frame(VIDEO_PIPE_0, data,
 				                          stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
 				                          stFrame.pstPack[i].u64PTS, 0);
 			}
@@ -170,48 +162,59 @@ static void *rkipc_get_venc_0(void *arg) {
 }
 
 static void *rkipc_get_venc_1(void *arg) {
-	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	LOG_INFO("#Start %s thread, arg:%p\n", __func__, arg);
 	VENC_STREAM_S stFrame;
 	int loopCount = 0;
 	int ret = 0;
-	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
+	if (rk_param_get_int("video.0:one_stream_buffer", 0)) {
+		stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
+	} else {
+		stFrame.pstPack = malloc(MAX_PACKET_NUM * sizeof(VENC_PACK_S));
+		stFrame.u32PackCount = MAX_PACKET_NUM;
+	}
 
 	while (g_video_run_) {
-		// 5.get the frame
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_1, &stFrame, 1000);
-		if (ret == RK_SUCCESS) {
-			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
-			// LOG_INFO("Count:%d, Len:%d, PTS is %" PRId64", enH264EType is %d\n", loopCount,
-			// stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-			// stFrame.pstPack->DataType.enH264EType);
-			if (g_rtsplive && g_rtsp_session_1) {
-				pthread_mutex_lock(&g_rtsp_mutex);
-				rtsp_tx_video(g_rtsp_session_1, data, stFrame.pstPack->u32Len,
-				              stFrame.pstPack->u64PTS);
-				rtsp_do_event(g_rtsplive);
-				pthread_mutex_unlock(&g_rtsp_mutex);
-			}
-			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_IDRSLICE) ||
-			    (stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
-			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_IDRSLICE) ||
-			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
-				rk_storage_write_video_frame(1, data, stFrame.pstPack->u32Len,
-				                             stFrame.pstPack->u64PTS, 1);
-				rk_rtmp_write_video_frame(1, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-				                          1);
+		if (!rk_param_get_int("video.0:one_stream_buffer", 0))
+			stFrame.u32PackCount = MAX_PACKET_NUM;
+		// get the frame
+		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_1, &stFrame, 2500);
+		if (ret != RK_SUCCESS) {
+			LOG_ERROR("RK_MPI_VENC_GetStream timeout %#x\n", ret);
+			continue;
+		}
+		void *data = (char *)RK_MPI_MB_Handle2VirAddr(stFrame.pstPack[0].pMbBlk);
+		for (RK_U32 i = 0; i < stFrame.u32PackCount; i++) {
+			// LOG_DEBUG("packet(%d) eoi(%d) type(%d) offset(%d) lenth(%d) pts is %lld\n",
+			// 	i, stFrame.pstPack[i].bFrameEnd, stFrame.pstPack[i].DataType,
+			// 	stFrame.pstPack[i].u32Offset, stFrame.pstPack[i].u32Len, stFrame.pstPack[i].u64PTS);
+			rkipc_rtsp_write_video_frame(VIDEO_PIPE_1, data + stFrame.pstPack[i].u32Offset,
+			                             stFrame.pstPack[i].u32Len, stFrame.pstPack[i].u64PTS);
+			// rkmuxer currently requires full I and P frame to parse
+			if (!stFrame.pstPack[i].bFrameEnd)
+				continue;
+			if ((stFrame.pstPack[i].DataType.enH264EType == H264E_NALU_IDRSLICE) ||
+			    (stFrame.pstPack[i].DataType.enH264EType == H264E_NALU_ISLICE) ||
+			    (stFrame.pstPack[i].DataType.enH265EType == H265E_NALU_IDRSLICE) ||
+			    (stFrame.pstPack[i].DataType.enH265EType == H265E_NALU_ISLICE)) {
+				rk_storage_write_video_frame(
+				    VIDEO_PIPE_1, data, stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
+				    stFrame.pstPack[i].u64PTS, 1);
+				rk_rtmp_write_video_frame(VIDEO_PIPE_1, data,
+				                          stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
+				                          stFrame.pstPack[i].u64PTS, 1);
 			} else {
-				rk_storage_write_video_frame(1, data, stFrame.pstPack->u32Len,
-				                             stFrame.pstPack->u64PTS, 0);
-				rk_rtmp_write_video_frame(1, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-				                          0);
+				rk_storage_write_video_frame(
+				    VIDEO_PIPE_1, data, stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
+				    stFrame.pstPack[i].u64PTS, 0);
+				rk_rtmp_write_video_frame(VIDEO_PIPE_1, data,
+				                          stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
+				                          stFrame.pstPack[i].u64PTS, 0);
 			}
-			// 7.release the frame
-			ret = RK_MPI_VENC_ReleaseStream(VIDEO_PIPE_1, &stFrame);
-			if (ret != RK_SUCCESS)
-				LOG_ERROR("RK_MPI_VENC_ReleaseStream fail %x\n", ret);
-			loopCount++;
-		} else {
-			LOG_ERROR("RK_MPI_VENC_GetStream timeout %x\n", ret);
+		}
+		// release the frame
+		ret = RK_MPI_VENC_ReleaseStream(VIDEO_PIPE_1, &stFrame);
+		if (ret != RK_SUCCESS) {
+			LOG_ERROR("RK_MPI_VENC_ReleaseStream fail %#x\n", ret);
 		}
 	}
 	if (stFrame.pstPack)
@@ -221,48 +224,59 @@ static void *rkipc_get_venc_1(void *arg) {
 }
 
 static void *rkipc_get_venc_2(void *arg) {
-	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	LOG_INFO("#Start %s thread, arg:%p\n", __func__, arg);
 	VENC_STREAM_S stFrame;
 	int loopCount = 0;
 	int ret = 0;
-	stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
+	if (rk_param_get_int("video.0:one_stream_buffer", 0)) {
+		stFrame.pstPack = malloc(sizeof(VENC_PACK_S));
+	} else {
+		stFrame.pstPack = malloc(MAX_PACKET_NUM * sizeof(VENC_PACK_S));
+		stFrame.u32PackCount = MAX_PACKET_NUM;
+	}
 
 	while (g_video_run_) {
-		// 5.get the frame
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_2, &stFrame, 1000);
-		if (ret == RK_SUCCESS) {
-			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
-			// LOG_INFO("Count:%d, Len:%d, PTS is %" PRId64", enH264EType is %d\n", loopCount,
-			// stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-			// stFrame.pstPack->DataType.enH264EType);
-			if (g_rtsplive && g_rtsp_session_2) {
-				pthread_mutex_lock(&g_rtsp_mutex);
-				rtsp_tx_video(g_rtsp_session_2, data, stFrame.pstPack->u32Len,
-				              stFrame.pstPack->u64PTS);
-				rtsp_do_event(g_rtsplive);
-				pthread_mutex_unlock(&g_rtsp_mutex);
-			}
-			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_IDRSLICE) ||
-			    (stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
-			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_IDRSLICE) ||
-			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_ISLICE)) {
-				rk_storage_write_video_frame(2, data, stFrame.pstPack->u32Len,
-				                             stFrame.pstPack->u64PTS, 1);
-				rk_rtmp_write_video_frame(2, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-				                          1);
+		if (!rk_param_get_int("video.0:one_stream_buffer", 0))
+			stFrame.u32PackCount = MAX_PACKET_NUM;
+		// get the frame
+		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_2, &stFrame, 2500);
+		if (ret != RK_SUCCESS) {
+			LOG_ERROR("RK_MPI_VENC_GetStream timeout %#x\n", ret);
+			continue;
+		}
+		void *data = (char *)RK_MPI_MB_Handle2VirAddr(stFrame.pstPack[0].pMbBlk);
+		for (RK_U32 i = 0; i < stFrame.u32PackCount; i++) {
+			// LOG_DEBUG("packet(%d) eoi(%d) type(%d) offset(%d) lenth(%d) pts is %lld\n",
+			// 	i, stFrame.pstPack[i].bFrameEnd, stFrame.pstPack[i].DataType,
+			// 	stFrame.pstPack[i].u32Offset, stFrame.pstPack[i].u32Len, stFrame.pstPack[i].u64PTS);
+			rkipc_rtsp_write_video_frame(VIDEO_PIPE_2, data + stFrame.pstPack[i].u32Offset,
+			                             stFrame.pstPack[i].u32Len, stFrame.pstPack[i].u64PTS);
+			// rkmuxer currently requires full I and P frame to parse
+			if (!stFrame.pstPack[i].bFrameEnd)
+				continue;
+			if ((stFrame.pstPack[i].DataType.enH264EType == H264E_NALU_IDRSLICE) ||
+			    (stFrame.pstPack[i].DataType.enH264EType == H264E_NALU_ISLICE) ||
+			    (stFrame.pstPack[i].DataType.enH265EType == H265E_NALU_IDRSLICE) ||
+			    (stFrame.pstPack[i].DataType.enH265EType == H265E_NALU_ISLICE)) {
+				rk_storage_write_video_frame(
+				    VIDEO_PIPE_2, data, stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
+				    stFrame.pstPack[i].u64PTS, 1);
+				rk_rtmp_write_video_frame(VIDEO_PIPE_2, data,
+				                          stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
+				                          stFrame.pstPack[i].u64PTS, 1);
 			} else {
-				rk_storage_write_video_frame(2, data, stFrame.pstPack->u32Len,
-				                             stFrame.pstPack->u64PTS, 0);
-				rk_rtmp_write_video_frame(2, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
-				                          0);
+				rk_storage_write_video_frame(
+				    VIDEO_PIPE_2, data, stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
+				    stFrame.pstPack[i].u64PTS, 0);
+				rk_rtmp_write_video_frame(VIDEO_PIPE_2, data,
+				                          stFrame.pstPack[i].u32Offset + stFrame.pstPack[i].u32Len,
+				                          stFrame.pstPack[i].u64PTS, 0);
 			}
-			// 7.release the frame
-			ret = RK_MPI_VENC_ReleaseStream(VIDEO_PIPE_2, &stFrame);
-			if (ret != RK_SUCCESS)
-				LOG_ERROR("RK_MPI_VENC_ReleaseStream fail %x\n", ret);
-			loopCount++;
-		} else {
-			LOG_ERROR("RK_MPI_VENC_GetStream timeout %x\n", ret);
+		}
+		// release the frame
+		ret = RK_MPI_VENC_ReleaseStream(VIDEO_PIPE_2, &stFrame);
+		if (ret != RK_SUCCESS) {
+			LOG_ERROR("RK_MPI_VENC_ReleaseStream fail %#x\n", ret);
 		}
 	}
 	if (stFrame.pstPack)
@@ -272,7 +286,7 @@ static void *rkipc_get_venc_2(void *arg) {
 }
 
 static void *rkipc_get_vpss_bgr(void *arg) {
-	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	LOG_INFO("#Start %s thread, arg:%p\n", __func__, arg);
 	VIDEO_FRAME_INFO_S frame;
 	int32_t loopCount = 0;
 	int ret = 0;
@@ -398,7 +412,7 @@ static void *rkipc_get_vi_send_jpeg(void *arg) {
 }
 
 static void *rkipc_get_jpeg(void *arg) {
-	printf("#Start %s thread, arg:%p\n", __func__, arg);
+	LOG_INFO("#Start %s thread, arg:%p\n", __func__, arg);
 	prctl(PR_SET_NAME, "RkipcGetJpeg", 0, 0, 0);
 	VENC_STREAM_S stFrame;
 	int loopCount = 0;
@@ -465,55 +479,6 @@ static void *rkipc_get_jpeg(void *arg) {
 	}
 	if (stFrame.pstPack)
 		free(stFrame.pstPack);
-
-	return 0;
-}
-
-int rkipc_rtsp_init() {
-	LOG_INFO("start\n");
-	g_rtsplive = create_rtsp_demo(554);
-	g_rtsp_session_0 = rtsp_new_session(g_rtsplive, RTSP_URL_0);
-	g_rtsp_session_1 = rtsp_new_session(g_rtsplive, RTSP_URL_1);
-	g_rtsp_session_2 = rtsp_new_session(g_rtsplive, RTSP_URL_2);
-	tmp_output_data_type = rk_param_get_string("video.0:output_data_type", "H.264");
-	if (!strcmp(tmp_output_data_type, "H.264"))
-		rtsp_set_video(g_rtsp_session_0, RTSP_CODEC_ID_VIDEO_H264, NULL, 0);
-	else if (!strcmp(tmp_output_data_type, "H.265"))
-		rtsp_set_video(g_rtsp_session_0, RTSP_CODEC_ID_VIDEO_H265, NULL, 0);
-	else
-		LOG_ERROR("0 tmp_output_data_type is %s, not support\n", tmp_output_data_type);
-
-	tmp_output_data_type = rk_param_get_string("video.1:output_data_type", "H.264");
-	if (!strcmp(tmp_output_data_type, "H.264"))
-		rtsp_set_video(g_rtsp_session_1, RTSP_CODEC_ID_VIDEO_H264, NULL, 0);
-	else if (!strcmp(tmp_output_data_type, "H.265"))
-		rtsp_set_video(g_rtsp_session_1, RTSP_CODEC_ID_VIDEO_H265, NULL, 0);
-	else
-		LOG_ERROR("1 tmp_output_data_type is %s, not support\n", tmp_output_data_type);
-
-	tmp_output_data_type = rk_param_get_string("video.2:output_data_type", "H.264");
-	if (!strcmp(tmp_output_data_type, "H.264"))
-		rtsp_set_video(g_rtsp_session_2, RTSP_CODEC_ID_VIDEO_H264, NULL, 0);
-	else if (!strcmp(tmp_output_data_type, "H.265"))
-		rtsp_set_video(g_rtsp_session_2, RTSP_CODEC_ID_VIDEO_H265, NULL, 0);
-	else
-		LOG_ERROR("2 tmp_output_data_type is %s, not support\n", tmp_output_data_type);
-
-	rtsp_sync_video_ts(g_rtsp_session_0, rtsp_get_reltime(), rtsp_get_ntptime());
-	rtsp_sync_video_ts(g_rtsp_session_1, rtsp_get_reltime(), rtsp_get_ntptime());
-	rtsp_sync_video_ts(g_rtsp_session_2, rtsp_get_reltime(), rtsp_get_ntptime());
-	LOG_INFO("end\n");
-
-	return 0;
-}
-
-int rkipc_rtsp_deinit() {
-	LOG_INFO("start\n");
-	LOG_INFO("%s\n", __func__);
-	if (g_rtsplive)
-		rtsp_del_demo(g_rtsplive);
-	g_rtsplive = NULL;
-	LOG_INFO("end\n");
 
 	return 0;
 }
@@ -959,6 +924,137 @@ int rkipc_vpss_4_deinit() {
 	return ret;
 }
 
+/* 功能接口1：calib file ---> middle LUT(RK 6目数据,pto文件) */
+int rkipc_get_middle_lut_by_xml() {
+	int32_t ret = RKALGO_AVS_STATUS_OK;
+	const char *calib_file_path = rk_param_get_string(
+	    "avs:calib_file_path",
+	    "/oem/usr/share/avs_calib/calib_file.xml"); /* 输入的标定文件路径及名称 */
+	uint32_t cameraNum = g_sensor_num;              /* 指定相机个数 */
+	uint32_t srcW = rk_param_get_int("avs:source_width", 2560);
+	uint32_t srcH = rk_param_get_int("avs:source_height", 1520); /* 输入图像宽高 */
+	RKALGO_AVS_MIDDLE_LUT_TYPE_E middleLutType =
+	    RKALGO_AVS_MIDDLE_LUT_TYPE_A; /* middle LUT的类型 */
+
+	const char *stitch_distance = rk_param_get_string("avs:stitch_distance", "0.5");
+	float stitchDistance = atof(stitch_distance); /* 最佳拼接距离，输入为pto文件时该值不起作用 */
+	LOG_INFO("stitchDistance: %f\n", stitchDistance);
+
+	RKALGO_AVS_MASK_CONFIG_S inputMaskConfig; /* mask的相关参数 */
+	RKALGO_AVS_FINE_TUNING_PARAMS_S
+	fineTuningParams; /* 精调参数(对每个相机单独生效，用于拼接效果调优)，输入为pto文件时该值不起作用
+	                   */
+	RKALGO_AVS_MIDDLE_LUT_PARAMS_S stMidLutParams; /* 生成middle LUT所需的输入参数 */
+	RKALGO_AVS_MIDDLE_LUT_BUFFER_S stMidLutBuf; /* 生成middle LUT所需的输出buffer结构体 */
+	memset(&inputMaskConfig, 0, sizeof(inputMaskConfig));
+	memset(&fineTuningParams, 0, sizeof(fineTuningParams));
+	memset(&stMidLutParams, 0, sizeof(stMidLutParams));
+
+	char avsToolVersion[128]; /* 存放AVS的版本号 */
+
+	uint8_t pCalibParamsBuf[RKALGO_AVS_CALIB_FILE_LENGTH]; /* 存放标定文件参数的buffer */
+	RKALGO_AVS_CALIB_PARAMS_S stCalibParams; /* 从标定文件读取参数时所需的输入参数 */
+	RKALGO_AVS_CALIB_BUFFER_S stCalibBuffer; /* 从标定文件读取参数时所需的输出buffer */
+
+	/* 配置从标定文件读取参数时所需的输入参数 */
+	stCalibParams.calibFilePath = calib_file_path;
+	stCalibParams.cameraNum = cameraNum;
+	/* 配置从标定文件读取参数时所需的输出buffer */
+	stCalibBuffer.pCalibParamsBuf = pCalibParamsBuf;
+
+	uint32_t middleLutSize; /* middle LUT的buffer大小 */
+
+	/* 配置mask相关参数 */
+	inputMaskConfig.bSameMask =
+	    RKALGO_AVS_TRUE; /* 配置mask是否所有相机使用同一个mask。RKALGO_AVS_TRUE:
+	                        所有相机都使用maskAddr[0]地址或maskDefine[0]参数；RKALGO_AVS_FALSE:
+	                        各个相机使用不同的maskAddr地址或maskDefine参数 */
+	inputMaskConfig.bInputYuvMask =
+	    RKALGO_AVS_FALSE; /* 配置mask是使用maskAddr还是使用maskDefine。RKALGO_AVS_TRUE:
+	                         使用maskAddr，即外部提供的yuv400格式mask数据的内存地址;
+	                         RKALGO_AVS_FALSE: 使用maskDefine参数，在算法内部生成mask数据 */
+	inputMaskConfig.mask_width = srcW; /* 配置mask图像的宽高，必须和输入图像的宽高相同 */
+	inputMaskConfig.mask_height = srcH;
+	for (uint32_t i = 0; i < cameraNum; i++) {
+		inputMaskConfig.maskDefine[i].mask_shape =
+		    RKALGO_AVS_MASK_SHAPE_RECT; /* mask有效区域的形状 */
+		inputMaskConfig.maskDefine[i].offset_x =
+		    0; /* mask有效区域中心相对图像中心的偏移量(单位：像素) */
+		inputMaskConfig.maskDefine[i].offset_y = 0;
+		inputMaskConfig.maskDefine[i].half_major_axis =
+		    srcW / 2; /* mask有效区域的半长轴和半短轴(单位：像素) */
+		inputMaskConfig.maskDefine[i].half_minor_axis = srcH / 2;
+	}
+
+	/* 配置fine tuning参数 */
+	fineTuningParams.camera_num = cameraNum;
+	fineTuningParams.fine_tuning_en =
+	    RKALGO_AVS_FALSE; /* 设置fine tuning参数是否生效。RKALGO_AVS_TRUE: 表示fine
+	                         tuning参数生效；RKALGO_AVS_FALSE: 表示fine tuning参数不生效 */
+	for (uint32_t cam = 0; cam < fineTuningParams.camera_num; cam++) {
+		fineTuningParams.fine_tuning_params[cam].fine_tuning_en = RKALGO_AVS_FALSE;
+		fineTuningParams.fine_tuning_params[cam].rotation.yaw100 = 0;
+		fineTuningParams.fine_tuning_params[cam].rotation.pitch100 = 0;
+		fineTuningParams.fine_tuning_params[cam].rotation.roll100 = 0;
+		fineTuningParams.fine_tuning_params[cam].offset_h = 0;
+		fineTuningParams.fine_tuning_params[cam].offset_w = 0;
+	}
+
+	/* 步骤一：获取AVS的版本号 */
+	ret = RKALGO_AVS_GetVersion(avsToolVersion);
+	if (RKALGO_AVS_STATUS_OK != ret) {
+		LOG_ERROR("AVS_Tool_LOG: error: failed to RKALGO_AVS_GetVersion!\n");
+		return -1;
+	}
+	LOG_INFO("AVS_Tool_LOG: %s\n", avsToolVersion);
+
+	/* 步骤二：从标定文件读取标定参数内容，存放到pCalibParamsBuf中 */
+	ret = RKALGO_AVS_GetCalibParamsFromCalibFile(&stCalibParams, &stCalibBuffer);
+	if (RKALGO_AVS_STATUS_OK != ret) {
+		LOG_ERROR("AVS_Tool_LOG: error: failed to RKALGO_AVS_GetCalibParamsFromCalibFile!\n");
+		return -1;
+	}
+
+	/* 步骤三：计算middle LUT的buffer大小 */
+	ret = RKALGO_AVS_GetMiddleLutBufSize(middleLutType, &middleLutSize);
+	if (RKALGO_AVS_STATUS_OK != ret) {
+		LOG_ERROR("AVS_Tool_LOG: error: failed to RKALGO_AVS_GetMiddleLutBufSize!\n");
+		return -1;
+	}
+
+	/* 申请middle LUT所需的buffer */
+	for (uint32_t cam = 0; cam < cameraNum; cam++) {
+		ret = RK_MPI_SYS_MmzAllocEx(&g_lut_blk[cam], NULL, NULL, sizeof(float) * middleLutSize,
+		                            MB_REMAP_MODE_CACHED);
+		if (RK_SUCCESS != ret) {
+			LOG_ERROR("alloc LUT buf failed with %#x!", ret);
+			return -1;
+		}
+	}
+
+	/* 配置生成middle LUT的参数 */
+	stMidLutParams.cameraNum = cameraNum;
+	stMidLutParams.calibBuf.pCalibParamsBuf = pCalibParamsBuf; /* 存放标定文件内容的buffer */
+	stMidLutParams.stitchDistance = stitchDistance;
+	stMidLutParams.inputMaskConfig = inputMaskConfig;
+	stMidLutParams.fineTuningParams = fineTuningParams;
+	stMidLutBuf.middleLutType = middleLutType;
+	stMidLutBuf.middleLutSize = middleLutSize;
+	for (uint32_t cam = 0; cam < cameraNum; cam++) {
+		stMidLutBuf.pMiddleLutBuf[cam] = RK_MPI_MMZ_Handle2VirAddr(g_lut_blk[cam]);
+	}
+
+	/* 步骤四：通过标定参数buffer生成middle LUT */
+	ret = RKALGO_AVS_GetMiddleLutFromCalibParams(&stMidLutParams, &stMidLutBuf);
+	if (RKALGO_AVS_STATUS_OK != ret) {
+		LOG_ERROR("AVS_Tool_LOG: error: failed to RKALGO_AVS_GetMiddleLutFromCalibParams!\n");
+		return -1;
+	}
+	LOG_INFO("finished\n");
+
+	return 0;
+}
+
 int rkipc_avs_init() {
 	LOG_INFO("start\n");
 	int ret;
@@ -976,8 +1072,9 @@ int rkipc_avs_init() {
 	stAvsModParam.u32WorkingSetSize = 67 * 1024;
 	stAvsModParam.enMBSource = MB_SOURCE_PRIVATE;
 	stAvsGrpAttr.enMode = rk_param_get_int("avs:avs_mode", 0);
+	int param_source = rk_param_get_int("avs:param_source", 2);
 
-	if (rk_param_get_int("avs:param_source", 0)) {
+	if (param_source == 0) {
 		stAvsGrpAttr.stInAttr.enParamSource = AVS_PARAM_SOURCE_CALIB;
 		const char *calib_file_path =
 		    rk_param_get_string("avs:calib_file_path", "/usr/share/avs_calib/calib_file_pos.pto");
@@ -986,7 +1083,7 @@ int rkipc_avs_init() {
 		LOG_INFO("calib_file_path = %s, mesh_alpha_path = %s\n", calib_file_path, mesh_alpha_path);
 		stAvsGrpAttr.stInAttr.stCalib.pCalibFilePath = calib_file_path;
 		stAvsGrpAttr.stInAttr.stCalib.pMeshAlphaPath = mesh_alpha_path;
-	} else {
+	} else if (param_source == 1) {
 		stAvsGrpAttr.stInAttr.enParamSource = AVS_PARAM_SOURCE_LUT;
 		stAvsGrpAttr.stInAttr.stLUT.enAccuracy = AVS_LUT_ACCURACY_HIGH;
 		stAvsGrpAttr.stInAttr.stLUT.enFuseWidth = AVS_FUSE_WIDTH_LOW;
@@ -1023,6 +1120,21 @@ int rkipc_avs_init() {
 			}
 			stAvsGrpAttr.stInAttr.stLUT.pVirAddr[i] = lut_vir_addr[i];
 		}
+	} else if (param_source == 2) {
+		// use xml to middle lut
+		stAvsGrpAttr.stInAttr.enParamSource = AVS_PARAM_SOURCE_LUT;
+		stAvsGrpAttr.stInAttr.stLUT.enAccuracy = AVS_LUT_ACCURACY_HIGH;
+		stAvsGrpAttr.stInAttr.stLUT.enFuseWidth = AVS_FUSE_WIDTH_LOW;
+		stAvsGrpAttr.stInAttr.stLUT.stLutStep.enStepX = AVS_LUT_STEP_LOW;
+		stAvsGrpAttr.stInAttr.stLUT.stLutStep.enStepY = AVS_LUT_STEP_LOW;
+		ret = rkipc_get_middle_lut_by_xml();
+		if (ret) {
+			LOG_ERROR("rkipc_get_middle_lut_by_xml fail\n");
+			return -1;
+		}
+		for (int i = 0; i < g_sensor_num; i++) {
+			stAvsGrpAttr.stInAttr.stLUT.pVirAddr[i] = RK_MPI_MMZ_Handle2VirAddr(g_lut_blk[i]);
+		}
 	}
 
 	stAvsGrpAttr.u32PipeNum = g_sensor_num;
@@ -1038,6 +1150,8 @@ int rkipc_avs_init() {
 	stAvsGrpAttr.stOutAttr.stRotation.s32Roll = rk_param_get_int("avs:rotation_roll", 0);
 	stAvsGrpAttr.stOutAttr.stRotation.s32Pitch = rk_param_get_int("avs:rotation_pitch", 0);
 	stAvsGrpAttr.stOutAttr.stRotation.s32Yaw = rk_param_get_int("avs:rotation_yaw", 0);
+	stAvsGrpAttr.stOutAttr.fDistance = rk_param_get_double("avs:stitch_distance", 2.35);
+
 	stAvsGrpAttr.bSyncPipe = rk_param_get_int("avs:sync", 1);
 	stAvsGrpAttr.stFrameRate.s32SrcFrameRate = -1;
 	stAvsGrpAttr.stFrameRate.s32DstFrameRate = -1;
@@ -1294,7 +1408,7 @@ int rkipc_venc_0_init() {
 		stModParam.stH265eModParam.u32OneStreamBuffer =
 		    rk_param_get_int("video.0:one_stream_buffer", 0);
 	}
-	RK_MPI_VENC_SetModParam(VIDEO_PIPE_0, &stModParam);
+	RK_MPI_VENC_SetModParam(&stModParam); // apply to all channels
 
 	VENC_RECV_PIC_PARAM_S stRecvParam;
 	memset(&stRecvParam, 0, sizeof(VENC_RECV_PIC_PARAM_S));
@@ -1850,12 +1964,19 @@ int rkipc_vo_init() {
 	}
 	LOG_INFO("RK_MPI_VO_EnableChn success\n");
 
+	RK_U32 width  = rk_param_get_int("avs:avs_width", -1);
+	RK_U32 height = rk_param_get_int("avs:avs_height", -1);
+	RK_FLOAT aspect_ratio = height * 1.0 / width;
+
 	VoChnAttr.bDeflicker = RK_FALSE;
 	VoChnAttr.u32Priority = 1;
-	VoChnAttr.stRect.s32X = 0;
-	VoChnAttr.stRect.s32Y = 0;
 	VoChnAttr.stRect.u32Width = stLayerAttr.stDispRect.u32Width;
-	VoChnAttr.stRect.u32Height = stLayerAttr.stDispRect.u32Height;
+	VoChnAttr.stRect.u32Height = aspect_ratio * stLayerAttr.stDispRect.u32Width;
+	VoChnAttr.stRect.s32X = 0;
+	VoChnAttr.stRect.s32Y = (stLayerAttr.stDispRect.u32Height - VoChnAttr.stRect.u32Height) / 2;
+	LOG_INFO("VO layer %d channel 0 attr <x,y,w,h> = <%d, %d, %d, %d>",
+		VoLayer, VoChnAttr.stRect.s32X, VoChnAttr.stRect.s32Y,
+		VoChnAttr.stRect.u32Width, VoChnAttr.stRect.u32Height);
 	if (g_vo_dev_id == RK3588_VO_DEV_MIPI)
 		VoChnAttr.enRotation = ROTATION_90;
 	ret = RK_MPI_VO_SetChnAttr(VoLayer, 0, &VoChnAttr);
@@ -3180,7 +3301,7 @@ int rk_region_clip_set(int venc_chn, region_clip_data_s *region_clip_data) {
 
 int rk_video_get_rotation(int *value) {
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.source:rotaion");
+	snprintf(entry, 127, "video.source:rotation");
 	*value = rk_param_get_int(entry, 0);
 
 	return 0;
@@ -3189,7 +3310,7 @@ int rk_video_get_rotation(int *value) {
 int rk_video_set_rotation(int value) {
 	LOG_INFO("value is %d\n", value);
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.source:rotaion");
+	snprintf(entry, 127, "video.source:rotation");
 	rk_param_set_int(entry, value);
 
 	return 0;
@@ -3245,7 +3366,7 @@ int rk_video_init() {
 		rkipc_vpss_4_init();
 	}
 	ret |= rkipc_bind_init();
-	ret |= rkipc_rtsp_init();
+	ret |= rkipc_rtsp_init(RTSP_URL_0, RTSP_URL_1, RTSP_URL_2);
 	ret |= rkipc_rtmp_init();
 	ret |= rkipc_osd_init();
 	rk_roi_set_callback_register(rk_roi_set);

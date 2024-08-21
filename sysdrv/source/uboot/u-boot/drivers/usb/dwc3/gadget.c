@@ -730,10 +730,10 @@ static void dwc3_prepare_one_trb(struct dwc3_ep *dep,
 	 * for OUT endpoints, the total size of a Buffer Descriptor must be a
 	 * multiple of MaxPacketSize. So amend the TRB size to apply this rule.
 	 */
-	if (usb_endpoint_dir_out(dep->endpoint.desc)) {
+	if (usb_endpoint_dir_out(dep->endpoint.desc) &&
+	    (length % dep->endpoint.maxpacket))
 		length = dep->endpoint.maxpacket *
-			((length - 1) / dep->endpoint.maxpacket + 1);
-	}
+			 ((length - 1) / dep->endpoint.maxpacket + 1);
 
 	trb->size = DWC3_TRB_SIZE_LENGTH(length);
 	trb->bpl = lower_32_bits(dma);
@@ -1566,6 +1566,7 @@ static int dwc3_gadget_stop(struct usb_gadget *g)
 	__dwc3_gadget_ep_disable(dwc->eps[1]);
 
 	dwc->gadget_driver	= NULL;
+	dwc->connected		= 0;
 
 	spin_unlock_irqrestore(&dwc->lock, flags);
 
@@ -1695,6 +1696,7 @@ static int __dwc3_cleanup_done_trbs(struct dwc3 *dwc, struct dwc3_ep *dep,
 	unsigned int		count;
 	unsigned int		s_pkt = 0;
 	unsigned int		trb_status;
+	unsigned int		length;
 
 	if ((trb->ctrl & DWC3_TRB_CTRL_HWO) && status != -ESHUTDOWN)
 		/*
@@ -1751,7 +1753,14 @@ static int __dwc3_cleanup_done_trbs(struct dwc3 *dwc, struct dwc3_ep *dep,
 	 * should receive and we simply bounce the request back to the
 	 * gadget driver for further processing.
 	 */
-	req->request.actual += req->request.length - count;
+	if (usb_endpoint_dir_out(dep->endpoint.desc) &&
+	    (req->request.length % dep->endpoint.maxpacket)) {
+		length = dep->endpoint.maxpacket *
+			 ((req->request.length - 1) / dep->endpoint.maxpacket + 1);
+		req->request.actual += length - count;
+	} else {
+		req->request.actual += req->request.length - count;
+	}
 	if (s_pkt)
 		return 1;
 	if ((event->status & DEPEVT_STATUS_LST) &&
@@ -2211,6 +2220,9 @@ static void dwc3_gadget_conndone_interrupt(struct dwc3 *dwc)
 		break;
 	}
 
+	dev_info(dwc->dev, "usb device is %s\n",
+		 usb_speed_string(dwc->gadget.speed));
+
 	/* Enable USB2 LPM Capability */
 
 	if ((dwc->revision > DWC3_REVISION_194A)
@@ -2283,6 +2295,11 @@ static void dwc3_gadget_linksts_change_interrupt(struct dwc3 *dwc,
 {
 	enum dwc3_link_state	next = evtinfo & DWC3_LINK_STATE_MASK;
 	unsigned int		pwropt;
+
+	if (dwc->link_state == DWC3_LINK_STATE_POLL && dwc->check_linksts) {
+		dwc->check_linksts = false;
+		dwc->ts = get_timer(0);
+	}
 
 	/*
 	 * WORKAROUND: DWC3 < 2.50a have an issue when configured without
@@ -2482,7 +2499,6 @@ static irqreturn_t dwc3_process_event_buf(struct dwc3 *dwc, u32 buf)
 	while (left > 0) {
 		union dwc3_event event;
 
-		invalidate_dcache_range((uintptr_t)evt->buf, evt->length);
 		event.raw = *(u32 *) (evt->buf + evt->lpos);
 
 		dwc3_process_event_entry(dwc, &event);
@@ -2538,6 +2554,7 @@ static irqreturn_t dwc3_check_event_buf(struct dwc3 *dwc, u32 buf)
 	u32 reg;
 
 	evt = dwc->ev_buffs[buf];
+	dwc3_invalidate_cache((uintptr_t)evt->buf, evt->length);
 
 	count = dwc3_readl(dwc->regs, DWC3_GEVNTCOUNT(buf));
 	count &= DWC3_GEVNTCOUNT_MASK;
@@ -2576,6 +2593,33 @@ static irqreturn_t dwc3_interrupt(int irq, void *_dwc)
 	return ret;
 }
 
+struct dwc3 *the_controller;
+#define WAIT_USB_CONN_TIMEOUT	(3 * CONFIG_SYS_HZ)
+
+bool dwc3_gadget_is_connected(void)
+{
+	struct dwc3 *dev = the_controller;
+
+	/*
+	 * If the speed is super-speed and wait device
+	 * connection time out, it means that usb3
+	 * enumeration failed. And in a special case,
+	 * if the usb3 host rx-termination is present,
+	 * but host doesn't send LFPS (e.g usb3 host
+	 * initialized fail), this cause dwc3 usb fail
+	 * to detect speed and the speed will be unknown.
+	 */
+	if ((dev->gadget.speed == USB_SPEED_UNKNOWN ||
+	     dev->gadget.speed == USB_SPEED_SUPER) &&
+	    !dev->connected) {
+		debug("ts %ld\n", get_timer(dev->ts));
+		if (get_timer(dev->ts) > WAIT_USB_CONN_TIMEOUT)
+			return false;
+	}
+
+	return true;
+}
+
 /**
  * dwc3_gadget_init - Initializes gadget related registers
  * @dwc: pointer to our controller context structure
@@ -2585,6 +2629,7 @@ static irqreturn_t dwc3_interrupt(int irq, void *_dwc)
 int dwc3_gadget_init(struct dwc3 *dwc)
 {
 	int					ret;
+	the_controller = dwc;
 
 	dwc->ctrl_req = dma_alloc_coherent(sizeof(*dwc->ctrl_req),
 					(unsigned long *)&dwc->ctrl_req_addr);

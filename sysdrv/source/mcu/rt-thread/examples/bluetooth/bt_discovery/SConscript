@@ -1,0 +1,13 @@
+Import('RTT_ROOT')
+Import('rtconfig')
+from building import *
+
+src	= Split('''
+	main/bt_discovery.c
+''')
+
+CPPPATH = ""
+
+group = DefineGroup('examples', src, depend = ['BT_DISCOVERY_EXAMPLES'], CPPPATH = CPPPATH)
+
+Return('group')

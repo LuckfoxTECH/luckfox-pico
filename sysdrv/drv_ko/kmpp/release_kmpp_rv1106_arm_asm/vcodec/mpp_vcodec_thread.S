@@ -270,7 +270,7 @@ vcodec_thread_destroy:
 	mov	r4, r0
 	cbnz	r0, .L54
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r6, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
@@ -281,7 +281,7 @@ vcodec_thread_destroy:
 	bl	vcodec_thread_reset
 	strd	r4, r4, [r5]
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r6	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -328,7 +328,7 @@ vcodec_thread_set_count:
 	bl	printk
 .L59:
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r2, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
@@ -342,7 +342,7 @@ vcodec_thread_set_count:
 	orrne	r3, r3, #1
 	strne	r3, [r5, #12]
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r2	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -395,7 +395,7 @@ vcodec_thread_set_callback:
 	bl	printk
 .L72:
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r2, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
@@ -414,7 +414,7 @@ vcodec_thread_set_callback:
 	str	r3, [r4, #12]
 .L74:
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r2	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -681,7 +681,7 @@ vcodec_thread_stop:
 	cbnz	r3, .L147
 .L150:
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r3, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
@@ -690,7 +690,7 @@ vcodec_thread_stop:
 	movs	r2, #1
 	str	r2, [r4, #8]
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r3	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -750,7 +750,7 @@ vcodec_thread_pause:
 	bl	check_vcodec_threads
 	cbnz	r0, .L164
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r5, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
@@ -769,7 +769,7 @@ vcodec_thread_pause:
 	ldrls	r2, [r2, r3, lsl #2]
 	bl	printk
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r5	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -781,7 +781,7 @@ vcodec_thread_pause:
 	movs	r3, #3
 	str	r3, [r4, #8]
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r5	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -814,7 +814,7 @@ vcodec_thread_resume:
 	bl	check_vcodec_threads
 	cbnz	r0, .L172
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r5, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
@@ -832,7 +832,7 @@ vcodec_thread_resume:
 	ldrls	r2, [r2, r3, lsl #2]
 	bl	printk
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r5	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -844,7 +844,7 @@ vcodec_thread_resume:
 	movs	r3, #2
 	str	r3, [r4, #8]
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r5	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -879,7 +879,7 @@ vcodec_thread_trigger:
 	mov	r7, r0
 	cbnz	r0, .L190
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r9, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
@@ -905,7 +905,7 @@ vcodec_thread_trigger:
 	ldrls	r2, [r2, r3, lsl #2]
 	bl	printk
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r9	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -972,7 +972,7 @@ vcodec_thread_trigger:
 	bl	printk
 .L189:
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r9	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -1037,9 +1037,9 @@ __param_str_thread_debug:
 	.size	thread_debug, 4
 thread_debug:
 	.space	4
-	.type	__key.20987, %object
-	.size	__key.20987, 0
-__key.20987:
+	.type	__key.21048, %object
+	.size	__key.21048, 0
+__key.21048:
 	.section	.modinfo,"a"
 	.type	__UNIQUE_ID_thread_debug166, %object
 	.size	__UNIQUE_ID_thread_debug166, 76

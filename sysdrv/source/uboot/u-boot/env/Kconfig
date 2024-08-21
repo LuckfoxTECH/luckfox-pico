@@ -40,29 +40,6 @@ config ENV_IS_NOWHERE
 	  stored. U-Boot will therefore always start up with a default
 	  environment.
 
-config ENVF
-	bool "Environment fragment is store in envf partition"
-	depends on ENV_IS_NOWHERE
-	help
-	  Use this if you want to add a env fragment partition to overlay/store
-	  some specific environments.
-
-config SPL_ENVF
-	bool "Environment fragment is store in envf partition in SPL"
-	depends on ENVF && SPL
-	default y
-	help
-	  Use this if you want to add a env fragment partition to overlay/store
-	  some specific environments in SPL. But now only parse env partition
-	  table.
-
-config ENVF_LIST
-	string "Specific environments white list of env fragment"
-	depends on ENVF
-	default "blkdevparts mtdparts sys_bootargs app reserved"
-	help
-	  The environment white list.
-
 config ENV_IS_IN_EEPROM
 	bool "Environment in EEPROM"
 	depends on !CHAIN_OF_TRUST
@@ -460,6 +437,43 @@ config ENV_FAT_FILE
 	help
 	  It's a string of the FAT file name. This file use to store the
 	  environment.
+
+config ENVF
+	bool "Environment fragment is store in envf partition"
+	depends on ENV_IS_NOWHERE
+	help
+	  Use this if you want to add a env fragment partition to overlay/store
+	  some specific environments.
+
+config SPL_ENVF
+	bool "Environment fragment is store in envf partition in SPL"
+	depends on ENVF && SPL
+	default y
+	help
+	  Use this if you want to add a env fragment partition to overlay/store
+	  some specific environments in SPL. But now only parse env partition
+	  table.
+
+config ENVF_LIST
+	string "Specific environments white list of env fragment"
+	depends on ENVF
+	default "blkdevparts mtdparts sys_bootargs app reserved"
+	help
+	  The environment white list.
+
+config ENV_MEM_LAYOUT
+	bool "Enable environment for the Image memory layout"
+	default n
+	help
+	  Use this if you want to define CONFIG_ENV_MEM_LAYOUT_SETTINGS
+	  to override the system default environments in plat header.
+
+config ENV_MEM_LAYOUT_SETTINGS
+	string "Environment of the Image memory layout settings"
+	depends on ENV_MEM_LAYOUT
+	default ""
+	help
+	  The environment settings of Image memory layout.
 
 if ARCH_SUNXI
 

@@ -92,7 +92,7 @@
 		eth_pins: eth-pins {
 			rockchip,pins =
 				/* eth_clk_25m_out */
-				<3 RK_PB5 2 &pcfg_pull_none>;
+				<3 RK_PB5 2 &pcfg_pull_none_drv_level_2>;
 		};
 	};
 
@@ -189,6 +189,17 @@
 				<0 RK_PA4 1 &pcfg_pull_none>,
 				/* hdmi_tx_sda */
 				<0 RK_PA5 1 &pcfg_pull_none>;
+		};
+
+		/omit-if-no-ref/
+		hdmi_pins_idle: hdmi-pins-idle {
+			rockchip,pins =
+				/* hdmi_tx_cec */
+				<0 RK_PA3 1 &pcfg_pull_none>,
+				/* hdmi_tx_scl */
+				<0 RK_PA4 0 &pcfg_output_low_pull_down>,
+				/* hdmi_tx_sda */
+				<0 RK_PA5 0 &pcfg_output_low_pull_down>;
 		};
 	};
 
@@ -683,9 +694,9 @@
 		rgmii_miim: rgmii-miim {
 			rockchip,pins =
 				/* rgmii_mdc */
-				<3 RK_PB6 2 &pcfg_pull_none>,
+				<3 RK_PB6 2 &pcfg_pull_none_drv_level_2>,
 				/* rgmii_mdio */
-				<3 RK_PB7 2 &pcfg_pull_none>;
+				<3 RK_PB7 2 &pcfg_pull_none_drv_level_2>;
 		};
 
 		/omit-if-no-ref/
@@ -703,9 +714,9 @@
 		rgmii_tx_bus2: rgmii-tx_bus2 {
 			rockchip,pins =
 				/* rgmii_txd0 */
-				<3 RK_PA1 2 &pcfg_pull_none>,
+				<3 RK_PA1 2 &pcfg_pull_none_drv_level_2>,
 				/* rgmii_txd1 */
-				<3 RK_PA0 2 &pcfg_pull_none>,
+				<3 RK_PA0 2 &pcfg_pull_none_drv_level_2>,
 				/* rgmii_txen */
 				<3 RK_PC0 2 &pcfg_pull_none>;
 		};
@@ -716,7 +727,7 @@
 				/* rgmii_rxclk */
 				<3 RK_PA5 2 &pcfg_pull_none>,
 				/* rgmii_txclk */
-				<3 RK_PA4 2 &pcfg_pull_none>;
+				<3 RK_PA4 2 &pcfg_pull_none_drv_level_2>;
 		};
 
 		/omit-if-no-ref/
@@ -727,9 +738,9 @@
 				/* rgmii_rxd3 */
 				<3 RK_PA6 2 &pcfg_pull_none>,
 				/* rgmii_txd2 */
-				<3 RK_PB1 2 &pcfg_pull_none>,
+				<3 RK_PB1 2 &pcfg_pull_none_drv_level_2>,
 				/* rgmii_txd3 */
-				<3 RK_PB0 2 &pcfg_pull_none>;
+				<3 RK_PB0 2 &pcfg_pull_none_drv_level_2>;
 		};
 
 		/omit-if-no-ref/

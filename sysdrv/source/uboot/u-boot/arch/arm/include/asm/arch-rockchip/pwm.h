@@ -11,8 +11,9 @@
 struct rockchip_pwm_regs {
 	unsigned long duty;
 	unsigned long period;
-	unsigned long cntr;
 	unsigned long ctrl;
+	unsigned long version;
+	unsigned long enable;
 };
 
 #define PWM_CTRL_TIMER_EN		(1 << 0)

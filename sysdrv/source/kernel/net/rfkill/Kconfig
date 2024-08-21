@@ -36,7 +36,6 @@ config RFKILL_GPIO
 config RFKILL_RK
 	tristate "Rockchip RFKILL driver"
 	depends on RFKILL
-	depends on MMC
 	depends on ARCH_ROCKCHIP
 	default n
 	help

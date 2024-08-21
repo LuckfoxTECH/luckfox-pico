@@ -92,19 +92,31 @@ typedef struct _h262_picture *h262_picture_p;
 // ------------------------------------------------------------
 // Produce a nice string for the start code. `b` must be a byte.
 #define H262_START_CODE_STR(b)                                                                     \
-	((b) == 0x00                ? "picture"                                                        \
-	 : (b) >= 0x01 && b <= 0xAF ? "slice"                                                          \
-	 : (b) == 0xB0              ? "reserved"                                                       \
-	 : (b) == 0xB1              ? "reserved"                                                       \
-	 : (b) == 0xB2              ? "user data"                                                      \
-	 : (b) == 0xB3              ? "sequence header"                                                \
-	 : (b) == 0xB4              ? "sequence error"                                                 \
-	 : (b) == 0xB5              ? "extension start"                                                \
-	 : (b) == 0xB6              ? "reserved"                                                       \
-	 : (b) == 0xB7              ? "sequence end"                                                   \
-	 : (b) == 0xB8              ? "group start"                                                    \
-	 : (b) >= 0xB9              ? "system start"                                                   \
-	                            : "???")
+	((b) == 0x00                                                                                   \
+	     ? "picture"                                                                               \
+	     : (b) >= 0x01 && b <= 0xAF                                                                \
+	           ? "slice"                                                                           \
+	           : (b) == 0xB0                                                                       \
+	                 ? "reserved"                                                                  \
+	                 : (b) == 0xB1                                                                 \
+	                       ? "reserved"                                                            \
+	                       : (b) == 0xB2                                                           \
+	                             ? "user data"                                                     \
+	                             : (b) == 0xB3                                                     \
+	                                   ? "sequence header"                                         \
+	                                   : (b) == 0xB4                                               \
+	                                         ? "sequence error"                                    \
+	                                         : (b) == 0xB5                                         \
+	                                               ? "extension start"                             \
+	                                               : (b) == 0xB6                                   \
+	                                                     ? "reserved"                              \
+	                                                     : (b) == 0xB7                             \
+	                                                           ? "sequence end"                    \
+	                                                           : (b) == 0xB8                       \
+	                                                                 ? "group start"               \
+	                                                                 : (b) >= 0xB9                 \
+	                                                                       ? "system start"        \
+	                                                                       : "???")
 
 #define is_h262_picture_item(item) ((item)->unit.start_code == 0x00)
 #define is_h262_slice_item(item)                                                                   \
@@ -116,23 +128,16 @@ typedef struct _h262_picture *h262_picture_p;
 #define is_h262_extension_start_item(item) ((item)->unit.start_code == 0xB5)
 
 #define H262_PICTURE_CODING_STR(s)                                                                 \
-	((s) == 0   ? "Forbidden"                                                                      \
-	 : (s) == 1 ? "I"                                                                              \
-	 : (s) == 2 ? "P"                                                                              \
-	 : (s) == 3 ? "B"                                                                              \
-	 : (s) == 4 ? "D"                                                                              \
-	            : "Reserved")
+	((s) == 0 ? "Forbidden"                                                                        \
+	          : (s) == 1 ? "I" : (s) == 2 ? "P" : (s) == 3 ? "B" : (s) == 4 ? "D" : "Reserved")
 
 // The following two macros can be used on H.262 items *or* pictures
 #define is_I_picture(picture) ((picture)->picture_coding_type == 1)
 #define is_P_picture(picture) ((picture)->picture_coding_type == 2)
 
 #define H262_PICTURE_STRUCTURE_STR(s)                                                              \
-	((s) == 0   ? "Reserved"                                                                       \
-	 : (s) == 1 ? "Top Field"                                                                      \
-	 : (s) == 2 ? "Bottom Field"                                                                   \
-	 : (s) == 3 ? "Frame"                                                                          \
-	            : "???")
+	((s) == 0 ? "Reserved"                                                                         \
+	          : (s) == 1 ? "Top Field" : (s) == 2 ? "Bottom Field" : (s) == 3 ? "Frame" : "???")
 
 #define is_h262_field_picture(picture)                                                             \
 	((picture)->is_picture &&                                                                      \
@@ -148,47 +153,68 @@ typedef struct _h262_picture *h262_picture_p;
 // String values taken from ATSC Digital Television Standard, Rev C,
 // (A/53C) 12 May 2004, which will hopefully be correct for DVB as well...
 #define AFD_STR(afd)                                                                               \
-	((afd) == 0xF2   ? "ATSC: box 16:9 (top)"                                                      \
-	 : (afd) == 0xF3 ? "ATSC: box 14:9 (top)"                                                      \
-	 : (afd) == 0xF4 ? "ATSC: box > 16:9 (center)"                                                 \
-	 : (afd) == 0xF8 ? "Active format as coded frame"                                              \
-	 : (afd) == 0xF9 ? "4:3 (centre)"                                                              \
-	 : (afd) == 0xFA ? "16:9 (centre)"                                                             \
-	 : (afd) == 0xFB ? "14:9 (centre)"                                                             \
-	 : (afd) == 0xFC ? "reserved"                                                                  \
-	 : (afd) == 0xFD ? "4:3 (with shoot & protect 14:9 "                                           \
-	                   "centre)"                                                                   \
-	 : (afd) == 0xFE ? "16:9 (with shoot & protect "                                               \
-	                   "14:9 centre)"                                                              \
-	 : (afd) == 0xFF ? "16:9 (with shoot & "                                                       \
-	                   "protect 4:3 centre)"                                                       \
-	                 : "reserved")
+	((afd) == 0xF2                                                                                 \
+	     ? "ATSC: box 16:9 (top)"                                                                  \
+	     : (afd) == 0xF3                                                                           \
+	           ? "ATSC: box 14:9 (top)"                                                            \
+	           : (afd) == 0xF4                                                                     \
+	                 ? "ATSC: box > 16:9 (center)"                                                 \
+	                 : (afd) == 0xF8                                                               \
+	                       ? "Active format as coded frame"                                        \
+	                       : (afd) == 0xF9                                                         \
+	                             ? "4:3 (centre)"                                                  \
+	                             : (afd) == 0xFA                                                   \
+	                                   ? "16:9 (centre)"                                           \
+	                                   : (afd) == 0xFB                                             \
+	                                         ? "14:9 (centre)"                                     \
+	                                         : (afd) == 0xFC                                       \
+	                                               ? "reserved"                                    \
+	                                               : (afd) == 0xFD                                 \
+	                                                     ? "4:3 (with shoot & protect 14:9 "       \
+	                                                       "centre)"                               \
+	                                                     : (afd) == 0xFE                           \
+	                                                           ? "16:9 (with shoot & protect "     \
+	                                                             "14:9 centre)"                    \
+	                                                           : (afd) == 0xFF                     \
+	                                                                 ? "16:9 (with shoot & "       \
+	                                                                   "protect 4:3 centre)"       \
+	                                                                 : "reserved")
 
 #define SHORT_AFD_STR(afd)                                                                         \
-	((afd) == 0xF2   ? "ATSC: box 16:9 (top)"                                                      \
-	 : (afd) == 0xF3 ? "ATSC: box 14:9 (top)"                                                      \
-	 : (afd) == 0xF4 ? "ATSC: box > 16:9 (center)"                                                 \
-	 : (afd) == 0xF8 ? "As coded frame"                                                            \
-	 : (afd) == 0xF9 ? "4:3 (centre)"                                                              \
-	 : (afd) == 0xFA ? "16:9 (centre)"                                                             \
-	 : (afd) == 0xFB ? "14:9 (centre)"                                                             \
-	 : (afd) == 0xFC ? "reserved"                                                                  \
-	 : (afd) == 0xFD ? "4:3 (14:9)"                                                                \
-	 : (afd) == 0xFE ? "16:9 (14:9)"                                                               \
-	 : (afd) == 0xFF ? "16:9 (4:3)"                                                                \
-	                 : "reserved")
+	((afd) == 0xF2                                                                                 \
+	     ? "ATSC: box 16:9 (top)"                                                                  \
+	     : (afd) == 0xF3                                                                           \
+	           ? "ATSC: box 14:9 (top)"                                                            \
+	           : (afd) == 0xF4                                                                     \
+	                 ? "ATSC: box > 16:9 (center)"                                                 \
+	                 : (afd) == 0xF8                                                               \
+	                       ? "As coded frame"                                                      \
+	                       : (afd) == 0xF9                                                         \
+	                             ? "4:3 (centre)"                                                  \
+	                             : (afd) == 0xFA                                                   \
+	                                   ? "16:9 (centre)"                                           \
+	                                   : (afd) == 0xFB                                             \
+	                                         ? "14:9 (centre)"                                     \
+	                                         : (afd) == 0xFC                                       \
+	                                               ? "reserved"                                    \
+	                                               : (afd) == 0xFD                                 \
+	                                                     ? "4:3 (14:9)"                            \
+	                                                     : (afd) == 0xFE                           \
+	                                                           ? "16:9 (14:9)"                     \
+	                                                           : (afd) == 0xFF ? "16:9 (4:3)"      \
+	                                                                           : "reserved")
 
 // The standard does not define value FF, so I'm choosing it as an "unset"
 // value, so that I get sensible diagnostics when a picture is reported
 // on before a section header has been read
 #define H262_UNSET_ASPECT_RATIO_INFO 0xFF
 #define H262_ASPECT_RATIO_INFO_STR(rat)                                                            \
-	((rat) == 0xFF ? "Unset"                                                                       \
-	 : (rat) == 0  ? "Forbidden aspect ratio"                                                      \
-	 : (rat) == 1  ? "Square"                                                                      \
-	 : (rat) == 2  ? "4:3"                                                                         \
-	 : (rat) == 3  ? "16:9"                                                                        \
-	               : "Reserved aspect ratio")
+	((rat) == 0xFF                                                                                 \
+	     ? "Unset"                                                                                 \
+	     : (rat) == 0                                                                              \
+	           ? "Forbidden aspect ratio"                                                          \
+	           : (rat) == 1 ? "Square"                                                             \
+	                        : (rat) == 2 ? "4:3" : (rat) == 3 ? "16:9" : "Reserved aspect ratio")
 
 // ------------------------------------------------------------
 // Context for looping over the H.262 items and pictures in an elementary

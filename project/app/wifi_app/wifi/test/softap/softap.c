@@ -158,19 +158,10 @@ int wifi_start_hostapd(char *ssid, char *psk, char *ip)
 	exec_command("ifconfig -a | grep p2p0", wifi_type, 128);
 	if (strstr(wifi_type, "p2p0")) {
 		strcpy(ap, "p2p0");
-		console_run("ifconfig p2p0 down");
-		console_run("rm -rf /data/p2p0");
+		console_run("ifconfig p2p0 up");
 	} else {
 		strcpy(ap, "wlan1");
-		console_run("ifconfig wlan1 down");
-		console_run("rm -rf /data/wlan1");
-		console_run("iw dev wlan1 del");
-		console_run("ifconfig wlan0 up");
-
-		if (!strncmp(wifi_type, "AP6181", 6))
-			console_run("iw dev wlan0 interface add wlan1 type __ap");
-		else
-			console_run("iw phy0 interface add wlan1 type managed");
+		console_run("ifconfig wlan1 up");
 	}
 
 	return start_hostapd(ap, ssid, psk, ip);
@@ -533,16 +524,18 @@ static int stopTcpServer()
 
 int RK_softap_start(char *name, RK_SOFTAP_SERVER_TYPE server_type)
 {
-	RK_wifi_enable(1);
+	//RK_wifi_enable(1);
 	wifi_start_hostapd(name, NULL, NULL);
-	startTcpServer();
+	//startTcpServer();
 
 	return 0;
 }
 
 int RK_softap_stop(void)
 {
-	stopTcpServer();
+	//RK_wifi_enable(1);
+	wifi_stop_hostapd();
+	//stopTcpServer();
 	return 0;
 }
 

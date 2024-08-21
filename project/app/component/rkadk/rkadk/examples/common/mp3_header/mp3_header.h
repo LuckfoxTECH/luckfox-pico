@@ -30,8 +30,8 @@ typedef struct {
   RKADK_U8 u8FreqIdx;
 } MP3_PREQ_IDX_S;
 
-void GetMp3Header(RKADK_U8 *pu8Mp3Hdr, RKADK_S32 u32SmpRate, RKADK_U8 u8Channel,
-                  RKADK_U32 u32DataLen);
+void GetMp3Header(RKADK_U8 *pu8Mp3Hdr, RKADK_S32 u32SmpRate,
+                   RKADK_U8 u8Channel, RKADK_U32 u32DataLen);
 
 #ifdef __cplusplus
 }

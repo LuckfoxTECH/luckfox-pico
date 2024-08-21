@@ -86,10 +86,10 @@ extern "C" {
 #if MSCHAP_SUPPORT
 /* Return the digest alg. ID for the most preferred digest type. */
 #define CHAP_DIGEST(mdtype)                                                                        \
-	((mdtype)&MDTYPE_MD5)            ? CHAP_MD5                                                    \
-	: ((mdtype)&MDTYPE_MICROSOFT_V2) ? CHAP_MICROSOFT_V2                                           \
-	: ((mdtype)&MDTYPE_MICROSOFT)    ? CHAP_MICROSOFT                                              \
-	                                 : 0
+	((mdtype)&MDTYPE_MD5)                                                                          \
+	    ? CHAP_MD5                                                                                 \
+	    : ((mdtype)&MDTYPE_MICROSOFT_V2) ? CHAP_MICROSOFT_V2                                       \
+	                                     : ((mdtype)&MDTYPE_MICROSOFT) ? CHAP_MICROSOFT : 0
 #else /* !MSCHAP_SUPPORT */
 #define CHAP_DIGEST(mdtype) ((mdtype)&MDTYPE_MD5) ? CHAP_MD5 : 0
 #endif /* MSCHAP_SUPPORT */
@@ -100,10 +100,10 @@ extern "C" {
 /* Return the bit flag for a given digest algorithm ID. */
 #if MSCHAP_SUPPORT
 #define CHAP_MDTYPE_D(digest)                                                                      \
-	((digest) == CHAP_MICROSOFT_V2) ? MDTYPE_MICROSOFT_V2                                          \
-	: ((digest) == CHAP_MICROSOFT)  ? MDTYPE_MICROSOFT                                             \
-	: ((digest) == CHAP_MD5)        ? MDTYPE_MD5                                                   \
-	                                : 0
+	((digest) == CHAP_MICROSOFT_V2)                                                                \
+	    ? MDTYPE_MICROSOFT_V2                                                                      \
+	    : ((digest) == CHAP_MICROSOFT) ? MDTYPE_MICROSOFT                                          \
+	                                   : ((digest) == CHAP_MD5) ? MDTYPE_MD5 : 0
 #else /* !MSCHAP_SUPPORT */
 #define CHAP_MDTYPE_D(digest) ((digest) == CHAP_MD5) ? MDTYPE_MD5 : 0
 #endif /* MSCHAP_SUPPORT */
@@ -111,10 +111,10 @@ extern "C" {
 /* Can we do the requested digest? */
 #if MSCHAP_SUPPORT
 #define CHAP_CANDIGEST(mdtype, digest)                                                             \
-	((digest) == CHAP_MICROSOFT_V2) ? (mdtype)&MDTYPE_MICROSOFT_V2                                 \
-	: ((digest) == CHAP_MICROSOFT)  ? (mdtype)&MDTYPE_MICROSOFT                                    \
-	: ((digest) == CHAP_MD5)        ? (mdtype)&MDTYPE_MD5                                          \
-	                                : 0
+	((digest) == CHAP_MICROSOFT_V2)                                                                \
+	    ? (mdtype)&MDTYPE_MICROSOFT_V2                                                             \
+	    : ((digest) == CHAP_MICROSOFT) ? (mdtype)&MDTYPE_MICROSOFT                                 \
+	                                   : ((digest) == CHAP_MD5) ? (mdtype)&MDTYPE_MD5 : 0
 #else /* !MSCHAP_SUPPORT */
 #define CHAP_CANDIGEST(mdtype, digest) ((digest) == CHAP_MD5) ? (mdtype)&MDTYPE_MD5 : 0
 #endif /* MSCHAP_SUPPORT */

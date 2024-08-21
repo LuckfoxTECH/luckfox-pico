@@ -20,55 +20,50 @@
 #ifndef INCLUDE_RT_BASE_RT_MEM_H_
 #define INCLUDE_RT_BASE_RT_MEM_H_
 
-#include <stdint.h>
 #include <stdlib.h>
+#include <stdint.h>
 
-#ifdef __cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
 
-#define rt_malloc(type)                                                        \
-  reinterpret_cast<type *>(rt_mem_malloc(sizeof(type), __FUNCTION__))
+#define rt_malloc(type)  \
+    reinterpret_cast<type *>( \
+        rt_mem_malloc(sizeof(type), __FUNCTION__))
 
-#define rt_malloc_array(type, count)                                           \
-  reinterpret_cast<type *>(rt_mem_malloc(sizeof(type) * (count), __FUNCTION__))
+#define rt_malloc_array(type, count)  \
+    reinterpret_cast<type *>( \
+        rt_mem_malloc(sizeof(type) * (count), __FUNCTION__))
 
-#define rt_malloc_size(type, size)                                             \
-  reinterpret_cast<type *>(rt_mem_malloc(size, __FUNCTION__))
+#define rt_malloc_size(type, size)  \
+    reinterpret_cast<type *>( \
+        rt_mem_malloc(size, __FUNCTION__))
 
-#define rt_calloc_size(type, size)                                             \
-  reinterpret_cast<type *>(rt_mem_calloc(size, __FUNCTION__))
+#define rt_calloc_size(type, size)  \
+    reinterpret_cast<type *>( \
+        rt_mem_calloc(size, __FUNCTION__))
 
-#define rt_calloc(type, count)                                                 \
-  reinterpret_cast<type *>(rt_mem_calloc(sizeof(type) * (count), __FUNCTION__))
+#define rt_calloc(type, count)  \
+    reinterpret_cast<type *>( \
+        rt_mem_calloc(sizeof(type) * (count), __FUNCTION__))
 
-#define rt_realloc(ptr, type, count)                                           \
-  reinterpret_cast<type *>(                                                    \
-      rt_mem_realloc(ptr, sizeof(type) * (count), __FUNCTION__))
+#define rt_realloc(ptr, type, count) \
+    reinterpret_cast<type *>( \
+        rt_mem_realloc(ptr, sizeof(type) * (count), __FUNCTION__))
 
-#define rt_free(ptr) rt_mem_free(ptr, __FUNCTION__)
+#define rt_free(ptr) \
+    rt_mem_free(ptr, __FUNCTION__)
 
-#define rt_safe_free(ptr)                                                      \
-  rt_mem_safe_free(reinterpret_cast<void **>(&(ptr)), __FUNCTION__)
+#define rt_safe_free(ptr) \
+    rt_mem_safe_free( \
+        reinterpret_cast<void **>(&(ptr)), __FUNCTION__)
 
 #ifndef rt_safe_delete
-#define rt_safe_delete(p)                                                      \
-  {                                                                            \
-    if (p) {                                                                   \
-      delete (p);                                                              \
-      (p) = NULL;                                                              \
-    }                                                                          \
-  }
+#define rt_safe_delete(p) { if (p) {delete(p); (p)=NULL;} }
 #endif
 
 #ifndef rt_safe_release
-#define rt_safe_release(p)                                                     \
-  {                                                                            \
-    if (p) {                                                                   \
-      p->release();                                                            \
-      p = NULL;                                                                \
-    }                                                                          \
-  }
+#define rt_safe_release(p) { if (p) {p->release(); p=NULL;} }
 #endif
 
 void *rt_mem_malloc(size_t size, const char *caller);
@@ -91,16 +86,16 @@ void rt_mem_record_sub_ref();
 uint64_t rt_mem_get_total_size();
 uint32_t rt_mem_get_total_count();
 
-#ifdef __cplusplus
+#ifdef  __cplusplus
 }
 #endif
 
 extern "C" {
 void *av_mem_malloc(size_t size);
 void *av_mem_memalign(size_t align, size_t size);
-int av_mem_posix_memalign(void **ptr, size_t align, size_t size);
+int   av_mem_posix_memalign(void **ptr, size_t align, size_t size);
 void *av_mem_realloc(void *ptr, size_t size);
-void av_mem_free(void *ptr);
+void  av_mem_free(void *ptr);
 }
 
-#endif // INCLUDE_RT_BASE_RT_MEM_H_
+#endif  // INCLUDE_RT_BASE_RT_MEM_H_

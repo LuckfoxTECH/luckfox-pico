@@ -1,0 +1,8 @@
+from building import *
+  
+cwd     = GetCurrentDir()
+src     = Glob('*.c')
+CPPPATH = [cwd]
+group   = DefineGroup('Picss5', src, depend = ['RT_USING_PI_CSS5'], CPPPATH = CPPPATH)
+
+Return('group')

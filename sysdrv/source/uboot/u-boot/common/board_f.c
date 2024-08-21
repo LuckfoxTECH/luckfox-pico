@@ -21,6 +21,7 @@
 #include <init_helpers.h>
 #include <malloc.h>
 #include <mapmem.h>
+#include <mp_boot.h>
 #include <os.h>
 #include <post.h>
 #include <relocate.h>
@@ -253,6 +254,9 @@ static int setup_mon_len(void)
 #elif defined(CONFIG_SYS_MONITOR_BASE)
 	/* TODO: use (ulong)&__bss_end - (ulong)&__text_start; ? */
 	gd->mon_len = (ulong)&__bss_end - CONFIG_SYS_MONITOR_BASE;
+#endif
+#ifdef CONFIG_MP_BOOT
+	mpb_init_x(3);
 #endif
 	return 0;
 }

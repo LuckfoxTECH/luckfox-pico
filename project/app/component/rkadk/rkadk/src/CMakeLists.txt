@@ -1,23 +1,30 @@
-file(GLOB_RECURSE AUDIO_ENCODER_SRC "${CMAKE_SOURCE_DIR}/src/audio/encoder/*.cpp")
-file(GLOB_RECURSE AUDIO_DECODER_SRC "${CMAKE_SOURCE_DIR}/src/audio/decoder/*.cpp")
-file(GLOB_RECURSE COMMON_SRC "${CMAKE_SOURCE_DIR}/src/common/*.cpp")
-file(GLOB_RECURSE DEMUXER_SRC "${CMAKE_SOURCE_DIR}/src/demuxer/*.cpp")
-file(GLOB_RECURSE MUXER_SRC "${CMAKE_SOURCE_DIR}/src/muxer/*.cpp")
-file(GLOB_RECURSE RECORD_SRC "${CMAKE_SOURCE_DIR}/src/record/*.cpp")
-file(GLOB_RECURSE PHOTO_SRC "${CMAKE_SOURCE_DIR}/src/photo/*.cpp")
-file(GLOB_RECURSE STREAM_SRC "${CMAKE_SOURCE_DIR}/src/stream/*.cpp")
-file(GLOB_RECURSE PLAYER_SRC "${CMAKE_SOURCE_DIR}/src/player/*.cpp")
-file(GLOB_RECURSE PARAM_SRC "${CMAKE_SOURCE_DIR}/src/param/*.cpp")
-file(GLOB_RECURSE RTSP_SRC "${CMAKE_SOURCE_DIR}/src/live/rtsp/*.cpp")
-file(GLOB_RECURSE OSD_SRC "${CMAKE_SOURCE_DIR}/src/osd/*.cpp")
-file(GLOB_RECURSE RTMP_SRC "${CMAKE_SOURCE_DIR}/src/live/rtmp/*.cpp")
-#file(GLOB_RECURSE DISP_SRC "${CMAKE_SOURCE_DIR}/src/display/*.cpp")
-file(GLOB_RECURSE STORAGE_SRC "${CMAKE_SOURCE_DIR}/src/storage/*.cpp")
+file(GLOB_RECURSE AUDIO_ENCODER_SRC "${CMAKE_SOURCE_DIR}/src/audio/encoder/*.c")
+file(GLOB_RECURSE AUDIO_DECODER_SRC "${CMAKE_SOURCE_DIR}/src/audio/decoder/*.c")
+file(GLOB_RECURSE COMMON_SRC "${CMAKE_SOURCE_DIR}/src/common/*.c")
+file(GLOB_RECURSE DEMUXER_SRC "${CMAKE_SOURCE_DIR}/src/demuxer/*.c")
+file(GLOB_RECURSE MUXER_SRC "${CMAKE_SOURCE_DIR}/src/muxer/*.c")
+file(GLOB_RECURSE RECORD_SRC "${CMAKE_SOURCE_DIR}/src/record/*.c")
+file(GLOB_RECURSE PHOTO_SRC "${CMAKE_SOURCE_DIR}/src/photo/*.c")
+file(GLOB_RECURSE STREAM_SRC "${CMAKE_SOURCE_DIR}/src/stream/*.c")
+file(GLOB_RECURSE PLAYER_SRC "${CMAKE_SOURCE_DIR}/src/player/*.c")
+file(GLOB_RECURSE PARAM_SRC "${CMAKE_SOURCE_DIR}/src/param/*.c")
+file(GLOB_RECURSE RTSP_SRC "${CMAKE_SOURCE_DIR}/src/live/rtsp/*.c")
+file(GLOB_RECURSE OSD_SRC "${CMAKE_SOURCE_DIR}/src/osd/*.c")
+file(GLOB_RECURSE RTMP_SRC "${CMAKE_SOURCE_DIR}/src/live/rtmp/*.c")
+file(GLOB_RECURSE DISP_SRC "${CMAKE_SOURCE_DIR}/src/display/*.c")
+file(GLOB_RECURSE UI_SRC "${CMAKE_SOURCE_DIR}/src/ui/*.c")
 file(GLOB_RECURSE INIPARSER_SRC "${CMAKE_SOURCE_DIR}/src/third-party/iniparser/*.c")
 file(GLOB_RECURSE CJSON_SRC "${CMAKE_SOURCE_DIR}/src/third-party/cjson/*.c")
-add_definitions(-g -O0 -ggdb -gdwarf -funwind-tables -rdynamic -D_GNU_SOURCE)
 
-link_directories(${CMAKE_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf)
+if(ENABLE_STORAGE)
+	file(GLOB_RECURSE STORAGE_SRC "${CMAKE_SOURCE_DIR}/src/storage/*.c")
+endif()
+
+if(ENABLE_AOV)
+	file(GLOB_RECURSE AOV_SRC "${CMAKE_SOURCE_DIR}/src/aov/*.c")
+endif()
+
+add_definitions(-g -O0 -ggdb -gdwarf -funwind-tables -rdynamic -D_GNU_SOURCE)
 
 add_library(rkadk SHARED
 		${AUDIO_ENCODER_SRC}
@@ -30,13 +37,15 @@ add_library(rkadk SHARED
 		${STREAM_SRC}
 		${PLAYER_SRC}
 		${PARAM_SRC}
-                ${RTMP_SRC}
+		${RTMP_SRC}
 		${RTSP_SRC}
 		${OSD_SRC}
-                ${DISP_SRC}
+		${DISP_SRC}
+		${UI_SRC}
 		${STORAGE_SRC}
 		${INIPARSER_SRC}
-		${CJSON_SRC})
+		${CJSON_SRC}
+		${AOV_SRC})
 
 set_target_properties(rkadk PROPERTIES LINK_FLAGS -Wl,--version-script,${CMAKE_CURRENT_LIST_DIR}/export.map)
 #set_target_properties(rkadk PROPERTIES COMPILE_OPTIONS -Wl,-Bsymbolic)
@@ -45,14 +54,21 @@ target_include_directories(rkadk PUBLIC "${CMAKE_SOURCE_DIR}/src/demuxer")
 target_include_directories(rkadk PUBLIC "${CMAKE_SOURCE_DIR}/src/third-party")
 target_include_directories(rkadk PUBLIC "${CMAKE_SOURCE_DIR}/src/common")
 
-if(CMAKE_C_COMPILER MATCHES "arm-rockchip830-linux-uclibcgnueabihf*")
-	target_link_libraries(rkadk rockit rkmuxer iconv rtsp z rkaudio rkfsmk rkdemuxer)
+target_link_libraries(rkadk rkmuxer rtsp rkaudio rkdemuxer)
+
+if(${RKADK_CHIP} STREQUAL "rv1106")
+	target_link_libraries(rkadk rockit_full)
 else()
-	target_link_libraries(rkadk rockit rtsp rkfsmk rkmuxer z rkdemuxer)
+	target_link_libraries(rkadk rockit)
 endif()
 
-if(USE_RKAIQ)
-    target_link_libraries(rkadk rkaiq)
+if(ENABLE_JPEG_SLICE)
+	add_definitions(-DJPEG_SLICE)
+	target_link_libraries(rkadk rkyuvscaler)
+endif()
+
+if(ENABLE_STORAGE)
+	target_link_libraries(rkadk iconv rkfsmk)
 endif()
 
 # install target

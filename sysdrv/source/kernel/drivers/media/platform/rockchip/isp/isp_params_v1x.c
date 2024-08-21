@@ -2239,6 +2239,7 @@ static void
 rkisp1_get_param_size_v1x(struct rkisp_isp_params_vdev *params_vdev, unsigned int sizes[])
 {
 	sizes[0] = sizeof(struct rkisp1_isp_params_cfg);
+	params_vdev->vdev_fmt.fmt.meta.buffersize = sizes[0];
 }
 
 /* Not called when the camera active, thus not isr protection. */

@@ -1,4 +1,11 @@
 # 更新日志
+## V1.4 更新日志
+1. 更新uboot，提供rv1106使用spi_nand和emmc快速启动的支持
+2. 优化了uboot对SD卡的兼容性，减少识别SD卡失败的概率
+3. 更新内核版本为5.10.160，提高rv1106g3的npu频率
+4. 更新buildroot的镜像源，使软件包下载更加稳定
+5. 添加了自定义文件系统的支持
+6. 部分bug修复
 ## V1.3 更新日志
 1. 添加Luckfox-pico-Ultra和Luckfox-pico-Ultra-W支持
 2. 优化了板级支持文件的选择操作

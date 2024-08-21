@@ -335,6 +335,13 @@ static int atbm_sdio_irq_period(struct atbm_sdio_thread *thread)
 	printk_once("[atbm_log]:rx timeout\n");
 	
 	hw_priv->sbus_ops->lock(hw_priv->sbus_priv);
+
+#if (PROJ_TYPE==HERA)
+	if (hw_priv->is_sdio_hibernated){
+		goto exit;
+	}
+#endif
+
 	/*
 	*check sdio irq thread has process the irq;
 	*/
@@ -360,8 +367,17 @@ static int atbm_sdio_rx_pre_sched(struct atbm_sdio_thread *thread)
 	u16 ctrl_reg = 0;
 	struct sbus_priv *self = (struct sbus_priv *)thread->self;
 	struct atbm_common *hw_priv = self->core;
-
+	if(hw_priv->sdio_status == -1){
+		return 0;
+	}
 	hw_priv->sbus_ops->lock(hw_priv->sbus_priv);
+
+#if (PROJ_TYPE==HERA)
+	if (hw_priv->is_sdio_hibernated){
+		goto exit;
+	}
+#endif
+
 	atbm_bh_read_ctrl_reg_unlock(hw_priv, &ctrl_reg);
 	
 	if(ctrl_reg & ATBM_HIFREG_CONT_NEXT_LEN_MASK){
@@ -615,6 +631,9 @@ static int atbm_sdio_memcpy_fromio(struct sbus_priv *self,
 				     unsigned int addr,
 				     void *dst, int count)
 {
+	if(self->core->sdio_status == -1){
+		return -1;
+	}
 	return sdio_memcpy_fromio(self->func, dst, addr, count);
 }
 
@@ -622,6 +641,9 @@ static int atbm_sdio_memcpy_toio(struct sbus_priv *self,
 				   unsigned int addr,
 				   const void *src, int count)
 {
+	if(self->core->sdio_status == -1){
+		return -1;
+	}
 	return sdio_memcpy_toio(self->func, addr, (void *)src, count);
 }
 
@@ -630,7 +652,10 @@ static int atbm_sdio_read_sync(struct sbus_priv *self,
 				     void *dst, int count)
 {
 	int ret = -EINVAL;
-	
+
+	if(self->core->sdio_status == -1){
+		return -1;
+	}	
 	switch(count){
 	case sizeof(u16):
 		*(u16 *)dst = sdio_readw(self->func, addr, &ret);		
@@ -651,6 +676,9 @@ static int atbm_sdio_write_sync(struct sbus_priv *self,
 				   const void *src, int count)
 {
 	int ret = -EINVAL;
+	if(self->core->sdio_status == -1){
+		return -1;
+	}
 
 	switch(count){
 	case sizeof(u16):
@@ -702,8 +730,11 @@ static void atbm_sdio_irq_handler(struct sdio_func *func)
 {
 	struct sbus_priv *self = sdio_get_drvdata(func);
 
-	BUG_ON(!self);
-
+//	BUG_ON(!self);
+	if(!self){
+		atbm_printk_err("%s %d ,ERROR !!! self is NULL\n",__func__,__LINE__);
+		return;
+	}
 	if (self->irq_handler)
 		self->irq_handler(self->irq_priv);
 }
@@ -803,6 +834,11 @@ static void atbm_sdio_miss_irq(struct sbus_priv *self)
 #ifdef CONFIG_ATBM_APOLLO_USE_GPIO_IRQ
 	atbm_oob_intr_set(self, 0);
 #endif
+
+	if(self->core->sdio_status == -1){
+		return;
+	}
+
 	if (self->irq_handler)
 		self->irq_handler(self->irq_priv);
 }
@@ -904,7 +940,12 @@ static int atbm_detect_card(const struct atbm_platform_data *pdata)
 		goto exit;
 	}
 
-	BUG_ON(!mmc->class_dev.class);
+	//BUG_ON(!mmc->class_dev.class);
+	if(!mmc->class_dev.class){
+		atbm_printk_err("%s %d ,ERROR !!! mmc->class_dev.class is NULL\n",__func__,__LINE__);
+		status = -ENOMEM;
+		goto exit;
+	}
 	class_dev_iter_init(&iter, mmc->class_dev.class, NULL, NULL);
 	for (;;) {
 		dev = class_dev_iter_next(&iter);
@@ -959,8 +1000,8 @@ static int atbm_sdio_on(const struct atbm_platform_data *pdata)
 	int ret = 0;
     if (pdata->insert_ctrl)
 		ret = pdata->insert_ctrl(pdata, true);
-	msleep(200);
-	atbm_detect_card(pdata);
+	//msleep(200);
+	//atbm_detect_card(pdata);
 	return ret;
 }
 #endif //#if ((ATBM_WIFI_PLATFORM != 10) && (ATBM_WIFI_PLATFORM != PLATFORM_AMLOGIC_S805))
@@ -969,6 +1010,9 @@ static int atbm_cmd52_abort(struct sbus_priv *self)
 {
 	int ret;
 	int regdata;
+	if(self->core->sdio_status == -1){
+		return 0;
+	}
 	sdio_claim_host(self->func);
 
 	/* SDIO Simplified Specification V2.0, 4.4 Reset for SDIO */
@@ -1108,9 +1152,9 @@ void atbm_wtd_wakeup( struct sbus_priv *self)
 	wake_up(&self->wtd->wtd_evt_wq);
 #endif //CONFIG_ATBMWIFI_WDT
 }
-#ifdef CONFIG_ATBMWIFI_WDT
 static int atbm_wtd_process(void *arg)
 {
+#ifdef CONFIG_ATBMWIFI_WDT
 	int status=0;
 	int term=0;
 	int wtd_run=0;
@@ -1135,10 +1179,9 @@ __stop:
 		}
 		schedule_timeout_uninterruptible(msecs_to_jiffies(100));
 	}
+#endif //CONFIG_ATBMWIFI_WDT
 	return 0;
 }
-#endif //CONFIG_ATBMWIFI_WDT
-
 static void atbm_wtd_init(void)
 {
 #ifdef CONFIG_ATBMWIFI_WDT
@@ -1193,6 +1236,9 @@ int atbm_reset_lmc_cpu(struct atbm_common *hw_priv)
 	int retry=0;
 	if(hw_priv == NULL)
 	{
+		return -1;
+	}
+	if(hw_priv->sdio_status == -1){
 		return -1;
 	}
 	while (retry <= MAX_RETRY) {
@@ -1421,9 +1467,14 @@ static int atbm_sdio_lmac_restart(struct sbus_priv *self)
 	*it's safe to try device lock here when rmmod is running
 	*here should not use device_lock,if so lock may be dead.
 	*/
+	if(self->core->sdio_status == -1){
+		return -1;
+	}
 	if(device_trylock(&self->func->dev)){
 		get_device(&self->func->dev);
+		#if (PROJ_TYPE!=HERA)
 		ret = __atbm_sdio_lmac_restart(self);
+		#endif
 		put_device(&self->func->dev);
 		device_unlock(&self->func->dev);
 	}else {
@@ -1529,6 +1580,7 @@ static void atbm_sdio_disconnect(struct sdio_func *func)
 {
 	struct sbus_priv *self = sdio_get_drvdata(func);
 	atbm_printk_exit("atbm_sdio_disconnect");
+	self->core->sdio_status = -1;
 	if (self) {
 		atomic_set(&g_wtd.wtd_probe, 0);
 		if (self->core) {

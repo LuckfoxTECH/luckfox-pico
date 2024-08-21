@@ -18,7 +18,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA 
  */
 
 #ifndef _HTMLATOMICELEMENT_H_
@@ -35,69 +35,80 @@
 
 namespace cgicc {
 
-// ============================================================
-// Template for concrete atomic HTML element classes
-// ============================================================
-
-/*! \class HTMLAtomicElement HTMLAtomicElement.h cgicc/HTMLAtomicElement.h
- * \brief Template for concrete atomic HTMLElement subclasses
- *
- * An atomic HTML element is an element in which the opening and closing
- * tags are combined.  For example, in the HTML code
- \verbatim
- <meta link="made" href="mailto:sbooth@gnu.org" />
- \endverbatim
- * The \c meta tag is an atomic HTML element because the opening and closing
- * tags appear together.
- * \sa HTMLElement
- * \sa HTMLBooleanElement
- */
-template <class Tag> class HTMLAtomicElement : public HTMLElement {
-public:
   // ============================================================
-
-  /*! \name Constructors and Destructor */
-  //@{
-
-  /*!
-   * \brief Create a new empty atomic element.
+  // Template for concrete atomic HTML element classes
+  // ============================================================
+  
+  /*! \class HTMLAtomicElement HTMLAtomicElement.h cgicc/HTMLAtomicElement.h
+   * \brief Template for concrete atomic HTMLElement subclasses
    *
+   * An atomic HTML element is an element in which the opening and closing 
+   * tags are combined.  For example, in the HTML code
+   \verbatim
+   <meta link="made" href="mailto:sbooth@gnu.org" />
+   \endverbatim
+   * The \c meta tag is an atomic HTML element because the opening and closing
+   * tags appear together.
+   * \sa HTMLElement
+   * \sa HTMLBooleanElement
    */
-  HTMLAtomicElement() : HTMLElement(0, 0, 0, eAtomic) {}
-
-  /*!
-   * \brief Create a new element, specifying the HTMLAttributes.
-   *
-   * \param attributes The HTMLAttributes contained within the element.
-   */
-  HTMLAtomicElement(const HTMLAttributeList &attributes)
-      : HTMLElement(&attributes, 0, 0, eAtomic) {}
-
-  /*!
-   * \brief Destructor
-   *
-   */
-  virtual ~HTMLAtomicElement() {}
-  //@}
-
-  /*!
-   * \brief Clone this element
-   *
-   * \return A newly-allocated copy of this element
-   */
-  virtual inline HTMLElement *clone() const {
-    return new HTMLAtomicElement<Tag>(*this);
-  }
-
-  /*!
-   * \brief Get the name of this element.
-   *
-   * For example, \c meta.
-   * \return The name of this element
-   */
-  virtual inline const char *getName() const { return Tag::getName(); }
-};
-
+  template<class Tag>
+  class HTMLAtomicElement : public HTMLElement 
+  {
+  public:
+    
+    // ============================================================
+    
+    /*! \name Constructors and Destructor */
+    //@{
+    
+    /*!
+     * \brief Create a new empty atomic element. 
+     *
+     */
+    HTMLAtomicElement()
+      : HTMLElement(0, 0, 0, eAtomic)
+    {}
+    
+    /*!
+     * \brief Create a new element, specifying the HTMLAttributes.
+     *
+     * \param attributes The HTMLAttributes contained within the element.
+     */
+    HTMLAtomicElement(const HTMLAttributeList& attributes)
+      : HTMLElement(&attributes, 0, 0, eAtomic)
+    {}
+    
+    
+    /*!
+     * \brief Destructor 
+     *
+     */
+    virtual ~HTMLAtomicElement()
+    {}
+    //@}
+    
+    /*! 
+     * \brief Clone this element
+     *
+     * \return A newly-allocated copy of this element
+     */
+    virtual inline HTMLElement* 
+    clone() 					const
+    { return new HTMLAtomicElement<Tag>(*this); }
+    
+    
+    /*!
+     * \brief Get the name of this element.  
+     *
+     * For example, \c meta.
+     * \return The name of this element
+     */
+    virtual inline const char* 
+    getName() 					const
+    { return Tag::getName(); }
+  };
+  
 } // namespace cgicc
 
 #endif /* ! _HTMLATOMICELEMENT_H_ */

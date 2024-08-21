@@ -1,0 +1,111 @@
+import rtconfig
+from building import *
+import os
+
+cwd     = GetCurrentDir()
+
+CYWLAN_ROOT_DIR=cwd + r'/../../release/WIFI/'
+
+WWD_DIR   = CYWLAN_ROOT_DIR+r'wiced/wwd/'
+WICED_DIR = CYWLAN_ROOT_DIR+r'wiced/'
+APPS_DIR  = CYWLAN_ROOT_DIR+r'apps/'
+
+drv_src = Glob('*.c')
+LOCAL_CPPPATH = [cwd, str(Dir('#'))]
+
+def prefix_path(fileList, prefix):
+    for idx in range(len(fileList)):
+        fileList[idx] = prefix+fileList[idx]
+
+WWDSOURCES = [
+                        r'internal/wwd_ap_common.c',
+                        r'internal/wwd_clm.c',
+                        r'internal/wwd_debug.c',
+                        r'internal/wwd_eapol.c',
+                        r'internal/wwd_logging.c',
+                        r'internal/wwd_management.c',
+                        r'internal/wwd_internal.c',
+                        r'internal/wwd_rtos_interface.c',
+                        r'internal/wwd_sdpcm.c',
+                        r'internal/wwd_thread.c',
+                        r'internal/wwd_thread_internal.c',
+                        r'internal/wwd_wifi.c',
+                        r'internal/wwd_wifi_chip_common.c',
+                        r'internal/wwd_wifi_sleep.c',
+                        r'internal/chips/43438/wwd_ap.c',
+                        r'internal/chips/43438/wwd_chip_specific_functions.c',
+                        r'internal/bus_protocols/wwd_bus_common.c',
+                        r'internal/bus_protocols/SDIO/wwd_bus_protocol.c',
+                        r'../rtos/RTthread/WICED/WWD/wwd_rtos.c',
+]
+
+prefix_path(WWDSOURCES, WWD_DIR)
+cywlan_src = WWDSOURCES
+
+CYWLAN_WICED_SOURCES = [
+#                       r'wiced/rtos/RTthread/WICED/wiced_rtos.c',
+                        r'wiced/internal/wiced_lib.c',
+                        r'libraries/utilities/TLV/tlv.c',
+####LWIP WICED ###########
+#			r'wiced/network/Lwip/wiced/wiced_network.c',
+####LWIP WICED END########
+####LWIP WWD ###########
+                        r'wiced/network/Lwip/wwd/wwd_network.c',
+####LWIP WWD END########
+
+]
+
+prefix_path(CYWLAN_WICED_SOURCES, CYWLAN_ROOT_DIR)
+cywlan_src = cywlan_src + CYWLAN_WICED_SOURCES
+
+CYWLAN_APPS_SOURCES = [
+########for cywifiscan######
+                        r'wwd/scan/wiced_Lwip_scan.c',
+############################
+########wl utilies############
+                        r'../libraries/test/wl_tool/wlu_wiced.c',
+                        r'../libraries/test/wl_tool/43438/wl/exe/wlu.c',
+#                        r'../libraries/test/wl_tool/43438/wl/exe/wlu_cmd.c',
+                        r'../libraries/test/wl_tool/43438/wl/exe/wlu_common.c',
+                        r'../libraries/test/wl_tool/43438/shared/bcmwifi/src/bcmwifi_channels.c',
+                        r'../libraries/test/wl_tool/43438/shared/bcmutils.c',
+                        r'../libraries/test/wl_tool/43438/shared/bcm_app_utils.c',
+                        r'../libraries/test/wl_tool/43438/shared/miniopt.c',
+############################
+]
+
+prefix_path(CYWLAN_APPS_SOURCES, APPS_DIR)
+cywlan_src = cywlan_src + CYWLAN_APPS_SOURCES
+
+PLATFORM_SOURCES = [
+                        r'wiced/platform/mcu/rk2108/wwd/wwd_SDIO.c',
+#                        r'wiced/platform/mcu/rk2108/peripherals/platform_gpio.c',
+                        r'wiced/network/Lwip/wwd/wwd_buffer.c',
+                        r'wiced/platform/mcu/rk2108/peripherals/platform_mcu_powersave.c',
+                        r'wiced/platform/mcu/rk2108/wwd/wwd_platform.c',
+                        r'wiced/platform/mcu/platform_resource.c',
+                        r'wiced/platform/mcu/wwd_resources.c',
+]
+
+prefix_path(PLATFORM_SOURCES, CYWLAN_ROOT_DIR)
+cywlan_src = cywlan_src + PLATFORM_SOURCES
+
+#cywlan_src = cywlan_src + drv_src
+
+CYWLANDEFINES=['BUILDCFG', 'CY_RTT', 'WICED_DISABLE_TLS', 'DNETWORK_Lwip', 'WWD_DOWNLOAD_CLM_BLOB', 'TARGET_wiced', 'DISABLE_LOGGING']
+
+RT_LWIP_INCLUDES = [
+        CYWLAN_ROOT_DIR+ r'/../../../../components/net/lwip-1.4.1/src/include',
+        CYWLAN_ROOT_DIR+ r'/../../../../components/net/lwip-1.4.1/src/include/lwip',
+	cwd + r'/../bt/wiced_rtt_inc'
+]
+if GetDepend(['WIFI_DEV_MODE']):
+    cywlan = DefineGroup('cywlan', cywlan_src, depend = [''],  LOCAL_CPPPATH = RT_LWIP_INCLUDES, CPPDEFINES=CYWLANDEFINES)
+    cydrv = DefineGroup('wlandrv', drv_src, depend = [''],  LOCAL_CPPPATH = RT_LWIP_INCLUDES, CPPDEFINES=CYWLANDEFINES)
+    wlan = cywlan +  cydrv    
+else :
+    print('release build')
+    cydrv = DefineGroup('wlandrv', drv_src, depend = ['RT_CYPRESS_WIFI'],  LOCAL_CPPPATH = RT_LWIP_INCLUDES, CPPDEFINES=CYWLANDEFINES)
+    wlan = cydrv
+
+Return('wlan')

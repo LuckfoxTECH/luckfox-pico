@@ -172,11 +172,14 @@ void atbm_bh_wake_unlock(struct atbm_common *hw_priv)
 int atbm_register_bh(struct atbm_common *hw_priv)
 {
 	int err = 0;
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0))
 	struct sched_param param = { .sched_priority = 1 };
-#endif
 	atbm_printk_init("[BH] register.\n");
-	BUG_ON(hw_priv->bh_thread);
+//	BUG_ON(hw_priv->bh_thread);
+	if(hw_priv->bh_thread){
+		atbm_printk_err("%s %d ,WARING !!! hw_priv->bh_thread is runing\n",__func__,__LINE__);
+	//	atbm_unregister_bh(hw_priv);
+		return 0;
+	}
 	atomic_set(&hw_priv->bh_rx, 0);
 	atomic_set(&hw_priv->bh_tx, 0);
 	atomic_set(&hw_priv->bh_term, 0);
@@ -256,19 +259,28 @@ static int atbm_rx_directly(struct atbm_common *hw_priv,struct sk_buff *skb)
 	
 	atbm_skb_trim(skb, wsm_len);
 	if (unlikely(wsm_id == 0x0800)) {
-		wsm_handle_exception(hw_priv,
+		if(wsm_handle_exception(hw_priv,
 			 &data[sizeof(*wsm)],
-			wsm_len - sizeof(*wsm));
-			status = -1;
-			atbm_hif_status_set(1);
-			atbm_bh_halt(hw_priv);
-			goto exit;
+			wsm_len - sizeof(*wsm)) < 0){
+				atbm_printk_err("atbm_rx_directly : recv err!! \n");
+				status = -1;
+				atbm_hif_status_set(1);
+				atbm_bh_halt(hw_priv);
+				goto exit;
+			}else{
+				atbm_printk_err("atbm_rx_directly : recv wsm_handle_exception !! \n");
+			}
 	} else if (unlikely(!rx_resync)) {
-		if (WARN_ON(wsm_seq != hw_priv->wsm_rx_seq)) {
+	//	atbm_printk_err("atbm_rx_directly :yzh rx_resync=%d,hw_priv->wsm_rx_seq=%d  wsm_seq=%d,wsm_len=%d,wsm_id=%x\n",
+	//				rx_resync,hw_priv->wsm_rx_seq,wsm_seq,wsm_len,wsm_id);
+		if (wsm_seq != hw_priv->wsm_rx_seq) {
+			atbm_printk_err("atbm_rx_directly :yzh hw_priv->wsm_rx_seq=%d,wsm_seq=%d \n",hw_priv->wsm_rx_seq,wsm_seq);
+	/*		
 			status = -2;
 			atbm_hif_status_set(1);
 			atbm_bh_halt(hw_priv);
 			goto exit;
+			*/
 		}
 	}
 	hw_priv->wsm_rx_seq = (wsm_seq + 1) & 7;
@@ -343,12 +355,18 @@ static int atbm_sdio_process_read_data(struct atbm_common *hw_priv,reed_ctrl_han
 	u8 *data;
 	u8 rx_continue_cnt = 0;
 
-	BUG_ON(read_ctrl_func == NULL);
-	BUG_ON(read_data_func == NULL);
-	BUG_ON(rx_handle == NULL);
+
+	if(read_ctrl_func == NULL || read_data_func == NULL || rx_handle == NULL){
+		atbm_printk_err("%s %d ,ERROR !!! read_ctrl_func(%p) || read_data_func(%p) ||  rx_handle(%p) is NULL\n",
+			__func__,__LINE__,read_ctrl_func,read_data_func,rx_handle);
+		return -1;
+	}
+
+	
 rx_check:
-	if (WARN_ON(read_ctrl_func(
-			hw_priv, &ctrl_reg))){
+	if (read_ctrl_func(
+			hw_priv, &ctrl_reg)){
+			atbm_printk_err("read ctrl func error\n");
 			goto err;
 	}
 rx_continue:
@@ -581,13 +599,24 @@ static void atbm_sdio_release_err_data(struct atbm_common	*hw_priv,struct wsm_tx
 	struct sk_buff *skb;
 	const struct atbm_txpriv *txpriv;
 	
-	BUG_ON(wsm == NULL);
+//	BUG_ON(wsm == NULL);
+	if(wsm == NULL){
+		atbm_printk_err("%s %d ,ERROR !!! wsm is NULL\n",__func__,__LINE__);
+		return;
+	}
 	queue_id = atbm_queue_get_queue_id(wsm->packetID);
 
-	BUG_ON(queue_id >= 4);
+//	BUG_ON(queue_id >= 4);
+	if(queue_id >= 4){
+		atbm_printk_err("%s %d ,ERROR !!! queue_id >= 4\n",__func__,__LINE__);
+		return;
+	}
 	queue = &hw_priv->tx_queue[queue_id];
-	BUG_ON(queue == NULL);
-	
+//	BUG_ON(queue == NULL);
+	if(queue == NULL){
+		atbm_printk_err("%s %d ,ERROR !!! queue == NULL\n",__func__,__LINE__);
+		return;
+	}
 	wsm_release_tx_buffer(hw_priv, 1);
 	if(!WARN_ON(atbm_queue_get_skb(queue, wsm->packetID, &skb, &txpriv))) {
 
@@ -621,11 +650,17 @@ static int atbm_sdio_free_tx_wsm(struct atbm_common	*hw_priv,struct wsm_tx *wsm)
 
 		queue_id = atbm_queue_get_queue_id(wsm->packetID);
 
-		BUG_ON(queue_id >= 4);
-
+		//BUG_ON(queue_id >= 4);
+		if(queue_id >= 4){
+			atbm_printk_err("%s %d ,ERROR !!! queue_id >= 4\n",__func__,__LINE__);
+			return -1;
+		}
 		queue = &hw_priv->tx_queue[queue_id];
-		BUG_ON(queue == NULL);
-
+		//BUG_ON(queue == NULL);
+		if(queue == NULL){
+			atbm_printk_err("%s %d ,ERROR !!! queue == NULL\n",__func__,__LINE__);
+			return -1;
+		}
 		if(!WARN_ON(atbm_queue_get_skb(queue, wsm->packetID, &skb, &txpriv))) {
 
 			struct ieee80211_tx_info *tx = IEEE80211_SKB_CB(skb);
@@ -693,6 +728,8 @@ void atbm_sdio_tx_bh(struct atbm_common *hw_priv)
 #else
 #define WSM_SDIO_TX_MULT_BLOCK_SIZE	(SDIO_BLOCK_SIZE)
 #endif
+
+#if 0
 #define ATBM_SDIO_FREE_BUFF_ERR(condition,free,prev_free,xmiteds,hw_xmiteds)	\
 	do{																			\
 		if(condition)	{																\
@@ -700,6 +737,7 @@ void atbm_sdio_tx_bh(struct atbm_common *hw_priv)
 			BUG_ON(1);			\
 		}\
 	}while(0)
+#endif
 #ifdef CONFIG_TX_NO_CONFIRM
 	static u8 loop = 1;
 #else
@@ -722,7 +760,16 @@ void atbm_sdio_tx_bh(struct atbm_common *hw_priv)
 	bool enough = false;
 
 	prefetchw(hw_priv->xmit_buff);
-	
+
+#if (PROJ_TYPE==HERA)
+	while (1){
+		if (atbm_device_wakeup(hw_priv) > 0){
+			break;
+		}
+		mdelay(10);
+	}
+#endif
+
 xmit_continue:
 
 	txMutiFrameCount = 0;
@@ -748,11 +795,23 @@ xmit_continue:
 			else
 				goto xmit_finished;
 		}
-		
+
+		if (hw_priv->sdio_status == -1){
+			goto xmit_finished;
+		}
+				
 		txMutiFrameCount++;
 		wsm_tx = (struct wsm_hdr_tx *)data;
-		BUG_ON(tx_len < sizeof(*wsm_tx));
-		BUG_ON(__le32_to_cpu(wsm_tx->len) != tx_len);
+	//	BUG_ON(tx_len < sizeof(*wsm_tx));
+	//	BUG_ON(__le32_to_cpu(wsm_tx->len) != tx_len);
+		
+		if((tx_len < sizeof(*wsm_tx)) || (__le32_to_cpu(wsm_tx->len) != tx_len)){
+			atbm_printk_err("%s %d ,ERROR !!! tx_len = (%d) < sizeof(*wsm_tx) = (%d) || __le32_to_cpu(wsm_tx->len)=(%d) != tx_len\n",
+					__func__,__LINE__,tx_len,sizeof(*wsm_tx),__le32_to_cpu(wsm_tx->len));
+			return;
+		}
+
+
 		
 #if (PROJ_TYPE>=ARES_A)
 		wsm_flag_u32 = (tx_len) & 0xffff;
@@ -794,11 +853,26 @@ xmit_continue:
 		wsm_alloc_tx_buffer(hw_priv);
 
 		spin_lock_bh(&hw_priv->tx_com_lock);
-		ATBM_SDIO_FREE_BUFF_ERR(hw_priv->hw_bufs_free <= 0,hw_priv->hw_bufs_free,hw_priv->hw_bufs_free_init,hw_priv->n_xmits,hw_priv->hw_xmits);
+	//	ATBM_SDIO_FREE_BUFF_ERR(hw_priv->hw_bufs_free <= 0,hw_priv->hw_bufs_free,
+	//hw_priv->hw_bufs_free_init,hw_priv->n_xmits,hw_priv->hw_xmits);
+		if(hw_priv->hw_bufs_free <= 0)	{																
+			atbm_printk_err("%s[%d]:free(%x),prev_free(%x),xmiteds(%x),hw_xmiteds(%x)\n",
+								__func__,__LINE__,hw_priv->hw_bufs_free,hw_priv->hw_bufs_free_init
+								,hw_priv->n_xmits,hw_priv->hw_xmits);	
+			spin_unlock_bh(&hw_priv->tx_com_lock);
+			return;		
+		}
+
 		hw_priv->n_xmits ++;
 		hw_priv->hw_bufs_free --;		
-		ATBM_SDIO_FREE_BUFF_ERR(hw_priv->hw_bufs_free < 0,hw_priv->hw_bufs_free,hw_priv->hw_bufs_free_init,hw_priv->n_xmits,hw_priv->hw_xmits);
-
+		//ATBM_SDIO_FREE_BUFF_ERR(hw_priv->hw_bufs_free < 0,hw_priv->hw_bufs_free,hw_priv->hw_bufs_free_init,hw_priv->n_xmits,hw_priv->hw_xmits);
+		if(hw_priv->hw_bufs_free < 0)	{																
+			atbm_printk_err("%s[%d]:free(%x),prev_free(%x),xmiteds(%x),hw_xmiteds(%x)\n",
+								__func__,__LINE__,hw_priv->hw_bufs_free,hw_priv->hw_bufs_free_init
+								,hw_priv->n_xmits,hw_priv->hw_xmits);	
+			spin_unlock_bh(&hw_priv->tx_com_lock);
+			return;		
+		}
 		if (vif_selected != -1) {
 			hw_priv->hw_bufs_used_vif[vif_selected]++;
 		}
@@ -831,7 +905,12 @@ xmit_continue:
 			break;
 		}
 	}while(loop);
-	BUG_ON(putLen == 0);
+//	BUG_ON(putLen == 0);
+
+	if(putLen == 0){
+		atbm_printk_err("%s %d ,ERROR !!! putLen == 0\n",__func__,__LINE__);
+		return;
+	}	
 	hw_priv->buf_id_offset = txMutiFrameCount;
 	atomic_add(1, &hw_priv->bh_tx);
 
@@ -1121,8 +1200,12 @@ int wsm_release_buffer_to_fw(struct atbm_vif *priv, int count)
 
 			/* Add sequence number */
 			wsm = (struct wsm_hdr_tx *)buf->begin;
-			BUG_ON(buf_len < sizeof(*wsm));
-
+			//BUG_ON(buf_len < sizeof(*wsm));
+			
+			if(buf_len < sizeof(*wsm)){
+				atbm_printk_err("%s %d ,ERROR !!! buf_len < sizeof(*wsm)\n",__func__,__LINE__);
+				return -1;
+			}
 			wsm->id &= __cpu_to_le32(
 				~WSM_TX_SEQ(WSM_TX_SEQ_MAX));
 			wsm->id |= cpu_to_le32(
@@ -1166,7 +1249,12 @@ static struct sk_buff *atbm_get_skb(struct atbm_common *hw_priv, u32 len)
 				+ 8  /* TKIP IV */
 				+ 12 /* TKIP ICV + MIC */
 				- 2  /* Piggyback */,GFP_KERNEL);
-		BUG_ON(skb==NULL);
+	//	BUG_ON(skb==NULL);
+		if(skb == NULL){
+			atbm_printk_err("%s %d ,ERROR !!! skb is NULL\n",__func__,__LINE__);
+			WARN_ON(1);
+			return NULL;
+		}
 		/* In AP mode RXed SKB can be looped back as a broadcast.
 		 * Here we reserve enough space for headers. */
 #if 0
@@ -1199,6 +1287,9 @@ int atbm_bh_read_ctrl_reg(struct atbm_common *hw_priv,
 					  u16 *ctrl_reg)
 {
 	int ret=0,retry=0;
+	if(hw_priv->sdio_status == -1){
+		return -1;
+	}
 	while (retry <= MAX_RETRY) {
 		ret = atbm_reg_read_16(hw_priv,
 				ATBM_HIFREG_CONTROL_REG_ID, ctrl_reg);
@@ -1206,7 +1297,10 @@ int atbm_bh_read_ctrl_reg(struct atbm_common *hw_priv,
 				break;
 		}else{
 			/*reset sdio internel reg by send cmd52 to abort*/
-			WARN_ON(hw_priv->sbus_ops->abort(hw_priv->sbus_priv));
+			if(hw_priv->sbus_ops->abort(hw_priv->sbus_priv) != 0){
+				atbm_printk_err("atbm_bh_read_ctrl_reg , abort fail ! \n");
+				break;
+			}
 			retry++;
 			mdelay(retry);
 			atbm_printk_err(
@@ -1219,6 +1313,9 @@ int atbm_bh_read_ctrl_reg_unlock(struct atbm_common *hw_priv,
 					  u16 *ctrl_reg)
 {
 	int ret=0,retry=0;
+	if(hw_priv->sdio_status == -1){
+		return -1;
+	}
 	while (retry <= MAX_RETRY) {
 		ret = atbm_reg_read_16_unlock(hw_priv,
 				ATBM_HIFREG_CONTROL_REG_ID, ctrl_reg);
@@ -1226,7 +1323,10 @@ int atbm_bh_read_ctrl_reg_unlock(struct atbm_common *hw_priv,
 				break;
 		}else{
 			/*reset sdio internel reg by send cmd52 to abort*/
-			WARN_ON(hw_priv->sbus_ops->abort(hw_priv->sbus_priv));
+			if(hw_priv->sbus_ops->abort(hw_priv->sbus_priv) != 0){
+				atbm_printk_err("atbm_bh_read_ctrl_reg_unlock , abort fail !sdio_status = %d \n",hw_priv->sdio_status);
+				break;
+			}
 			retry++;
 			mdelay(retry);
 			atbm_printk_err(
@@ -1260,14 +1360,60 @@ int atbm_powerave_sdio_sync(struct atbm_common *hw_priv)
 	}
 	return ret;
 }
+
+int atbm_device_hibernate(struct atbm_common *hw_priv)
+{
+	u16 ctrl_reg;
+	int ret=0;
+
+	if (hw_priv->is_sdio_hibernated){
+		//atbm_printk_bh("sdio device is already hibernated\n");
+		return 1;
+	}
+
+	if(atomic_read(&hw_priv->bh_rx) || atomic_read(&hw_priv->bh_tx) || (hw_priv->hw_bufs_used))
+		return 0;
+
+	ret = atbm_reg_read_16(hw_priv, ATBM_HIFREG_CONTROL_REG_ID, &ctrl_reg);
+	if (WARN_ON(ret))
+		return ret;
+
+	ctrl_reg &= (~ATBM_HIFREG_CONT_WUP_BIT);
+	ret = atbm_reg_write_16(hw_priv, ATBM_HIFREG_CONTROL_REG_ID, ctrl_reg);
+	if (WARN_ON(ret))
+		return ret;
+	
+	while(1){
+		mdelay(5);
+		ret = atbm_bh_read_ctrl_reg(hw_priv, &ctrl_reg);
+		if (WARN_ON(ret)){
+		}
+		/* If the device returns WLAN_RDY as 0, the device is inactive and will
+		 * remain inactive. */
+		atbm_printk_bh("Rdy =%x\n",ctrl_reg);
+		if (!(ctrl_reg & ATBM_HIFREG_CONT_RDY_BIT)) {
+			atbm_printk_bh("[BH] Device sleeping.\n");
+			hw_priv->is_sdio_hibernated = 1;
+			ret= 1;
+			break;
+		}
+	}
+	return ret;
+}
+
 int atbm_device_wakeup(struct atbm_common *hw_priv)
 {
 	u16 ctrl_reg;
 	int ret=0;
-	int loop = 1;
 
-#ifdef PS_SETUP
+#if (PROJ_TYPE==HERA)
+	if (!hw_priv->is_sdio_hibernated){
+		//atbm_printk_bh("sdio device is awake\n");
+		return 1;
+	}
+#endif
 
+#if defined(PS_SETUP) || (PROJ_TYPE==HERA)
 	/* To force the device to be always-on, the host sets WLAN_UP to 1 */
 	ret = atbm_reg_write_16(hw_priv, ATBM_HIFREG_CONTROL_REG_ID,
 			ATBM_HIFREG_CONT_WUP_BIT);
@@ -1283,7 +1429,8 @@ int atbm_device_wakeup(struct atbm_common *hw_priv)
 		 * remain active. */
 		atbm_printk_bh("Rdy =%x\n",ctrl_reg);
 		if (ctrl_reg & ATBM_HIFREG_CONT_RDY_BIT) {
-			atbm_printk_bh("[BH] Device awake.<%d>\n",loop);
+			atbm_printk_bh("[BH] Device awake.\n");
+			hw_priv->is_sdio_hibernated = 0;
 			ret= 1;
 			break;
 		}
@@ -1333,7 +1480,11 @@ int atbm_rx_tasklet(struct atbm_common *hw_priv, int id,
 				}
 				WARN_ON((wsm_id  & (~WSM_TX_LINK_ID(WSM_TX_LINK_ID_MAX))) !=  WSM_RECEIVE_INDICATION_ID);
 				atbm_skb_copy = __atbm_dev_alloc_skb(wsm_len + 16,GFP_KERNEL);
-				BUG_ON(atbm_skb_copy == NULL);
+				//BUG_ON(atbm_skb_copy == NULL);
+				if(atbm_skb_copy == NULL){
+					atbm_printk_err("%s %d ,ERROR !!! atbm_skb_copy is NULL\n",__func__,__LINE__);
+					return -1;
+				}
 				atbm_skb_reserve(atbm_skb_copy,  (8 - (((unsigned long)atbm_skb_copy->data)&7))/*ALIGN 8*/);
 				atbm_skb_copy->pkt_type = skb->pkt_type;
 				memmove(atbm_skb_copy->data, wsm, wsm_len);
@@ -1358,8 +1509,11 @@ int atbm_rx_tasklet(struct atbm_common *hw_priv, int id,
 					atbm_dev_kfree_skb(atbm_skb_copy);
 				}
 			}while((RxFrameNum>0) && (data_len > 32));
-			BUG_ON(RxFrameNum != 0);
-			
+			//BUG_ON(RxFrameNum != 0);
+			if(RxFrameNum != 0){
+				atbm_printk_err("%s %d ,ERROR !!! RxFrameNum(%d) != 0\n",__func__,__LINE__,RxFrameNum);
+				return -1;
+			}
 		}
 		else {
 			//rxMutiCnt[ALIGN(wsm_len,1024)/1024]++;

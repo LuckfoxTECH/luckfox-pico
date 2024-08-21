@@ -361,8 +361,12 @@ struct ieee80211_key *ieee80211_key_alloc(u32 cipher, int idx, size_t key_len,
 #ifdef CONFIG_ATBM_USE_SW_ENC
 	int err;
 #endif
-	BUG_ON(idx < 0 || idx >= NUM_DEFAULT_KEYS + NUM_DEFAULT_MGMT_KEYS);
-
+	//BUG_ON(idx < 0 || idx >= NUM_DEFAULT_KEYS + NUM_DEFAULT_MGMT_KEYS);
+	if((idx < 0) || (idx >= NUM_DEFAULT_KEYS + NUM_DEFAULT_MGMT_KEYS)){
+		atbm_printk_err("%s %d ,ERROR !!! idx=%d < 0 || idx >= %d + %d \n",
+				__func__,__LINE__,idx,NUM_DEFAULT_KEYS,NUM_DEFAULT_MGMT_KEYS);
+		return NULL;
+	}
 	key = atbm_kzalloc(sizeof(struct ieee80211_key) + key_len, GFP_KERNEL);
 	if (!key)
 		return ERR_PTR(-ENOMEM);
@@ -527,9 +531,14 @@ int ieee80211_key_link(struct ieee80211_key *key,
 	int idx, ret;
 	bool pairwise;
 
-	BUG_ON(!sdata);
-	BUG_ON(!key);
+//	BUG_ON(!sdata);
+//	BUG_ON(!key);
+	if(!sdata || !key){
+		atbm_printk_err("%s %d ,ERROR !!! sdata(%p) || key(%p) is NULL\n",__func__,__LINE__,sdata,key);
+		return -1;
+	}
 
+	
 	pairwise = key->conf.flags & IEEE80211_KEY_FLAG_PAIRWISE;
 	idx = key->conf.keyidx;
 	key->local = sdata->local;

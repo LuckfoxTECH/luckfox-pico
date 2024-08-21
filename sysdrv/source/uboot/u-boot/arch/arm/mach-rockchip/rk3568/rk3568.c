@@ -497,6 +497,12 @@ static struct mm_region rk3568_mem_map[] = {
 			 PTE_BLOCK_NON_SHARE |
 			 PTE_BLOCK_PXN | PTE_BLOCK_UXN
 	}, {
+		.virt = 0x100000000UL,
+		.phys = 0x100000000UL,
+		.size = 0x100000000UL,
+		.attrs = PTE_BLOCK_MEMTYPE(MT_NORMAL) |
+			 PTE_BLOCK_INNER_SHARE
+	}, {
 		.virt = 0x300000000,
 		.phys = 0x300000000,
 		.size = 0x0c0c00000,
@@ -775,6 +781,23 @@ void board_debug_uart_init(void)
 		     GPIO4A4_UART9_TXM2 << GPIO4A4_SHIFT);
 #endif
 #endif
+}
+
+int fit_standalone_release(char *id, uintptr_t entry_point)
+{
+	/* risc-v configuration: */
+	/* Reset the scr1 */
+	writel(0x04000400, CRU_BASE + CRU_SOFTRST_CON26);
+	udelay(100);
+
+	/* set the scr1 addr */
+	writel((0xffff0000) | (entry_point >> 16), GRF_BASE + GRF_SOC_CON4);
+	udelay(10);
+
+	/* release the scr1 */
+	writel(0x04000000, CRU_BASE + CRU_SOFTRST_CON26);
+
+	return 0;
 }
 
 #if defined(CONFIG_SPL_BUILD) && !defined(CONFIG_TPL_BUILD)

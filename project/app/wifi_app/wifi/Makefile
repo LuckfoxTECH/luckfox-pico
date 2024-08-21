@@ -1,5 +1,5 @@
 CFLAGS := -Wall -g
-CC := arm-rockchip830-linux-uclibcgnueabihf-gcc
+CC := $(RK_APP_CROSS)-gcc
 
 all: librkwifibt rkwifi_server
 

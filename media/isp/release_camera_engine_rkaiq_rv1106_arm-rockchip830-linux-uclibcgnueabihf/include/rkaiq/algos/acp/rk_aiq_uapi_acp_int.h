@@ -3,15 +3,7 @@
 
 #include "base/xcam_common.h"
 #include "rk_aiq_algo_des.h"
-
-typedef struct acp_attrib_s {
-    rk_aiq_uapi_sync_t sync;
-
-    uint8_t brightness; /* 0 ~ 255 */
-    uint8_t contrast; /* 0 ~ 255 */
-    uint8_t saturation; /* 0 ~ 255 */
-    uint8_t hue; /* 0 ~ 255 */
-} acp_attrib_t;
+#include "acp_uapi_head.h"
 
 // need_sync means the implementation should consider
 // the thread synchronization

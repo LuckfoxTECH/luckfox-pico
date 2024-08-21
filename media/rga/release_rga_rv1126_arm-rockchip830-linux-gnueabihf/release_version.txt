@@ -1,10 +1,10 @@
-commit 1e2f0dbb838de3512a8a29143196d7b5e460e1ca
+commit e944743948760477ff611c5dbf6146cef81c15d2
 Author: Yu Qiaowei <cerf.yu@rock-chips.com>
-Date:   Fri Nov 19 16:20:17 2021 +0800
+Date:   Wed Oct 18 17:01:57 2023 +0800
 
-    build: Add C interface in Cmake compilation.
+    normal: hardware: fix the incorrect structure in the rga_req
     
-    version: 1.3.1_[11]
+    update to 1.10.0_[4]
     
+    Change-Id: Ib6b612fd56211d1c032ddddb0a0278dd2a896392
     Signed-off-by: Yu Qiaowei <cerf.yu@rock-chips.com>
-    Change-Id: I2bdc4b7b0cb3fec3723d07208dc1425079768365

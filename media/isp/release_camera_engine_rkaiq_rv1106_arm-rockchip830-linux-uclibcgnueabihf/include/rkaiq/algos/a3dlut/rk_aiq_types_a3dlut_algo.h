@@ -25,11 +25,11 @@ RKAIQ_BEGIN_DECLARE
 
 typedef struct rk_aiq_lut3d_table_s{
 	// M4_ARRAY_DESC("LutR", "f32", M4_SIZE(81,9), M4_RANGE(0,1023), "0", M4_DIGIT(0), M4_DYNAMIC(0))
-	unsigned short look_up_table_r[729];//10bit
+	unsigned short look_up_table_r[LUT3D_LUT_WSIZE];//10bit
 	// M4_ARRAY_DESC("LutG", "f32", M4_SIZE(81,9), M4_RANGE(0,4095), "0", M4_DIGIT(0), M4_DYNAMIC(0))
-	unsigned short look_up_table_g[729];//12bit
+	unsigned short look_up_table_g[LUT3D_LUT_WSIZE];//12bit
 	// M4_ARRAY_DESC("LutB", "f32", M4_SIZE(81,9), M4_RANGE(0,1023), "0", M4_DIGIT(0), M4_DYNAMIC(0))
-	unsigned short look_up_table_b[729];//10bit
+	unsigned short look_up_table_b[LUT3D_LUT_WSIZE];//10bit
 } rk_aiq_lut3d_table_t;
 
 

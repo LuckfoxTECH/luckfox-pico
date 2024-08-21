@@ -844,33 +844,33 @@ vepu540_set_osd:
 	.section	.rodata
 	.align	2
 	.set	.LANCHOR1,. + 0
-	.type	__func__.8822, %object
-	.size	__func__.8822, 16
-__func__.8822:
+	.type	__func__.8886, %object
+	.size	__func__.8886, 16
+__func__.8886:
 	.ascii	"vepu541_set_fmt\000"
-	.type	__func__.8845, %object
-	.size	__func__.8845, 16
-__func__.8845:
+	.type	__func__.8909, %object
+	.size	__func__.8909, 16
+__func__.8909:
 	.ascii	"vepu541_set_roi\000"
-	.type	__FUNCTION__.8861, %object
-	.size	__FUNCTION__.8861, 16
-__FUNCTION__.8861:
+	.type	__FUNCTION__.8925, %object
+	.size	__FUNCTION__.8925, 16
+__FUNCTION__.8925:
 	.ascii	"vepu541_set_roi\000"
-	.type	__func__.8929, %object
-	.size	__func__.8929, 16
-__func__.8929:
+	.type	__func__.8993, %object
+	.size	__func__.8993, 16
+__func__.8993:
 	.ascii	"vepu541_set_osd\000"
-	.type	__FUNCTION__.8930, %object
-	.size	__FUNCTION__.8930, 16
-__FUNCTION__.8930:
+	.type	__FUNCTION__.8994, %object
+	.size	__FUNCTION__.8994, 16
+__FUNCTION__.8994:
 	.ascii	"vepu541_set_osd\000"
-	.type	__func__.8983, %object
-	.size	__func__.8983, 16
-__func__.8983:
+	.type	__func__.9047, %object
+	.size	__func__.9047, 16
+__func__.9047:
 	.ascii	"vepu540_set_osd\000"
-	.type	__FUNCTION__.8984, %object
-	.size	__FUNCTION__.8984, 16
-__FUNCTION__.8984:
+	.type	__FUNCTION__.9048, %object
+	.size	__FUNCTION__.9048, 16
+__FUNCTION__.9048:
 	.ascii	"vepu540_set_osd\000"
 	.type	zeros, %object
 	.size	zeros, 36

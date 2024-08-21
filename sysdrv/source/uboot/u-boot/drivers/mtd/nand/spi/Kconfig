@@ -52,6 +52,12 @@ config SPI_NAND_ESMT
 	help
 	  Add support for various ESMT SPI Nand flash chips
 
+config SPI_NAND_XINCUN
+	bool "XINCUN SPI flash support"
+	default y
+	help
+	  Add support for various XINCUN SPI Nand flash chips
+
 config SPI_NAND_XTX
 	bool "XTX SPI flash support"
 	default y
@@ -112,4 +118,10 @@ config SPI_NAND_SKYHIGH
 	bool "SKYHIGH SPI flash support"
 	help
 	  Add support for various SKYHIGH SPI Nand flash chips
+
+config SPI_NAND_GSTO
+	default y
+	bool "GSTO SPI flash support"
+	help
+	  Add support for various GSTO SPI Nand flash chips
 endif

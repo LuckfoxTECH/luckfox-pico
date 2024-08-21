@@ -185,16 +185,41 @@ void draw_argb8888_text(unsigned char *buffer, int buf_w, int buf_h, const wchar
 		LOG_ERROR("wstr is NULL\n");
 		return;
 	}
-
 	int len = wcslen(wstr);
 	// wprintf("wstr is %ls\n", wstr);
 	// LOG_DEBUG("len is %d\n", len);
-	pen_.x = 0 * 64;
-	pen_.y = 0 * 64;
+	pen_.x = 0;
+	pen_.y = 0;
 	for (int i = 0; i < len; i++) {
 		draw_argb8888_wchar(buffer, buf_w, buf_h, wstr[i]);
 		pen_.x += slot_->advance.x;
 		pen_.y += slot_->advance.y;
 	}
 	// save_argb8888_to_bmp(buffer, buf_w, buf_h);
+}
+
+int wstr_get_actual_advance_x(const wchar_t *wstr) {
+	if (wstr == NULL) {
+		LOG_ERROR("wstr is NULL\n");
+		return -1;
+	}
+	int len = wcslen(wstr);
+	pen_.x = 0;
+	pen_.y = 0;
+	pthread_mutex_lock(&g_font_mutex);
+	if (!face_) {
+		LOG_INFO("please check font_path %s\n", *font_path_);
+		pthread_mutex_unlock(&g_font_mutex);
+		return -1;
+	}
+	FT_Error error;
+	for (int i = 0; i < len; i++) {
+		FT_Set_Transform(face_, NULL, &pen_);
+		error = FT_Load_Char(face_, wstr[i], FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP);
+		pen_.x += slot_->advance.x;
+		pen_.y += slot_->advance.y;
+		// LOG_INFO("slot_->advance.x is %d\n", slot_->advance.x);
+	}
+	pthread_mutex_unlock(&g_font_mutex);
+	return pen_.x / 64; // 26.6 Cartesian pixels, 64 = 2^6
 }

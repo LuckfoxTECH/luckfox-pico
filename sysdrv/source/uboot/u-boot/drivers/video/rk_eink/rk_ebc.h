@@ -33,6 +33,8 @@ struct ebc_panel {
 	u32 panel_color;
 	u32 mirror;
 	u32 rearrange;
+	u32 sdoe_mode;
+	u32 sdce_width;
 	u32 disp_pbuf;
 	u32 disp_pbuf_size;
 	u32 *lut_pbuf;

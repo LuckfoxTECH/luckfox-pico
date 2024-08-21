@@ -54,6 +54,8 @@
 #define ATBM_BATTERY_LEVEL_EVENT "Per bat stat is "
 #define ATBM_WAKEUP_REASON_EVENT "wake up reason is "
 #define ATBM_PIR_DETECT_EVENT "after resume,pir detect cnt is "
+#define ATBM_UTC_ERROR "sntp server error,pls retry later"
+#define ATBM_UTC_SUCCESS "utc time is "
 
 static key_long_press_event_func key_long_press_func_cb = NULL;                 /* 复位键长按事件处理函数 */
 static key_short_press_event_func key_short_press_func_cb = NULL;               /* 门铃事件处理函数 */
@@ -139,6 +141,11 @@ static char ipc_server_set = 0;
 static char ipc_port_set = 0;
 
 char cmd_line[CMD_LINE_LEN];
+
+pthread_cond_t atbm_sync_cond;
+pthread_mutex_t atbm_sync_lock;
+int atbm_sync_flag = 0;
+long long utctime = 0;
 
 void atbm_reboot_handle(int sig_num) {
   int ret;
@@ -526,7 +533,7 @@ int atbm_get_status(RK_WIFI_INFO_Connection_s *pInfo)
 	struct in_addr addr;
 
 	memset(&status_info, 0, sizeof(struct status_info));
-	memset(pInfo, 0, sizeof(struct RK_WIFI_INFO_Connection_s));
+	memset(pInfo, 0, sizeof(RK_WIFI_INFO_Connection_s));
 	ret = ioctl(g_fp, ATBM_STATUS, (unsigned int)(&status_info));
 	if (ret) {
 		goto err;
@@ -3208,6 +3215,27 @@ static void atbm_customer_msg(void)
 		wifi_info.lp_data[0] = pir_detect_value;
 	}
 
+	if (NULL != strstr(status.event_buffer, ATBM_UTC_SUCCESS)) {
+		/* UTC时间解析解析，上报 */
+		pthread_mutex_lock(&atbm_sync_lock);
+		char *utc_start = NULL;
+		utc_start = status.event_buffer + strlen(ATBM_UTC_SUCCESS);
+		utctime = atoi(utc_start);
+		DEBUG_PRINTF("utc time is %lld \n",utctime);
+		atbm_sync_flag = 1;
+		pthread_cond_signal(&atbm_sync_cond);
+		pthread_mutex_unlock(&atbm_sync_lock);
+	}
+	if (NULL != strstr(status.event_buffer, ATBM_UTC_ERROR)) {
+	/* UTC时间解析解析，上报 */
+		pthread_mutex_lock(&atbm_sync_lock);
+		DEBUG_PRINTF("get utc failed pls retry! \n");
+		utctime = -1;
+		pthread_cond_signal(&atbm_sync_cond);
+		pthread_mutex_unlock(&atbm_sync_lock);
+	}
+
+
 	/* 回调连接错误原因 */
 	if (NULL != m_wifi_cb) {
 		m_wifi_cb(reason, &wifi_info);
@@ -3409,6 +3437,23 @@ int wifi_connect_result_event_cb_register(wifi_connect_result_event_func wifi_co
 int wifi_fw_ota(char *fw)
 {
   return update_fw_cmd(g_fp, 1, &fw);
+}
+
+int wifi_get_utctime(unsigned long long *utc)
+{
+	fw_at("AT+UTC_GET");
+	while (atbm_sync_flag == 0)
+	{
+	pthread_cond_wait(&atbm_sync_cond,&atbm_sync_lock);
+	}
+	atbm_sync_flag = 0;
+	if (utctime == -1) {
+		return 0;
+	} else {
+		*utc = utctime;
+	}
+	printf("get utc time is %lld \n",*utc);
+	return 1;
 }
 
 #pragma GCC diagnostic pop

@@ -47,55 +47,58 @@ extern "C" {
  * instead.
  */
 struct sync_merge_data {
-  char name[32];
-  int32_t fd2;
-  int32_t fence;
-  uint32_t flags;
-  uint32_t pad;
+	char	name[32];
+	int32_t	fd2;
+	int32_t	fence;
+	uint32_t	flags;
+	uint32_t	pad;
 };
-#define SYNC_IOC_MAGIC '>'
-#define SYNC_IOC_MERGE _IOWR(SYNC_IOC_MAGIC, 3, struct sync_merge_data)
+#define SYNC_IOC_MAGIC		'>'
+#define SYNC_IOC_MERGE		_IOWR(SYNC_IOC_MAGIC, 3, struct sync_merge_data)
 #endif
 
-static inline int sync_wait(int fd, int timeout) {
-  struct pollfd fds = {0};
-  int ret;
 
-  fds.fd = fd;
-  fds.events = POLLIN;
+static inline int sync_wait(int fd, int timeout)
+{
+	struct pollfd fds = {0};
+	int ret;
 
-  do {
-    ret = poll(&fds, 1, timeout);
-    if (ret > 0) {
-      if (fds.revents & (POLLERR | POLLNVAL)) {
-        errno = EINVAL;
-        return -1;
-      }
-      return 0;
-    } else if (ret == 0) {
-      errno = ETIME;
-      return -1;
-    }
-  } while (ret == -1 && (errno == EINTR || errno == EAGAIN));
+	fds.fd = fd;
+	fds.events = POLLIN;
 
-  return ret;
+	do {
+		ret = poll(&fds, 1, timeout);
+		if (ret > 0) {
+			if (fds.revents & (POLLERR | POLLNVAL)) {
+				errno = EINVAL;
+				return -1;
+			}
+			return 0;
+		} else if (ret == 0) {
+			errno = ETIME;
+			return -1;
+		}
+	} while (ret == -1 && (errno == EINTR || errno == EAGAIN));
+
+	return ret;
 }
 
-static inline int sync_merge(const char *name, int fd1, int fd2) {
-  struct sync_merge_data data = {0};
-  int ret;
+static inline int sync_merge(const char *name, int fd1, int fd2)
+{
+	struct sync_merge_data data = {0};
+	int ret;
 
-  data.fd2 = fd2;
-  strncpy(data.name, name, sizeof(data.name));
+	data.fd2 = fd2;
+	strncpy(data.name, name, sizeof(data.name));
 
-  do {
-    ret = ioctl(fd1, SYNC_IOC_MERGE, &data);
-  } while (ret == -1 && (errno == EINTR || errno == EAGAIN));
+	do {
+		ret = ioctl(fd1, SYNC_IOC_MERGE, &data);
+	} while (ret == -1 && (errno == EINTR || errno == EAGAIN));
 
-  if (ret < 0)
-    return ret;
+	if (ret < 0)
+		return ret;
 
-  return data.fence;
+	return data.fence;
 }
 
 /* accumulate fd2 into fd1.  If *fd1 is not a valid fd then dup fd2,
@@ -115,26 +118,27 @@ static inline int sync_merge(const char *name, int fd1, int fd2) {
  *       }
  *    }
  */
-static inline int sync_accumulate(const char *name, int *fd1, int fd2) {
-  int ret;
+static inline int sync_accumulate(const char *name, int *fd1, int fd2)
+{
+	int ret;
 
-  assert(fd2 >= 0);
+	assert(fd2 >= 0);
 
-  if (*fd1 < 0) {
-    *fd1 = dup(fd2);
-    return 0;
-  }
+	if (*fd1 < 0) {
+		*fd1 = dup(fd2);
+		return 0;
+	}
 
-  ret = sync_merge(name, *fd1, fd2);
-  if (ret < 0) {
-    /* leave *fd1 as it is */
-    return ret;
-  }
+	ret = sync_merge(name, *fd1, fd2);
+	if (ret < 0) {
+		/* leave *fd1 as it is */
+		return ret;
+	}
 
-  close(*fd1);
-  *fd1 = ret;
+	close(*fd1);
+	*fd1 = ret;
 
-  return 0;
+	return 0;
 }
 
 #if defined(__cplusplus)

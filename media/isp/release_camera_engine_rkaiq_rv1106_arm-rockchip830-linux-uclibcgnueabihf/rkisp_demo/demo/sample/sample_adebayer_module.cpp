@@ -40,6 +40,10 @@ static void sample_adebayer_usage()
     printf("\t b) ADEBAYER v2:         set manual params with MANUAL mode in sync, iso is 6400.\n");
     printf("\t c) ADEBAYER v2:         set auto params with AUTO mode in sync.\n");
 
+    printf("\t d) ADEBAYER v2-lite:    set manual params with MANUAL mode in sync, iso is 900.\n");
+    printf("\t e) ADEBAYER v2-lite:    set manual params with MANUAL mode in sync, iso is 2800.\n");
+    printf("\t f) ADEBAYER v2-lite:    set auto params with AUTO mode in sync.\n");
+
     printf("\n");
 
     printf("\t h) ADEBAYER: help.\n");
@@ -274,8 +278,8 @@ sample_adebayer_translate_params_v2(adebayer_v2_attrib_t* attr, int32_t iso)
     }
 
     if(i == ISO_STEP_MAX) {
-        iso_low = attr->stAuto.g_interp.iso[i - 1];
-        iso_high = attr->stAuto.g_interp.iso[i - 1];
+        // iso_low = attr->stAuto.g_interp.iso[i - 1];
+        // iso_high = attr->stAuto.g_interp.iso[i - 1];
         iso_low_index = i - 1;
         iso_high_index = i - 1;
         ratio = 1;
@@ -365,6 +369,106 @@ XCamReturn sample_adebayer_setAutoAtrrib_v2(const rk_aiq_sys_ctx_t* ctx)
     return ret;
 }
 
+XCamReturn
+sample_adebayer_translate_params_v2lite(adebayer_v2lite_attrib_t* attr, int32_t iso)
+{
+    //select sharp params
+    int i = 0;
+    int iso_low = 0, iso_high = 0, iso_low_index = 0, iso_high_index = 0;
+    float ratio = 0.0f;
+
+    //g_interp
+
+    for(i = 0; i < ISO_STEP_MAX; i++) {
+        if (iso < attr->stAuto.g_interp.iso[i])
+        {
+
+            iso_low = attr->stAuto.g_interp.iso[MAX(0, i - 1)];
+            iso_high = attr->stAuto.g_interp.iso[i];
+            iso_low_index = MAX(0, i - 1);
+            iso_high_index = i;
+
+            if(i == 0)
+                ratio = 0.0f;
+            else
+                ratio = (float)(iso - iso_low) / (iso_high - iso_low);
+
+            break;
+        }
+    }
+
+    if(i == ISO_STEP_MAX) {
+        // iso_low = attr->stAuto.g_interp.iso[i - 1];
+        // iso_high = attr->stAuto.g_interp.iso[i - 1];
+        iso_low_index = i - 1;
+        iso_high_index = i - 1;
+        ratio = 1;
+    }
+
+    attr->stManual.debayer_gain_offset = ROUND_F(INTERP_SAMPLE(attr->stAuto.g_interp.debayer_gain_offset[iso_low_index], attr->stAuto.g_interp.debayer_gain_offset[iso_high_index], ratio));
+    attr->stManual.debayer_max_ratio = ROUND_F(INTERP_SAMPLE(attr->stAuto.g_interp.debayer_max_ratio[iso_low_index], attr->stAuto.g_interp.debayer_max_ratio[iso_high_index], ratio));
+    attr->stManual.debayer_clip_en = ROUND_F(INTERP_SAMPLE(attr->stAuto.g_interp.debayer_clip_en[iso_low_index], attr->stAuto.g_interp.debayer_clip_en[iso_high_index], ratio));
+
+    attr->stManual.debayer_thed0 = ROUND_F(INTERP_SAMPLE(attr->stAuto.g_drctwgt.debayer_thed0[iso_low_index], attr->stAuto.g_drctwgt.debayer_thed0[iso_high_index], ratio));
+    attr->stManual.debayer_thed1 = ROUND_F(INTERP_SAMPLE(attr->stAuto.g_drctwgt.debayer_thed1[iso_low_index], attr->stAuto.g_drctwgt.debayer_thed1[iso_high_index], ratio));
+
+    attr->stManual.debayer_dist_scale = ROUND_F(INTERP_SAMPLE(attr->stAuto.g_drctwgt.debayer_dist_scale[iso_low_index], attr->stAuto.g_drctwgt.debayer_dist_scale[iso_high_index], ratio));
+    attr->stManual.debayer_hf_offset = ROUND_F(INTERP_SAMPLE(attr->stAuto.g_drctwgt.debayer_hf_offset[iso_low_index], attr->stAuto.g_drctwgt.debayer_hf_offset[iso_high_index], ratio));
+    attr->stManual.debayer_select_thed = ROUND_F(INTERP_SAMPLE(attr->stAuto.g_drctwgt.debayer_select_thed[iso_low_index], attr->stAuto.g_drctwgt.debayer_select_thed[iso_high_index], ratio));
+
+
+    attr->stManual.debayer_gfilter_en = ROUND_F(INTERP_SAMPLE(attr->stAuto.g_filter.debayer_gfilter_en[iso_low_index], attr->stAuto.g_filter.debayer_gfilter_en[iso_high_index], ratio));
+    attr->stManual.debayer_gfilter_offset = ROUND_F(INTERP_SAMPLE(attr->stAuto.g_filter.debayer_gfilter_offset[iso_low_index], attr->stAuto.g_filter.debayer_gfilter_offset[iso_high_index], ratio));
+
+
+    printf ("sharp_strength: %d, gflter_offset: %d\n", attr->stManual.debayer_max_ratio, attr->stManual.debayer_gfilter_offset);
+
+    return XCAM_RETURN_NO_ERROR;
+}
+
+XCamReturn sample_adebayer_setManualAtrrib_v2lite(const rk_aiq_sys_ctx_t* ctx, int32_t ISO)
+{
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    if (ctx == NULL) {
+        ret = XCAM_RETURN_ERROR_PARAM;
+        RKAIQ_SAMPLE_CHECK_RET(ret, "param error!");
+    }
+
+    adebayer_v2lite_attrib_t attr;
+    ret = rk_aiq_user_api2_adebayer_v2_lite_GetAttrib(ctx, &attr);
+    RKAIQ_SAMPLE_CHECK_RET(ret, "get debayer v2 attrib failed!");
+    attr.mode = RK_AIQ_DEBAYER_MODE_MANUAL;
+    sample_adebayer_translate_params_v2lite(&attr, ISO);
+    rk_aiq_user_api2_adebayer_v2_lite_SetAttrib(ctx, attr);
+
+    printf ("mode: %d, sync_mode: %d, done: %d\n", attr.mode, attr.sync.sync_mode, attr.sync.done);
+
+    return ret;
+}
+
+XCamReturn sample_adebayer_setAutoAtrrib_v2lite(const rk_aiq_sys_ctx_t* ctx)
+{
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+    if (ctx == NULL) {
+        ret = XCAM_RETURN_ERROR_PARAM;
+        RKAIQ_SAMPLE_CHECK_RET(ret, "param error!");
+    }
+
+    adebayer_v2lite_attrib_t attr;
+    ret = rk_aiq_user_api2_adebayer_v2_lite_GetAttrib(ctx, &attr);
+    RKAIQ_SAMPLE_CHECK_RET(ret, "get debayer v2 attrib failed!");
+    attr.mode = RK_AIQ_DEBAYER_MODE_AUTO;
+
+    attr.stAuto.g_filter.debayer_gfilter_offset[0] = 10;
+    attr.stAuto.g_filter.debayer_gfilter_offset[1] = 10;
+    attr.stAuto.g_filter.debayer_gfilter_offset[2] = 10;
+
+    rk_aiq_user_api2_adebayer_v2_lite_SetAttrib(ctx, attr);
+
+    printf ("mode: %d, sync_mode: %d, done: %d\n", attr.mode, attr.sync.sync_mode, attr.sync.done);
+
+    return ret;
+}
 
 
 XCamReturn sample_adebayer_module (const void *arg)
@@ -459,6 +563,19 @@ XCamReturn sample_adebayer_module (const void *arg)
         case 'c':
             // TODO:
             sample_adebayer_setAutoAtrrib_v2(ctx);
+            printf("set manual params from json with Auto mode in sync,set cfilter off\n");
+            break;
+        case 'd':
+            sample_adebayer_setManualAtrrib_v2lite(ctx, 900);
+            printf("set manual params from json with MANUAL mode in sync, ISO: 900\n");
+            break;
+        case 'e':
+            sample_adebayer_setManualAtrrib_v2lite(ctx, 2800);
+            printf("set manual params from json with MANUAL mode in sync, ISO: 2800\n");
+            break;
+        case 'f':
+            // TODO:
+            sample_adebayer_setAutoAtrrib_v2lite(ctx);
             printf("set manual params from json with Auto mode in sync,set cfilter off\n");
             break;
         default:

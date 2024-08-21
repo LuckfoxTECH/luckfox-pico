@@ -18,19 +18,19 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA 
  */
 
 #ifndef _HTTPREDIRECTHEADER_H_
 #define _HTTPREDIRECTHEADER_H_ 1
 
 #ifdef __GNUG__
-#pragma interface
+#  pragma interface
 #endif
 
 /*! \file HTTPRedirectHeader.h
  * \brief Class for redirecting the client to a different URI
- *
+ * 
  */
 
 #include <string>
@@ -38,51 +38,54 @@
 #include "HTTPHeader.h"
 
 namespace cgicc {
-
-// ============================================================
-// Class HTTPRedirectHeader
-// ============================================================
-
-/*! \class HTTPRedirectHeader HTTPRedirectHeader.h cgicc/HTTPRedirectHeader.h
- * \brief Class for redirecting the client to a different URI
- *
- */
-class CGICC_API HTTPRedirectHeader : public HTTPHeader {
-public:
-  /*! \name Constructor and Destructor */
-  //@{
-
-  /*!
-   * \brief Create a new redirection header.
-   * \param url The redirection URL.
-   */
-  HTTPRedirectHeader(const std::string &url);
-
-  /*!
-   * \brief Create a new redirection header with redirect status.
-   * \param url The redirection URL.
-   * \param permanent The status permanent or temporary
-   */
-  HTTPRedirectHeader(const std::string &url, bool permanent);
-  /*!
-   * \brief Destructor
+  
+  // ============================================================
+  // Class HTTPRedirectHeader
+  // ============================================================
+  
+  /*! \class HTTPRedirectHeader HTTPRedirectHeader.h cgicc/HTTPRedirectHeader.h
+   * \brief Class for redirecting the client to a different URI
    *
    */
-  virtual ~HTTPRedirectHeader();
-  //@}
-
-  // ============================================================
-
-  /*! \name Inherited Methods */
-  //@{
-  virtual void render(std::ostream &out) const;
-  //@}
-
-private:
-  HTTPRedirectHeader();
-  int fStatus;
-};
-
+  class CGICC_API HTTPRedirectHeader : public HTTPHeader 
+  {
+  public:
+    
+    /*! \name Constructor and Destructor */
+    //@{
+    
+    /*!
+     * \brief Create a new redirection header.
+     * \param url The redirection URL.
+     */
+    HTTPRedirectHeader(const std::string& url);
+    
+	    /*!
+     * \brief Create a new redirection header with redirect status.
+     * \param url The redirection URL.
+     * \param permanent The status permanent or temporary
+     */
+    HTTPRedirectHeader(const std::string& url,bool permanent);
+    /*! 
+     * \brief Destructor 
+     *
+     */
+    virtual ~HTTPRedirectHeader();
+    //@}
+    
+    // ============================================================
+    
+    /*! \name Inherited Methods */
+    //@{ 
+    virtual void 
+    render(std::ostream& out) 			const;
+    //@}
+    
+  private:
+    HTTPRedirectHeader();
+	int fStatus;
+  };
+  
 } // namespace cgicc
 
 #endif /* ! _HTTPREDIRECTHEADER_H_ */

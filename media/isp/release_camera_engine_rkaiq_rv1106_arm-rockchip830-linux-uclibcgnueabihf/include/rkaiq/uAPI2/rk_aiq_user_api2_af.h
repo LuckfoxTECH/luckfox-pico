@@ -19,7 +19,10 @@
 #define _RK_AIQ_USER_API2_AF_H_
 #include "af/rk_aiq_uapi_af_int.h"
 
+#ifndef RK_AIQ_SYS_CTX_T
+#define RK_AIQ_SYS_CTX_T
 typedef struct rk_aiq_sys_ctx_s rk_aiq_sys_ctx_t;
+#endif
 
 RKAIQ_BEGIN_DECLARE
 
@@ -61,6 +64,10 @@ XCamReturn
 rk_aiq_user_api2_af_GetFocusRange(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_af_focusrange* range);
 XCamReturn
 rk_aiq_user_api2_af_setAngleZ(const rk_aiq_sys_ctx_t* sys_ctx, float angleZ);
+XCamReturn
+rk_aiq_user_api2_af_setCustomAfRes(const rk_aiq_sys_ctx_t* sys_ctx, rk_tool_customAf_res_t *attr);
+XCamReturn
+rk_aiq_user_api2_af_GetFocusPos(const rk_aiq_sys_ctx_t* sys_ctx, int* pos);
 
 RKAIQ_END_DECLARE
 

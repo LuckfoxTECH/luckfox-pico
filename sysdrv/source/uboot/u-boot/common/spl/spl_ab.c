@@ -5,7 +5,9 @@
 
 #include <common.h>
 #include <blk.h>
+#include <malloc.h>
 #include <spl_ab.h>
+#include <fdt_support.h>
 
 int safe_memcmp(const void *s1, const void *s2, size_t n)
 {
@@ -207,6 +209,27 @@ int spl_get_current_slot(struct blk_desc *dev_desc, char *partition, char *slot)
 	AvbABData ab_data;
 	int ret;
 
+	/*
+	 * 1. Call spl_ab_decrease_tries() before load kernel to be compatible with
+	 * the case when storage is eMMC, because preload image will occupy eMMC.
+	 *
+	 * 2. (For solving Boundary problem) Need to record slot_suffix before ab_decrease,
+	 * otherwise when boot kernel, it will use the result after decrease.
+	 *
+	 * 3. For example, current slot_suffix is _a, tries-remaining is 1. Without
+	 * recording slot_suffix before decrease, after decrease, slot_suffix is _b,
+	 * tries-remaining is 7. SPL will parse boot_b instead of boot_a that expected.
+	 */
+#ifdef CONFIG_SPL_KERNEL_BOOT
+	if (last_slot_index == 0) {
+		memcpy(slot, "_a", 2);
+		return 0;
+	} else if (last_slot_index == 1) {
+		memcpy(slot, "_b", 2);
+		return 0;
+	}
+#endif
+
 	ret = spl_ab_data_read(dev_desc, &ab_data, partition);
 	if (ret)
 		return ret;
@@ -284,6 +307,35 @@ static int spl_save_metadata_if_changed(struct blk_desc *dev_desc,
 	return 0;
 }
 
+static void spl_slot_set_unbootable(AvbABSlotData* slot)
+{
+	slot->priority = 0;
+	slot->tries_remaining = 0;
+	slot->successful_boot = 0;
+}
+
+/* Ensure all unbootable and/or illegal states are marked as the
+ * canonical 'unbootable' state, e.g. priority=0, tries_remaining=0,
+ * and successful_boot=0.
+ */
+static void spl_slot_normalize(AvbABSlotData* slot)
+{
+	if (slot->priority > 0) {
+		if (slot->tries_remaining == 0 && !slot->successful_boot) {
+			/* We've exhausted all tries -> unbootable. */
+			spl_slot_set_unbootable(slot);
+		}
+		if (slot->tries_remaining > 0 && slot->successful_boot) {
+			/* Illegal state - avb_ab_mark_slot_successful() and so on
+			 * will clear tries_remaining when setting successful_boot.
+			 */
+			spl_slot_set_unbootable(slot);
+		}
+	} else {
+		spl_slot_set_unbootable(slot);
+	}
+}
+
 /* If verify fail in a/b system, then decrease 1. */
 int spl_ab_decrease_tries(struct blk_desc *dev_desc)
 {
@@ -309,6 +361,13 @@ int spl_ab_decrease_tries(struct blk_desc *dev_desc)
 
 	memcpy(&ab_data_orig, &ab_data, sizeof(AvbABData));
 
+	/* Ensure data is normalized, e.g. illegal states will be marked as
+	 * unbootable and all unbootable states are represented with
+	 * (priority=0, tries_remaining=0, successful_boot=0).
+	 */
+	spl_slot_normalize(&ab_data.slots[0]);
+	spl_slot_normalize(&ab_data.slots[1]);
+
 	/* ... and decrement tries remaining, if applicable. */
 	if (!ab_data.slots[slot_index].successful_boot &&
 	    ab_data.slots[slot_index].tries_remaining > 0)
@@ -317,5 +376,63 @@ int spl_ab_decrease_tries(struct blk_desc *dev_desc)
 	ret = spl_save_metadata_if_changed(dev_desc, &ab_data, &ab_data_orig);
 
 out:
+	return ret;
+}
+
+/*
+ * If boot A/B system fail, tries-remaining decrease 1
+ * and do reset automatically if still bootable.
+ */
+int spl_ab_decrease_reset(struct blk_desc *dev_desc)
+{
+	AvbABData ab_data;
+	int ret;
+
+	ret = spl_ab_data_read(dev_desc, &ab_data, "misc");
+	if (ret)
+		return ret;
+
+	/* If current device cannot boot, return and try other devices. */
+	if (!spl_slot_is_bootable(&ab_data.slots[0]) &&
+	    !spl_slot_is_bootable(&ab_data.slots[1])) {
+		printf("A/B: no bootable slot\n");
+		return -ENODEV;
+	}
+
+	/* If current device still can boot, decrease and do reset. */
+	ret = spl_ab_decrease_tries(dev_desc);
+	if (ret)
+		return ret;
+
+	printf("A/B: slot boot fail, do reset\n");
+	do_reset(NULL, 0, 0, NULL);
+
+	/*
+	 * Only do_reset() fail will arrive here, return a
+	 * negative number, then enter maskrom in the caller.
+	 */
+	return -EINVAL;
+}
+
+int spl_ab_bootargs_append_slot(void *fdt, char *slot)
+{
+	char *str;
+	int len, ret = 0;
+
+	if (!slot)
+		return 0;
+
+	len = strlen(ANDROID_ARG_SLOT_SUFFIX) + strlen(slot) + 1;
+	str = malloc(len);
+	if (!str)
+		return -ENOMEM;
+
+	snprintf(str, len, "%s%s", ANDROID_ARG_SLOT_SUFFIX, slot);
+	ret = fdt_bootargs_append(fdt, str);
+	if (ret)
+		printf("Append slot info to bootargs fail");
+
+	free(str);
+
 	return ret;
 }

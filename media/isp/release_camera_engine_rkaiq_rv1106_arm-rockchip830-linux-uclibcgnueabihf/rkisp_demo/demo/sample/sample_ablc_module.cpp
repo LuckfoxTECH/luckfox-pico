@@ -36,84 +36,6 @@ void sample_print_ablc_info(const void *arg)
     printf ("enter ABLC modult test!\n");
 }
 
-void sample_blc_attr_relese(rk_aiq_blc_attrib_t *pAttr)
-{
-    if(pAttr->stBlc0Auto.iso)
-        free(pAttr->stBlc0Auto.iso);
-
-    if(pAttr->stBlc0Auto.blc_b)
-        free(pAttr->stBlc0Auto.blc_b);
-
-    if(pAttr->stBlc0Auto.blc_b)
-        free(pAttr->stBlc0Auto.blc_gb);
-
-    if(pAttr->stBlc0Auto.blc_gr)
-        free(pAttr->stBlc0Auto.blc_gr);
-
-    if(pAttr->stBlc0Auto.blc_r)
-        free(pAttr->stBlc0Auto.blc_r);
-
-
-    if(pAttr->stBlc1Auto.iso)
-        free(pAttr->stBlc1Auto.iso);
-
-    if(pAttr->stBlc1Auto.blc_b)
-        free(pAttr->stBlc1Auto.blc_b);
-
-    if(pAttr->stBlc1Auto.blc_b)
-        free(pAttr->stBlc1Auto.blc_gb);
-
-    if(pAttr->stBlc1Auto.blc_gr)
-        free(pAttr->stBlc1Auto.blc_gr);
-
-    if(pAttr->stBlc1Auto.blc_r)
-        free(pAttr->stBlc1Auto.blc_r);
-}
-
-void sample_blc_attr_relese_v32(rk_aiq_blc_attrib_V32_t *pAttr)
-{
-    if(pAttr->stBlc0Auto.iso)
-        free(pAttr->stBlc0Auto.iso);
-
-    if(pAttr->stBlc0Auto.blc_b)
-        free(pAttr->stBlc0Auto.blc_b);
-
-    if(pAttr->stBlc0Auto.blc_b)
-        free(pAttr->stBlc0Auto.blc_gb);
-
-    if(pAttr->stBlc0Auto.blc_gr)
-        free(pAttr->stBlc0Auto.blc_gr);
-
-    if(pAttr->stBlc0Auto.blc_r)
-        free(pAttr->stBlc0Auto.blc_r);
-
-
-    if(pAttr->stBlc1Auto.iso)
-        free(pAttr->stBlc1Auto.iso);
-
-    if(pAttr->stBlc1Auto.blc_b)
-        free(pAttr->stBlc1Auto.blc_b);
-
-    if(pAttr->stBlc1Auto.blc_b)
-        free(pAttr->stBlc1Auto.blc_gb);
-
-    if(pAttr->stBlc1Auto.blc_gr)
-        free(pAttr->stBlc1Auto.blc_gr);
-
-    if(pAttr->stBlc1Auto.blc_r)
-        free(pAttr->stBlc1Auto.blc_r);
-
-
-    if(pAttr->stBlcOBAuto.iso)
-        free(pAttr->stBlcOBAuto.iso);
-
-    if(pAttr->stBlcOBAuto.ob_offset)
-        free(pAttr->stBlcOBAuto.ob_offset);
-
-    if(pAttr->stBlcOBAuto.ob_predgain)
-        free(pAttr->stBlcOBAuto.ob_predgain);
-}
-
 
 XCamReturn sample_ablc_getAttr(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode_sync_e sync_mode)
 {
@@ -124,7 +46,6 @@ XCamReturn sample_ablc_getAttr(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode_syn
     memset(&blc_attr, 0x00, sizeof(blc_attr));//important, need init first
     ret = rk_aiq_user_api2_ablc_GetAttrib(ctx, &blc_attr);
     printf("get ablc attri ret:%d done:%d \n\n", ret, blc_attr.sync.done);
-    sample_blc_attr_relese(&blc_attr);
 
     return ret;
 }
@@ -138,7 +59,6 @@ XCamReturn sample_ablc_getAttr_v32(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode
     memset(&blc_attr, 0x00, sizeof(blc_attr));//important, need init first
     ret = rk_aiq_user_api2_ablcV32_GetAttrib(ctx, &blc_attr);
     printf("get ablc attri ret:%d done:%d \n\n", ret, blc_attr.sync.done);
-    sample_blc_attr_relese_v32(&blc_attr);
 
     return ret;
 }
@@ -154,13 +74,7 @@ XCamReturn sample_ablc_setAuto(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode_syn
     blc_attr.sync.sync_mode = sync_mode;
     blc_attr.eMode = ABLC_OP_MODE_AUTO;
     blc_attr.stBlc0Auto.enable = 1;
-    blc_attr.stBlc0Auto.len = 13;
-    blc_attr.stBlc0Auto.iso = (float*)malloc(sizeof(float) * blc_attr.stBlc0Auto.len);
-    blc_attr.stBlc0Auto.blc_r = (float*)malloc(sizeof(float) * blc_attr.stBlc0Auto.len);
-    blc_attr.stBlc0Auto.blc_gr = (float*)malloc(sizeof(float) * blc_attr.stBlc0Auto.len);
-    blc_attr.stBlc0Auto.blc_gb = (float*)malloc(sizeof(float) * blc_attr.stBlc0Auto.len);
-    blc_attr.stBlc0Auto.blc_b = (float*)malloc(sizeof(float) * blc_attr.stBlc0Auto.len);
-    for(int i = 0; i < blc_attr.stBlc0Auto.len; i++) {
+    for(int i = 0; i < ABLC_MAX_ISO_LEVEL; i++) {
         blc_attr.stBlc0Auto.iso[i] = 50 * pow(2, i);
         blc_attr.stBlc0Auto.blc_r[i] = 255;
         blc_attr.stBlc0Auto.blc_gr[i] = 255;
@@ -169,13 +83,7 @@ XCamReturn sample_ablc_setAuto(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode_syn
     }
 
     blc_attr.stBlc1Auto.enable = 1;
-    blc_attr.stBlc1Auto.len = 13;
-    blc_attr.stBlc1Auto.iso = (float*)malloc(sizeof(float) * blc_attr.stBlc1Auto.len);
-    blc_attr.stBlc1Auto.blc_r = (float*)malloc(sizeof(float) * blc_attr.stBlc1Auto.len);
-    blc_attr.stBlc1Auto.blc_gr = (float*)malloc(sizeof(float) * blc_attr.stBlc1Auto.len);
-    blc_attr.stBlc1Auto.blc_gb = (float*)malloc(sizeof(float) * blc_attr.stBlc1Auto.len);
-    blc_attr.stBlc1Auto.blc_b = (float*)malloc(sizeof(float) * blc_attr.stBlc1Auto.len);
-    for(int i = 0; i < blc_attr.stBlc1Auto.len; i++) {
+    for(int i = 0; i < ABLC_MAX_ISO_LEVEL; i++) {
         blc_attr.stBlc1Auto.iso[i] = 50 * pow(2, i);
         blc_attr.stBlc1Auto.blc_r[i] = 254;
         blc_attr.stBlc1Auto.blc_gr[i] = 254;
@@ -192,8 +100,6 @@ XCamReturn sample_ablc_setAuto(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode_syn
     ret = rk_aiq_user_api2_ablc_GetAttrib(ctx, &get_blc_attr);
     printf("get ablc attri ret:%d done:%d \n\n", ret, get_blc_attr.sync.done);
 
-    sleep(1);
-    sample_blc_attr_relese(&blc_attr);
 
     return ret;
 
@@ -210,13 +116,7 @@ XCamReturn sample_ablc_setAuto_v32(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode
     blc_attr.sync.sync_mode = sync_mode;
     blc_attr.eMode = ABLC_V32_OP_MODE_AUTO;
     blc_attr.stBlc0Auto.enable = 1;
-    blc_attr.stBlc0Auto.len = 13;
-    blc_attr.stBlc0Auto.iso = (float*)malloc(sizeof(float) * blc_attr.stBlc0Auto.len);
-    blc_attr.stBlc0Auto.blc_r = (float*)malloc(sizeof(float) * blc_attr.stBlc0Auto.len);
-    blc_attr.stBlc0Auto.blc_gr = (float*)malloc(sizeof(float) * blc_attr.stBlc0Auto.len);
-    blc_attr.stBlc0Auto.blc_gb = (float*)malloc(sizeof(float) * blc_attr.stBlc0Auto.len);
-    blc_attr.stBlc0Auto.blc_b = (float*)malloc(sizeof(float) * blc_attr.stBlc0Auto.len);
-    for(int i = 0; i < blc_attr.stBlc0Auto.len; i++) {
+    for(int i = 0; i < ABLCV32_MAX_ISO_LEVEL; i++) {
         blc_attr.stBlc0Auto.iso[i] = 50 * pow(2, i);
         blc_attr.stBlc0Auto.blc_r[i] = 255;
         blc_attr.stBlc0Auto.blc_gr[i] = 255;
@@ -224,14 +124,8 @@ XCamReturn sample_ablc_setAuto_v32(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode
         blc_attr.stBlc0Auto.blc_b[i] = 255;
     }
 
-    blc_attr.stBlc1Auto.enable = 1;
-    blc_attr.stBlc1Auto.len = 13;
-    blc_attr.stBlc1Auto.iso = (float*)malloc(sizeof(float) * blc_attr.stBlc1Auto.len);
-    blc_attr.stBlc1Auto.blc_r = (float*)malloc(sizeof(float) * blc_attr.stBlc1Auto.len);
-    blc_attr.stBlc1Auto.blc_gr = (float*)malloc(sizeof(float) * blc_attr.stBlc1Auto.len);
-    blc_attr.stBlc1Auto.blc_gb = (float*)malloc(sizeof(float) * blc_attr.stBlc1Auto.len);
-    blc_attr.stBlc1Auto.blc_b = (float*)malloc(sizeof(float) * blc_attr.stBlc1Auto.len);
-    for(int i = 0; i < blc_attr.stBlc1Auto.len; i++) {
+    blc_attr.stBlc1Auto.enable = 0;
+    for(int i = 0; i < ABLCV32_MAX_ISO_LEVEL; i++) {
         blc_attr.stBlc1Auto.iso[i] = 50 * pow(2, i);
         blc_attr.stBlc1Auto.blc_r[i] = 254;
         blc_attr.stBlc1Auto.blc_gr[i] = 254;
@@ -240,11 +134,7 @@ XCamReturn sample_ablc_setAuto_v32(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode
     }
 
     blc_attr.stBlcOBAuto.enable = 1;
-    blc_attr.stBlcOBAuto.len = 13;
-    blc_attr.stBlcOBAuto.iso = (float*)malloc(sizeof(float) * blc_attr.stBlcOBAuto.len);
-    blc_attr.stBlcOBAuto.ob_offset = (float*)malloc(sizeof(float) * blc_attr.stBlcOBAuto.len);
-    blc_attr.stBlcOBAuto.ob_predgain = (float*)malloc(sizeof(float) * blc_attr.stBlcOBAuto.len);
-    for(int i = 0; i < blc_attr.stBlcOBAuto.len; i++) {
+    for(int i = 0; i < ABLCV32_MAX_ISO_LEVEL; i++) {
         blc_attr.stBlcOBAuto.iso[i] = 50 * pow(2, i);
         blc_attr.stBlcOBAuto.ob_offset[i] = 0;
         blc_attr.stBlcOBAuto.ob_predgain[i] = 1;
@@ -258,9 +148,6 @@ XCamReturn sample_ablc_setAuto_v32(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode
     memset(&get_blc_attr, 0x00, sizeof(get_blc_attr));//important, need init first
     ret = rk_aiq_user_api2_ablcV32_GetAttrib(ctx, &get_blc_attr);
     printf("get ablc attri ret:%d done:%d \n\n", ret, get_blc_attr.sync.done);
-
-    sleep(1);
-    sample_blc_attr_relese_v32(&blc_attr);
 
     return ret;
 
@@ -418,7 +305,7 @@ XCamReturn sample_ablc_module (const void *arg)
     }
 
     rk_aiq_blc_attrib_V32_t default_blc_attr_v32;
-    if (CHECK_ISP_HW_V32()) {
+    if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
         memset(&default_blc_attr_v32, 0x00, sizeof(default_blc_attr_v32));//important, need init first
         rk_aiq_user_api2_ablcV32_GetAttrib(ctx, &default_blc_attr_v32);
     }
@@ -436,7 +323,7 @@ XCamReturn sample_ablc_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_ablc_getAttr(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_ablc_getAttr_v32(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
@@ -444,7 +331,7 @@ XCamReturn sample_ablc_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_ablc_setAuto(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_ablc_setAuto_v32(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
@@ -452,7 +339,7 @@ XCamReturn sample_ablc_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_ablc_setManual(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_ablc_setManual_v32(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
@@ -460,7 +347,7 @@ XCamReturn sample_ablc_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_ablc_setDefault(ctx, RK_AIQ_UAPI_MODE_SYNC, default_blc_attr);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_ablc_setDefault_v32(ctx, RK_AIQ_UAPI_MODE_SYNC, default_blc_attr_v32);
             }
             break;
@@ -468,7 +355,7 @@ XCamReturn sample_ablc_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_ablc_getAttr(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_ablc_getAttr_v32(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
             break;
@@ -476,7 +363,7 @@ XCamReturn sample_ablc_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_ablc_setAuto(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_ablc_setAuto_v32(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
             break;
@@ -484,7 +371,7 @@ XCamReturn sample_ablc_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_ablc_setManual(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_ablc_setManual_v32(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
             break;
@@ -492,7 +379,7 @@ XCamReturn sample_ablc_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_ablc_setDefault(ctx, RK_AIQ_UAPI_MODE_ASYNC, default_blc_attr);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_ablc_setDefault_v32(ctx, RK_AIQ_UAPI_MODE_ASYNC, default_blc_attr_v32);
             }
             break;
@@ -502,9 +389,6 @@ XCamReturn sample_ablc_module (const void *arg)
         }
 
     } while (key != 'q' && key != 'Q');
-
-
-    sample_blc_attr_relese(&default_blc_attr);
 
     return ret;
 }

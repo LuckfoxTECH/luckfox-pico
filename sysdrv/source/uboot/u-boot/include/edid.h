@@ -1018,6 +1018,8 @@ int edid_get_timing(u8 *buf, int buf_size, struct display_timing *timing,
 int edid_get_drm_mode(u8 *buf, int buf_size, struct drm_display_mode *mode,
 		      int *panel_bits_per_colourp);
 int drm_add_edid_modes(struct hdmi_edid_data *data, u8 *edid);
+void drm_add_hdmi_modes(struct hdmi_edid_data *data,
+			const struct drm_display_mode *mode);
 bool drm_detect_hdmi_monitor(struct edid *edid);
 bool drm_detect_monitor_audio(struct edid *edid);
 int do_cea_modes(struct hdmi_edid_data *data, const u8 *db, u8 len);

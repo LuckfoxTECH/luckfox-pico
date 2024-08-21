@@ -241,4 +241,48 @@ typedef struct DrcInfoV12_s {
     mdrcAttr_V12_t ValidParams;
 } DrcInfoV12_t;
 
+// drc attr V12 lite
+typedef struct mDrcLocalV12Lite_s {
+    // M4_STRUCT_DESC("LocalData", "normal_ui_style")
+    mLocalDataV11_t LocalData;
+    // M4_STRUCT_DESC("MotionData", "normal_ui_style")
+    mMotionData_t MotionData;
+    // M4_NUMBER_DESC("curPixWeit", "f32", M4_RANGE(0,1), "0.37", M4_DIGIT(3))
+    float curPixWeit;
+    // M4_NUMBER_DESC("Range_force_sgm", "f32", M4_RANGE(0,1), "0.0", M4_DIGIT(4))
+    float Range_force_sgm;
+    // M4_NUMBER_DESC("Range_sgm_cur", "f32", M4_RANGE(0,1), "0.125", M4_DIGIT(4))
+    float Range_sgm_cur;
+    // M4_NUMBER_DESC("Space_sgm_cur", "u16", M4_RANGE(0,4095), "4068", M4_DIGIT(0))
+    int Space_sgm_cur;
+} mDrcLocalV12Lite_t;
+
+typedef struct mdrcAttr_v12_lite_s {
+    // M4_BOOL_DESC("Enable", "1")
+    bool Enable;
+    // M4_STRUCT_DESC("DrcGain", "normal_ui_style")
+    mDrcGain_t DrcGain;
+    // M4_STRUCT_DESC("HiLight", "normal_ui_style")
+    mHighLightV12_t HiLight;
+    // M4_STRUCT_DESC("LocalSetting", "normal_ui_style")
+    mDrcLocalV12Lite_t LocalSetting;
+    // M4_STRUCT_DESC("CompressSetting", "normal_ui_style")
+    mDrcCompress_t CompressSetting;
+    // M4_ARRAY_DESC("Scale_y", "u16", M4_SIZE(1,17),  M4_RANGE(0, 2048), "[0,2,20,76,193,381,631,772,919,1066,1211,1479,1700,1863,1968,2024,2048]", M4_DIGIT(0), M4_DYNAMIC(0))
+    int Scale_y[ADRC_Y_NUM];
+    // M4_NUMBER_DESC("Edge_Weit", "f32",  M4_RANGE(0,1), "1",M4_DIGIT(3))
+    float Edge_Weit;
+    // M4_BOOL_DESC("OutPutLongFrame", "0")
+    bool OutPutLongFrame;
+    // M4_NUMBER_DESC("IIR_frame", "u8", M4_RANGE(1,1000), "2", M4_DIGIT(0))
+    int IIR_frame;
+} mdrcAttr_v12_lite_t;
+
+typedef struct DrcInfoV12Lite_s {
+    // M4_STRUCT_DESC("CtrlInfo", "normal_ui_style")
+    DrcInfo_t CtrlInfo;
+    // M4_STRUCT_DESC("ValidParams", "normal_ui_style")
+    mdrcAttr_v12_lite_t ValidParams;
+} DrcInfoV12Lite_t;
+
 #endif /*__ADRC_UAPI_HEAD_H__*/

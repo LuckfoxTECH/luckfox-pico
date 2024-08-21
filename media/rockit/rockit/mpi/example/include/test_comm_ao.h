@@ -17,8 +17,8 @@
 #ifndef SRC_TESTS_RT_MPI_COMMON_TEST_COMM_AO_H_
 #define SRC_TESTS_RT_MPI_COMMON_TEST_COMM_AO_H_
 
-#include "rk_comm_aio.h"
 #include "rk_common.h"
+#include "rk_comm_aio.h"
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -26,8 +26,7 @@ extern "C" {
 #endif
 #endif /* End of #ifdef __cplusplus */
 
-RK_S32 TEST_AO_Start(AUDIO_DEV AoDev, AIO_ATTR_S *pstAoAttr, RK_U32 u32ChnCnt,
-                     AUDIO_SAMPLE_RATE_E *pEnSmpRates);
+RK_S32 TEST_AO_Start(AUDIO_DEV AoDev, AIO_ATTR_S *pstAoAttr, RK_U32 u32ChnCnt, AUDIO_SAMPLE_RATE_E *pEnSmpRates);
 RK_S32 TEST_AO_Stop(AUDIO_DEV aoDevId, RK_U32 u32ChnCnt);
 
 #ifdef __cplusplus
@@ -36,4 +35,4 @@ RK_S32 TEST_AO_Stop(AUDIO_DEV aoDevId, RK_U32 u32ChnCnt);
 #endif
 #endif /* End of #ifdef __cplusplus */
 
-#endif // SRC_TESTS_RT_MPI_COMMON_TEST_COMM_AO_H_
+#endif  // SRC_TESTS_RT_MPI_COMMON_TEST_COMM_AO_H_

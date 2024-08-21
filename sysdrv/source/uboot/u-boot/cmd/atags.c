@@ -179,6 +179,14 @@ static void atags_print_tag(struct tag *t)
 		for (i = 0; i < ARRAY_SIZE(t->u.pstore.buf); i++)
 			printf("  table[%d] = 0x%x@0x%x\n", i, t->u.pstore.buf[i].size, t->u.pstore.buf[i].addr);
 		break;
+	case ATAG_FWVER:
+		printf("[fwver]:\n");
+		printf("     magic = 0x%x\n", t->hdr.magic);
+		printf("      size = 0x%x\n\n", t->hdr.size << 2);
+		printf("   version = 0x%x\n", t->u.fwver.version);
+		for (i = 0; i < FW_MAX; i++)
+			printf("    ver[%d] = %s\n", i, t->u.fwver.ver[i]);
+		break;
 	default:
 		printf("%s: magic(%x) is not support\n", __func__, t->hdr.magic);
 	}

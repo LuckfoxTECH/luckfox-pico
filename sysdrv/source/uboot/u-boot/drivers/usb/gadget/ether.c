@@ -2679,10 +2679,10 @@ int usb_ether_init(void)
 	struct udevice *usb_dev;
 	int ret;
 
-	ret = uclass_first_device(UCLASS_USB_GADGET_GENERIC, &usb_dev);
-	if (!usb_dev || ret) {
+	uclass_first_device(UCLASS_USB_GADGET_GENERIC, &usb_dev);
+	if (!usb_dev) {
 		pr_err("No USB device found\n");
-		return ret;
+		return -ENODEV;
 	}
 
 	ret = device_bind_driver(usb_dev, "usb_ether", "usb_ether", &dev);

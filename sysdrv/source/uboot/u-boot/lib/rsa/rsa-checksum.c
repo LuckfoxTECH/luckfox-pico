@@ -91,7 +91,14 @@ int hash_calculate(const char *name,
 #if defined(USE_HOSTCC)
 	return rsa_hash_calculate(name, region, region_count, checksum);
 #else
-#if !CONFIG_IS_ENABLED(FIT_HW_CRYPTO)
+	/*
+	 * Don't delete hw_rsa_hash_calculate() for some platform doesn't
+	 * want to use rk-crypto depend on soft sha1/256 dispatch path.
+	 *
+	 * Because CONFIG_SHA1/256=y and CONFIG_SPL_HASH_SUPPORT=y(if spl)
+	 * increase the code size.
+	 */
+#if CONFIG_IS_ENABLED(ARMV8_CRYPTO) || !CONFIG_IS_ENABLED(FIT_HW_CRYPTO)
 	return rsa_hash_calculate(name, region, region_count, checksum);
 #else
 	return hw_rsa_hash_calculate(name, region, region_count, checksum);

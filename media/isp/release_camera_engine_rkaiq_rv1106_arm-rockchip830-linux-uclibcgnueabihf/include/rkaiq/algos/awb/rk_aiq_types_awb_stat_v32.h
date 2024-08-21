@@ -31,6 +31,7 @@
 #define AWB_WPNUM2_EN
 #endif
 #define RK_AIQ_WP_INCLUDE_BIS 6
+
 typedef struct rk_aiq_awb_exc_range_v32_s {
     rk_aiq_awb_exc_range_domain_t domain;//1 uv domain,2 xy domain;
     bool excludeEnable[RK_AIQ_AWB_XY_TYPE_MAX_V201];// 0 disable,1 eanble;
@@ -100,6 +101,7 @@ typedef struct rk_aiq_awb_stat_cfg_v32_s {
     int  groupIllIndxCurrent;//for time share
     int  IllIndxSetCurrent[RK_AIQ_AWB_MAX_WHITEREGIONS_NUM_V32];//for time share
     char timeSign[64];
+    float preWbgainSw[4];//rggb
 } rk_aiq_awb_stat_cfg_v32_t;
 
 typedef struct rk_aiq_awb_stat_cfg_effect_v32_s {
@@ -108,6 +110,8 @@ typedef struct rk_aiq_awb_stat_cfg_effect_v32_s {
     int  groupIllIndxCurrent;//for time share
     int  IllIndxSetCurrent[RK_AIQ_AWB_MAX_WHITEREGIONS_NUM_V32];//for time share
     char timeSign[64];
+    float preWbgainSw[4];//rggb
+
 } rk_aiq_awb_stat_cfg_effect_v32_t;
 
 typedef struct rk_aiq_awb_stat_res_v32_s {
@@ -122,6 +126,7 @@ typedef struct rk_aiq_awb_stat_res_v32_s {
     unsigned int WpNoHist[RK_AIQ_AWB_WP_HIST_BIN_NUM];
     rk_aiq_awb_stat_cfg_effect_v32_t  awb_cfg_effect_v32;
     int dbginfo_fd;
+    rk_aiq_awb_stat_blk_res_v201_t sumBlkRGB;
 } rk_aiq_awb_stat_res_v32_t;
 
 #endif

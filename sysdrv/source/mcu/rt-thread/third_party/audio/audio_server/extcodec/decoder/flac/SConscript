@@ -1,0 +1,13 @@
+# RT-Thread building script for bridge
+
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+src  = Glob('*.c')
+CPPPATH = [cwd]
+
+group = DefineGroup('flac_decode', src, depend = ['RT_USING_EXT_FLAC_DECODER'], CPPPATH = CPPPATH)
+
+Return('group')

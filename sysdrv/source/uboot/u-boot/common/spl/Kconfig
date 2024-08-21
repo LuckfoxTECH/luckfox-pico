@@ -144,6 +144,17 @@ config SPL_SKIP_RELOCATE
 	  The SPL code will be relocated to a high memory if you say no here.
 	  Only ARM64 and PowerPC SPL support relocate now.
 
+config SPL_BOOT_IMAGE
+	bool "SPL boot image load support"
+	default n
+	help
+	  This enable SPL boot image load support
+
+config SPL_BOOT_IMAGE_BUF
+	hex "SPL boot image memory buffer"
+	depends on SPL_BOOT_IMAGE
+	default 0x10000000
+
 config SPL_RELOC_TEXT_BASE
 	hex "Address the SPL relocate to"
 	depends on !SPL_SKIP_RELOCATE
@@ -598,6 +609,12 @@ config SPL_PCH_SUPPORT
 	  boot. This enables the drivers in drivers/pch as part of an SPL
 	  build.
 
+config SPL_PCIE_EP_SUPPORT
+	bool "Support loading from PCIE EP"
+	help
+	  Enable support for PCIE EP driver in SPL. The RC will download the
+	  image as a RAM partition for firmware.
+
 config SPL_POST_MEM_SUPPORT
 	bool "Support POST drivers"
 	help
@@ -660,6 +677,21 @@ config SPL_SATA_SUPPORT
 	  can provide higher performance than MMC , at somewhat higher
 	  expense and power consumption. This enables loading from SATA
 	  using a configured device.
+
+config SPL_UFS_SUPPORT
+	bool "Support loading from UFS"
+	help
+	  Enable support for UFS in SPL. This allows
+	  use of UFS devices such as hard drives and flash drivers for
+	  loading U-Boot.
+
+config SYS_UFS_RAW_MODE_U_BOOT_SECTOR
+	hex "Address on the UFS to load U-Boot from"
+	depends on SPL_UFS_SUPPORT
+	default 0x4000
+	help
+	  Address on the block device to load U-Boot from，
+	  Units: UFS sectors (1 sector = 512 bytes).
 
 config SPL_SERIAL_SUPPORT
 	bool "Support serial"
@@ -867,7 +899,9 @@ config SPL_OPTEE
 
 config SPL_AB
 	bool "Support AB system boot"
-	depends on SPL && SPL_EFI_PARTITION
+	depends on SPL && SPL_LIBDISK_SUPPORT
+	select SPL_MTD_WRITE if SPL_MTD_SUPPORT
+	select SPL_MMC_WRITE if SPL_MMC_SUPPORT
 	help
 	  Enable this config to support AB system boot.
 
@@ -900,11 +934,24 @@ config SPL_KERNEL_BOOT
 	help
 	  Enable boot kernel in SPL.
 
+config SPL_KERNEL_BOOT_PREBUILT
+	bool "Enable boot kernel in SPL with prebuilt program"
+	depends on SPL_KERNEL_BOOT
+	default y
+	help
+	  Enable boot kernel in SPL with prebuilt program.
+
 config SPL_KERNEL_BOOT_SECTOR
 	hex "Sector address to load kernel in SPL"
 	depends on SPL_KERNEL_BOOT
 	depends on !SPL_LIBDISK_SUPPORT
 	default 0xa000
+
+config SPL_KERNEL_RAMDISK_SECTOR
+	hex "Sector address to load ramdisk in SPL"
+	depends on SPL_KERNEL_BOOT
+	depends on !SPL_LIBDISK_SUPPORT
+	default 0xf000
 
 if SPL_LOAD_RKFW
 config SPL_KERNEL_ADDR

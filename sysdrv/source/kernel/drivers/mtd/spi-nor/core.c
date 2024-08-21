@@ -882,6 +882,15 @@ static int spi_nor_write_16bit_sr_and_check(struct spi_nor *nor, u8 sr1)
 	if (ret)
 		return ret;
 
+	ret = spi_nor_read_sr(nor, sr_cr);
+	if (ret)
+		return ret;
+
+	if (sr1 != sr_cr[0]) {
+		dev_dbg(nor->dev, "SR: Read back test failed\n");
+		return -EIO;
+	}
+
 	if (nor->flags & SNOR_F_NO_READ_CR)
 		return 0;
 
@@ -960,12 +969,11 @@ static int spi_nor_write_16bit_cr_and_check(struct spi_nor *nor, u8 cr)
 		return ret;
 
 	sr_cr[1] = cr;
+	sr_written = sr_cr[0];
 
 	ret = spi_nor_write_sr(nor, sr_cr, 2);
 	if (ret)
 		return ret;
-
-	sr_written = sr_cr[0];
 
 	ret = spi_nor_read_sr(nor, sr_cr);
 	if (ret)

@@ -1,8 +1,8 @@
-commit 4999b9e8a5182600f8fd6abf2dd03307f0697368
-Author: Zhihua Wang <hogan.wang@rock-chips.com>
-Date:   Thu Dec 29 16:24:35 2022 +0800
+commit 16e796a4523914b96730a9082aee99eae6b9688b
+Author: hdl <hdl@rock-chips.com>
+Date:   Tue Jan 31 19:36:58 2023 +0800
 
-    [mpp]: set mInitDone 0 initilize
+    [venc540c]: Adding scene_mode of IPC_PTZ.
     
-    Signed-off-by: Zhihua Wang <hogan.wang@rock-chips.com>
-    Change-Id: I676e89c045952fe9a12c2bdb9f9e73d3636cbd5a
+    Signed-off-by: hdl <hdl@rock-chips.com>
+    Change-Id: Ib99c290617a2c56e0ea9995565cbe529529a8a33

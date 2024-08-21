@@ -35,9 +35,9 @@ typedef struct {
 #define CMD_SENDMSG_GETMAC			0x02
 #define CMD_SENDMSG_GETIP			0x03
 #define CMD_SENDMSG_SETFILTER			0x04
-#define CMD_SENDMSG_KEEPLIVE			0x05
+#define CMD_SENDMSG_KEEPLIVE			0x32
 #define CMD_SENDMSG_STANDBY			0x06
-#define CMD_SENDMSG_DEEPSLEEP			0x07
+#define CMD_SENDMSG_DEEPSLEEP			0x33
 #define CMD_SENDMSG_STARTAP			0x08
 #define CMD_SENDMSG_STARTOTA			0x09
 #define CMD_SENDMSG_OTADATA			0x0a
@@ -53,9 +53,11 @@ typedef struct {
 #define CMD_SENDMSG_TUYA_SET			0x13
 #define CMD_SENDMSG_GETALL			0x14
 #define CMD_SENDMSG_PIR_CLR			0x17
+#define CMD_SENDMSG_LPEVENT			0x18
+#define CMD_SENDMSG_GET_UTC			0x19
 
 //rk
-#define CMD_SENDMSG_GET_INFO		0x58
+#define CMD_SENDMSG_GET_INFO			0x58
 
 /*****************************************************************************
   4 ��������

@@ -25,84 +25,131 @@ h264e_sps_update:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 8
 	@ frame_needed = 0, uses_anonymous_args = 0
-	movw	r3, #4700
+	movw	r3, #4728
 	push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
 	.save {r4, r5, r6, r7, r8, r9, r10, fp, lr}
-	mov	r4, r0
 	mov	r10, r0
 	.pad #20
 	sub	sp, sp, #20
+	mov	r4, r0
 	ldr	r0, [r1, r3]
 	mov	r5, r1
 	bl	mpp_enc_ref_cfg_get_cpb_info
 	ldrd	r2, r3, [r5, #12]
-	ldr	r9, [r5, #152]
+	ldr	lr, [r5, #624]
 	add	r7, r2, #15
 	add	r6, r3, #15
 	bic	r7, r7, #15
 	bic	r6, r6, #15
-	sub	r8, r7, r2
+	subs	r2, r7, r2
+	ldr	r8, [r5, #152]
 	subs	r3, r6, r3
-	mul	r2, r6, r7
-	asr	ip, r2, #8
-	ldr	r2, .L25
-	mov	lr, r2
+	mov	r1, lr
+	str	r2, [sp, #8]
 	mov	fp, r0
+	ldr	r2, [r5, #620]
 	str	r3, [sp, #12]
-	ldr	r0, [r5, #600]
-	ldr	r3, [r5, #596]
-	str	r0, [sp, #8]
-	str	r3, [r10], #96
-	movs	r3, #1
-	strd	r3, r3, [r4, #4]
+	cmp	r2, #100
+	str	r2, [r10], #96
+	beq	.L2
+	bgt	.L3
+	cmp	r2, #66
+	mov	r3, #0
+	beq	.L4
+	cmp	r2, #77
+	beq	.L5
+.L6:
 	movs	r3, #0
-	strd	r3, r3, [r4, #12]
+	strd	r3, r3, [r4, #4]
+	b	.L44
+.L3:
+	cmp	r2, #122
+	beq	.L2
+	cmp	r2, #244
+	beq	.L2
+	cmp	r2, #110
+	bne	.L6
+.L2:
+	movs	r3, #0
+	movs	r2, #1
+	strd	r3, r3, [r4, #4]
+	str	r3, [r4, #12]
+	str	r2, [r4, #16]
+.L45:
+	mul	ip, r6, r7
+	ldr	r2, .L47
 	strd	r3, r3, [r4, #20]
-.L4:
-	ldr	r1, [r2, #8]
-	cmp	r1, ip
-	blt	.L2
+	movs	r3, #0
+	mov	r9, r2
+	asr	ip, ip, #8
+.L10:
+	ldr	r0, [r2, #8]
+	cmp	r0, ip
+	blt	.L8
 	movs	r2, #24
 	muls	r3, r2, r3
-	add	r2, lr, r3
-	ldr	r3, [lr, r3]
-	cmp	r0, r3
-	bge	.L3
-	cmp	r3, #99
-	beq	.L3
-	ldr	r2, [r2, #20]
-	movs	r1, #95
-	ldr	r0, .L25+4
-	str	r3, [sp, #8]
+	add	r2, r9, r3
+	ldr	r9, [r9, r3]
+	cmp	lr, r9
+	bge	.L9
+	cmp	r9, #99
+	beq	.L9
+	ldr	r3, .L47+4
+	ldr	r3, [r3]
+	lsls	r1, r3, #27
+	bpl	.L23
+	ldr	r3, [r2, #20]
+	movs	r2, #126
+	ldr	r1, .L47+8
+	ldr	r0, .L47+12
 	bl	printk
-.L3:
-	ldr	r3, [sp, #8]
+.L23:
+	mov	r1, r9
+	b	.L9
+.L4:
+	movs	r2, #1
+	str	r2, [r4, #4]
+.L46:
+	str	r2, [r4, #8]
+.L44:
+	strd	r3, r3, [r4, #12]
+	b	.L45
+.L5:
+	str	r3, [r4, #4]
+	movs	r2, #1
+	b	.L46
+.L8:
+	adds	r3, r3, #1
+	adds	r2, r2, #24
+	cmp	r3, #20
+	bne	.L10
+.L9:
+	str	r1, [r4, #28]
+	movs	r3, #1
 	movs	r2, #0
-	cmp	r9, #0
-	str	r3, [r4, #28]
-	mov	r3, #1
 	strd	r2, r3, [r4, #32]
-	ldr	r3, [r5, #580]
+	ldr	r3, [r5, #604]
+	cmp	r8, #0
 	str	r3, [r4, #44]
-	ldr	r3, [r5, #584]
+	ldr	r3, [r5, #608]
 	str	r3, [r4, #48]
-	ldr	r3, [r5, #588]
+	ldr	r3, [r5, #612]
 	str	r3, [r4, #40]
-	bge	.L5
-	movs	r1, #112
-	ldr	r3, .L25+8
+	bge	.L11
+	movs	r1, #143
+	ldr	r3, .L47+16
 	str	r1, [sp]
-	ldr	r2, .L25+12
-	ldr	r0, .L25+16
+	ldr	r2, .L47+20
+	ldr	r0, .L47+24
 	bl	printk
-.L6:
-	mov	r0, r9
+.L12:
+	mov	r0, r8
 	bl	mpp_log2
 	cmp	r0, #16
-	bgt	.L17
-	mov	r0, r9
+	bgt	.L24
+	mov	r0, r8
 	bl	mpp_log2
-.L8:
+.L14:
 	cmp	r0, #4
 	mov	r3, r0
 	ldr	r2, [r4, #40]
@@ -123,25 +170,19 @@ h264e_sps_update:
 	cmp	r0, r3
 	it	gt
 	strgt	r0, [r4, #48]
-	b	.L7
-.L2:
-	adds	r3, r3, #1
-	adds	r2, r2, #24
-	cmp	r3, #20
-	bne	.L4
-	b	.L3
-.L5:
-	cmp	r9, #1
-	bhi	.L6
+	b	.L13
+.L11:
+	cmp	r8, #1
+	bhi	.L12
 	movs	r3, #12
 	str	r3, [r4, #40]
 	str	r3, [r4, #48]
-.L7:
+.L13:
 	ldr	r3, [fp]
 	asrs	r7, r7, #4
 	asrs	r6, r6, #4
 	str	r3, [r4, #52]
-	ldr	r3, [r5, #592]
+	ldr	r3, [r5, #616]
 	str	r7, [r4, #60]
 	clz	r3, r3
 	str	r6, [r4, #64]
@@ -149,17 +190,18 @@ h264e_sps_update:
 	str	r3, [r4, #56]
 	movs	r3, #1
 	str	r3, [r4, #68]
-	ldr	r2, [r5, #612]
+	ldr	r2, [r5, #636]
 	str	r2, [r4, #72]
-	ldr	r2, [sp, #12]
-	orrs	r1, r8, r2
-	beq	.L10
+	ldrd	r2, r1, [sp, #8]
+	orrs	r1, r2, r1
+	beq	.L16
 	str	r3, [r4, #76]
 	movs	r3, #0
-	str	r2, [r4, #92]
-	strd	r3, r8, [r4, #80]
+	strd	r3, r2, [r4, #80]
 	str	r3, [r4, #88]
-.L11:
+	ldr	r3, [sp, #12]
+	str	r3, [r4, #92]
+.L17:
 	movs	r2, #176
 	movs	r1, #0
 	mov	r0, r10
@@ -185,22 +227,22 @@ h264e_sps_update:
 	streq	r2, [r4, #132]
 	ldr	r3, [r5, #44]
 	cmp	r3, #22
-	bhi	.L13
+	bhi	.L19
 	cmp	r3, #2
-	bne	.L14
-.L13:
+	bne	.L20
+.L19:
 	ldr	r3, [r5, #48]
 	cmp	r3, #18
-	bhi	.L15
+	bhi	.L21
 	cmp	r3, #2
-	bne	.L14
-.L15:
+	bne	.L20
+.L21:
 	ldr	r3, [r5, #40]
 	cmp	r3, #14
-	bhi	.L16
+	bhi	.L22
 	cmp	r3, #2
-	beq	.L16
-.L14:
+	beq	.L22
+.L20:
 	movs	r3, #1
 	str	r3, [r4, #124]
 	str	r3, [r4, #136]
@@ -210,7 +252,7 @@ h264e_sps_update:
 	str	r3, [r4, #144]
 	ldr	r3, [r5, #40]
 	str	r3, [r4, #148]
-.L16:
+.L22:
 	movs	r3, #1
 	strd	r3, r3, [r4, #240]
 	movs	r3, #16
@@ -221,21 +263,23 @@ h264e_sps_update:
 	add	sp, sp, #20
 	@ sp needed
 	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
-.L17:
+.L24:
 	movs	r0, #16
-	b	.L8
-.L10:
+	b	.L14
+.L16:
 	str	r1, [r4, #76]
 	movs	r2, #16
 	add	r0, r4, #80
 	bl	memset
-	b	.L11
-.L26:
+	b	.L17
+.L48:
 	.align	2
-.L25:
+.L47:
 	.word	.LANCHOR0
-	.word	.LC0
+	.word	h264e_debug
 	.word	.LANCHOR1
+	.word	.LC0
+	.word	.LANCHOR1+17
 	.word	.LC1
 	.word	.LC2
 	.fnend
@@ -336,7 +380,7 @@ h264e_sps_to_packet:
 	bl	mpp_writer_put_ue
 	ldr	r3, [r4]
 	cmp	r3, #99
-	ble	.L28
+	ble	.L50
 	ldr	r1, [r4, #36]
 	add	r0, sp, #4
 	bl	mpp_writer_put_ue
@@ -354,7 +398,7 @@ h264e_sps_to_packet:
 	movs	r1, #0
 	add	r0, sp, #4
 	bl	mpp_writer_put_bits
-.L28:
+.L50:
 	ldr	r1, [r4, #40]
 	add	r0, sp, #4
 	bl	mpp_writer_put_ue
@@ -362,11 +406,11 @@ h264e_sps_to_packet:
 	add	r0, sp, #4
 	bl	mpp_writer_put_ue
 	ldr	r3, [r4, #44]
-	cbnz	r3, .L29
+	cbnz	r3, .L51
 	ldr	r1, [r4, #48]
 	add	r0, sp, #4
 	bl	mpp_writer_put_ue
-.L29:
+.L51:
 	ldr	r1, [r4, #52]
 	add	r0, sp, #4
 	bl	mpp_writer_put_ue
@@ -395,7 +439,7 @@ h264e_sps_to_packet:
 	add	r0, sp, #4
 	bl	mpp_writer_put_bits
 	ldr	r3, [r4, #76]
-	cbz	r3, .L30
+	cbz	r3, .L52
 	ldr	r1, [r4, #80]
 	add	r0, sp, #4
 	add	r1, r1, r1, lsr #31
@@ -416,27 +460,27 @@ h264e_sps_to_packet:
 	asrs	r1, r1, #1
 	add	r0, sp, #4
 	bl	mpp_writer_put_ue
-.L30:
+.L52:
 	movs	r2, #1
 	ldr	r1, [r4, #96]
 	add	r0, sp, #4
 	bl	mpp_writer_put_bits
 	ldr	r3, [r4, #96]
 	cmp	r3, #0
-	beq	.L32
+	beq	.L54
 	movs	r2, #1
 	ldr	r1, [r4, #100]
 	add	r0, sp, #4
 	bl	mpp_writer_put_bits
 	ldr	r3, [r4, #100]
-	cbz	r3, .L34
+	cbz	r3, .L56
 	movs	r2, #8
 	ldr	r1, [r4, #104]
 	add	r0, sp, #4
 	bl	mpp_writer_put_bits
 	ldr	r3, [r4, #104]
 	cmp	r3, #255
-	bne	.L34
+	bne	.L56
 	movs	r2, #16
 	ldr	r1, [r4, #108]
 	add	r0, sp, #4
@@ -445,24 +489,24 @@ h264e_sps_to_packet:
 	ldr	r1, [r4, #112]
 	add	r0, sp, #4
 	bl	mpp_writer_put_bits
-.L34:
+.L56:
 	movs	r2, #1
 	ldr	r1, [r4, #116]
 	add	r0, sp, #4
 	bl	mpp_writer_put_bits
 	ldr	r3, [r4, #116]
-	cbz	r3, .L36
+	cbz	r3, .L58
 	movs	r2, #1
 	ldr	r1, [r4, #120]
 	add	r0, sp, #4
 	bl	mpp_writer_put_bits
-.L36:
+.L58:
 	movs	r2, #1
 	ldr	r1, [r4, #124]
 	add	r0, sp, #4
 	bl	mpp_writer_put_bits
 	ldr	r3, [r4, #124]
-	cbz	r3, .L38
+	cbz	r3, .L60
 	movs	r2, #3
 	ldr	r1, [r4, #128]
 	add	r0, sp, #4
@@ -476,7 +520,7 @@ h264e_sps_to_packet:
 	add	r0, sp, #4
 	bl	mpp_writer_put_bits
 	ldr	r3, [r4, #136]
-	cbz	r3, .L38
+	cbz	r3, .L60
 	movs	r2, #8
 	ldr	r1, [r4, #140]
 	add	r0, sp, #4
@@ -489,26 +533,26 @@ h264e_sps_to_packet:
 	ldr	r1, [r4, #148]
 	add	r0, sp, #4
 	bl	mpp_writer_put_bits
-.L38:
+.L60:
 	movs	r2, #1
 	ldr	r1, [r4, #152]
 	add	r0, sp, #4
 	bl	mpp_writer_put_bits
 	ldr	r3, [r4, #152]
-	cbz	r3, .L40
+	cbz	r3, .L62
 	ldr	r1, [r4, #156]
 	add	r0, sp, #4
 	bl	mpp_writer_put_ue
 	ldr	r1, [r4, #160]
 	add	r0, sp, #4
 	bl	mpp_writer_put_ue
-.L40:
+.L62:
 	movs	r2, #1
 	ldr	r1, [r4, #164]
 	add	r0, sp, #4
 	bl	mpp_writer_put_bits
 	ldr	r3, [r4, #164]
-	cbz	r3, .L41
+	cbz	r3, .L63
 	movs	r2, #16
 	ldrh	r1, [r4, #170]
 	add	r0, sp, #4
@@ -529,7 +573,7 @@ h264e_sps_to_packet:
 	ldr	r1, [r4, #176]
 	add	r0, sp, #4
 	bl	mpp_writer_put_bits
-.L41:
+.L63:
 	movs	r2, #1
 	ldr	r1, [r4, #180]
 	add	r0, sp, #4
@@ -547,7 +591,7 @@ h264e_sps_to_packet:
 	add	r0, sp, #4
 	bl	mpp_writer_put_bits
 	ldr	r3, [r4, #240]
-	cbz	r3, .L32
+	cbz	r3, .L54
 	movs	r2, #1
 	ldr	r1, [r4, #244]
 	add	r0, sp, #4
@@ -570,14 +614,14 @@ h264e_sps_to_packet:
 	ldr	r1, [r4, #268]
 	add	r0, sp, #4
 	bl	mpp_writer_put_ue
-.L32:
+.L54:
 	add	r0, sp, #4
 	bl	mpp_writer_trailing
 	add	r0, sp, #4
 	bl	mpp_writer_bytes
-	cbz	r7, .L43
+	cbz	r7, .L65
 	str	r0, [r7]
-.L43:
+.L65:
 	adds	r1, r0, r6
 	mov	r0, r5
 	bl	mpp_packet_set_length
@@ -606,9 +650,13 @@ h264e_sps_dump:
 	.global	level_infos
 	.section	.rodata
 	.set	.LANCHOR1,. + 0
-	.type	__FUNCTION__.9249, %object
-	.size	__FUNCTION__.9249, 17
-__FUNCTION__.9249:
+	.type	__func__.9324, %object
+	.size	__func__.9324, 17
+__func__.9324:
+	.ascii	"h264e_sps_update\000"
+	.type	__FUNCTION__.9328, %object
+	.size	__FUNCTION__.9328, 17
+__FUNCTION__.9328:
 	.ascii	"h264e_sps_update\000"
 	.data
 	.align	2
@@ -738,7 +786,7 @@ level_infos:
 	.word	.LC22
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:
-	.ascii	"\0016%d: set level to %s\012\000"
+	.ascii	"\0016%s:%d: set level to %s\012\000"
 .LC1:
 	.ascii	"gop >= 0\000"
 .LC2:

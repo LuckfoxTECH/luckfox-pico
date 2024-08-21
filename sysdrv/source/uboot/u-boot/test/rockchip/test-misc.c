@@ -201,6 +201,8 @@ static int do_test_adc(cmd_tbl_t *cmdtp, int flag,
 	chn = argc < 2 ? 0 : strtoul(argv[1], NULL, 10);
 	ret = adc_channel_single_shot("saradc", chn, &val);
 	if (ret)
+		ret = adc_channel_single_shot("adc", chn, &val);
+	if (ret)
 		ut_err("adc: failed to get channel%d value, ret=%d\n", chn, ret);
 
 	printf("adc channel%d: adc value is %d\n", chn, val);

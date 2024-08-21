@@ -16,7 +16,6 @@ config AVB_VBMETA_PUBLIC_KEY_VALIDATE
 	    - only allow "boot_android" as bootcmd;
 	    - enter rockusb or fastboot when boot failed;
 	    - not allow ctrl+c to enter hush;
-	  only the CONFIG_BOOTDELAY can interrupt the bootflow.
 
 config SPL_AVB_LIBAVB_USER
 	bool "Android AVB read/write hardware for spl"

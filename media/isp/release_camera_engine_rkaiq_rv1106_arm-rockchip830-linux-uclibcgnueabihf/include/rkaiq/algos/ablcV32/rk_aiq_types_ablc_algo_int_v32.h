@@ -61,30 +61,27 @@ typedef enum AblcParamMode_V32_e {
 
 typedef struct AblcParams_V32_s {
     bool enable;
-    int len;
-    float* iso;
-    float* blc_r;
-    float* blc_gr;
-    float* blc_gb;
-    float* blc_b;
+    float iso[ABLCV32_MAX_ISO_LEVEL];
+    float blc_r[ABLCV32_MAX_ISO_LEVEL];
+    float blc_gr[ABLCV32_MAX_ISO_LEVEL];
+    float blc_gb[ABLCV32_MAX_ISO_LEVEL];
+    float blc_b[ABLCV32_MAX_ISO_LEVEL];
 } AblcParams_V32_t;
 
 typedef struct AblcRefParams_V32_s {
-    int len;
-    float* iso;
-    float* Reference_r;
-    float* Reference_gr;
-    float* Reference_gb;
-    float* Reference_b;
+    float iso[ABLCV32_MAX_ISO_LEVEL];
+    float Reference_r[ABLCV32_MAX_ISO_LEVEL];
+    float Reference_gr[ABLCV32_MAX_ISO_LEVEL];
+    float Reference_gb[ABLCV32_MAX_ISO_LEVEL];
+    float Reference_b[ABLCV32_MAX_ISO_LEVEL];
 } AblcRefParams_V32_t;
 
 
 typedef struct AblcOBParams_V32_s {
     bool enable;
-    int len;
-    float* iso;
-    float* ob_offset;
-    float* ob_predgain;
+    float iso[ABLCV32_MAX_ISO_LEVEL];
+    float ob_offset[ABLCV32_MAX_ISO_LEVEL];
+    float ob_predgain[ABLCV32_MAX_ISO_LEVEL];
 } AblcOBParams_V32_t;
 
 
@@ -107,8 +104,6 @@ typedef struct AblcProc_V32_s {
     short int isp_ob_offset;
     float isp_ob_predgain;
     int isp_ob_max;
-
-    bool isNeedUpdate;
 } AblcProc_V32_t;
 
 typedef struct rk_aiq_blc_attrib_V32_s {

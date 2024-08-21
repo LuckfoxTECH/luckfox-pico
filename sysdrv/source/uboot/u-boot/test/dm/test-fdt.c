@@ -311,13 +311,12 @@ static int dm_test_first_next_device(struct unit_test_state *uts)
 	int ret;
 
 	/* There should be 4 devices */
-	for (ret = uclass_first_device(UCLASS_TEST_PROBE, &dev), count = 0;
+	for (uclass_first_device(UCLASS_TEST_PROBE, &dev), count = 0;
 	     dev;
-	     ret = uclass_next_device(&dev)) {
+	     uclass_next_device(&dev)) {
 		count++;
 		parent = dev_get_parent(dev);
 		}
-	ut_assertok(ret);
 	ut_asserteq(4, count);
 
 	/* Remove them and try again, with an error on the second one */
@@ -325,20 +324,55 @@ static int dm_test_first_next_device(struct unit_test_state *uts)
 	pdata = dev_get_platdata(dev);
 	pdata->probe_err = -ENOMEM;
 	device_remove(parent, DM_REMOVE_NORMAL);
-	ut_assertok(uclass_first_device(UCLASS_TEST_PROBE, &dev));
-	ut_asserteq(-ENOMEM, uclass_next_device(&dev));
-	ut_asserteq_ptr(dev, NULL);
+	for (ret = uclass_first_device_check(UCLASS_TEST_PROBE, &dev),
+		count = 0;
+	     dev;
+	     ret = uclass_next_device_check(&dev)) {
+		if (!ret)
+			count++;
+		else
+			ut_asserteq(-ENOMEM, ret);
+		parent = dev_get_parent(dev);
+		}
+	ut_asserteq(3, count);
 
 	/* Now an error on the first one */
 	ut_assertok(uclass_get_device(UCLASS_TEST_PROBE, 0, &dev));
 	pdata = dev_get_platdata(dev);
 	pdata->probe_err = -ENOENT;
 	device_remove(parent, DM_REMOVE_NORMAL);
-	ut_asserteq(-ENOENT, uclass_first_device(UCLASS_TEST_PROBE, &dev));
+	for (uclass_first_device(UCLASS_TEST_PROBE, &dev), count = 0;
+	     dev;
+	     uclass_next_device(&dev)) {
+		count++;
+		parent = dev_get_parent(dev);
+		}
+	ut_asserteq(2, count);
 
 	return 0;
 }
 DM_TEST(dm_test_first_next_device, DM_TESTF_SCAN_PDATA | DM_TESTF_SCAN_FDT);
+
+/* Test iteration through devices in a uclass */
+static int dm_test_uclass_foreach(struct unit_test_state *uts)
+{
+	struct udevice *dev;
+	struct uclass *uc;
+	int count;
+
+	count = 0;
+	uclass_id_foreach_dev(UCLASS_TEST_FDT, dev, uc)
+		count++;
+	ut_asserteq(8, count);
+
+	count = 0;
+	uclass_foreach_dev(dev, uc)
+		count++;
+	ut_asserteq(8, count);
+
+	return 0;
+}
+DM_TEST(dm_test_uclass_foreach, DM_TESTF_SCAN_PDATA | DM_TESTF_SCAN_FDT);
 
 /**
  * check_devices() - Check return values and pointers
@@ -419,3 +453,24 @@ static int dm_test_first_next_ok_device(struct unit_test_state *uts)
 	return 0;
 }
 DM_TEST(dm_test_first_next_ok_device, DM_TESTF_SCAN_PDATA | DM_TESTF_SCAN_FDT);
+
+/* Test iteration through devices by drvdata */
+static int dm_test_uclass_drvdata(struct unit_test_state *uts)
+{
+	struct udevice *dev;
+
+	ut_assertok(uclass_first_device_drvdata(UCLASS_TEST_FDT,
+						DM_TEST_TYPE_FIRST, &dev));
+	ut_asserteq_str("a-test", dev->name);
+
+	ut_assertok(uclass_first_device_drvdata(UCLASS_TEST_FDT,
+						DM_TEST_TYPE_SECOND, &dev));
+	ut_asserteq_str("d-test", dev->name);
+
+	ut_asserteq(-ENODEV, uclass_first_device_drvdata(UCLASS_TEST_FDT,
+							 DM_TEST_TYPE_COUNT,
+							 &dev));
+
+	return 0;
+}
+DM_TEST(dm_test_uclass_drvdata, DM_TESTF_SCAN_PDATA | DM_TESTF_SCAN_FDT);

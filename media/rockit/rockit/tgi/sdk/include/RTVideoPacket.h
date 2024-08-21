@@ -20,43 +20,43 @@
 #include "RTAVShellBuffer.h"
 
 class RTVideoPacket : public RTAVShellBuffer {
-public:
-  RTVideoPacket();
-  virtual ~RTVideoPacket() = default;
+ public:
+    RTVideoPacket();
+    virtual ~RTVideoPacket() = default;
 
-  virtual RTMediaBufferType getType();
-  virtual void reset();
+    virtual RTMediaBufferType getType();
+    virtual void reset();
 
-  UINT64 getPts() const;
-  UINT64 getDts() const;
-  INT32 getEndOfFrame() const;
-  INT32 getTimeout() const;
-  INT32 getDuration() const;
-  INT32 getSeq() const;
-  INT32 getIsExtraData() const;
+    UINT64    getPts() const;
+    UINT64    getDts() const;
+    INT32     getEndOfFrame() const;
+    INT32     getTimeout() const;
+    INT32     getDuration() const;
+    INT32     getSeq() const;
+    INT32     getIsExtraData() const;
 
-  void setPts(const UINT64 pts);
-  void setDts(const UINT64 dts);
-  void setEndOfFrame(const INT32 endOfFrame);
-  void setTimeout(const INT32 timeout);
-  void setDuration(const INT32 duration);
-  void setSeq(const INT32 seq);
-  void setIsExtraData(const INT32 isExtraData);
+    void  setPts(const UINT64 pts);
+    void  setDts(const UINT64 dts);
+    void  setEndOfFrame(const INT32 endOfFrame);
+    void  setTimeout(const INT32 timeout);
+    void  setDuration(const INT32 duration);
+    void  setSeq(const INT32 seq);
+    void  setIsExtraData(const INT32 isExtraData);
 
-private:
-  void baseInit();
+ private:
+    void baseInit();
 
-private:
-  UINT64 mPts;
-  UINT64 mDts;
-  INT32 mSeq;
-  INT32 mEndOfFrame;
-  INT32 mTimeout;
-  INT32 mDuration;
-  INT32 mIsExtraData;
+ private:
+    UINT64  mPts;
+    UINT64  mDts;
+    INT32   mSeq;
+    INT32   mEndOfFrame;
+    INT32   mTimeout;
+    INT32   mDuration;
+    INT32   mIsExtraData;
 };
 
-RTVideoPacket *reinterpret_vpacket(RTMediaBuffer *buffer);
-RTVideoPacket *construct_vpacket(RTMediaBuffer *buffer);
+RTVideoPacket* reinterpret_vpacket(RTMediaBuffer *buffer);
+RTVideoPacket* construct_vpacket(RTMediaBuffer *buffer);
 
-#endif // SRC_RT_MEDIA_INCLUDE_RTVSTREAMBUFFER_H_
+#endif  // SRC_RT_MEDIA_INCLUDE_RTVSTREAMBUFFER_H_

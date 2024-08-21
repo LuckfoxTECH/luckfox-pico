@@ -1131,6 +1131,9 @@ static ulong rv1106_clk_get_rate(struct clk *clk)
 		rate = rv1106_decom_get_clk(priv);
 		break;
 #endif
+	case TCLK_WDT_NS:
+		rate = OSC_HZ;
+		break;
 	default:
 		return -ENOENT;
 	}

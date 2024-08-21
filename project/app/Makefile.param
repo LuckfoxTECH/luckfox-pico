@@ -23,6 +23,7 @@ endif
 
 ifneq ($(findstring $(RK_TOOLCHAIN_CROSS),aarch64-rockchip1031-linux-gnu \
 	arm-rockchip830-linux-gnueabihf \
+	arm-rockchip1050-linux-uclibcgnueabihf \
 	arm-rockchip830-linux-uclibcgnueabihf),)
 RK_APP_CROSS := $(RK_TOOLCHAIN_CROSS)
 endif
@@ -75,6 +76,12 @@ RK_APP_CROSS_CFLAGS := -mfpu=neon -mfloat-abi=hard
 RK_APP_ARCH_TYPE := arm
 endif
 
+ifeq ($(RK_APP_CROSS),arm-rockchip1050-linux-uclibcgnueabihf)
+RK_APP_LIB_TYPE := uclibc
+RK_APP_CROSS_CFLAGS := -mfpu=neon -mfloat-abi=hard
+RK_APP_ARCH_TYPE := arm
+endif
+
 ifeq ($(RK_APP_CROSS),arm-rockchip830-linux-gnueabihf)
 RK_APP_LIB_TYPE := glibc
 RK_APP_CROSS_CFLAGS := -mfpu=neon -mfloat-abi=hard
@@ -100,6 +107,7 @@ endif
 ################################################################################
 ##   Public function and export
 ################################################################################
+MAKEFLAGS += -j$(RK_APP_JOBS)
 
 #
 # $(1) destination folder

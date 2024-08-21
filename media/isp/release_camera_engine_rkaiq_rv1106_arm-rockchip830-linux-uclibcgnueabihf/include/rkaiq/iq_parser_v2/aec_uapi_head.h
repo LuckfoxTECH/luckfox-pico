@@ -37,30 +37,30 @@ typedef struct Aec_AeRange_uapi_s {
 } Aec_AeRange_uapi_t;
 
 typedef struct Aec_LinAeRange_uapi_s {
-    // M4_STRUCT_DESC("TimeRange", "normal_ui_style")
+    // M4_STRUCT_DESC("Time", "normal_ui_style")
     Aec_AeRange_uapi_t stExpTimeRange;
 
-    // M4_STRUCT_DESC("GainRange", "normal_ui_style")
+    // M4_STRUCT_DESC("Gain", "normal_ui_style")
     Aec_AeRange_uapi_t stGainRange;
 
-    // M4_STRUCT_DESC("IspDGainRange", "normal_ui_style",M4_HIDE(1))
+    // M4_STRUCT_DESC("IspDGain", "normal_ui_style")
     Aec_AeRange_uapi_t stIspDGainRange;
 
-    // M4_STRUCT_DESC("PIrisRange", "normal_ui_style",M4_HIDE(1))
+    // M4_STRUCT_DESC("PIris", "normal_ui_style",M4_HIDE(1))
     Aec_AeRange_uapi_t stPIrisRange;
 } Aec_LinAeRange_uapi_t;
 
 typedef struct Aec_HdrAeRange_uapi_s {
-    // M4_STRUCT_LIST_DESC("TimeRange",  M4_SIZE(1,3), "normal_ui_style")
+    // M4_STRUCT_LIST_DESC("Time",  M4_SIZE(1,3), "normal_ui_style")
     Aec_AeRange_uapi_t stExpTimeRange[3];
 
-    // M4_STRUCT_LIST_DESC("GainRange", M4_SIZE(1,3), "normal_ui_style")
+    // M4_STRUCT_LIST_DESC("Gain", M4_SIZE(1,3), "normal_ui_style")
     Aec_AeRange_uapi_t stGainRange[3];
 
-    // M4_STRUCT_LIST_DESC("IspDGainRange",  M4_SIZE(1,3), "normal_ui_style",M4_HIDE(1))
+    // M4_STRUCT_LIST_DESC("IspDGain",  M4_SIZE(1,3), "normal_ui_style")
     Aec_AeRange_uapi_t stIspDGainRange[3];
 
-    // M4_STRUCT_DESC("PIrisRange", "normal_ui_style",M4_HIDE(1))
+    // M4_STRUCT_DESC("PIris", "normal_ui_style",M4_HIDE(1))
     Aec_AeRange_uapi_t stPIrisRange;
 } Aec_HdrAeRange_uapi_t;
 
@@ -158,7 +158,6 @@ typedef struct uapi_linaeinfo_s {
 
     // M4_STRUCT_DESC("LinearExp", "normal_ui_style")
     RkAiqExpRealParam_t LinearExp;
-
 } uapi_linaeinfo_t;
 
 typedef struct uapi_hdraeinfo_s {
@@ -189,19 +188,22 @@ typedef struct uapi_expinfo_s {
     // M4_BOOL_DESC("IsExpMax", "0")
     bool              IsExpMax;
 
+    // M4_BOOL_DESC("EnvChange", "0",M4_HIDE(1))
+    bool              EnvChange;
+
     // M4_STRUCT_DESC("LinAeInfo", "normal_ui_style")
     uapi_linaeinfo_t  LinAeInfo;
 
     // M4_STRUCT_DESC("HdrAeInfo", "normal_ui_style")
     uapi_hdraeinfo_t  HdrAeInfo;
 
-    // M4_NUMBER_DESC("LinePeriodsPerField", "f32", M4_RANGE(0,65535), "0", M4_DIGIT(2))
+    // M4_NUMBER_DESC("LinePeriodsPerField", "f32", M4_RANGE(0,65535), "0", M4_DIGIT(2),M4_HIDE(1))
     float             LinePeriodsPerField;
 
-    // M4_NUMBER_DESC("PixelPeriodsPerLine", "f32", M4_RANGE(0,65535), "0", M4_DIGIT(2))
+    // M4_NUMBER_DESC("PixelPeriodsPerLine", "f32", M4_RANGE(0,65535), "0", M4_DIGIT(2),M4_HIDE(1))
     float             PixelPeriodsPerLine;
 
-    // M4_NUMBER_DESC("PixelClockFreqMHZ", "f32", M4_RANGE(0,4096), "0", M4_DIGIT(2))
+    // M4_NUMBER_DESC("PixelClockFreqMHZ", "f32", M4_RANGE(0,4096), "0", M4_DIGIT(2),M4_HIDE(1))
     float             PixelClockFreqMHZ;
 
     // M4_NUMBER_DESC("GlobalEnvLv", "f32", M4_RANGE(0,65535), "0", M4_DIGIT(2),M4_HIDE(1))
@@ -215,6 +217,9 @@ typedef struct uapi_expinfo_s {
 
     // M4_NUMBER_DESC("LowLightROIPdf", "f32", M4_RANGE(0,1), "0", M4_DIGIT(2),M4_HIDE(1))
     float             LowLightROIPdf;
+
+    // M4_NUMBER_DESC("Fps", "f32", M4_RANGE(0,4096), "0", M4_DIGIT(2))
+    float             Fps;
 } uapi_expinfo_t;
 
 /*****************************************************************************/

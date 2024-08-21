@@ -56,6 +56,7 @@ include_directories(audio
 link_directories(${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-gnueabihf)
 
 add_definitions(-DISP_HW_V20)
+add_definitions(-DCOMPILE_FOR_RV1126_RKMEDIA)
 add_definitions(-g -ggdb)
 
 add_executable(${PROJECT_NAME} ${SRCS})
@@ -63,7 +64,9 @@ add_executable(${PROJECT_NAME} ${SRCS})
 target_link_libraries(${PROJECT_NAME} pthread easymedia third_media rkaiq rtsp rkmuxer freetype wpa_client m rga rknn_api drm png16 z)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
-install(FILES rkipc.ini DESTINATION share)
+install(FILES rkipc-os04a10.ini DESTINATION share)
+install(FILES rkipc-imx335.ini DESTINATION share)
+install(FILES rkipc-imx415.ini DESTINATION share)
 install(PROGRAMS RkLunch.sh DESTINATION bin )
 install(PROGRAMS RkLunch-stop.sh DESTINATION bin )
 install(FILES ${PROJECT_SOURCE_DIR}/common/osd/image.bmp DESTINATION share)

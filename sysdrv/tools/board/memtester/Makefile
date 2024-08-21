@@ -7,8 +7,8 @@ export LC_ALL=C
 SHELL:=/bin/bash
 
 CURRENT_DIR := $(shell pwd)
-PKG_TARBALL := memtester-4.3.0.tar.gz
-PKG_NAME := memtester-4.3.0
+PKG_TARBALL := memtester-4.6.0.tar.gz
+PKG_NAME := memtester-4.6.0
 PKG_BIN := out
 SED := sed -i -e
 

@@ -16,7 +16,8 @@ ifeq ($(PKG_BIN),)
 $(error ### $(CURRENT_DIR): PKG_BIN is NULL, Please Check !!!)
 endif
 
-all: clean
+all:
+	@rm -rf $(PKG_BIN)
 	@mkdir -p ./$(PKG_BIN)/lib
 	@cp -rfa include ./$(PKG_BIN)
 	@cp -rfa lib/$(RK_APP_CROSS)/* ./$(PKG_BIN)/lib

@@ -50,7 +50,11 @@ static inline void __atbm_queue_lock(struct atbm_queue *queue)
 static inline void __atbm_queue_unlock(struct atbm_queue *queue)
 {
 	struct atbm_queue_stats *stats = queue->stats;
-	BUG_ON(!queue->tx_locked_cnt);
+//	BUG_ON(!queue->tx_locked_cnt);
+	if(!queue->tx_locked_cnt){
+		atbm_printk_err("%s %d ,ERROR !!! queue->tx_locked_cnt is NULL\n",__func__,__LINE__);
+		return;
+	}
 	if (--queue->tx_locked_cnt == 0) {
 		ieee80211_wake_queue(stats->hw_priv->hw, queue->queue_id);
 	}
@@ -62,14 +66,23 @@ static inline void __atbm_queue_lock(struct atbm_queue *queue,u8 if_id)
 	if (queue->tx_locked_cnt[if_id]++ == 0){
 		ieee80211_stop_queue(stats->hw_priv->hw, queue->queue_id+4*if_id);
 	}else{
-		BUG_ON(ieee80211_queue_stopped(stats->hw_priv->hw,queue->queue_id+4*if_id) == 0);
+		
+		if(ieee80211_queue_stopped(stats->hw_priv->hw,queue->queue_id+4*if_id) == 0){
+			atbm_printk_err("%s %d ,ERROR !!! ieee80211_queue_stopped = 0\n",__func__,__LINE__);
+			return;
+		}
 	}
 }
 
 static inline void __atbm_queue_unlock(struct atbm_queue *queue,u8 if_id)
 {
 	struct atbm_queue_stats *stats = queue->stats;
-	BUG_ON(!queue->tx_locked_cnt[if_id]);
+	
+	if(!queue->tx_locked_cnt[if_id]){
+		atbm_printk_err("%s %d ,ERROR !!! queue->tx_locked_cnt[%d] is NULL\n",__func__,__LINE__,if_id);
+		return;
+	}
+	
 	if (--queue->tx_locked_cnt[if_id] == 0){
 		ieee80211_wake_queue(stats->hw_priv->hw, queue->queue_id+4*if_id);
 	}
@@ -123,7 +136,11 @@ static void atbm_queue_register_post_gc(struct list_head *gc_list,
 	struct atbm_queue_item *gc_item;
 	gc_item = atbm_kmalloc(sizeof(struct atbm_queue_item),
 			GFP_ATOMIC);
-	BUG_ON(!gc_item);
+	//BUG_ON(!gc_item);
+	if(!gc_item){
+		atbm_printk_err("%s %d ,ERROR !!! gc_item is NULL\n",__func__,__LINE__);
+		return;
+	}
 	memcpy(gc_item, item, sizeof(struct atbm_queue_item));
 	list_add_tail(&gc_item->head, gc_list);
 }
@@ -216,7 +233,12 @@ static void __atbm_queue_gc(struct atbm_queue *queue,
 		item = list_entry(pos,struct atbm_queue_item, head);
 		txpriv = &item->txpriv;
 		if_id = txpriv->if_id;
-		BUG_ON(++loop > 300);
+		//BUG_ON(++loop > 300);
+		if(++loop > 300){
+			atbm_printk_err("%s %d ,ERROR !!! loop = %d > 300\n",__func__,__LINE__,loop);
+			return;
+		}
+		
 		if(if_id != if_id_clear){
 			item = NULL;
 			continue;
@@ -400,7 +422,13 @@ int atbm_queue_clear(struct atbm_queue *queue, int if_id)
 			cnt++;
 		}
 	}
-	BUG_ON(cnt > queue->num_queued);
+	
+	if(cnt > queue->num_queued){
+		atbm_printk_err("%s %d ,ERROR !!! cnt(%d) > queue->num_queued(%d)\n",
+				__func__,__LINE__,cnt,queue->num_queued);
+		spin_unlock_bh(&queue->lock);
+		return -1;
+	}
 	queue->num_queued -= cnt;
 	
 	if (ATBM_WIFI_ALL_IFS != if_id) {
@@ -574,7 +602,12 @@ int atbm_queue_put(struct atbm_queue *queue,
 	if (!WARN_ON(list_empty(&queue->free_pool))) {
 		struct atbm_queue_item *item = list_first_entry(
 			&queue->free_pool, struct atbm_queue_item, head);
-		BUG_ON(item->skb);
+		//BUG_ON(item->skb);
+		if(item->skb){
+			atbm_printk_err("%s %d ,ERROR !!! item->skb not NULL\n",__func__,__LINE__);
+			spin_unlock_bh(&queue->lock);
+			return -EINVAL;
+		}
 		queue->skb_last = skb;
 
 		list_move_tail(&item->head, &queue->queue);
@@ -704,7 +737,13 @@ int atbm_queue_get(struct atbm_queue *queue,
 		if(queue_generation != (queue->generation&0xF)){
 			item->packetID &= 0x0fffffff;//BIT(28):BIT(31)->0
 			item->packetID |= ((u32)(queue->generation&0xF))<<28;
-			BUG_ON(((item->packetID >> 28) & 0xF) != queue->generation);
+		//	BUG_ON(((item->packetID >> 28) & 0xF) != queue->generation);
+		
+			if(((item->packetID >> 28) & 0xF) != queue->generation){
+				atbm_printk_err("%s %d ,ERROR !!!((item->packetID >> 28) & 0xF) != queue->generation(%d)\n",
+					__func__,__LINE__,queue->generation);
+				return -1;
+			}
 		}
 		(*tx)->packetID = __cpu_to_le32(item->packetID);
 		list_move_tail(&item->head, &queue->pending);
@@ -781,7 +820,12 @@ int atbm_queue_requeue(struct atbm_queue *queue, u32 packetID, bool check)
 	/*if_id = item->txpriv.if_id;*/
 
 	spin_lock_bh(&queue->lock);
-	BUG_ON(queue_id != queue->queue_id);
+//	BUG_ON(queue_id != queue->queue_id);
+	if(queue_id != queue->queue_id){
+		atbm_printk_err("%s %d ,ERROR !!! queue_id != queue->queue_id\n",__func__,__LINE__);
+		spin_unlock_bh(&queue->lock);
+		return -ENOENT;
+	}
 	if (unlikely(queue_generation != queue->generation)) {
 		ret = -ENOENT;
 	} else if (unlikely(item_id >= (unsigned) queue->capacity)) {
@@ -870,7 +914,12 @@ int atbm_queue_remove(struct atbm_queue *queue, u32 packetID)
 	item = &queue->pool[item_id];
 
 	spin_lock_bh(&queue->lock);
-	BUG_ON(queue_id != queue->queue_id);
+
+	if(queue_id != queue->queue_id){
+		atbm_printk_err("%s %d ,ERROR !!! queue_id != queue->queue_id\n",__func__,__LINE__);
+		spin_unlock_bh(&queue->lock);
+		return -ENOENT;
+	}
 	/*TODO:COMBO:Add check for interface ID also */
 	if (unlikely(queue_generation != queue->generation)) {
 		ret = -ENOENT;
@@ -1000,7 +1049,13 @@ int atbm_queue_get_skb(struct atbm_queue *queue, u32 packetID,
 	item = &queue->pool[item_id];
 
 	spin_lock_bh(&queue->lock);
-	BUG_ON(queue_id != queue->queue_id);
+	//BUG_ON(queue_id != queue->queue_id);
+	
+	if(queue_id != queue->queue_id){
+		atbm_printk_err("%s %d ,ERROR !!! queue_id != queue->queue_id\n",__func__,__LINE__);
+		spin_unlock_bh(&queue->lock);
+		return -ENOENT;
+	}
 	/* TODO:COMBO: Add check for interface ID here */
 	if (unlikely(queue_generation != queue->generation)) {
 		ret = -ENOENT;

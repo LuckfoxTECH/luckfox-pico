@@ -81,6 +81,7 @@ enum rkisp_isp_state {
 	ISP_START = BIT(9),
 	ISP_ERROR = BIT(10),
 	ISP_MIPI_ERROR = BIT(11),
+	ISP_CIF_RESET = BIT(12),
 };
 
 enum rkisp_isp_inp {
@@ -101,6 +102,36 @@ enum rkisp_rdbk_filt {
 	RDBK_F_RD1,
 	RDBK_F_RD2,
 	RDBK_F_MAX
+};
+
+/* unite mode for isp to process high resolution
+ * ISP_UNITE_TWO: image splits left and right to two isp hardware
+ * ISP_UNITE_ONE: image splits left and right to single isp hardware
+ */
+enum {
+	ISP_UNITE_NONE = 0,
+	ISP_UNITE_TWO = 1,
+	ISP_UNITE_ONE = 2,
+};
+
+/* image segmentation index
+ * ISP_UNITE_LEFT: left of image, or left top of image
+ * ISP_UNITE_RIGHT: right of image, or right top of image
+ * ISP_UNITE_LEFT_B: left bottom of image
+ * ISP_UNITE_RIGHT_B: right bottom of image
+ */
+enum {
+	ISP_UNITE_LEFT = 0,
+	ISP_UNITE_RIGHT,
+	ISP_UNITE_LEFT_B,
+	ISP_UNITE_RIGHT_B,
+	ISP_UNITE_MAX,
+};
+
+enum {
+	ISP_UNITE_DIV1 = 1,
+	ISP_UNITE_DIV2 = 2,
+	ISP_UNITE_DIV4 = 4,
 };
 
 /*
@@ -216,6 +247,10 @@ struct rkisp_device {
 	size_t resmem_size;
 	struct rkisp_thunderboot_resmem_head tb_head;
 	bool is_thunderboot;
+	/* first frame for rtt */
+	bool is_rtt_first;
+	/* suspend/resume with rtt */
+	bool is_rtt_suspend;
 	struct rkisp_tb_stream_info tb_stream_info;
 	unsigned int tb_addr_idx;
 
@@ -227,7 +262,9 @@ struct rkisp_device {
 	struct rkisp_ispp_buf *cur_fbcgain;
 	struct rkisp_buffer *cur_spbuf;
 
-	struct tasklet_struct rdbk_tasklet;
+	struct completion pm_cmpl;
+
+	struct work_struct rdbk_work;
 	struct kfifo rdbk_kfifo;
 	spinlock_t rdbk_lock;
 	int rdbk_cnt;
@@ -248,10 +285,52 @@ struct rkisp_device {
 	bool is_rdbk_auto;
 	bool is_pre_on;
 	bool is_first_double;
+	bool is_probe_end;
+	bool is_frame_double;
+	bool is_suspend;
+	bool suspend_sync;
+	bool is_suspend_one_frame;
 
 	struct rkisp_vicap_input vicap_in;
 
 	u8 multi_mode;
 	u8 multi_index;
+	u8 rawaf_irq_cnt;
+	u8 unite_index;
+	u8 unite_div;
 };
+
+static inline void
+rkisp_unite_write(struct rkisp_device *dev, u32 reg, u32 val, bool is_direct)
+{
+	int i;
+
+	for (i = 0; i < dev->unite_div; i++)
+		rkisp_idx_write(dev, reg, val, i, is_direct);
+}
+
+static inline void
+rkisp_unite_set_bits(struct rkisp_device *dev, u32 reg, u32 mask,
+		     u32 val, bool is_direct)
+{
+	int i;
+
+	for (i = 0; i < dev->unite_div; i++)
+		rkisp_idx_set_bits(dev, reg, mask, val, i, is_direct);
+}
+
+static inline void
+rkisp_unite_clear_bits(struct rkisp_device *dev, u32 reg, u32 mask,
+		       bool is_direct)
+{
+	int i;
+
+	for (i = 0; i < dev->unite_div; i++)
+		rkisp_idx_clear_bits(dev, reg, mask, i, is_direct);
+}
+
+static inline bool rkisp_link_sensor(u32 isp_inp)
+{
+	return isp_inp & (INP_CSI | INP_DVP | INP_LVDS);
+}
 #endif

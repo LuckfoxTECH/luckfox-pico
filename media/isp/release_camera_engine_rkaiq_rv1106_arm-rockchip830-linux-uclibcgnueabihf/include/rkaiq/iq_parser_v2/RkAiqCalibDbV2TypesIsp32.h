@@ -49,6 +49,7 @@
 #include "sharp_head_v33.h"
 #include "thumbnails_head.h"
 #include "ynr_head_v22.h"
+#include "rkpostisp_head_v1.h"
 
 RKAIQ_BEGIN_DECLARE
 
@@ -84,14 +85,30 @@ typedef struct CamCalibDbV2ContextIsp32_s {
     CalibDbV2_Lut3D_Para_V2_t lut3d_calib;
     // M4_STRUCT_DESC("degamma", "curve_ui_type_A")
     CalibDbV2_Adegmma_t adegamma_calib;
+#if defined(ISP_HW_V32)
     // M4_STRUCT_DESC("agic_calib_v21", "normal_ui_style")
     CalibDbV2_Gic_V21_t agic_calib_v21;
+#endif
+
+#if defined(ISP_HW_V32)
     // M4_STRUCT_DESC("debayer_calib", "normal_ui_style")
     CalibDbV2_Debayer_v2_t debayer_v2;
+#endif
+
+#if defined(ISP_HW_V32_LITE)
+    // M4_STRUCT_DESC("debayer_calib", "normal_ui_style")
+    CalibDbV2_Debayer_v2_lite_t debayer_v2_lite;
+#endif
+
     // M4_STRUCT_DESC("Amerge_calib", "normal_ui_style")
     CalibDbV2_merge_v12_t amerge_calib_v12;
+#if defined(ISP_HW_V32)
     // M4_STRUCT_DESC("Adrc_calib", "normal_ui_style")
     CalibDbV2_drc_V12_t adrc_calib_v12;
+#elif defined(ISP_HW_V32_LITE)
+    // M4_STRUCT_DESC("adrc_calib_v12_lite", "normal_ui_style")
+    CalibDbV2_drc_v12_lite_t adrc_calib_v12_lite;
+#endif
     // M4_STRUCT_DESC("agamma_calib", "normal_ui_style")
     CalibDbV2_gamma_v11_t agamma_calib_v11;
     // M4_STRUCT_DESC("adehaze_calib", "normal_ui_style")
@@ -110,20 +127,39 @@ typedef struct CamCalibDbV2ContextIsp32_s {
     CalibDbV2_ColorAsGrey_t colorAsGrey;
     // M4_STRUCT_DESC("lsc_v2", "normal_ui_style")
     CalibDbV2_LSC_t lsc_v2;
+#if defined(ISP_HW_V32)
     // M4_STRUCT_DESC("bayer2dnr_v23", "normal_ui_style")
     CalibDbV2_Bayer2dnrV23_t bayer2dnr_v23;
     // M4_STRUCT_DESC("bayertnr_v23", "normal_ui_style")
     CalibDbV2_BayerTnrV23_t bayertnr_v23;
+#else
+    // M4_STRUCT_DESC("bayertnr_v23_lite", "normal_ui_style")
+    CalibDbV2_BayerTnrV23Lite_t bayertnr_v23;
+#endif
     // M4_STRUCT_DESC("ynr_v22", "normal_ui_style")
     CalibDbV2_YnrV22_t ynr_v22;
     // M4_STRUCT_DESC("cnr_v30", "normal_ui_style")
     CalibDbV2_CNRV30_t cnr_v30;
+#if defined(ISP_HW_V32)
     // M4_STRUCT_DESC("sharp_v33", "normal_ui_style")
     CalibDbV2_SharpV33_t sharp_v33;
+#else
+    // M4_STRUCT_DESC("sharp_v33_lite", "normal_ui_style")
+    CalibDbV2_SharpV33Lite_t sharp_v33;
+#endif
+    // M4_STRUCT_DESC("ainr_v1", "normal_ui_style")
+    CalibDbV2_PostIspV1_t ainr_v1;
+#if defined(ISP_HW_V32)
     // M4_STRUCT_DESC("cac_v11", "normal_ui_style")
     CalibDbV2_Cac_V11_t cac_v11;
+#endif
     // M4_STRUCT_DESC("af_calib", "normal_ui_style")
+#if defined(ISP_HW_V32)
     CalibDbV2_AFV31_t af_v31;
+#endif
+#if defined(ISP_HW_V32_LITE)
+    CalibDbV2_AFV32_t af_v32;
+#endif
     // M4_STRUCT_DESC("gain_v2", "normal_ui_style")
     CalibDbV2_GainV2_t gain_v2;
     // M4_STRUCT_DESC("csm", "normal_ui_style")

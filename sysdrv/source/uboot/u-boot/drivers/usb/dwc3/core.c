@@ -30,6 +30,7 @@
 #include "io.h"
 
 #include "linux-compat.h"
+#include "rockusb.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -724,6 +725,8 @@ int dwc3_uboot_init(struct dwc3_device *dwc3_dev)
 	 */
 	hird_threshold = 12;
 
+	dwc->check_linksts = true;
+	dwc->ts = get_timer(0);
 	dwc->maximum_speed = dwc3_dev->maximum_speed;
 	dwc->has_lpm_erratum = dwc3_dev->has_lpm_erratum;
 	if (dwc3_dev->lpm_nyet_threshold)
@@ -754,6 +757,9 @@ int dwc3_uboot_init(struct dwc3_device *dwc3_dev)
 	/* default to superspeed if no maximum_speed passed */
 	if (dwc->maximum_speed == USB_SPEED_UNKNOWN)
 		dwc->maximum_speed = USB_SPEED_SUPER;
+	else if (dwc->maximum_speed == USB_SPEED_SUPER &&
+		 rkusb_force_usb2_enabled())
+		dwc->maximum_speed = USB_SPEED_HIGH;
 
 	dwc->lpm_nyet_threshold = lpm_nyet_threshold;
 	dwc->tx_de_emphasis = tx_de_emphasis;

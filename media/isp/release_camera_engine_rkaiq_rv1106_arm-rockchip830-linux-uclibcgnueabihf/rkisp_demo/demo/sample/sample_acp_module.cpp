@@ -69,7 +69,7 @@ static int sample_get_acp_contrast(const rk_aiq_sys_ctx_t* ctx)
 {
     unsigned int level;
     rk_aiq_uapi2_getContrast(ctx, &level);
-    printf("Get ACP Contrast : %d \n", level);
+    printf("Get ACP Contrast : %u \n", level);
     return 0;
 }
 
@@ -83,7 +83,7 @@ static int sample_get_acp_brightness(const rk_aiq_sys_ctx_t* ctx)
 {
     unsigned int level;
     rk_aiq_uapi2_getBrightness(ctx, &level);
-    printf("Get ACP Brightness : %d \n", level);
+    printf("Get ACP Brightness : %u \n", level);
     return 0;
 }
 
@@ -97,7 +97,7 @@ static int sample_get_acp_saturation(const rk_aiq_sys_ctx_t* ctx)
 {
     unsigned int level;
     rk_aiq_uapi2_getSaturation(ctx, &level);
-    printf("Get ACP Saturation : %d \n", level);
+    printf("Get ACP Saturation : %u \n", level);
     return 0;
 }
 
@@ -111,7 +111,7 @@ static int sample_get_acp_hue(const rk_aiq_sys_ctx_t* ctx)
 {
     unsigned int level;
     rk_aiq_uapi2_getHue(ctx, &level);
-    printf("Get ACP Hue : %d \n", level);
+    printf("Get ACP Hue : %u \n", level);
     return 0;
 }
 

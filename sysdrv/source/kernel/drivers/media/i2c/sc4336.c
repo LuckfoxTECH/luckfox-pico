@@ -28,6 +28,8 @@
 #include <media/v4l2-subdev.h>
 #include <linux/pinctrl/consumer.h>
 #include "../platform/rockchip/isp/rkisp_tb_helper.h"
+#include "cam-tb-setup.h"
+#include "cam-sleep-wakeup.h"
 
 #define DRIVER_VERSION			KERNEL_VERSION(0, 0x01, 0x01)
 
@@ -157,6 +159,7 @@ struct sc4336 {
 	u32			cur_vts;
 	bool			is_thunderboot;
 	bool			is_first_streamoff;
+	struct cam_sw_info	*cam_sw_inf;
 };
 
 #define to_sc4336(sd) container_of(sd, struct sc4336, subdev)
@@ -969,6 +972,9 @@ static int __sc4336_power_on(struct sc4336 *sc4336)
 		dev_err(dev, "Failed to enable xvclk\n");
 		return ret;
 	}
+
+	cam_sw_regulator_bulk_init(sc4336->cam_sw_inf, SC4336_NUM_SUPPLIES, sc4336->supplies);
+
 	if (sc4336->is_thunderboot)
 		return 0;
 
@@ -1033,7 +1039,43 @@ static void __sc4336_power_off(struct sc4336 *sc4336)
 	regulator_bulk_disable(SC4336_NUM_SUPPLIES, sc4336->supplies);
 }
 
-static int sc4336_runtime_resume(struct device *dev)
+#if IS_REACHABLE(CONFIG_VIDEO_CAM_SLEEP_WAKEUP)
+static int __maybe_unused sc4336_resume(struct device *dev)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+	struct sc4336 *sc4336 = to_sc4336(sd);
+
+	cam_sw_prepare_wakeup(sc4336->cam_sw_inf, dev);
+
+	usleep_range(4000, 5000);
+	cam_sw_write_array(sc4336->cam_sw_inf);
+
+	if (__v4l2_ctrl_handler_setup(&sc4336->ctrl_handler))
+		dev_err(dev, "__v4l2_ctrl_handler_setup fail!");
+
+	return 0;
+}
+
+static int __maybe_unused sc4336_suspend(struct device *dev)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+	struct sc4336 *sc4336 = to_sc4336(sd);
+
+	cam_sw_write_array_cb_init(sc4336->cam_sw_inf, client,
+				(void *)sc4336->cur_mode->reg_list,
+				(sensor_write_array)sc4336_write_array);
+	cam_sw_prepare_sleep(sc4336->cam_sw_inf);
+
+	return 0;
+}
+#else
+#define sc4336_resume NULL
+#define sc4336_suspend NULL
+#endif
+
+static int __maybe_unused sc4336_runtime_resume(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
@@ -1042,7 +1084,7 @@ static int sc4336_runtime_resume(struct device *dev)
 	return __sc4336_power_on(sc4336);
 }
 
-static int sc4336_runtime_suspend(struct device *dev)
+static int __maybe_unused sc4336_runtime_suspend(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
@@ -1093,6 +1135,7 @@ static int sc4336_enum_frame_interval(struct v4l2_subdev *sd,
 static const struct dev_pm_ops sc4336_pm_ops = {
 	SET_RUNTIME_PM_OPS(sc4336_runtime_suspend,
 			   sc4336_runtime_resume, NULL)
+	SET_LATE_SYSTEM_SLEEP_PM_OPS(sc4336_suspend, sc4336_resume)
 };
 
 #ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
@@ -1199,8 +1242,7 @@ static int sc4336_set_ctrl(struct v4l2_ctrl *ctrl)
 					 (ctrl->val + sc4336->cur_mode->height)
 					 & 0xff);
 		sc4336->cur_vts = ctrl->val + sc4336->cur_mode->height;
-		if (sc4336->cur_vts != sc4336->cur_mode->vts_def)
-			sc4336_modify_fps_info(sc4336);
+		sc4336_modify_fps_info(sc4336);
 		break;
 	case V4L2_CID_TEST_PATTERN:
 		ret = sc4336_enable_test_pattern(sc4336, ctrl->val);
@@ -1451,6 +1493,14 @@ static int sc4336_probe(struct i2c_client *client,
 		goto err_power_off;
 #endif
 
+	if (!sc4336->cam_sw_inf) {
+		sc4336->cam_sw_inf = cam_sw_init();
+		cam_sw_clk_init(sc4336->cam_sw_inf, sc4336->xvclk, SC4336_XVCLK_FREQ);
+		cam_sw_reset_pin_init(sc4336->cam_sw_inf, sc4336->reset_gpio, 0);
+		if (!IS_ERR(sc4336->pwdn_gpio))
+			cam_sw_pwdn_pin_init(sc4336->cam_sw_inf, sc4336->pwdn_gpio, 0);
+	}
+
 	memset(facing, 0, sizeof(facing));
 	if (strcmp(sc4336->module_facing, "back") == 0)
 		facing[0] = 'b';
@@ -1500,6 +1550,8 @@ static int sc4336_remove(struct i2c_client *client)
 #endif
 	v4l2_ctrl_handler_free(&sc4336->ctrl_handler);
 	mutex_destroy(&sc4336->mutex);
+
+	cam_sw_deinit(sc4336->cam_sw_inf);
 
 	pm_runtime_disable(&client->dev);
 	if (!pm_runtime_status_suspended(&client->dev))

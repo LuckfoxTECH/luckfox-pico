@@ -27,7 +27,7 @@
 
 #define HAVE_WINDOW_WIN32 1
 
-#endif // OS_WINDOWS
+#endif  // OS_WINDOWS
 
 /*
  * build configurations for android operation system
@@ -36,6 +36,6 @@
 
 #define HAVE_WINDOW_WIN32 0
 
-#endif // OS_ANDROID
+#endif  // OS_ANDROID
 
-#endif // INCLUDE_RT_BASE_RT_CONFIG_H_
+#endif  // INCLUDE_RT_BASE_RT_CONFIG_H_

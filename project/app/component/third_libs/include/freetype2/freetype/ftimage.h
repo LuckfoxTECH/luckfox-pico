@@ -68,8 +68,8 @@ typedef signed long FT_Pos;
  *     The vertical coordinate.
  */
 typedef struct FT_Vector_ {
-  FT_Pos x;
-  FT_Pos y;
+	FT_Pos x;
+	FT_Pos y;
 
 } FT_Vector;
 
@@ -109,8 +109,8 @@ typedef struct FT_Vector_ {
  *   glyph extends to the left of the origin.
  */
 typedef struct FT_BBox_ {
-  FT_Pos xMin, yMin;
-  FT_Pos xMax, yMax;
+	FT_Pos xMin, yMin;
+	FT_Pos xMax, yMax;
 
 } FT_BBox;
 
@@ -169,16 +169,16 @@ typedef struct FT_BBox_ {
  *     See also @FT_LOAD_COLOR.
  */
 typedef enum FT_Pixel_Mode_ {
-  FT_PIXEL_MODE_NONE = 0,
-  FT_PIXEL_MODE_MONO,
-  FT_PIXEL_MODE_GRAY,
-  FT_PIXEL_MODE_GRAY2,
-  FT_PIXEL_MODE_GRAY4,
-  FT_PIXEL_MODE_LCD,
-  FT_PIXEL_MODE_LCD_V,
-  FT_PIXEL_MODE_BGRA,
+	FT_PIXEL_MODE_NONE = 0,
+	FT_PIXEL_MODE_MONO,
+	FT_PIXEL_MODE_GRAY,
+	FT_PIXEL_MODE_GRAY2,
+	FT_PIXEL_MODE_GRAY4,
+	FT_PIXEL_MODE_LCD,
+	FT_PIXEL_MODE_LCD_V,
+	FT_PIXEL_MODE_BGRA,
 
-  FT_PIXEL_MODE_MAX /* do not remove */
+	FT_PIXEL_MODE_MAX /* do not remove */
 
 } FT_Pixel_Mode;
 
@@ -246,14 +246,14 @@ typedef enum FT_Pixel_Mode_ {
  *     paletted pixel modes.  Not used currently.
  */
 typedef struct FT_Bitmap_ {
-  unsigned int rows;
-  unsigned int width;
-  int pitch;
-  unsigned char *buffer;
-  unsigned short num_grays;
-  unsigned char pixel_mode;
-  unsigned char palette_mode;
-  void *palette;
+	unsigned int rows;
+	unsigned int width;
+	int pitch;
+	unsigned char *buffer;
+	unsigned short num_grays;
+	unsigned char pixel_mode;
+	unsigned char palette_mode;
+	void *palette;
 
 } FT_Bitmap;
 
@@ -319,14 +319,14 @@ typedef struct FT_Bitmap_ {
  *   @FT_OUTLINE_INCLUDE_STUBS in `flags` is then overridden.
  */
 typedef struct FT_Outline_ {
-  short n_contours; /* number of contours in glyph        */
-  short n_points;   /* number of points in the glyph      */
+	short n_contours; /* number of contours in glyph        */
+	short n_points;   /* number of points in the glyph      */
 
-  FT_Vector *points; /* the outline's points               */
-  char *tags;        /* the points flags                   */
-  short *contours;   /* the contour end points             */
+	FT_Vector *points; /* the outline's points               */
+	char *tags;        /* the points flags                   */
+	short *contours;   /* the contour end points             */
 
-  int flags; /* outline masks                      */
+	int flags; /* outline masks                      */
 
 } FT_Outline;
 
@@ -532,8 +532,7 @@ typedef int (*FT_Outline_LineToFunc)(const FT_Vector *to, void *user);
  * @return:
  *   Error code.  0~means success.
  */
-typedef int (*FT_Outline_ConicToFunc)(const FT_Vector *control,
-                                      const FT_Vector *to, void *user);
+typedef int (*FT_Outline_ConicToFunc)(const FT_Vector *control, const FT_Vector *to, void *user);
 
 #define FT_Outline_ConicTo_Func FT_Outline_ConicToFunc
 
@@ -565,8 +564,7 @@ typedef int (*FT_Outline_ConicToFunc)(const FT_Vector *control,
  * @return:
  *   Error code.  0~means success.
  */
-typedef int (*FT_Outline_CubicToFunc)(const FT_Vector *control1,
-                                      const FT_Vector *control2,
+typedef int (*FT_Outline_CubicToFunc)(const FT_Vector *control1, const FT_Vector *control2,
                                       const FT_Vector *to, void *user);
 
 #define FT_Outline_CubicTo_Func FT_Outline_CubicToFunc
@@ -615,13 +613,13 @@ typedef int (*FT_Outline_CubicToFunc)(const FT_Vector *control1,
  *   coordinates.
  */
 typedef struct FT_Outline_Funcs_ {
-  FT_Outline_MoveToFunc move_to;
-  FT_Outline_LineToFunc line_to;
-  FT_Outline_ConicToFunc conic_to;
-  FT_Outline_CubicToFunc cubic_to;
+	FT_Outline_MoveToFunc move_to;
+	FT_Outline_LineToFunc line_to;
+	FT_Outline_ConicToFunc conic_to;
+	FT_Outline_CubicToFunc cubic_to;
 
-  int shift;
-  FT_Pos delta;
+	int shift;
+	FT_Pos delta;
 
 } FT_Outline_Funcs;
 
@@ -651,9 +649,9 @@ typedef struct FT_Outline_Funcs_ {
  *   to get a simple enumeration without assigning special numbers.
  */
 #ifndef FT_IMAGE_TAG
-#define FT_IMAGE_TAG(value, _x1, _x2, _x3, _x4)                                \
-  value = (((unsigned long)_x1 << 24) | ((unsigned long)_x2 << 16) |           \
-           ((unsigned long)_x3 << 8) | (unsigned long)_x4)
+#define FT_IMAGE_TAG(value, _x1, _x2, _x3, _x4)                                                    \
+	value = (((unsigned long)_x1 << 24) | ((unsigned long)_x2 << 16) | ((unsigned long)_x3 << 8) | \
+	         (unsigned long)_x4)
 #endif /* FT_IMAGE_TAG */
 
 /**************************************************************************
@@ -694,12 +692,12 @@ typedef struct FT_Outline_Funcs_ {
  *     but FreeType isn't currently capable of rendering them correctly.
  */
 typedef enum FT_Glyph_Format_ {
-  FT_IMAGE_TAG(FT_GLYPH_FORMAT_NONE, 0, 0, 0, 0),
+	FT_IMAGE_TAG(FT_GLYPH_FORMAT_NONE, 0, 0, 0, 0),
 
-  FT_IMAGE_TAG(FT_GLYPH_FORMAT_COMPOSITE, 'c', 'o', 'm', 'p'),
-  FT_IMAGE_TAG(FT_GLYPH_FORMAT_BITMAP, 'b', 'i', 't', 's'),
-  FT_IMAGE_TAG(FT_GLYPH_FORMAT_OUTLINE, 'o', 'u', 't', 'l'),
-  FT_IMAGE_TAG(FT_GLYPH_FORMAT_PLOTTER, 'p', 'l', 'o', 't')
+	FT_IMAGE_TAG(FT_GLYPH_FORMAT_COMPOSITE, 'c', 'o', 'm', 'p'),
+	FT_IMAGE_TAG(FT_GLYPH_FORMAT_BITMAP, 'b', 'i', 't', 's'),
+	FT_IMAGE_TAG(FT_GLYPH_FORMAT_OUTLINE, 'o', 'u', 't', 'l'),
+	FT_IMAGE_TAG(FT_GLYPH_FORMAT_PLOTTER, 'p', 'l', 'o', 't')
 
 } FT_Glyph_Format;
 
@@ -802,9 +800,9 @@ typedef struct FT_RasterRec_ *FT_Raster;
  *   values, the callback function has to reduce them.
  */
 typedef struct FT_Span_ {
-  short x;
-  unsigned short len;
-  unsigned char coverage;
+	short x;
+	unsigned short len;
+	unsigned char coverage;
 
 } FT_Span;
 
@@ -957,15 +955,15 @@ typedef void (*FT_Raster_BitSet_Func)(int y, int x, void *user);
  *   Not supported by the monochrome rasterizer.
  */
 typedef struct FT_Raster_Params_ {
-  const FT_Bitmap *target;
-  const void *source;
-  int flags;
-  FT_SpanFunc gray_spans;
-  FT_SpanFunc black_spans;         /* unused */
-  FT_Raster_BitTest_Func bit_test; /* unused */
-  FT_Raster_BitSet_Func bit_set;   /* unused */
-  void *user;
-  FT_BBox clip_box;
+	const FT_Bitmap *target;
+	const void *source;
+	int flags;
+	FT_SpanFunc gray_spans;
+	FT_SpanFunc black_spans;         /* unused */
+	FT_Raster_BitTest_Func bit_test; /* unused */
+	FT_Raster_BitSet_Func bit_set;   /* unused */
+	void *user;
+	FT_BBox clip_box;
 
 } FT_Raster_Params;
 
@@ -1068,8 +1066,7 @@ typedef void (*FT_Raster_ResetFunc)(FT_Raster raster, unsigned char *pool_base,
  *   args ::
  *     A pointer to the new mode/property to use.
  */
-typedef int (*FT_Raster_SetModeFunc)(FT_Raster raster, unsigned long mode,
-                                     void *args);
+typedef int (*FT_Raster_SetModeFunc)(FT_Raster raster, unsigned long mode, void *args);
 
 #define FT_Raster_Set_Mode_Func FT_Raster_SetModeFunc
 
@@ -1103,8 +1100,7 @@ typedef int (*FT_Raster_SetModeFunc)(FT_Raster raster, unsigned long mode,
  *   `FT_Err_Unimplemented_Feature` error code if the raster used does not
  *   support direct composition.
  */
-typedef int (*FT_Raster_RenderFunc)(FT_Raster raster,
-                                    const FT_Raster_Params *params);
+typedef int (*FT_Raster_RenderFunc)(FT_Raster raster, const FT_Raster_Params *params);
 
 #define FT_Raster_Render_Func FT_Raster_RenderFunc
 
@@ -1133,13 +1129,13 @@ typedef int (*FT_Raster_RenderFunc)(FT_Raster raster,
  *     The raster destructor.
  */
 typedef struct FT_Raster_Funcs_ {
-  FT_Glyph_Format glyph_format;
+	FT_Glyph_Format glyph_format;
 
-  FT_Raster_NewFunc raster_new;
-  FT_Raster_ResetFunc raster_reset;
-  FT_Raster_SetModeFunc raster_set_mode;
-  FT_Raster_RenderFunc raster_render;
-  FT_Raster_DoneFunc raster_done;
+	FT_Raster_NewFunc raster_new;
+	FT_Raster_ResetFunc raster_reset;
+	FT_Raster_SetModeFunc raster_set_mode;
+	FT_Raster_RenderFunc raster_render;
+	FT_Raster_DoneFunc raster_done;
 
 } FT_Raster_Funcs;
 

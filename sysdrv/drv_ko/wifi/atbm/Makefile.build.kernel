@@ -1,18 +1,16 @@
 #############################################################################
 #               Makefile For Kernel
 ############################################################################
-
-NOSTDINC_FLAGS := -I$(src)/include/ \
-	-include $(src)/include/linux/compat-2.6.h \
+k-dir:=$(if $(filter /%,$(src)),$(src),$(srctree)/$(src))
+NOSTDINC_FLAGS := -I$(k-dir)/include/ \
+	-include $(k-dir)/include/linux/compat-2.6.h \
 	-DCOMPAT_STATIC 
 		
 
 KBUILD_CFLAGS += -Wno-error \
 	-Wno-error=vla \
-	-Wno-error=unused-function -fno-common \
-	-Wno-vla
-
-#-g
+	-Wno-error=unused-function \
+	-Wno-error=discarded-qualifiers
 
 ifneq ($(ATBM_MAKEFILE_SUB),y)
 export
@@ -81,9 +79,9 @@ DEVCTRL        ?= $(CONFIG_ATBM_FUNC_DEV_CTRL_API)
 SMARTCONFIG    ?= $(CONFIG_ATBM_FUNC_SMARTCONFIG)
 CONFIG_ATHENAB ?= $(CONFIG_ATBM601x)$(CONFIG_ATBM602x)
 CONFIG_ARESB   ?= $(CONFIG_ATBM603x)
-#CONFIG_6012B	?= $(CONFIG_ATBM6012B_COMB)
 CONFIG_HERA    ?= $(CONFIG_ATBM6041)
 NEED_SCOND_INTERFACE ?= $(CONFIG_NEED_P2P0_INTERFACE)
+CUSTORMSPECIAL ?= y
 CONFIG_NOT_SUPPORT_40M_CHW ?= $(CONFIG_ATBM601x)
 DRVLOADERFAST  ?= $(CONFIG_ATBM_FUNC_DRV_LOADER_FAST)
 PRI_IE         ?= $(CONFIG_ATBM_FUNC_PRIVE_IE)

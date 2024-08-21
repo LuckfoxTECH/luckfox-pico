@@ -69,9 +69,9 @@ FT_BEGIN_HEADER
  *     The axis's maximum design coordinate.
  */
 typedef struct FT_MM_Axis_ {
-  FT_String *name;
-  FT_Long minimum;
-  FT_Long maximum;
+	FT_String *name;
+	FT_Long minimum;
+	FT_Long maximum;
 
 } FT_MM_Axis;
 
@@ -99,9 +99,9 @@ typedef struct FT_MM_Axis_ {
  *     A table of axis descriptors.
  */
 typedef struct FT_Multi_Master_ {
-  FT_UInt num_axis;
-  FT_UInt num_designs;
-  FT_MM_Axis axis[T1_MAX_MM_AXIS];
+	FT_UInt num_axis;
+	FT_UInt num_designs;
+	FT_MM_Axis axis[T1_MAX_MM_AXIS];
 
 } FT_Multi_Master;
 
@@ -145,14 +145,14 @@ typedef struct FT_Multi_Master_ {
  *   values are integers.
  */
 typedef struct FT_Var_Axis_ {
-  FT_String *name;
+	FT_String *name;
 
-  FT_Fixed minimum;
-  FT_Fixed def;
-  FT_Fixed maximum;
+	FT_Fixed minimum;
+	FT_Fixed def;
+	FT_Fixed maximum;
 
-  FT_ULong tag;
-  FT_UInt strid;
+	FT_ULong tag;
+	FT_UInt strid;
 
 } FT_Var_Axis;
 
@@ -180,9 +180,9 @@ typedef struct FT_Var_Axis_ {
  *     instance.  Value 0xFFFF indicates a missing entry.
  */
 typedef struct FT_Var_Named_Style_ {
-  FT_Fixed *coords;
-  FT_UInt strid;
-  FT_UInt psid; /* since 2.7.1 */
+	FT_Fixed *coords;
+	FT_UInt strid;
+	FT_UInt psid; /* since 2.7.1 */
 
 } FT_Var_Named_Style;
 
@@ -228,11 +228,11 @@ typedef struct FT_Var_Named_Style_ {
  *     internally by FreeType.
  */
 typedef struct FT_MM_Var_ {
-  FT_UInt num_axis;
-  FT_UInt num_designs;
-  FT_UInt num_namedstyles;
-  FT_Var_Axis *axis;
-  FT_Var_Named_Style *namedstyle;
+	FT_UInt num_axis;
+	FT_UInt num_designs;
+	FT_UInt num_namedstyles;
+	FT_Var_Axis *axis;
+	FT_Var_Named_Style *namedstyle;
 
 } FT_MM_Var;
 
@@ -383,8 +383,7 @@ FT_Set_MM_Design_Coordinates(FT_Face face, FT_UInt num_coords, FT_Long *coords);
  *   this bit flag gets unset.
  */
 FT_EXPORT(FT_Error)
-FT_Set_Var_Design_Coordinates(FT_Face face, FT_UInt num_coords,
-                              FT_Fixed *coords);
+FT_Set_Var_Design_Coordinates(FT_Face face, FT_UInt num_coords, FT_Fixed *coords);
 
 /**************************************************************************
  *
@@ -416,8 +415,7 @@ FT_Set_Var_Design_Coordinates(FT_Face face, FT_UInt num_coords,
  *   2.7.1
  */
 FT_EXPORT(FT_Error)
-FT_Get_Var_Design_Coordinates(FT_Face face, FT_UInt num_coords,
-                              FT_Fixed *coords);
+FT_Get_Var_Design_Coordinates(FT_Face face, FT_UInt num_coords, FT_Fixed *coords);
 
 /**************************************************************************
  *
@@ -505,8 +503,7 @@ FT_Get_MM_Blend_Coordinates(FT_Face face, FT_UInt num_coords, FT_Fixed *coords);
  *   This is another name of @FT_Set_MM_Blend_Coordinates.
  */
 FT_EXPORT(FT_Error)
-FT_Set_Var_Blend_Coordinates(FT_Face face, FT_UInt num_coords,
-                             FT_Fixed *coords);
+FT_Set_Var_Blend_Coordinates(FT_Face face, FT_UInt num_coords, FT_Fixed *coords);
 
 /**************************************************************************
  *
@@ -520,8 +517,7 @@ FT_Set_Var_Blend_Coordinates(FT_Face face, FT_UInt num_coords,
  *   2.7.1
  */
 FT_EXPORT(FT_Error)
-FT_Get_Var_Blend_Coordinates(FT_Face face, FT_UInt num_coords,
-                             FT_Fixed *coords);
+FT_Get_Var_Blend_Coordinates(FT_Face face, FT_UInt num_coords, FT_Fixed *coords);
 
 /**************************************************************************
  *

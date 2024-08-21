@@ -188,15 +188,12 @@ typedef struct Abayernr_ProcResult_V2_s {
     int bayernr3DEn;
 
     //for sw simultaion
-    RK_Bayernr_2D_Params_V2_Select_t st2DSelect;
-    RK_Bayernr_3D_Params_V2_Select_t st3DSelect;
+    //RK_Bayernr_2D_Params_V2_Select_t st2DSelect;
+    //RK_Bayernr_3D_Params_V2_Select_t st3DSelect;
 
     //for hw register
-    RK_Bayernr_2D_Fix_V2_t st2DFix;
-    RK_Bayernr_3D_Fix_V2_t st3DFix;
-
-    bool isNeedUpdate;
-
+    RK_Bayernr_2D_Fix_V2_t* st2DFix;
+    RK_Bayernr_3D_Fix_V2_t* st3DFix;
 } Abayernr_ProcResult_V2_t;
 
 

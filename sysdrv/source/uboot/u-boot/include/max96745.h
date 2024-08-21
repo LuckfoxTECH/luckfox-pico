@@ -17,6 +17,21 @@
 #define RESET_ALL		BIT(7)
 #define SLEEP			BIT(3)
 
+/* 0011h */
+#define CXTP_B			BIT(2)
+#define CXTP_A			BIT(0)
+
+/* 0028h, 0032h */
+#define LINK_EN			BIT(7)
+#define TX_RATE			GENMASK(3, 2)
+
+/* 0029h, 0033h */
+#define RESET_LINK		BIT(0)
+#define RESET_ONESHOT		BIT(1)
+
+/* 002Ah, 0034h */
+#define LINK_LOCKED		BIT(0)
+
 /* 0076h, 0086h */
 #define DIS_REM_CC		BIT(7)
 

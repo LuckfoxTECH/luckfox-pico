@@ -1,0 +1,38 @@
+menuconfig RT_USING_OTA
+    bool
+    prompt "Enable Ota upgrade"
+    default n
+    select RT_USING_RESET
+    select RT_USING_FWANALYSIS
+    help
+        Select this option to enable firmware ota upgrade
+
+if RT_USING_OTA
+
+    menu "OTA Component Options"
+        config RT_USING_OTA_RECOVERY
+            bool
+            prompt "Enable ota upgrade in recovery mode"
+            default n
+
+        choice
+            prompt "OTA upgrade from where"
+            default RT_USING_OTA_FROM_LOCAL
+
+            config RT_USING_OTA_FROM_LOCAL
+                bool "local"
+            config RT_USING_OTA_FROM_HTTP
+                bool "http"
+
+            config RT_OTA_HTTP_URL
+                string "Url of firmware from http server" if RT_USING_OTA_FROM_HTTP
+
+        endchoice
+        config RT_SUPPORT_ROOT_AB
+            bool
+            depends on !RT_USING_OTA_RECOVERY
+            prompt "Enable support root A/B partition"
+            default n
+    endmenu
+
+endif

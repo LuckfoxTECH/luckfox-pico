@@ -1,0 +1,13 @@
+menu "RT-Thread board config"
+
+config RT_BOARD_NAME
+    string "the board name of you use"
+    default "rv1106_evb-SC3338-ADC"
+
+config RT_USING_CAM_STREAM_ON_LATE
+    bool "cam stream on delay after ae init"
+    default y
+
+source "$BSP_DIR/board/$RT_BOARD_NAME/Kconfig"
+
+endmenu

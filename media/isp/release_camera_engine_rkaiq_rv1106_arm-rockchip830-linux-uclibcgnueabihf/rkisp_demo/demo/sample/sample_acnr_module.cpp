@@ -165,42 +165,42 @@ XCamReturn sample_acnr_setAuto_v30(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode
     cnr_attr.eMode = ACNRV30_OP_MODE_AUTO;
 
 
-    int enable;
+    // int enable;
 
-    int down_scale_x;
-    int down_scale_y;
+    // int down_scale_x;
+    // int down_scale_y;
 
-    float thumb_sigma;
-    float thumb_bf_ratio;
+    // float thumb_sigma;
+    // float thumb_bf_ratio;
 
-    float chroma_filter_strength;
-    float chroma_filter_wgt_clip;
-    float anti_chroma_ghost;
-    float chroma_filter_uv_gain;
-    float wgt_slope;
+    // float chroma_filter_strength;
+    // float chroma_filter_wgt_clip;
+    // float anti_chroma_ghost;
+    // float chroma_filter_uv_gain;
+    // float wgt_slope;
 
-    float gaus_ratio;
+    // float gaus_ratio;
 
-    float bf_sigmaR;
-    float bf_uvgain;
-    float bf_ratio;
-    float hbf_wgt_clip;
-    float bf_wgt0_sel;
-    float global_alpha;
+    // float bf_sigmaR;
+    // float bf_uvgain;
+    // float bf_ratio;
+    // float hbf_wgt_clip;
+    // float bf_wgt0_sel;
+    // float global_alpha;
 
-    float saturation_adj_offset;
-    float saturation_adj_ratio;
+    // float saturation_adj_offset;
+    // float saturation_adj_ratio;
 
-    float global_gain;
-    float global_gain_alpha;
-    float local_gain_scale;
-    float global_gain_thumb;
-    float global_gain_alpha_thumb;
+    // float global_gain;
+    // float global_gain_alpha;
+    // float local_gain_scale;
+    // float global_gain_thumb;
+    // float global_gain_alpha_thumb;
 
-    float gain_adj_strength_ratio[13];
+    // float gain_adj_strength_ratio[13];
 
-    float thumb_filter_wgt_coeff[4];
-    float gaus_coeff[6];
+    // float thumb_filter_wgt_coeff[4];
+    // float gaus_coeff[6];
 
 
     for(int i = 0; i < RK_CNR_V30_MAX_ISO_NUM; i++) {
@@ -684,7 +684,7 @@ XCamReturn sample_acnr_module (const void *arg)
     }
 
     rk_aiq_cnr_attrib_v30_t default_cnrV30_attr;
-    if (CHECK_ISP_HW_V32()) {
+    if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
         ret = rk_aiq_user_api2_acnrV30_GetAttrib(ctx, &default_cnrV30_attr);
         printf("get acnr v2 default attri ret:%d \n\n", ret);
     }
@@ -702,7 +702,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_getAtrr_v2(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_getAtrr_v30(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
@@ -710,7 +710,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_getStrength_v2(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_getStrength_v30(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
@@ -718,7 +718,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_setAuto_v2(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_setAuto_v30(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
@@ -726,7 +726,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_setManual_v2(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_setManual_v30(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
@@ -734,7 +734,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_setReg_v2(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_setReg_v30(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
@@ -742,7 +742,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_SYNC, 1.0);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_setStrength_v30(ctx, RK_AIQ_UAPI_MODE_SYNC, 1.0);
             }
             break;
@@ -750,7 +750,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_SYNC, 0.0);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_setStrength_v30(ctx, RK_AIQ_UAPI_MODE_SYNC, 0.0);
             }
             break;
@@ -758,7 +758,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_SYNC, 0.5);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_setStrength_v30(ctx, RK_AIQ_UAPI_MODE_SYNC, 0.5);
             }
             break;
@@ -766,7 +766,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_setDefault_v2(ctx, RK_AIQ_UAPI_MODE_SYNC, default_cnrV2_attr);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_setDefault_v30(ctx, RK_AIQ_UAPI_MODE_SYNC, default_cnrV30_attr);
             }
             break;
@@ -774,7 +774,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_getAtrr_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_getAtrr_v30(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
             break;
@@ -782,7 +782,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_getStrength_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_getStrength_v30(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
             break;
@@ -790,7 +790,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_setAuto_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_setAuto_v30(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
             break;
@@ -798,7 +798,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_setManual_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_setManual_v30(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
             break;
@@ -806,7 +806,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_setReg_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_setReg_v30(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
             break;
@@ -814,7 +814,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC, 1.0);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_setStrength_v30(ctx, RK_AIQ_UAPI_MODE_ASYNC, 1.0);
             }
             break;
@@ -822,7 +822,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC, 0.0);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_setStrength_v30(ctx, RK_AIQ_UAPI_MODE_ASYNC, 0.0);
             }
             break;
@@ -830,7 +830,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC, 0.5);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_setStrength_v30(ctx, RK_AIQ_UAPI_MODE_ASYNC, 0.5);
             }
             break;
@@ -838,7 +838,7 @@ XCamReturn sample_acnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_acnr_setDefault_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC, default_cnrV2_attr);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_acnr_setDefault_v30(ctx, RK_AIQ_UAPI_MODE_ASYNC, default_cnrV30_attr);
             }
             break;

@@ -85,6 +85,7 @@ typedef struct rkIVE_LK_OPTICAL_FLOW_CTRL_S {
     IVE_U0Q8 u0q8MinEigThr; /*Minimum eigenvalue threshold*/
     RK_U8 u8IterCnt;           /*Maximum iteration times, <=20*/
     IVE_U0Q11 u0q11Eps;     /*Used for exit criteria: dx^2 + dy^2 < u0q11Eps */
+    IVE_MEM_INFO_S stMem;
 } IVE_LK_OPTICAL_FLOW_CTRL_S;
 
 /*
@@ -793,6 +794,16 @@ typedef struct rkIVE_ST_CORNER_CTRL_S {
 } IVE_ST_CORNER_CTRL_S;
 
 /*
+ *Shi-Tomasi sorted control parameters
+ */
+typedef struct rkIVE_ST_CORNER_SORTED_CTRL_S {
+    IVE_MEM_INFO_S stMem;
+    RK_U8 u0q8QualityLevel;
+    RK_U16 u16MaxCornerNum;
+    RK_U16 u16MinDist;
+} IVE_ST_CORNER_SORTED_CTRL_S;
+
+/*
  *Shi-Tomasi control parameters
  */
 typedef struct rkIVE_STCORNER_STEPS_CTRL_S {
@@ -976,6 +987,11 @@ typedef struct rkIVE_WARP_AFFINE_CTRL_S {
     IVE_MEM_INFO_S stMem;
     RK_FLOAT stAffineMat[6];
 } IVE_WARP_AFFINE_CTRL_S;
+
+typedef struct rkIVE_WARP_PERSPECTIVE_CTRL_S {
+    IVE_MEM_INFO_S stMem;
+    RK_FLOAT stPerspectiveMat[9];
+} IVE_WARP_PERSPECTIVE_CTRL_S;
 
 typedef struct rkIVE_PYRAMID_CTRL_S {
     IVE_MEM_INFO_S stPyramidMem;

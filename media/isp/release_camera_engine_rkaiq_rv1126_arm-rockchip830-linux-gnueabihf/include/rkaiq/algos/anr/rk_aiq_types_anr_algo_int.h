@@ -505,21 +505,123 @@ typedef struct RKAnr_Mfnr_Dynamic_s {
     int mfnr_enable_state;
 } RKAnr_Mfnr_Dynamic_t;
 
+typedef struct rk_aiq_bayernr_manual_IQPara_s {
+
+    int enable;
+
+    float filtPara;
+    float luLevelVal[8];
+    float luRatio[8];
+    float fixW[4];
+    float lamda;
+    unsigned char gauss_en;
+    float RGainOff;
+    float RGainFilp;
+    float BGainOff;
+    float BGainFilp;
+    float edgeSoftness;
+
+    float gaussWeight0;
+    float gaussWeight1;
+    float bilEdgeFilter;
+    float bilFilterStreng;
+    float bilEdgeSoft;
+    float bilEdgeSoftRatio;
+    float bilRegWgt;
+}rk_aiq_bayernr_manual_IQPara_t;
+
+typedef struct rk_aiq_mfnr_manual_IQPara_s {
+
+    int enable;
+    unsigned char local_gain_en;
+    unsigned char back_ref_num;
+    unsigned char motion_detect_en;
+    struct CalibDb_MFNR_ISO_s       mfnr_iso;
+    CalibDb_MFNR_Motion_Manual_t    motion;
+
+}rk_aiq_mfnr_manual_IQPara_t;
+
+typedef struct rk_aiq_ynr_manual_IQPara_s {
+    int  enable;
+    char version[64];
+    CalibDb_YNR_ISO_t stYnrPara;
+
+}rk_aiq_ynr_manual_IQPara_t;
+
+typedef struct rk_aiq_uvnr_manual_IQPara_s {
+
+    int   enbale;
+    float step0_uvgrad_ratio;
+    float step0_uvgrad_offset;
+    float step1_nonMed1[4];
+    float step1_nonBf1[4];
+    float step1_downSample_w;
+    float step1_downSample_h;
+    float step1_downSample_meansize;
+    float step1_median_ratio;
+    float step1_median_size;
+    float step1_median_IIR;
+    float step1_bf_sigmaR;
+    float step1_bf_uvgain;
+    float step1_bf_ratio;
+    float step1_bf_size;
+    float step1_bf_sigmaD;
+    float step1_bf_isRowIIR;
+    float step1_bf_isYcopy;
+    float step2_nonExt_block[4];
+    float step2_nonMed[4];
+    float step2_nonBf[4];
+    float step2_downSample_w;
+    float step2_downSample_h;
+    float step2_downSample_meansize;
+    float step2_median_ratio;
+    float step2_median_size;
+    float step2_median_IIR;
+    float step2_bf_sigmaR;
+    float step2_bf_uvgain;
+    float step2_bf_ratio;
+    float step2_bf_size;
+    float step2_bf_sigmaD;
+    float step2_bf_isRowIIR;
+    float step2_bf_isYcopy;
+    float step3_nonBf3[4];
+    float step3_bf_sigmaR;
+    float step3_bf_uvgain;
+    float step3_bf_ratio;
+    float step3_bf_size;
+    float step3_bf_sigmaD;
+    float step3_bf_isRowIIR;
+    float step3_bf_isYcopy;
+    float kernel_3x3[3];
+    float kernel_5x5[5];
+    float kernel_9x9[8];
+    float kernel_9x9_num;
+    float sigma_adj_luma[9];
+    float sigma_adj_ratio[9];
+    float threshold_adj_luma[9];
+    float threshold_adj_thre[9];
+
+}rk_aiq_uvnr_manual_IQPara_t;
+
 typedef struct ANR_Manual_Attr_s
 {
     int bayernrEn;
+    rk_aiq_bayernr_manual_IQPara_t stBayernrParam;
     RKAnr_Bayernr_Params_Select_t stBayernrParamSelect;
 
     int mfnrEn;
+    rk_aiq_mfnr_manual_IQPara_t stMfnrParam;
     RKAnr_Mfnr_Params_Select_t stMfnrParamSelect;
 
     int ynrEn;
+    rk_aiq_ynr_manual_IQPara_t stYnrParam;
     RKAnr_Ynr_Params_Select_t stYnrParamSelect;
 
     int uvnrEn;
+    rk_aiq_uvnr_manual_IQPara_t stUvnrParam;
     RKAnr_Uvnr_Params_Select_t stUvnrParamSelect;
 
-
+    CalibDb_MFNR_Motion_Manual_t  stMfnr_Motion;
 } ANR_Manual_Attr_t;
 
 typedef struct ANR_Auto_Attr_s
@@ -550,10 +652,18 @@ typedef struct ANR_Auto_Attr_s
 
 } ANR_Auto_Attr_t;
 
+typedef struct ANRMotionParam_Manual_s {
+    bool manualMOdeEnable;
+    CalibDb_MFNR_Motion_Manual_t  stMotion;
+    float gain_ratio;
+    double noise_curve[6];
+} ANRMotionParam_Manual_t;
+
 typedef struct ANRMotionParam_s {
     CalibDb_MFNR_Motion_V2_t  stMotion;
     float gain_ratio;
     double noise_curve[CALIBDB_NR_SHARP_MAX_ISO_LEVEL][6];
+    ANRMotionParam_Manual_t stMotionParamManual;
 } ANRMotionParam_t;
 
 typedef struct ANRProcResult_s {

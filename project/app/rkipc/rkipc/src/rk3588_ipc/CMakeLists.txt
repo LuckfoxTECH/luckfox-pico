@@ -18,13 +18,15 @@ include_directories(${PROJECT_SOURCE_DIR}/include
 					)
 
 aux_source_directory(./ SRCS)
-aux_source_directory(audio SRCS)
+
 aux_source_directory(video SRCS)
-aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rk3588 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/ SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/audio/rk3588 SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rk3588 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/socket_server SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/param SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/system SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/rtsp SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/rtmp SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/osd SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/osd/freetype2 SRCS)
@@ -35,9 +37,9 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/common/event SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/rockiva SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/region_clip SRCS)
 
-include_directories(audio
-					video
+include_directories(video
 					${PROJECT_SOURCE_DIR}/common
+					${PROJECT_SOURCE_DIR}/common/audio/rk3588
 					${PROJECT_SOURCE_DIR}/common/isp/rk3588
 					${PROJECT_SOURCE_DIR}/common/socket_server
 					${PROJECT_SOURCE_DIR}/common/rtsp

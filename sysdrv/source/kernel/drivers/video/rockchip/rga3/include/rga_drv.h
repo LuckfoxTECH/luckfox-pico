@@ -16,6 +16,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/err.h>
 #include <linux/fb.h>
+#include <linux/fdtable.h>
 #include <linux/fs.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
@@ -48,7 +49,6 @@
 
 #include <linux/iommu.h>
 #include <linux/iova.h>
-#include <linux/dma-iommu.h>
 #include <linux/pagemap.h>
 
 #ifdef CONFIG_DMABUF_CACHE
@@ -86,8 +86,8 @@
 #define STR(x) STR_HELPER(x)
 
 #define DRIVER_MAJOR_VERISON		1
-#define DRIVER_MINOR_VERSION		2
-#define DRIVER_REVISION_VERSION		23
+#define DRIVER_MINOR_VERSION		3
+#define DRIVER_REVISION_VERSION		1
 #define DRIVER_PATCH_VERSION
 
 #define DRIVER_VERSION (STR(DRIVER_MAJOR_VERISON) "." STR(DRIVER_MINOR_VERSION) \
@@ -97,7 +97,7 @@
 #define RGA_JOB_TIMEOUT_DELAY		HZ
 #define RGA_RESET_TIMEOUT			1000
 
-#define RGA_MAX_SCHEDULER	3
+#define RGA_MAX_SCHEDULER	RGA_HW_SIZE
 #define RGA_MAX_BUS_CLK		10
 
 #define RGA_BUFFER_POOL_MAX_SIZE	64
@@ -272,6 +272,7 @@ struct rga_job {
 	struct rga_req rga_command_base;
 	uint32_t cmd_reg[32 * 8];
 	struct rga_full_csc full_csc;
+	struct rga_csc_clip full_csc_clip;
 	struct rga_pre_intr_info pre_intr_info;
 
 	struct rga_job_buffer src_buffer;
@@ -319,18 +320,10 @@ struct rga_timer {
 	u32 busy_time_record;
 };
 
-struct rga_grf_info {
-	uint32_t offset;
-	uint32_t open_val;
-	uint32_t close_val;
-	struct regmap *grf;
-};
-
 struct rga_scheduler_t {
 	struct device *dev;
 	void __iomem *rga_base;
 	struct rga_iommu_info *iommu_info;
-	struct rga_grf_info grf_info;
 
 	struct clk *clks[RGA_MAX_BUS_CLK];
 	int num_clks;
@@ -387,6 +380,7 @@ struct rga_request {
 	 */
 	struct mm_struct *current_mm;
 
+	struct rga_feature feature;
 	/* TODO: add some common work */
 };
 

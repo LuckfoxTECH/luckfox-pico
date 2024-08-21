@@ -86,7 +86,8 @@ static int rockchip_wdt_start(struct udevice *dev, u64 timeout, ulong flags)
 
 	printf("Rockchip watchdog timeout: %lld sec\n", timeout / 1000);
 
-	reset_deassert(&priv->rst);
+	if (priv->rst.dev)
+		reset_deassert(&priv->rst);
 
 	rockchip_wdt_reset(dev);
 	rockchip_wdt_settimeout(timeout, priv);
@@ -100,8 +101,10 @@ static int rockchip_wdt_stop(struct udevice *dev)
 {
 	struct rockchip_wdt_priv *priv = dev_get_priv(dev);
 
-	reset_assert(&priv->rst);
-	reset_deassert(&priv->rst);
+	if (priv->rst.dev) {
+		reset_assert(&priv->rst);
+		reset_deassert(&priv->rst);
+	}
 
 	printf("Rockchip watchdog stop\n");
 
@@ -133,7 +136,7 @@ static int rockchip_wdt_probe(struct udevice *dev)
 	ret = reset_get_by_name(dev, "reset", &priv->rst);
 	if (ret) {
 		pr_err("reset_get_by_name(reset) failed: %d\n", ret);
-		return ret;
+		priv->rst.dev = NULL;
 	}
 
 	ret = clk_get_by_index(dev, 0, &priv->clk);

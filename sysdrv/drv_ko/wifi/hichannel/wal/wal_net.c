@@ -48,10 +48,12 @@ static const oal_iw_handler g_ast_iw_priv_handlers[] = {
 };
 
 oal_iw_handler_def_stru g_iw_handler_def = {
+#ifdef CONFIG_WEXT_PRIV
     .private                = g_ast_iw_priv_handlers,
     .num_private            = hi_array_size(g_ast_iw_priv_handlers),
     .private_args           = g_ast_iw_priv_args,
     .num_private_args       = hi_array_size(g_ast_iw_priv_args),
+#endif
     .get_wireless_stats     = HI_NULL
 };
 
@@ -269,7 +271,9 @@ hi_s32 wal_rx_data_proc(oal_netbuf_stru *netbuf)
 
 hi_s32 wal_init_netdev(hi_u8 type, oal_net_device_stru *netdev)
 {
+#ifdef CONFIG_WEXT_PRIV
     netdev->wireless_handlers = wal_get_g_iw_handler_def();
+#endif
     netdev->netdev_ops        = wal_get_net_dev_ops();
 
     oal_netdevice_destructor(netdev)      = wal_net_free_netdev;

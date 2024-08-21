@@ -24,51 +24,53 @@
 
 RKAIQ_BEGIN_DECLARE
 
-typedef enum EnableAlgoType_e {
-    ENABLE_AE = 0x0,
-    ENABLE_AWB,
-    ENABLE_AF,
-    ENABLE_ABLC,
-    ENABLE_ADPCC,
-    ENABLE_AMERGE,
-    ENABLE_ATMO,
-    ENABLE_ANR,
-    ENABLE_ALSC,
-    ENABLE_AGIC,
-    ENABLE_ADEBAYER,
-    ENABLE_ACCM,
-    ENABLE_AGAMMA,
-    ENABLE_AWDR,
-    ENABLE_ADHAZ,
-    ENABLE_A3DLUT,
-    ENABLE_ALDCH,
-    ENABLE_AR2Y,
-    ENABLE_ACP,
-    ENABLE_AIE,
-    ENABLE_ASHARP,
-    ENABLE_AORB,
-    ENABLE_ACGC,
-    ENABLE_ASD,
-    ENABLE_ADRC,
-    ENABLE_ADEGAMMA,
+typedef enum DisableAlgoType_e {
+    DISABLE_AE = 0x0,
+    DISABLE_AWB,
+    DISABLE_AF,
+    DISABLE_ABLC,
+    DISABLE_ADPCC,
+    DISABLE_AMERGE,
+    DISABLE_ATMO,
+    DISABLE_ANR,
+    DISABLE_ALSC,
+    DISABLE_AGIC,
+    DISABLE_ADEBAYER,
+    DISABLE_ACCM,
+    DISABLE_AGAMMA,
+    DISABLE_AWDR,
+    DISABLE_ADHAZ,
+    DISABLE_A3DLUT,
+    DISABLE_ALDCH,
+    DISABLE_ACSM,
+    DISABLE_ACP,
+    DISABLE_AIE,
+    DISABLE_ASHARP,
+    DISABLE_AORB,
+    DISABLE_ACGC,
+    DISABLE_ASD,
+    DISABLE_ADRC,
+    DISABLE_ADEGAMMA,
 
-    ENABLE_ARAWNR,
-    ENABLE_AMFNR,
-    ENABLE_AYNR,
-    ENABLE_ACNR,
-    ENABLE_AEIS,
-    ENABLE_AFEC,
-    ENABLE_AMD,
-    ENABLE_AGAIN
-} EnableAlgoType_t;
+    DISABLE_ARAWNR,
+    DISABLE_AMFNR,
+    DISABLE_AYNR,
+    DISABLE_ACNR,
+    DISABLE_AEIS,
+    DISABLE_AFEC,
+    DISABLE_AMD,
+    DISABLE_AGAIN,
+    DISABLE_ACAC,
+    DISABLE_AFD
+} DisableAlgoType_t;
 
 typedef struct CalibDb_AlgoSwitch_s {
     // M4_BOOL_DESC("enable", "0")
     bool                enable;
 
-    // M4_STRING_DESC("EnableAlgos", M4_SIZE(1,1), M4_RANGE(0, 32), "ENABLE_AE", M4_DYNAMIC(1))
-    EnableAlgoType_t*   enable_algos;
-    int16_t             enable_algos_len;
+    // M4_STRING_DESC("DisableAlgos", M4_SIZE(1,1), M4_RANGE(0, 32), "DISABLE_AF", M4_DYNAMIC(1))
+    DisableAlgoType_t*   disable_algos;
+    int16_t             disable_algos_len;
 } CalibDb_AlgoSwitch_t;
 
 typedef struct CalibDb_SysStaticCfg_ParaV2_s {

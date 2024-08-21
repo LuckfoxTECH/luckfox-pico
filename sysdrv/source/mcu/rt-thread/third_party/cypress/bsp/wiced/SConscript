@@ -1,0 +1,81 @@
+import rtconfig
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+if os.getenv('WIFI_DIR'):
+        print("use env settings (WIFI)")
+        CYWLAN_ROOT_DIR=os.getenv('WIFI_DIR')
+else:
+        CYWLAN_ROOT_DIR=cwd + r'/../../release/WIFI/'
+
+def prefix_path(fileList, prefix):
+    for idx in range(len(fileList)):
+        fileList[idx] = prefix+fileList[idx]
+
+
+
+OSAPI_SRCS = [
+        r'wiced_rtos.c'
+]
+
+CYLWLAN_INCLUDES = [        
+                        r'include',
+                        r'wiced',
+                        r'wiced/wwd',
+                        r'wiced/internal',
+                        r'wiced/wwd/include',
+                        r'wiced/wwd/include/network',
+                        r'wiced/wwd/include/RTOS',
+                        r'wiced/wwd/include/platform',
+                        r'wiced/wwd/internal',
+                        r'wiced/wwd/internal/chips/43438',
+                        r'wiced/wwd/internal/bus_protocols',
+                        r'wiced/wwd/internal/bus_protocols/SDIO',
+                        r'wiced/network/Lwip/wwd',
+                        r'wiced/network/Lwip/wiced',
+                        r'wiced/rtos',
+                        r'wiced/rtos/RTthread/include',
+                        r'wiced/rtos/RTthread/WICED',
+                        r'wiced/rtos/RTthread/WICED/WWD',
+                        r'wiced/rtos/RTthread/WICED/WWD/CM3_CM4',
+                        r'wiced/platform/include',
+                        r'wiced/platform/mcu',
+                        r'wiced/platform/mcu/GCC',
+                        r'wiced/platform/mcu/rk2108/peripherals',
+                        r'wiced/platform/ARM_CM4',
+                        r'libraries/utilities/TLV',
+                        r'libraries/utilities/wifi',
+                        r'wiced/security/besl/include',
+                        r'platforms/BCM943438WCD1',
+                        r'resources/firmware/43438',
+#####mfg###
+                        r'libraries/test/wl_tool/43438/wl/exe',
+                        r'libraries/test/wl_tool/43438/wl/ppr/include',
+                        r'libraries/test/wl_tool/43438/include',
+                        r'libraries/test/wl_tool/43438/shared/bcmwifi/include',
+                        r'libraries/test/wl_tool/43438/common/include',
+#####
+]
+
+prefix_path(CYLWLAN_INCLUDES, CYWLAN_ROOT_DIR)
+
+RT_ROOT_DIR = cwd + r'/../../../'
+RT_LWIP_INCLUDES = [
+	cwd + r'/../bt/wiced_rtt_inc'
+]
+
+WICED_INCLUDES = ['.'] + CYLWLAN_INCLUDES + RT_LWIP_INCLUDES + [cwd]
+
+print(WICED_INCLUDES)
+
+if GetDepend(['RT_CYPRESS_WIFI_SPI']):
+    LIBS = ['bt_gcc','btlog_gcc', 'cywlan_spi_gcc']
+else:
+    LIBS = ['bt_gcc','btlog_gcc', 'cywlan_gcc']
+
+LIBPATH = CYWLAN_ROOT_DIR + r'/../CYLIB/'
+
+osapi = DefineGroup('osapi', OSAPI_SRCS, depend = ['RT_USING_CYPRESS'], CPPPATH=WICED_INCLUDES, LIBS=LIBS, LIBPATH=LIBPATH) 
+Return('osapi')

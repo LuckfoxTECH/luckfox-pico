@@ -1,0 +1,161 @@
+{
+  "skv_configs": {
+    "aec": {
+      "status" : "enable",
+      "drop_ref_channel" : 0,
+      "model_aec_en" : "disable",
+      "delay_len": 0,
+      "look_ahead": 0,
+      "filter_len": 2
+    },
+    "delay": {
+      "status" : "disable",
+      "MaxFrame" : 32,
+      "LeastDelay" : 0,
+      "JumpFrame" : 12,
+      "DelayOffset" : 1,
+      "MicAmpThr" : 50,
+      "RefAmpThr" : 50,
+      "StartFreq" : 700,
+      "EndFreq" : 4000,
+      "SmoothFactor": "float:0.97"
+    },
+    "bf": {
+      "status" : "enable",
+      "targ": 4,
+      "drop_ref_channel" : 0
+    },
+    "fast_aec": {
+      "status" : "disable"
+    },
+    "aes": {
+      "status": "enable",
+      "beta_up": "float:0.002",
+      "beta_down": "float:0.001",
+      "beta_up_low": "float:0.005",
+      "beta_down_low": "float:0.001",
+      "low_freq": 500,
+      "high_freq": 3750,
+      "thd_flag": 0,
+      "hard_flag": 0,
+      "LimitRatio_0": "2.0  1.5  1.0",
+      "LimitRatio_1": "1.5  1.2  1.0",
+      "ThdSplitFreq_0": "0  0",
+      "ThdSplitFreq_1": "1500 2000",
+      "ThdSplitFreq_2": "2000 6000",
+      "ThdSplitFreq_3": "6000 8000",
+      "ThdSupDegree_0": "0.01    0.01    0.005   0.005   0       0       0       0       0       0",
+      "ThdSupDegree_1": "0.0005  0.0005  0.0005  0       0       0       0       0       0       0",
+      "ThdSupDegree_2": "0.001   0.001   0.001   0.001   0.001   0.001   0       0       0       0",
+      "ThdSupDegree_3": "0.001   0.001   0.001   0.001   0.001   0.001   0       0       0       0",
+      "HardSplitFreq_0": "100  500",
+      "HardSplitFreq_1": "0  0",
+      "HardSplitFreq_2": "0  0",
+      "HardSplitFreq_3": "0  0",
+      "HardSplitFreq_4": "500  3000",
+      "HardThreshold": "0.35  0.15  0.35  0.15"
+    },
+    "gsc": {
+      "status" : "disable",
+      "method" : 0
+    },
+    "agc": {
+      "status" : "enable",
+      "attack_time"  : "float:100.0",
+      "release_time" : "float:200.0",
+      "attenuate_time" : "float:1000",
+      "max_gain": "float:18.0",
+      "max_peak": "float:-1.0",
+      "fRth0": "float:-90",
+      "fRth1": "float:-88",
+      "fRth2": "float:-28",
+      "fRk0" : "float:2.0",
+      "fRk1" : "float:0.8",
+      "fRk2" : "float:0.4",
+      "fLineGainDb" : "float:-25.0",
+      "swSmL0" : 40,
+      "swSmL1" : 80,
+      "swSmL2" : 80
+    },
+    "anr": {
+      "status" : "enable",
+      "noiseFactor": "float:-3588.0",
+      "swU": 8,
+      "psiMin": "float:0.02",
+      "psiMax": "float:0.516",
+      "fGmin": "float:0.05",
+      "Sup_Freq1": -3588,
+      "Sup_Freq2": -3588,
+      "Sup_Energy1" : "float:100000.0",
+      "Sup_Energy2" : "float:100000.0",
+      "InterV" : 8,
+      "BiasMin" : "float:1.67",
+      "UpdateFrm":15,
+      "NPreGammaThr" : "float:4.6",
+      "NPreZetaThr" : "float:1.67",
+      "SabsGammaThr0" : "float:1.0",
+      "SabsGammaThr1" : "float:3.0",
+      "InfSmooth" : "float:0.8",
+      "ProbSmooth" : "float:0.7",
+      "CompCoeff" : "float:1.4",
+      "PrioriMin" : "float:0.0316",
+      "PostMax" : "float:40.0",
+      "PrioriRatio":"float:0.95",
+      "PrioriRatioLow" : "float:0.95",
+      "SplitBand" : 20,
+      "PrioriSmooth": "float:0.7",
+      "TranMode": 0
+    },
+    "nlp": {
+      "status" : "disable",
+      "band_pass_thd"  : "10,10,10,5,5,5,0,0",
+      "super_est_factor" : "6,10,10,10,10,10,6,6"
+    },
+    "dereverb": {
+      "status" : "disable",
+      "rlsLg"  :4,
+      "curveLg": 20,
+      "delay"  : 2,
+      "forgetting"  : "float:0.98",
+      "t60": "float:0.4",
+      "coCoeff" : "float:1"
+    },
+    "cng": {
+      "status" : "disable",
+      "fGain": "float:2.0",
+      "fMpy": "float:5",
+      "fSmoothAlpha": "float:0.99",
+      "fSpeechGain": "float:0.01"
+    },
+    "dtd": {
+      "status" : "disable",
+      "ksiThd_high": "float:0.7",
+      "ksiThd_low": "float:0.5"
+    },
+    "howl": {
+      "status" : "disable",
+      "mode" : 5
+    },
+    "doa": {
+      "status" : "disable",
+      "rad" : "float:0.0585",
+      "start_freq" : 800,
+      "end_freq" : 1600,
+      "lg_num" : 40,
+      "lg_pitch_num" : 1
+    },
+    "wind": {
+      "status": "disable"
+    },
+    "wakeup": {
+      "status" : "disable",
+      "wakeup_words" : 1,
+      "mode" : 2,
+      "model_word2" : "/oem/usr/share/vqefiles/rkaudio_model_mode2_word2.rknn"
+    },
+    "ainr": {
+      "status": "enable",
+      "model_path": "/oem/usr/share/vqefiles/rkaudio_model_ainr.rknn"
+    }
+  }
+}

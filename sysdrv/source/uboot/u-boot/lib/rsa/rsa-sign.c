@@ -610,7 +610,7 @@ int rsa_get_params(RSA *key, uint64_t *exponent, uint32_t *n0_invp,
 		   BIGNUM **modulusp, BIGNUM **exponent_BN, BIGNUM **r_squaredp,
 		   BIGNUM **c_factorp, BIGNUM **np_factorp)
 {
-	BIGNUM *big1, *big2, *big32, *big2_32, *big4100, *big2180;
+	BIGNUM *big1, *big2, *big32, *big2_32, *big4100, *big2180, *big4228;
 	BIGNUM *n, *e, *r, *r_squared, *tmp, *c_factor, *np_factor;
 	const BIGNUM *key_n, *key_e;
 	BN_CTX *bn_ctx = BN_CTX_new();
@@ -622,6 +622,7 @@ int rsa_get_params(RSA *key, uint64_t *exponent, uint32_t *n0_invp,
 	big32 = BN_new();
 	big4100 = BN_new();
 	big2180 = BN_new();
+	big4228 = BN_new();
 
 	r = BN_new();
 	r_squared = BN_new();
@@ -631,7 +632,7 @@ int rsa_get_params(RSA *key, uint64_t *exponent, uint32_t *n0_invp,
 	big2_32 = BN_new();
 	n = BN_new();
 	e = BN_new();
-	if (!big1 || !big2 || !big32 || !big4100 || !big2180 || !r ||
+	if (!big1 || !big2 || !big32 || !big4100 || !big2180 || !big4228 || !r ||
 	    !r_squared || !tmp || !big2_32 || !n || !e ||
 	    !c_factor || !np_factor) {
 		fprintf(stderr, "Out of memory (bignum)\n");
@@ -645,7 +646,8 @@ int rsa_get_params(RSA *key, uint64_t *exponent, uint32_t *n0_invp,
 	if (!BN_copy(n, key_n) || !BN_copy(e, key_e) ||
 	    !BN_set_word(big1, 1L) ||
 	    !BN_set_word(big2, 2L) || !BN_set_word(big32, 32L) ||
-	    !BN_set_word(big4100, 4100L) || !BN_set_word(big2180, 2180L))
+	    !BN_set_word(big4100, 4100L) || !BN_set_word(big2180, 2180L) ||
+	    !BN_set_word(big4228, 4228L))
 		ret = -1;
 
 	/* big2_32 = 2^32 */
@@ -675,9 +677,15 @@ int rsa_get_params(RSA *key, uint64_t *exponent, uint32_t *n0_invp,
 		ret = -1;
 
 	/* Calculate np_factor = 2^2180 div n */
-	if (!BN_exp(tmp, big2, big2180, bn_ctx) ||
-	    !BN_div(np_factor, NULL, tmp, n, bn_ctx))
-		ret = -1;
+	if (BN_num_bits(n) == 2048) {
+		if (!BN_exp(tmp, big2, big2180, bn_ctx) ||
+		    !BN_div(np_factor, NULL, tmp, n, bn_ctx))
+			ret = -1;
+	} else {/* Calculate 4096 np_factor = 2^4228 div n */
+		if (!BN_exp(tmp, big2, big4228, bn_ctx) ||
+		    !BN_div(np_factor, NULL, tmp, n, bn_ctx))
+			ret = -1;
+	}
 
 	*modulusp = n;
 	*exponent_BN = e;
@@ -690,6 +698,7 @@ int rsa_get_params(RSA *key, uint64_t *exponent, uint32_t *n0_invp,
 	BN_free(big32);
 	BN_free(big4100);
 	BN_free(big2180);
+	BN_free(big4228);
 	BN_free(r);
 	BN_free(tmp);
 	BN_free(big2_32);

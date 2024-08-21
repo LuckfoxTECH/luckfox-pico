@@ -19,7 +19,7 @@ void *malloc_simple(size_t bytes)
 	void *ptr;
 
 	new_ptr = gd->malloc_ptr + bytes;
-	debug("%s: size=%zx, ptr=%lx, limit=%lx: ", __func__, bytes, new_ptr,
+	debug("%s: size=0x%lx, ptr=0x%lx, limit=0x%lx: ", __func__, (unsigned long)bytes, new_ptr,
 	      gd->malloc_limit);
 	if (new_ptr > gd->malloc_limit) {
 		debug("space exhausted\n");
@@ -27,7 +27,7 @@ void *malloc_simple(size_t bytes)
 	}
 	ptr = map_sysmem(gd->malloc_base + gd->malloc_ptr, bytes);
 	gd->malloc_ptr = ALIGN(new_ptr, sizeof(new_ptr));
-	debug("%lx\n", (ulong)ptr);
+	debug("0x%lx\n", (ulong)ptr);
 
 	return ptr;
 }

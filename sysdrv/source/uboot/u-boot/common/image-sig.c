@@ -439,7 +439,7 @@ int fit_config_check_sig(const void *fit, int noffset, int required_keynode,
 #if !defined(USE_HOSTCC)
 #if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_FIT_HW_CRYPTO) && \
     defined(CONFIG_SPL_ROCKCHIP_SECURE_OTP)
-	rsa_burn_key_hash(&info);
+	return rsa_burn_key_hash(&info);
 #endif
 #endif
 

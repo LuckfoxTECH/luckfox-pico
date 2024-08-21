@@ -56,8 +56,22 @@ XCamReturn
 rk_aiq_user_api_anr_SetMfnrIQPara(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_mfnr_IQPara_t *para);
 XCamReturn
 rk_aiq_user_api_anr_GetMfnrIQPara(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_mfnr_IQPara_t *para);
-
-
+XCamReturn
+rk_aiq_user_api_anr_SetManualBayernrIQPara(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_bayernr_manual_IQPara_t *para);
+XCamReturn
+rk_aiq_user_api_anr_SetManualMfnrIQPara(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_mfnr_manual_IQPara_t *para);
+XCamReturn
+rk_aiq_user_api_anr_SetManualYnrIQPara(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_ynr_manual_IQPara_t *para);
+XCamReturn
+rk_aiq_user_api_anr_SetManualUvnrIQPara(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_uvnr_manual_IQPara_t *para);
+XCamReturn
+rk_aiq_user_api_anr_GetManualBayernrIQPara(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_bayernr_manual_IQPara_t *para);
+XCamReturn
+rk_aiq_user_api_anr_GetManualMfnrIQPara(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_mfnr_manual_IQPara_t *para);
+XCamReturn
+rk_aiq_user_api_anr_GetManualYnrIQPara(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_ynr_manual_IQPara_t *para);
+XCamReturn
+rk_aiq_user_api_anr_GetManualUvnrIQPara(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_uvnr_manual_IQPara_t *para);
 
 
 RKAIQ_END_DECLARE

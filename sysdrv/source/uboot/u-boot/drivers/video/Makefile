@@ -5,6 +5,7 @@
 # SPDX-License-Identifier:	GPL-2.0+
 #
 
+ifndef CONFIG_SPL_BUILD
 ifdef CONFIG_DM
 obj-$(CONFIG_DISPLAY) += display-uclass.o
 obj-$(CONFIG_DM_VIDEO) += backlight-uclass.o
@@ -56,8 +57,11 @@ obj-$(CONFIG_VIDEO_DW_HDMI) += dw_hdmi.o
 obj-${CONFIG_VIDEO_TEGRA124} += tegra124/
 obj-${CONFIG_EXYNOS_FB} += exynos/
 obj-${CONFIG_VIDEO_ROCKCHIP} += rockchip/
-obj-${CONFIG_DRM_ROCKCHIP} += drm/
 obj-${CONFIG_ROCKCHIP_EINK} += rk_eink/
 
 obj-y += bridge/
 obj-y += sunxi/
+endif
+
+obj-${CONFIG_DRM_ROCKCHIP} += drm/
+

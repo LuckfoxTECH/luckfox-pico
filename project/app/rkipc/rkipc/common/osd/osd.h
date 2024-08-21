@@ -22,10 +22,11 @@ void rk_osd_bmp_change_callback_register(rk_osd_bmp_change_callback callback_ptr
 int rk_osd_init();
 int rk_osd_deinit();
 int rk_osd_restart();
+int rk_osd_bmp_change(int osd_id);
 
 int fill_image(osd_data_s *data);
 int fill_text(osd_data_s *data);
-int generate_date_time(const char *fmt, wchar_t *result, int r_size);
+int generate_date_time(const char *fmt, wchar_t *result);
 
 // osd.common
 int rk_osd_get_is_presistent_text(int *value);

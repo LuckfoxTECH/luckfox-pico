@@ -44,7 +44,6 @@ int wsm_release_vif_tx_buffer(struct atbm_common *hw_priv, int if_id,
 	if (WARN_ON(hw_priv->hw_bufs_used_vif[if_id] < 0)){
 		atbm_printk_err( "%s:[%d][%d]\n",__func__,if_id,hw_priv->hw_bufs_used_vif[if_id]);
 		hw_priv->hw_bufs_used_vif[if_id] = 0;
-		//BUG_ON(1);
 		//ret = -1;
 	}
 
@@ -70,7 +69,6 @@ int wsm_release_vif_tx_buffer_Nolock(struct atbm_common *hw_priv, int if_id,
 	if (WARN_ON(hw_priv->hw_bufs_used_vif[if_id] < 0)){
 		atbm_printk_err( "%s:[%d][%d]\n",__func__,if_id,hw_priv->hw_bufs_used_vif[if_id]);
 		hw_priv->hw_bufs_used_vif[if_id] =0;
-		//BUG_ON(1);
 		//ret = -1;
 	}
 
@@ -190,8 +188,12 @@ void atbm_xmit_linearize(struct atbm_common	*hw_priv,
 			break;
 		}
 
-		BUG_ON((void *)skb->data != (void *)wsm);
-
+		//BUG_ON((void *)skb->data != (void *)wsm);
+		if((void *)skb->data != (void *)wsm){
+			atbm_printk_err("%s %d ,ERROR !!! skb->data=%p != (void *)wsm=%p\n",
+					__func__,__LINE__,skb->data,wsm);
+			break;
+		}
 		if(!skb_is_nonlinear(skb)){
 			break;
 		}
@@ -401,10 +403,17 @@ int atbm_rx_bh_flush(struct atbm_common *hw_priv)
 }
 void atbm_bh_halt(struct atbm_common *hw_priv)
 {
+#ifdef SDIO_BUS
+	if (hw_priv->sdio_status == 1 && atomic_add_return(1, &hw_priv->bh_halt) == 1){
+		atomic_set(&hw_priv->atbm_pluged,0);
+		wake_up(&hw_priv->bh_wq);
+	}
+#else
 	if (atomic_add_return(1, &hw_priv->bh_halt) == 1){
 		atomic_set(&hw_priv->atbm_pluged,0);
 		wake_up(&hw_priv->bh_wq);
 	}
+#endif 
 #if 0	
 	spin_lock_bh(&hw_priv->wsm_cmd.lock);
 	if(hw_priv->wsm_cmd.ptr == NULL){

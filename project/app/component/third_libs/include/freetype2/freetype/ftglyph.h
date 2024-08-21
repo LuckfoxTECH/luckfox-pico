@@ -103,10 +103,10 @@ typedef struct FT_GlyphRec_ *FT_Glyph;
  *     A 16.16 vector that gives the glyph's advance width.
  */
 typedef struct FT_GlyphRec_ {
-  FT_Library library;
-  const FT_Glyph_Class *clazz;
-  FT_Glyph_Format format;
-  FT_Vector advance;
+	FT_Library library;
+	const FT_Glyph_Class *clazz;
+	FT_Glyph_Format format;
+	FT_Vector advance;
 
 } FT_GlyphRec;
 
@@ -155,10 +155,10 @@ typedef struct FT_BitmapGlyphRec_ *FT_BitmapGlyph;
  *   is thus created and destroyed with it.
  */
 typedef struct FT_BitmapGlyphRec_ {
-  FT_GlyphRec root;
-  FT_Int left;
-  FT_Int top;
-  FT_Bitmap bitmap;
+	FT_GlyphRec root;
+	FT_Int left;
+	FT_Int top;
+	FT_Bitmap bitmap;
 
 } FT_BitmapGlyphRec;
 
@@ -202,8 +202,8 @@ typedef struct FT_OutlineGlyphRec_ *FT_OutlineGlyph;
  *   with it.
  */
 typedef struct FT_OutlineGlyphRec_ {
-  FT_GlyphRec root;
-  FT_Outline outline;
+	FT_GlyphRec root;
+	FT_Outline outline;
 
 } FT_OutlineGlyphRec;
 
@@ -342,11 +342,11 @@ FT_Glyph_Transform(FT_Glyph glyph, FT_Matrix *matrix, FT_Vector *delta);
  *     Return grid-fitted pixel coordinates.
  */
 typedef enum FT_Glyph_BBox_Mode_ {
-  FT_GLYPH_BBOX_UNSCALED = 0,
-  FT_GLYPH_BBOX_SUBPIXELS = 0,
-  FT_GLYPH_BBOX_GRIDFIT = 1,
-  FT_GLYPH_BBOX_TRUNCATE = 2,
-  FT_GLYPH_BBOX_PIXELS = 3
+	FT_GLYPH_BBOX_UNSCALED = 0,
+	FT_GLYPH_BBOX_SUBPIXELS = 0,
+	FT_GLYPH_BBOX_GRIDFIT = 1,
+	FT_GLYPH_BBOX_TRUNCATE = 2,
+	FT_GLYPH_BBOX_PIXELS = 3
 
 } FT_Glyph_BBox_Mode;
 
@@ -538,8 +538,8 @@ FT_Glyph_Get_CBox(FT_Glyph glyph, FT_UInt bbox_mode, FT_BBox *acbox);
  *   ```
  */
 FT_EXPORT(FT_Error)
-FT_Glyph_To_Bitmap(FT_Glyph *the_glyph, FT_Render_Mode render_mode,
-                   FT_Vector *origin, FT_Bool destroy);
+FT_Glyph_To_Bitmap(FT_Glyph *the_glyph, FT_Render_Mode render_mode, FT_Vector *origin,
+                   FT_Bool destroy);
 
 /**************************************************************************
  *

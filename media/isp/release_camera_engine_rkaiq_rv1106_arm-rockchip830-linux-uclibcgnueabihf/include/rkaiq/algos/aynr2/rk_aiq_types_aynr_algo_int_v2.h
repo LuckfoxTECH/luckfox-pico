@@ -158,13 +158,10 @@ typedef struct Aynr_ProcResult_V2_s {
     int ynrEn;
 
     //for sw simultaion
-    RK_YNR_Params_V2_Select_t stSelect;
+    //RK_YNR_Params_V2_Select_t stSelect;
 
     //for hw register
-    RK_YNR_Fix_V2_t stFix;
-
-    bool isNeedUpdate;
-
+    RK_YNR_Fix_V2_t* stFix;
 } Aynr_ProcResult_V2_t;
 
 

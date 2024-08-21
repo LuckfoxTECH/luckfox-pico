@@ -10,22 +10,20 @@
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * in the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
  *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
+ * The above copyright notice and this permission notice (including the next paragraph)
+ * shall be included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+ * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+ * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
 
@@ -58,20 +56,17 @@ extern "C" {
 #define LV_GPU_NXP_PXP_IRQ_ID PXP_IRQn
 
 #ifndef LV_GPU_NXP_PXP_BLIT_SIZE_LIMIT
-/** Minimum area (in pixels) for image copy with 100% opacity to be handled by
- * PXP*/
+/** Minimum area (in pixels) for image copy with 100% opacity to be handled by PXP*/
 #define LV_GPU_NXP_PXP_BLIT_SIZE_LIMIT 32
 #endif
 
 #ifndef LV_GPU_NXP_PXP_BLIT_OPA_SIZE_LIMIT
-/** Minimum area (in pixels) for image copy with transparency to be handled by
- * PXP*/
+/** Minimum area (in pixels) for image copy with transparency to be handled by PXP*/
 #define LV_GPU_NXP_PXP_BLIT_OPA_SIZE_LIMIT 16
 #endif
 
 #ifndef LV_GPU_NXP_PXP_BUFF_SYNC_BLIT_SIZE_LIMIT
-/** Minimum invalidated area (in pixels) to be synchronized by PXP during buffer
- * sync */
+/** Minimum invalidated area (in pixels) to be synchronized by PXP during buffer sync */
 #define LV_GPU_NXP_PXP_BUFF_SYNC_BLIT_SIZE_LIMIT 32
 #endif
 
@@ -93,14 +88,14 @@ extern "C" {
  * interrupt init/wait/deinit.
  */
 typedef struct {
-  /** Callback for PXP interrupt initialization*/
-  lv_res_t (*pxp_interrupt_init)(void);
+    /** Callback for PXP interrupt initialization*/
+    lv_res_t (*pxp_interrupt_init)(void);
 
-  /** Callback for PXP interrupt de-initialization*/
-  void (*pxp_interrupt_deinit)(void);
+    /** Callback for PXP interrupt de-initialization*/
+    void (*pxp_interrupt_deinit)(void);
 
-  /** Callback that should start PXP and wait for operation complete*/
-  void (*pxp_run)(void);
+    /** Callback that should start PXP and wait for operation complete*/
+    void (*pxp_run)(void);
 } lv_nxp_pxp_cfg_t;
 
 /**********************
@@ -119,10 +114,9 @@ typedef struct {
  * Reset and initialize PXP device. This function should be called as a part
  * of display init sequence.
  *
- * @return LV_RES_OK: PXP init ok; LV_RES_INV: init error. See error log for
- * more information.
+ * @return LV_RES_OK: PXP init ok; LV_RES_INV: init error. See error log for more information.
  */
-lv_res_t lv_gpu_nxp_pxp_init(lv_nxp_pxp_cfg_t *cfg);
+lv_res_t lv_gpu_nxp_pxp_init(lv_nxp_pxp_cfg_t * cfg);
 
 /**
  * Disable PXP device. Should be called during display deinit sequence.
@@ -138,20 +132,16 @@ void lv_gpu_nxp_pxp_deinit(void);
  * @param[in] color color
  * @param[in] opa transparency of the color
  */
-void lv_gpu_nxp_pxp_fill(lv_color_t *dest_buf, lv_coord_t dest_width,
-                         const lv_area_t *fill_area, lv_color_t color,
+void lv_gpu_nxp_pxp_fill(lv_color_t * dest_buf, lv_coord_t dest_width, const lv_area_t * fill_area, lv_color_t color,
                          lv_opa_t opa);
 
 /**
- * @brief BLock Image Transfer - copy rectangular image from src buffer to dst
- * buffer with effects.
+ * @brief BLock Image Transfer - copy rectangular image from src buffer to dst buffer with effects.
  *
- * By default, image is copied directly, with optional opacity configured by \p
- * opa. Color keying can be enabled by calling lv_gpu_nxp_pxp_enable_color_key()
- * before calling this function. Recoloring can be enabled by calling
- * lv_gpu_nxp_pxp_enable_recolor() before calling this function. Note that color
- * keying and recoloring at the same time is not supported and black rectangle
- * is rendered.
+ * By default, image is copied directly, with optional opacity configured by \p opa.
+ * Color keying can be enabled by calling lv_gpu_nxp_pxp_enable_color_key() before calling this function.
+ * Recoloring can be enabled by calling lv_gpu_nxp_pxp_enable_recolor() before calling this function.
+ * Note that color keying and recoloring at the same time is not supported and black rectangle is rendered.
  *
  * @param[in/out] dest destination buffer
  * @param[in] dest_width width (stride) of destination buffer in pixels
@@ -161,10 +151,8 @@ void lv_gpu_nxp_pxp_fill(lv_color_t *dest_buf, lv_coord_t dest_width,
  * @param[in] copy_h height of area to be copied from src to dest
  * @param[in] opa opacity of the result
  */
-void lv_gpu_nxp_pxp_blit(lv_color_t *dest, lv_coord_t dest_width,
-                         const lv_color_t *src, lv_coord_t src_width,
-                         lv_coord_t copy_width, lv_coord_t copy_height,
-                         lv_opa_t opa);
+void lv_gpu_nxp_pxp_blit(lv_color_t * dest, lv_coord_t dest_width, const lv_color_t * src, lv_coord_t src_width,
+                         lv_coord_t copy_width, lv_coord_t copy_height, lv_opa_t opa);
 
 /**
  * @brief Enable color keying for subsequent calls to lv_gpu_nxp_pxp_blit()

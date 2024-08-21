@@ -716,21 +716,21 @@ write_jpeg_header:
 	.section	.rodata
 	.align	2
 	.set	.LANCHOR0,. + 0
-	.type	__FUNCTION__.8468, %object
-	.size	__FUNCTION__.8468, 16
-__FUNCTION__.8468:
+	.type	__FUNCTION__.8518, %object
+	.size	__FUNCTION__.8518, 16
+__FUNCTION__.8518:
 	.ascii	"jpege_bits_init\000"
-	.type	__FUNCTION__.8472, %object
-	.size	__FUNCTION__.8472, 18
-__FUNCTION__.8472:
+	.type	__FUNCTION__.8522, %object
+	.size	__FUNCTION__.8522, 18
+__FUNCTION__.8522:
 	.ascii	"jpege_bits_deinit\000"
-	.type	__FUNCTION__.8488, %object
-	.size	__FUNCTION__.8488, 15
-__FUNCTION__.8488:
+	.type	__FUNCTION__.8538, %object
+	.size	__FUNCTION__.8538, 15
+__FUNCTION__.8538:
 	.ascii	"jpege_bits_put\000"
-	.type	__FUNCTION__.8503, %object
-	.size	__FUNCTION__.8503, 16
-__FUNCTION__.8503:
+	.type	__FUNCTION__.8553, %object
+	.size	__FUNCTION__.8553, 16
+__FUNCTION__.8553:
 	.ascii	"jpege_seek_bits\000"
 	.type	qtable_y, %object
 	.size	qtable_y, 704

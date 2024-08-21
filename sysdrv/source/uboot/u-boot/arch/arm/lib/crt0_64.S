@@ -66,42 +66,6 @@
  */
 
 ENTRY(_main)
-	/*
-	 * Enable instruction cache (if required), stack pointer,
-	 * data access alignment checks and SError.
-	 */
-#ifdef CONFIG_SPL_BUILD
-	mov x1, #CR_I
-#else
-	mov x1, #0
-#endif
-	switch_el x2, 3f, 2f, 1f
-3:	mrs	x0, sctlr_el3
-	orr	x0, x0, x1
-	msr	sctlr_el3, x0
-#ifndef CONFIG_SUPPORT_USBPLUG
-	msr	daifclr, #4			/* Enable SError. SCR_EL3.EA=1 was already set in start.S */
-#endif
-	b	0f
-2:	mrs	x0, sctlr_el2
-	orr	x0, x0, x1
-	msr	sctlr_el2, x0
-
-	mrs	x0, hcr_el2
-	orr	x0, x0, #HCR_EL2_TGE
-	orr	x0, x0, #HCR_EL2_AMO
-#if CONFIG_IS_ENABLED(IRQ)
-	orr	x0, x0, #HCR_EL2_IMO
-#endif
-	msr	hcr_el2, x0
-	msr	daifclr, #4
-	b	0f
-1:	mrs	x0, sctlr_el1
-	orr	x0, x0, x1
-	msr	sctlr_el1, x0
-	msr	daifclr, #4
-0:
-	isb
 
 /*
  * Set up initial C runtime environment and call board_init_f(0).

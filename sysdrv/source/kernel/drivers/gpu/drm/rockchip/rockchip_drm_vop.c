@@ -186,15 +186,6 @@ struct vop_plane_state {
 	struct vop_dump_list *planlist;
 };
 
-struct rockchip_mcu_timing {
-	int mcu_pix_total;
-	int mcu_cs_pst;
-	int mcu_cs_pend;
-	int mcu_rw_pst;
-	int mcu_rw_pend;
-	int mcu_hold_mode;
-};
-
 struct vop_win {
 	struct vop_win *parent;
 	struct drm_plane base;
@@ -667,6 +658,19 @@ static bool is_uv_swap(uint32_t bus_format, uint32_t output_mode)
 	      bus_format == MEDIA_BUS_FMT_YUV10_1X30) &&
 	     (output_mode == ROCKCHIP_OUT_MODE_AAAA ||
 	      output_mode == ROCKCHIP_OUT_MODE_P888)))
+		return true;
+	else
+		return false;
+}
+
+static bool is_rb_swap(uint32_t bus_format, uint32_t output_mode)
+{
+	/*
+	 * The default component order of serial rgb3x8 formats
+	 * is BGR. So it is needed to enable RB swap.
+	 */
+	if (bus_format == MEDIA_BUS_FMT_RGB888_3X8 ||
+	    bus_format == MEDIA_BUS_FMT_RGB888_DUMMY_4X8)
 		return true;
 	else
 		return false;
@@ -3065,8 +3069,8 @@ static bool vop_crtc_mode_fixup(struct drm_crtc *crtc,
 {
 	struct vop *vop = to_vop(crtc);
 	const struct vop_data *vop_data = vop->data;
-	struct rockchip_crtc_state *s =
-			to_rockchip_crtc_state(crtc->state);
+	struct drm_crtc_state *new_crtc_state = container_of(mode, struct drm_crtc_state, mode);
+	struct rockchip_crtc_state *s = to_rockchip_crtc_state(new_crtc_state);
 
 	if (mode->hdisplay > vop_data->max_output.width)
 		return false;
@@ -3081,6 +3085,10 @@ static bool vop_crtc_mode_fixup(struct drm_crtc *crtc,
 	    (VOP_MAJOR(vop->version) == 2 && VOP_MINOR(vop->version) >= 12 &&
 	     s->output_if & VOP_OUTPUT_IF_BT656))
 		adj_mode->crtc_clock *= 2;
+
+	if (vop->mcu_timing.mcu_pix_total)
+		adj_mode->crtc_clock *= rockchip_drm_get_cycles_per_pixel(s->bus_format) *
+					(vop->mcu_timing.mcu_pix_total + 1);
 
 	adj_mode->crtc_clock =
 		DIV_ROUND_UP(clk_round_rate(vop->dclk, adj_mode->crtc_clock * 1000),
@@ -3153,8 +3161,9 @@ static void vop_update_csc(struct drm_crtc *crtc)
 	     s->output_if & VOP_OUTPUT_IF_BT656))
 		s->output_mode = ROCKCHIP_OUT_MODE_P888;
 
-	if (is_uv_swap(s->bus_format, s->output_mode))
-		VOP_CTRL_SET(vop, dsp_data_swap, DSP_RB_SWAP);
+	if (is_uv_swap(s->bus_format, s->output_mode) ||
+	    is_rb_swap(s->bus_format, s->output_mode))
+		VOP_CTRL_SET(vop, dsp_rb_swap, 1);
 	else
 		VOP_CTRL_SET(vop, dsp_data_swap, 0);
 
@@ -3225,6 +3234,12 @@ static void vop_mcu_mode(struct drm_crtc *crtc)
 {
 	struct vop *vop = to_vop(crtc);
 
+	/*
+	 * If mcu_hold_mode is 1, set 1 to mcu_frame_st will
+	 * refresh one frame from ddr. So mcu_frame_st is needed
+	 * to be initialized as 0.
+	 */
+	VOP_CTRL_SET(vop, mcu_frame_st, 0);
 	VOP_CTRL_SET(vop, mcu_clk_sel, 1);
 	VOP_CTRL_SET(vop, mcu_type, 1);
 
@@ -4094,6 +4109,9 @@ static void vop_crtc_reset(struct drm_crtc *crtc)
 static struct drm_crtc_state *vop_crtc_duplicate_state(struct drm_crtc *crtc)
 {
 	struct rockchip_crtc_state *rockchip_state, *old_state;
+
+	if (WARN_ON(!crtc->state))
+		return NULL;
 
 	old_state = to_rockchip_crtc_state(crtc->state);
 	rockchip_state = kmemdup(old_state, sizeof(*old_state), GFP_KERNEL);

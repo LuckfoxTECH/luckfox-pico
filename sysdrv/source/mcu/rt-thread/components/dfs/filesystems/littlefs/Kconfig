@@ -1,0 +1,26 @@
+
+# Kconfig file for package littlefs
+menuconfig RT_USING_LITTLEFS
+    bool "Littlefs: A high-integrity embedded file system"
+    default n
+
+if RT_USING_LITTLEFS
+
+    config LFS_READ_SIZE
+        int "disk read size"
+        default 256
+
+    config LFS_PROG_SIZE
+        int "disk write size"
+        default 256
+
+    config LFS_BLOCK_SIZE
+        int "disk block size"
+        default 4096
+
+    config LFS_LOOKAHEAD
+        int "lfs lookahead size"
+        default 512
+
+endif
+

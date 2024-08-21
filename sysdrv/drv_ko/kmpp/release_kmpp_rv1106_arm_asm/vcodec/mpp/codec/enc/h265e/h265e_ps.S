@@ -115,48 +115,49 @@ init_raster2pelxy:
 	.save {r4, r5, r6, r7, r8, lr}
 	lsr	r6, r0, r1
 	mov	r5, r2
-	mov	r7, r3
+	mov	r8, r3
 	mov	r1, r6
 	bl	__aeabi_uidiv
 	mov	r3, r5
-	movs	r1, #1
 	movs	r2, #0
 	str	r2, [r3], #4
+	movs	r2, #1
 	mov	r4, r0
 .L9:
-	cmp	r1, r4
+	cmp	r2, r4
 	bcc	.L10
-	lsl	r8, r4, #2
+	lsls	r7, r4, #2
 	movs	r5, #1
 .L11:
 	cmp	r5, r4
 	bcc	.L12
-	mul	r8, r4, r4
+	mul	r7, r4, r4
 	movs	r5, #1
 .L13:
-	cmp	r8, r5
+	cmp	r7, r5
 	bhi	.L14
 	pop	{r4, r5, r6, r7, r8, pc}
 .L10:
-	str	r6, [r5, #4]
-	adds	r7, r7, #4
-	adds	r1, r1, #1
+	ldr	r1, [r3, #-4]
+	adds	r2, r2, #1
+	add	r1, r1, r6
+	str	r1, [r3], #4
 	b	.L9
 .L12:
-	sub	r1, r3, r8
+	subs	r1, r3, r7
 	mov	r0, r3
-	mov	r2, r8
+	mov	r2, r7
 	adds	r5, r5, #1
 	bl	memcpy
 	mov	r3, r0
-	add	r3, r3, r8
+	add	r3, r3, r7
 	b	.L11
 .L14:
 	mov	r0, r5
 	mov	r1, r4
 	bl	__aeabi_uidiv
 	muls	r0, r6, r0
-	str	r0, [r7, r5, lsl #2]
+	str	r0, [r8, r5, lsl #2]
 	adds	r5, r5, #1
 	b	.L13
 	.fnend
@@ -189,7 +190,7 @@ h265e_set_vps:
 	str	r5, [r3]
 .L16:
 	str	r5, [r2], #4
-	ldr	r3, [r7, #608]
+	ldr	r3, [r7, #632]
 	str	r5, [r2, #52]
 	cmp	r3, #3
 	it	cc
@@ -228,18 +229,18 @@ h265e_set_vps:
 .L18:
 	movs	r0, #0
 	str	r0, [r6, #44]
-	ldr	r2, [r7, #580]
+	ldr	r2, [r7, #604]
 	cmp	r2, r3
 	ite	ge
 	strge	r2, [r6, #48]
 	strlt	r3, [r6, #48]
 	movw	r2, #4228
-	ldr	r3, [r7, #584]
+	ldr	r3, [r7, #608]
 	subs	r3, r3, r0
 	it	ne
 	movne	r3, #1
 	strb	r3, [r4, r2]
-	ldr	r3, [r7, #576]
+	ldr	r3, [r7, #600]
 	movs	r2, #1
 	str	r3, [r6, #40]
 	add	r3, r3, r6
@@ -286,7 +287,7 @@ h265e_set_sps:
 	ldrd	r0, r1, [r5, #144]
 	str	r3, [sp, #156]
 	bl	__aeabi_idiv
-	movw	r3, #4700
+	movw	r3, #4728
 	str	r0, [sp, #12]
 	ldr	r0, [r5, r3]
 	bl	mpp_enc_ref_cfg_get_cpb_info
@@ -308,7 +309,7 @@ h265e_set_sps:
 	adds	r3, r3, #1
 	cmp	r3, #6
 	bne	.L25
-	ldr	r3, [r5, #592]
+	ldr	r3, [r5, #616]
 	add	r2, sp, #160
 	add	r2, r2, r3
 	ldrb	r7, [r2, #-133]	@ zero_extendqisi2
@@ -334,14 +335,19 @@ h265e_set_sps:
 	bl	init_zscan2raster
 	addw	r2, r4, #1380
 	mov	r1, r10
-	ldr	r0, [r5, #592]
+	ldr	r0, [r5, #616]
 	ldr	r3, [sp]
 	bl	init_raster2zscan
-	mov	r1, r10
-	ldr	r0, [r5, #592]
 	addw	r3, r4, #3428
 	addw	r2, r4, #2404
+	mov	r1, r10
+	ldr	r0, [r5, #616]
 	bl	init_raster2pelxy
+	add	r0, r4, #4448
+	movs	r1, #0
+	movw	r2, #9188
+	adds	r0, r0, #12
+	bl	memset
 	mov	r1, r8
 	ldr	r0, [r5, #12]
 	bl	__aeabi_uidivmod
@@ -378,7 +384,7 @@ h265e_set_sps:
 	ldr	r1, [sp, #8]
 	mvn	r2, #2
 	strd	r2, r3, [r4, #72]
-	ldr	r2, [r5, #592]
+	ldr	r2, [r5, #616]
 	str	r1, [r4, #84]
 	ldr	r1, [sp, #4]
 	str	r2, [r4, #80]
@@ -404,12 +410,12 @@ h265e_set_sps:
 	str	r3, [r4, #140]
 	movs	r3, #1
 	strd	r3, r3, [r4, #128]
-	ldr	r1, [r5, #600]
+	ldr	r1, [r5, #624]
 	strd	r2, r2, [r4, #144]
 	strb	r1, [r4, #3]
-	ldr	r2, [r5, #760]
+	ldr	r2, [r5, #788]
 	cbz	r2, .L31
-	ldr	r3, [r5, #756]
+	ldr	r3, [r5, #784]
 	clz	r3, r3
 	lsrs	r3, r3, #5
 .L31:
@@ -424,13 +430,13 @@ h265e_set_sps:
 	str	r3, [r4, #92]
 	movs	r3, #8
 	strd	r3, r3, [r4, #152]
-	ldr	r3, [r5, #744]
+	ldr	r3, [r5, #768]
 	strb	r3, [r4, #10]
 	movs	r3, #16
 	strd	r3, r2, [r4, #160]
-	ldr	r3, [r5, #596]
+	ldr	r3, [r5, #620]
 	strb	r3, [r4, #2]
-	ldr	r3, [r5, #712]
+	ldr	r3, [r5, #736]
 	clz	r3, r3
 	lsrs	r3, r3, #5
 	strb	r3, [r4, #7]
@@ -440,7 +446,7 @@ h265e_set_sps:
 	str	r3, [r4, #164]
 	strb	r1, [r4, #1]
 	strb	r2, [r4, #2]
-	str	r2, [r5, #596]
+	str	r2, [r5, #620]
 .L33:
 	add	r1, r4, #4480
 	movw	r3, #13648
@@ -527,11 +533,11 @@ h265e_set_sps:
 	str	r2, [r4, r0]
 	movw	r0, #4560
 	str	r2, [r4, r0]
-	ldr	r2, [r5, #804]
+	ldr	r2, [r5, #832]
 	cbz	r2, .L39
 	movw	r2, #4460
 	strb	r3, [r4, r2]
-	ldr	r3, [r5, #804]
+	ldr	r3, [r5, #832]
 	str	r3, [r1]
 .L39:
 	movw	r2, #4470
@@ -608,26 +614,28 @@ h265e_set_pps:
 	strh	r0, [r1]	@ movhi
 	strd	r0, r0, [r1, #24]
 	ldr	r0, [r3, #108]
-	str	r2, [r1, #724]
-	movs	r2, #0
 	cmp	r0, #2
-	strb	r2, [r1, #2]
 	ittt	ne
 	movne	r0, #1
 	strbne	r0, [r1]
+	ldrne	r0, [r3, #780]
+	str	r2, [r1, #724]
+	mov	r2, #0
+	strb	r2, [r1, #2]
+	it	ne
 	strne	r0, [r1, #36]
-	ldr	r0, [r3, #748]
+	ldr	r0, [r3, #772]
 	strb	r2, [r1, #20]
 	strh	r4, [r1, #8]	@ movhi
 	strd	r0, r0, [r1, #40]
 	strb	r2, [r1, #10]
 	strb	r2, [r1, #13]
-	ldr	r0, [r3, #628]
+	ldr	r0, [r3, #652]
 	subs	r0, r0, #26
 	str	r0, [r1, #32]
-	ldr	r0, [r3, #728]
+	ldr	r0, [r3, #752]
 	strb	r0, [r1, #5]
-	ldr	r0, [r3, #768]
+	ldr	r0, [r3, #796]
 	cmp	r0, r2
 	ite	eq
 	moveq	r5, r4
@@ -635,7 +643,7 @@ h265e_set_pps:
 	strb	r5, [r1, #4]
 	bne	.L59
 	strb	r0, [r1, #6]
-	ldr	r2, [r3, #772]
+	ldr	r2, [r3, #800]
 	cbz	r2, .L60
 	strb	r4, [r1, #7]
 .L61:
@@ -644,11 +652,11 @@ h265e_set_pps:
 	str	r0, [r1, #716]
 	strb	r2, [r1, #17]
 	strd	r2, r2, [r1, #48]
-	ldr	r4, [r3, #736]
+	ldr	r4, [r3, #760]
 	strb	r4, [r1, #18]
-	ldr	r4, [r3, #740]
+	ldr	r4, [r3, #764]
 	strb	r4, [r1, #19]
-	ldr	r3, [r3, #732]
+	ldr	r3, [r3, #756]
 	strb	r0, [r1, #3]
 	str	r0, [r1, #720]
 	strb	r3, [r1, #12]
@@ -658,16 +666,16 @@ h265e_set_pps:
 	strb	r2, [r1, #11]
 	pop	{r4, r5, pc}
 .L60:
-	ldr	r2, [r3, #776]
+	ldr	r2, [r3, #804]
 	cmp	r2, #0
 	ite	ne
 	movne	r2, #1
 	moveq	r2, #0
 	strb	r2, [r1, #7]
 	bne	.L61
-	ldr	r2, [r3, #772]
+	ldr	r2, [r3, #800]
 	str	r2, [r1, #708]
-	ldr	r2, [r3, #776]
+	ldr	r2, [r3, #804]
 .L65:
 	str	r2, [r1, #712]
 	b	.L61

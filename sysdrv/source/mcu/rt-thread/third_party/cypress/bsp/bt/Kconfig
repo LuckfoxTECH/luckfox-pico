@@ -1,0 +1,52 @@
+config BT_DEV_MODE
+    bool "Internal development mode"
+    default n
+
+config BT_BUILD_VERBOSE
+    bool "trace build information "
+    default n
+
+config BT_AUDIO_DEVICE
+    string "play device"
+    default "es8388p"
+
+config BT_MIC_DEVICE
+    string "recorder device"
+    default "pdmc"
+
+config BT_UART_NAME
+    string "setup uart name for HCI Bluetooth"
+    default "/dev/uart2"
+
+config BT_FACTORY_TEST
+    bool "enable Bluetooth Factory test command"
+    default n
+
+menuconfig CY_BT_DEMO_APP
+    bool "choose one desired DEMO"
+    default y
+    if CY_BT_DEMO_APP
+        choice
+            prompt "Select Demo APP"
+            default DEMO_HF_A2DP
+
+            config DEMO_BLE_SENSOR
+                bool "Hello Sensor demo"
+
+            config DEMO_BLE_CLIENT
+                bool "Hello Client demo"
+
+            config DEMO_BLE_CLIENT_SERVER 
+                bool "Hello Client Server demo"
+
+            config DEMO_HF_A2DP
+                bool "A2DP+HF"
+
+            config DEMO_SPP_BLE
+                bool "SPP server & BLE server"
+
+            config DEMO_AVK
+                bool "A2DP & AVRCP"
+
+        endchoice
+    endif

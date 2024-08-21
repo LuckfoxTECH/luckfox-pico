@@ -1,0 +1,12 @@
+Import('RTT_ROOT')
+Import('rtconfig')
+from building import *
+
+cwd     = GetCurrentDir()
+src  = Glob('*.c')
+src += Glob('resource/*.c')
+CPPPATH = [cwd]
+
+group = DefineGroup('Applications', src, depend = ['RT_USING_LVGL_CLOCK_EXH2020'], CPPPATH = CPPPATH)
+
+Return('group')

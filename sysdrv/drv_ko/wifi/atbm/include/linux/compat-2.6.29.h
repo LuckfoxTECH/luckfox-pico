@@ -224,7 +224,11 @@ static inline struct sk_buff *skb_queue_prev(const struct sk_buff_head *list,
 	/* This BUG_ON may seem severe, but if we just return then we
 	 * are going to dereference garbage.
 	 */
-	BUG_ON(skb_queue_is_first(list, skb));
+	//BUG_ON(skb_queue_is_first(list, skb));
+	if(skb_queue_is_last(list, skb)){
+		atbm_printk_err("%s %d ,ERROR !!! skb_queue_is_last\n",__func__,__LINE__);
+		return NULL;
+	}
 	return skb->prev;
 }
 

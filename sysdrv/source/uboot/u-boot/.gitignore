@@ -18,8 +18,6 @@
 *.elf
 *.swp
 *.bin
-
-
 *.patch
 *.cfgtmp
 *.img
@@ -89,12 +87,3 @@ GTAGS
 *.orig
 *~
 \#*#
-
-
-!tools/binman/test/descriptor.bin
-!tools/patman/test/*.patch
-!.checkpatch.conf
-
-!.travis.yml
-
-

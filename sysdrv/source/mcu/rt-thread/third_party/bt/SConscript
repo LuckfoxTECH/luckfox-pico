@@ -1,0 +1,32 @@
+from building import *
+import rtconfig
+import os
+
+cwd = GetCurrentDir()
+path = [cwd]
+src = []
+
+path += [
+    cwd + '/bluedroid/device/include',
+    cwd + '/bluedroid/osi/include',
+    cwd + '/bluedroid/stack/include',
+    cwd + '/bluedroid/utils/include',
+    cwd + '/bluedroid/common/include',
+    cwd + '/bluedroid/api/include/api',
+    cwd + '/bluedroid/rk_common/include',
+    cwd + '/include']
+libs = ['libbluedroid_gcc']
+
+libpath = []
+
+if GetDepend('RT_USING_BOARD_RK2108_EVB') or GetDepend('RT_USING_BOARD_RK2108B_EVB') or GetDepend('RT_USING_BOARD_AUDIO_DEMO_RK2108_V10'):
+    libpath = [cwd + '/rk2108']
+elif GetDepend('RT_USING_BOARD_RK1808_EVB'):
+    libpath = [cwd + '/rk1808']
+
+group = DefineGroup('bluedroid', src, depend = ['BT_ENABLED'],
+CPPPATH = path, LIBS = libs, LIBPATH = libpath)
+
+group += SConscript(os.path.join(cwd, 'test/SConscript'))
+
+Return('group')

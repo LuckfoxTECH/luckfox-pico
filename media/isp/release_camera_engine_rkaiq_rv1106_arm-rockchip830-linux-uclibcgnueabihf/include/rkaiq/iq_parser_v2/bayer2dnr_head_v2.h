@@ -29,10 +29,10 @@ typedef struct CalibDbV2_Bayer2dnrV2_C_ISO_s {
     // M4_NUMBER_MARK_DESC("iso", "f32", M4_RANGE(50, 204800), "50", M4_DIGIT(1), "index2")
     float iso;
 
-    // M4_ARRAY_DESC("lumapoint", "s32", M4_SIZE(1,16), M4_RANGE(0,65535), "0.0", M4_DIGIT(0), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("lumapoint", "s32", M4_SIZE(1,16), M4_RANGE(0,65535), "[512,1024,1536,2048,3072,4096,5120,6144,7168,8192,9216,10240,11264,12288,13312,14336]", M4_DIGIT(0), M4_DYNAMIC(0))
     int lumapoint[16];
 
-    // M4_ARRAY_DESC("sigma", "s32", M4_SIZE(1,16), M4_RANGE(0,65535), "0.0", M4_DIGIT(0), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("sigma", "s32", M4_SIZE(1,16), M4_RANGE(0,65535), "[256,256,256,256,256,256,256,256,256,256,256,256,256,256,256,256]", M4_DIGIT(0), M4_DYNAMIC(0))
     int sigma[16];
 
 } CalibDbV2_Bayer2dnrV2_C_ISO_t;
@@ -73,6 +73,17 @@ typedef struct CalibDbV2_Bayer2dnrV2_T_ISO_s {
     // M4_NUMBER_DESC("weight", "f32", M4_RANGE(0, 1.0), "1.0", M4_DIGIT(2))
     float weight;
 
+    // M4_NUMBER_DESC("pix_diff", "s32", M4_RANGE(0, 16383), "16383", M4_DIGIT(0))
+    int pix_diff;
+
+    // M4_NUMBER_DESC("diff_thld", "s32", M4_RANGE(0, 1024), "1024", M4_DIGIT(0))
+    int diff_thld;
+
+    // M4_NUMBER_DESC("hdr_dgain_scale_s", "f32", M4_RANGE(0, 128.0), "1.0", M4_DIGIT(2))
+    float hdr_dgain_scale_s;
+
+    // M4_NUMBER_DESC("hdr_dgain_scale_m", "f32", M4_RANGE(0, 128.0), "1.0", M4_DIGIT(2))
+    float hdr_dgain_scale_m;
 } CalibDbV2_Bayer2dnrV2_T_ISO_t;
 
 typedef struct CalibDbV2_Bayer2dnrV2_T_Set_s {
@@ -88,6 +99,8 @@ typedef struct CalibDbV2_Bayer2dnrV2_T_Set_s {
 typedef struct CalibDbV2_Bayer2dnrV2_Tuning_s {
     // M4_BOOL_DESC("enable", "1")
     bool enable;
+    // M4_BOOL_DESC("hdrdgain_ctrl_en", "1")
+    bool hdrdgain_ctrl_en;
     // M4_STRUCT_LIST_DESC("Setting", M4_SIZE_DYNAMIC, "double_index_list")
     CalibDbV2_Bayer2dnrV2_T_Set_t *Setting;
     int Setting_len;

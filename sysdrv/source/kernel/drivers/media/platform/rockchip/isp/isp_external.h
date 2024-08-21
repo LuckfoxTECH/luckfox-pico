@@ -4,6 +4,8 @@
 #ifndef _RKISP_EXTERNAL_H
 #define _RKISP_EXTERNAL_H
 
+#include <linux/iopoll.h>
+
 #define RKISP_VICAP_CMD_MODE \
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 0, struct rkisp_vicap_mode)
 
@@ -13,9 +15,24 @@
 #define RKISP_VICAP_CMD_RX_BUFFER_FREE \
 	 _IOW('V', BASE_VIDIOC_PRIVATE + 2, struct rkisp_rx_buf)
 
+#define RKISP_VICAP_CMD_QUICK_STREAM \
+	_IOW('V', BASE_VIDIOC_PRIVATE + 3, int)
+
+#define RKISP_VICAP_CMD_SET_RESET \
+	 _IOW('V', BASE_VIDIOC_PRIVATE + 4, int)
+
+#define RKISP_VICAP_CMD_SET_STREAM \
+	 _IOW('V', BASE_VIDIOC_PRIVATE + 5, int)
+
 #define RKISP_VICAP_BUF_CNT 3
 #define RKISP_VICAP_BUF_CNT_MAX 8
 #define RKISP_RX_BUF_POOL_MAX (RKISP_VICAP_BUF_CNT_MAX * 3)
+
+#define rkisp_cond_poll_timeout(cond, sleep_us, timeout_us) \
+({ \
+	int __val; \
+	read_poll_timeout((int), __val, cond, sleep_us, timeout_us, false, 0); \
+})
 
 struct rkisp_vicap_input {
 	u8 merge_num;
@@ -26,6 +43,7 @@ enum rkisp_vicap_link {
 	RKISP_VICAP_ONLINE,
 	RKISP_VICAP_RDBK_AIQ,
 	RKISP_VICAP_RDBK_AUTO,
+	RKISP_VICAP_RDBK_AUTO_ONE_FRAME,
 };
 
 struct rkisp_vicap_mode {

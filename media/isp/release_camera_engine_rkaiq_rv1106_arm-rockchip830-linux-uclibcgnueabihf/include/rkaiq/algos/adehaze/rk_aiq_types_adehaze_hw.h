@@ -252,7 +252,6 @@ typedef struct AdehazeV12ProcResult_s {
 
 typedef struct RkAiqAdehazeProcResult_s {
     bool enable;
-    bool update;
 #if RKAIQ_HAVE_DEHAZE_V10
     AdehazeV10ProcResult_t ProcResV10;
 #endif

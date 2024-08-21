@@ -7,6 +7,9 @@
  #ifndef _SCSI_H
  #define _SCSI_H
 
+#include <asm/cache.h>
+#include <linux/dma-direction.h>
+
 struct scsi_cmd {
 	unsigned char		cmd[16];					/* command				   */
 	/* for request sense */
@@ -27,7 +30,22 @@ struct scsi_cmd {
 	unsigned long		trans_bytes;			/* tranfered bytes		*/
 
 	unsigned int		priv;
+	enum dma_data_direction dma_dir;
 };
+
+struct um_block_descriptor {
+	uint64_t um_block_addr;
+	uint32_t um_block_sz;
+	uint32_t reserve;
+} __attribute__ ((packed));
+
+struct unmap_para_list {
+	uint16_t um_data_len;
+	uint16_t um_block_desc_len;
+	uint32_t reserve;
+	/*support only one block descriptor*/
+	struct um_block_descriptor ub_desc;
+} __attribute__ ((packed));
 
 /*-----------------------------------------------------------
 **
@@ -157,7 +175,7 @@ struct scsi_cmd {
 #define SCSI_WRT_VERIFY	0x2E		/* Write and Verify (O) */
 #define SCSI_WRITE_LONG	0x3F		/* Write Long (O) */
 #define SCSI_WRITE_SAME	0x41		/* Write Same (O) */
-
+#define SCSI_UNMAP	0x42
 /**
  * struct scsi_platdata - stores information about SCSI controller
  *
@@ -233,6 +251,8 @@ void scsi_init(void);
 #endif
 
 #define SCSI_IDENTIFY					0xC0  /* not used */
+#define SCSI_STD_INQUIRY_BYTES				36
+#define SCSI_MAX_INQUIRY_BYTES				96
 
 /* Hardware errors  */
 #define SCSI_SEL_TIME_OUT			 0x00000101	 /* Selection time out */

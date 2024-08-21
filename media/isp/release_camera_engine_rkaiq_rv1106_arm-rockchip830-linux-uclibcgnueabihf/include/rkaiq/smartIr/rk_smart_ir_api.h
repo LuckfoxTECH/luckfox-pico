@@ -25,10 +25,37 @@ typedef struct rk_smart_ir_ctx_s rk_smart_ir_ctx_t;
 
 RKAIQ_BEGIN_DECLARE
 
-typedef enum RK_SMART_IR_STATUS_E {
-    RK_SMART_IR_STATUS_DAY,
-    RK_SMART_IR_STATUS_NIGHT,
+typedef enum RK_SMART_IR_STATUS_e {
+    RK_SMART_IR_STATUS_INVALID          = 0,
+    RK_SMART_IR_STATUS_DAY              = 1,
+    RK_SMART_IR_STATUS_NIGHT            = 2,
+    RK_SMART_IR_STATUS_MAX
 } RK_SMART_IR_STATUS_t;
+
+typedef enum RK_SMART_IR_SWTICH_MODE_e {
+    RK_SMART_IR_SWITCH_MODE_INVALID     = 0,
+    RK_SMART_IR_SWITCH_MODE_AUTO        = 1,
+    RK_SMART_IR_SWITCH_MODE_DAY         = 2,
+    RK_SMART_IR_SWITCH_MODE_NIGHT       = 3,
+    RK_SMART_IR_SWITCH_MODE_TIME        = 4,
+    RK_SMART_IR_SWITCH_MODE_MAX
+} RK_SMART_IR_SWTICH_MODE_t;
+
+typedef enum RK_SMART_IR_LIGHT_TYPE_e {
+    RK_SMART_IR_LIGHT_TYPE_INVALID      = 0,
+    RK_SMART_IR_LIGHT_TYPE_VIS          = 1,
+    RK_SMART_IR_LIGHT_TYPE_IR           = 2,
+    RK_SMART_IR_LIGHT_TYPE_NONE         = 3,
+    RK_SMART_IR_LIGHT_TYPE_MIX          = 4,
+    RK_SMART_IR_LIGHT_TYPE_MAX
+} RK_SMART_IR_LIGHT_TYPE_t;
+
+typedef enum RK_SMART_IR_LIGHT_MODE_e {
+    RK_SMART_IR_LIGHT_MODE_INVALID      = 0,
+    RK_SMART_IR_LIGHT_MODE_AUTO         = 1,
+    RK_SMART_IR_LIGHT_MODE_MANUAL       = 2,
+    RK_SMART_IR_LIGHT_MODE_MAX
+} RK_SMART_IR_LIGHT_MODE_t;
 
 typedef struct rk_smart_ir_params_s {
     float d2n_envL_th;
@@ -40,21 +67,48 @@ typedef struct rk_smart_ir_params_s {
     uint16_t switch_cnts_th;
 } rk_smart_ir_params_t;
 
+typedef struct rk_smart_ir_attr_s {
+    RK_SMART_IR_STATUS_t init_status;
+    RK_SMART_IR_SWTICH_MODE_t switch_mode;
+    RK_SMART_IR_LIGHT_MODE_t light_mode;
+    RK_SMART_IR_LIGHT_TYPE_t light_type;
+    uint8_t light_value;
+    rk_smart_ir_params_t params;
+    bool en_quick_switch;
+    bool en_grid_weight;
+    bool en_auto_n2dth;
+} rk_smart_ir_attr_t;
+
 typedef struct rk_smart_ir_result_s {
     RK_SMART_IR_STATUS_t status;
+    bool gray_on;
+    float fill_value;
 } rk_smart_ir_result_t;
 
-rk_smart_ir_ctx_t*
-rk_smart_ir_init(const rk_aiq_sys_ctx_t* ctx);
+typedef struct rk_smart_ir_query_info_s {
+    float rggain;
+    float bggain;
+    float ir_strength;
+} rk_smart_ir_query_info_t;
 
-XCamReturn
-rk_smart_ir_deInit(const rk_smart_ir_ctx_t* ir_ctx);
+typedef struct rk_smart_ir_autoled_s {
+    bool is_smooth_convert;
+    float auto_irled_val;
+    float auto_irled_min;
+    float auto_irled_max;
+} rk_smart_ir_autoled_t;
 
-XCamReturn
-rk_smart_ir_config(rk_smart_ir_ctx_t* ctx, rk_smart_ir_params_t* config);
+rk_smart_ir_ctx_t* rk_smart_ir_init(const rk_aiq_sys_ctx_t* aiq_ctx);
+XCamReturn rk_smart_ir_deInit(const rk_smart_ir_ctx_t* ctx);
+XCamReturn rk_smart_ir_setAttr(rk_smart_ir_ctx_t* ctx, rk_smart_ir_attr_t* attr);
+XCamReturn rk_smart_ir_getAttr(rk_smart_ir_ctx_t* ctx, rk_smart_ir_attr_t* attr);
+XCamReturn rk_smart_ir_queryInfo(rk_smart_ir_ctx_t* ctx, rk_smart_ir_query_info_t* query_info);
+XCamReturn rk_smart_ir_runOnce(rk_smart_ir_ctx_t* ctx, rk_aiq_isp_stats_t* stats_ref, rk_smart_ir_result_t* result);
+XCamReturn rk_smart_ir_groupRunOnce(rk_smart_ir_ctx_t* ctx, rk_aiq_isp_stats_t** grp_stats, int cam_num, rk_smart_ir_result_t* result);
 
-XCamReturn
-rk_smart_ir_runOnce(rk_smart_ir_ctx_t* ctx, rk_aiq_isp_stats_t* stats_ref, rk_smart_ir_result_t* result);
+XCamReturn rk_smart_ir_config(rk_smart_ir_ctx_t* ctx, rk_smart_ir_params_t* config);
+XCamReturn rk_smart_ir_set_status(rk_smart_ir_ctx_t* ctx, rk_smart_ir_result_t result);
+XCamReturn rk_smart_ir_auto_irled(rk_smart_ir_ctx_t* ctx, rk_smart_ir_autoled_t* auto_irled);
 
 RKAIQ_END_DECLARE
 

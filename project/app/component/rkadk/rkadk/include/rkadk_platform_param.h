@@ -21,7 +21,7 @@
 extern "C" {
 #endif
 
-#ifdef RV1126_1109
+#ifndef RV1106_1103
 // rkispp_m_bypass rkispp_scale0 rkispp_scale1 rkispp_scale2
 #define RKADK_ISPP_VI_NODE_CNT 4
 
@@ -29,7 +29,7 @@ extern "C" {
 #define SENSOR_MAX_WIDTH 2688
 #define SENSOR_MAX_HEIGHT 1520
 
-// default vi device name
+//default vi device name
 #define DEF_DEVICE_NEME_VI_0 "rkispp_m_bypass"
 #define DEF_DEVICE_NEME_VI_1 "rkispp_scale0"
 #define DEF_DEVICE_NEME_VI_2 "rkispp_scale1"
@@ -41,12 +41,12 @@ extern "C" {
 #define DEF_MODULE_VI_2 "THUMB"
 #define DEF_MODULE_VI_3 "RECORD_SUB|PREVIEW|LIVE|DISP"
 
-// default vi resolution
+//default vi resolution
 #define DEF_WIDTH_VI_1 1920
 #define DEF_HEIGHT_VI_1 1080
 
-#define DEF_WIDTH_VI_2 320
-#define DEF_HEIGHT_VI_2 180
+#define DEF_WIDTH_VI_2 480
+#define DEF_HEIGHT_VI_2 272
 
 #else
 // rkisp_mainpath rkisp_selfpath rkisp_bypasspath rkisp_mainpath_4x4sampling
@@ -56,7 +56,7 @@ extern "C" {
 #define SENSOR_MAX_WIDTH 2880
 #define SENSOR_MAX_HEIGHT 1620
 
-// default vi device name
+//default vi device name
 #define DEF_DEVICE_NEME_VI_0 "rkisp_mainpath"
 #define DEF_DEVICE_NEME_VI_1 "rkisp_selfpath"
 #define DEF_DEVICE_NEME_VI_2 "rkisp_bypasspath"
@@ -68,7 +68,7 @@ extern "C" {
 #define DEF_MODULE_VI_2 "RECORD_SUB|PREVIEW|LIVE|DISP"
 #define DEF_MODULE_VI_3 "NONE"
 
-// default vi resolution
+//default vi resolution
 #define DEF_WIDTH_VI_1 320
 #define DEF_HEIGHT_VI_1 180
 

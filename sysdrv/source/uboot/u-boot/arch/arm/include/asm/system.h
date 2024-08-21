@@ -257,6 +257,7 @@ void gic_send_sgi(unsigned long sgino);
 void wait_for_wakeup(void);
 void protect_secure_region(void);
 void smp_kick_all_cpus(void);
+void smp_entry(u32 cpu);
 
 void flush_l3_cache(void);
 void mmu_change_region_attr(phys_addr_t start, size_t size, u64 attrs);

@@ -22,46 +22,45 @@
 #ifndef INCLUDE_RT_PLAYER_RTTVPLAYERINTERFACE_H_
 #define INCLUDE_RT_PLAYER_RTTVPLAYERINTERFACE_H_
 
-#ifdef __cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
 
-#include "rt_metadata.h" // NOLINT
-#include <inttypes.h>
 #include <sys/types.h>
+#include <inttypes.h>
+#include "rt_metadata.h"      // NOLINT
 
 class IMediaDataSource;
 
 class RTTVPlayerInterface {
-public:
-  RTTVPlayerInterface() {}
-  virtual ~RTTVPlayerInterface() {}
+ public:
+    RTTVPlayerInterface() {}
+    virtual ~RTTVPlayerInterface() {}
 
-  /* parameter operations */
-  virtual rt_status setDataSource(IMediaDataSource *ptr) = 0;
+    /* parameter operations */
+    virtual rt_status setDataSource(IMediaDataSource *ptr) = 0;
 
-  /* control operations */
-  virtual rt_status prepare() = 0;
-  virtual rt_status prepareAsync() = 0;
-  ;
-  virtual rt_status seek() = 0;
-  virtual rt_status start() = 0;
-  virtual rt_status stop() = 0;
-  virtual rt_status pause() = 0;
-  virtual rt_status reset() = 0;
+    /* control operations */
+    virtual rt_status prepare() = 0;
+    virtual rt_status prepareAsync() = 0;;
+    virtual rt_status seek() = 0;
+    virtual rt_status start() = 0;
+    virtual rt_status stop() = 0;
+    virtual rt_status pause() = 0;
+    virtual rt_status reset() = 0;
 
-  /* parameter query operations */
-  virtual rt_status getState() = 0;
-  virtual rt_status getCurrentPosition(INT64 *usec) = 0;
-  virtual rt_status invoke(RtMetaData *request, RtMetaData *reply) = 0;
+    /* parameter query operations */
+    virtual rt_status getState() = 0;
+    virtual rt_status getCurrentPosition(INT64 *usec) = 0;
+    virtual rt_status invoke(RtMetaData* request, RtMetaData *reply) = 0;
 
-  virtual rt_status setVideoSink(const void *videoSink) = 0;
-  virtual rt_status setAudioSink(const void *audioSink) = 0;
-  virtual rt_status setListener(RTPlayerListener *listener) = 0;
+    virtual rt_status setVideoSink(const void *videoSink) = 0;
+    virtual rt_status setAudioSink(const void *audioSink) = 0;
+    virtual rt_status setListener(RTPlayerListener *listener) = 0;
 };
 
-#ifdef __cplusplus
+#ifdef  __cplusplus
 }
 #endif
 
-#endif // INCLUDE_RT_PLAYER_RTTVPLAYERINTERFACE_H_
+#endif  // INCLUDE_RT_PLAYER_RTTVPLAYERINTERFACE_H_

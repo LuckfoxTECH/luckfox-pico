@@ -599,6 +599,14 @@ struct atbm_common {
 	u8 etf_test_v2;
 	//struct atbm_timer_list etf_expire_timer;
 	struct atbm_work_struct etf_tx_end_work;
+
+	
+	struct task_struct		*send_prbresp_work;
+	wait_queue_head_t		send_prbresp_wq;
+	bool start_send_prbresp,stop_prbresp_thread;
+//	struct mutex stop_send_prbresp_lock;	
+	struct atbm_vendor_cfg_ie private_ie;
+	
 #ifdef SDIO_BUS
 #ifdef ATBM_SDIO_PATCH
 	int dataFlag;
@@ -611,6 +619,7 @@ struct atbm_common {
 	struct atbm_work_struct wsm_sync_channl;
 	int syncChanl_done;
 	wait_queue_head_t		wsm_synchanl_done;
+	int is_sdio_hibernated;
 #endif
 
 #ifdef ATBM_P2P_CHANGE
@@ -633,6 +642,9 @@ struct atbm_common {
 	bool bh_running;
 	u8 multrx_trace[64];
 	u8 multrx_index;
+#ifdef SDIO_BUS
+	int sdio_status;
+#endif
 };
 
 #ifdef ATBM_SDIO_PATCH
@@ -882,8 +894,13 @@ static inline void atbm_hw_vif_read_lock(spinlock_t *lock)
 	#ifndef  ATBM_VIF_LIST_USE_RCU_LOCK
 	spin_lock_bh(lock);
 	#else
-	BUG_ON(!lock);
-	rcu_read_lock();
+//	BUG_ON(!lock);
+	if(!lock){
+		atbm_printk_err("%s %d ,ERROR !!! lock is NULL\n",__func__,__LINE__);
+			
+	}else{
+		rcu_read_lock();
+	}
 	#endif
 }
 static inline void atbm_hw_vif_read_unlock(spinlock_t *lock)
@@ -891,8 +908,14 @@ static inline void atbm_hw_vif_read_unlock(spinlock_t *lock)
 	#ifndef  ATBM_VIF_LIST_USE_RCU_LOCK
 	spin_unlock_bh(lock);
 	#else
-	BUG_ON(!lock);
-	rcu_read_unlock();
+//	BUG_ON(!lock);
+	if(!lock){
+		atbm_printk_err("%s %d ,ERROR !!! unlock is NULL\n",__func__,__LINE__);
+			
+	}else{
+		rcu_read_unlock();
+	}
+	
 	#endif
 }
 
@@ -910,8 +933,14 @@ static inline void atbm_priv_vif_list_read_lock(spinlock_t *lock)
 	#ifndef  ATBM_VIF_LIST_USE_RCU_LOCK
 	spin_lock_bh(lock);
 	#else
-	BUG_ON(!lock);
-	rcu_read_lock();
+	//BUG_ON(!lock);
+	//rcu_read_lock();
+	if(!lock){
+		atbm_printk_err("%s %d ,ERROR !!! lock is NULL\n",__func__,__LINE__);
+			
+	}else{
+		rcu_read_lock();
+	}
 	#endif
 }
 
@@ -920,8 +949,14 @@ static inline void atbm_priv_vif_list_read_unlock(spinlock_t *lock)
 	#ifndef  ATBM_VIF_LIST_USE_RCU_LOCK
 	spin_unlock_bh(lock);
 	#else
-	BUG_ON(!lock);
-	rcu_read_unlock();
+//	BUG_ON(!lock);
+//	rcu_read_unlock();
+	if(!lock){
+		atbm_printk_err("%s %d ,ERROR !!! unlock is NULL\n",__func__,__LINE__);
+			
+	}else{
+		rcu_read_unlock();
+	}
 	#endif
 }
 
@@ -930,7 +965,11 @@ static inline void atbm_priv_vif_list_write_lock(spinlock_t *lock)
 	#ifndef  ATBM_VIF_LIST_USE_RCU_LOCK
 	spin_lock_bh(lock);
 	#else
-	BUG_ON(!lock);
+	//BUG_ON(!lock);
+	if(!lock){
+		atbm_printk_err("%s %d ,ERROR !!! lock is NULL\n",__func__,__LINE__);
+			
+	}
 	#endif
 }
 
@@ -939,7 +978,12 @@ static inline void atbm_priv_vif_list_write_unlock(spinlock_t *lock)
 	#ifndef  ATBM_VIF_LIST_USE_RCU_LOCK
 	spin_unlock_bh(lock);
 	#else
-	BUG_ON(!lock);
+//	BUG_ON(!lock);
+	if(!lock){
+			atbm_printk_err("%s %d ,ERROR !!! unlock is NULL\n",__func__,__LINE__);
+				
+	}
+
 	#endif
 }
 
@@ -1062,7 +1106,11 @@ static inline void atbm_stop_active_vif_queues(struct ieee80211_vif *vif)
 	struct atbm_vif *priv = ABwifi_get_vif_from_ieee80211(vif);
 	int i = 0;
 	struct atbm_common *hw_priv = priv->hw_priv;
-	BUG_ON(hw_priv == NULL);
+	//BUG_ON(hw_priv == NULL);
+	if(hw_priv == NULL){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv is NULL\n",__func__,__LINE__);
+		return;
+	}
 	for (i = 0; i < 4; ++i){
 		atbm_queue_lock(&hw_priv->tx_queue[i],priv->if_id);
 	}
@@ -1073,7 +1121,11 @@ static inline void atbm_wake_active_vif_queues(struct ieee80211_vif *vif)
 	struct atbm_vif *priv = ABwifi_get_vif_from_ieee80211(vif);
 	int i = 0;
 	struct atbm_common *hw_priv = priv->hw_priv;
-	BUG_ON(hw_priv == NULL);
+	//BUG_ON(hw_priv == NULL);
+	if(hw_priv == NULL){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv is NULL\n",__func__,__LINE__);
+		return;
+	}
 	for (i = 0; i < 4; ++i)
 		atbm_queue_unlock(&hw_priv->tx_queue[i],priv->if_id);
 }

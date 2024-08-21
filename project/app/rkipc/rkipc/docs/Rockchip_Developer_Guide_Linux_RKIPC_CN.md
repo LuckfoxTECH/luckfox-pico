@@ -1,10 +1,10 @@
-# Rockchip rkipc应用开发说明
+# Rockchip RKIPC应用开发说明
 
 文件标识：RK-KF-YF-937
 
-发布版本：V1.6.0
+发布版本：V1.6.6
 
-日期：2022-12-02
+日期：2023-11-08
 
 文件密级：□绝密   □秘密   □内部资料   ■公开
 
@@ -20,7 +20,7 @@
 
 本文档可能提及的其他所有注册商标或商标，由其各自拥有者所有。
 
-**版权所有 © 2022瑞芯微电子股份有限公司**
+**版权所有 © 2023瑞芯微电子股份有限公司**
 
 超越合理使用范畴，非经本公司书面许可，任何单位和个人不得擅自摘抄、复制本文档内容的部分或全部，并不得以任何形式传播。
 
@@ -64,25 +64,31 @@ Rockchip Electronics Co., Ltd.
 
 **修订记录**
 
-| **版本号** | **作者** | **修改日期** | **修改说明**                                                 |
-| ---------- | -------- | :----------- | ------------------------------------------------------------ |
-| V0.1.0     | 林刘迪铭 | 2021-09-23   | 初始版本                                                     |
-| V0.2.0     | 林刘迪铭 | 2021-10-23   | 增加模块API介绍                                              |
-| V0.3.0     | 林刘迪铭 | 2021-11-12   | 增加媒体流框图说明                                           |
-| V0.4.0     | 林刘迪铭 | 2022-01-14   | 增加isp模块API介绍                                           |
-| V0.5.0     | 林刘迪铭 | 2022-01-26   | 更新代码结构和产品类型                                       |
-| V0.6.0     | 林刘迪铭 | 2022-02-21   | 更新RV1106信息                                               |
-| V0.7.0     | 林刘迪铭 | 2022-05-05   | 更新RV1106电池类IPC框图                                      |
-| V0.8.0     | 林刘迪铭 | 2022-05-11   | 添加ini参数说明                                              |
-| V0.9.0     | 林刘迪铭 | 2022-05-16   | 修改RV1106 IPC框图                                           |
-| V1.0.0     | 林刘迪铭 | 2022-05-19   | 调试ini中的isp相关参数                                       |
-| V1.0.1     | 陈委问   | 2022-05-20   | 更新产品版本信息                                             |
-| V1.1.0     | 林刘迪铭 | 2022-07-15   | 新增ini中的avs相关参数                                       |
-| V1.2.0     | 林刘迪铭 | 2022-08-18   | 修改RV1106 IPC框图，去除卷绕部分。</br>新增RV1103 IPC框图。  |
-| V1.3.0     | 林刘迪铭 | 2022-08-31   | 修改RK3588 Multi-IPC框图，JPEG改用VGS预处理，</br>AVS后增加VPSS用于cover。 |
-| V1.4.0     | 林刘迪铭 | 2022-10-10   | 修改RV1106 IPC和RV1103 IPC的IVS模块流程框图，</br>rv1106_battery_ipc细分为rv1106_battery_ipc_client和rv1106_battery_ipc_tuya。 |
-| V1.5.0     | 林刘迪铭 | 2022-10-25   | 修改ini模块参数说明，新增音视频模块API介绍。                 |
-| V1.6.0     | 林刘迪铭 | 2022-12-02   | 新增RV1106 Dual-IPC框图。                                    |
+| **版本号** | **作者**   | **修改日期** | **修改说明**                                                 |
+| ---------- | ---------- | :----------- | ------------------------------------------------------------ |
+| V0.1.0     | Fenrir Lin | 2021-09-23   | 初始版本                                                     |
+| V0.2.0     | Fenrir Lin | 2021-10-23   | 增加模块API介绍                                              |
+| V0.3.0     | Fenrir Lin | 2021-11-12   | 增加媒体流框图说明                                           |
+| V0.4.0     | Fenrir Lin | 2022-01-14   | 增加isp模块API介绍                                           |
+| V0.5.0     | Fenrir Lin | 2022-01-26   | 更新代码结构和产品类型                                       |
+| V0.6.0     | Fenrir Lin | 2022-02-21   | 更新RV1106信息                                               |
+| V0.7.0     | Fenrir Lin | 2022-05-05   | 更新RV1106电池类IPC框图                                      |
+| V0.8.0     | Fenrir Lin | 2022-05-11   | 添加ini参数说明                                              |
+| V0.9.0     | Fenrir Lin | 2022-05-16   | 修改RV1106 IPC框图                                           |
+| V1.0.0     | Fenrir Lin | 2022-05-19   | 调试ini中的isp相关参数                                       |
+| V1.0.1     | CWW        | 2022-05-20   | 更新产品版本信息                                             |
+| V1.1.0     | Fenrir Lin | 2022-07-15   | 新增ini中的avs相关参数                                       |
+| V1.2.0     | Fenrir Lin | 2022-08-18   | 修改RV1106 IPC框图，去除卷绕部分。<br/>新增RV1103 IPC框图。  |
+| V1.3.0     | Fenrir Lin | 2022-08-31   | 修改RK3588 Multi-IPC框图，<br/>JPEG改用VGS预处理，<br/>AVS后增加VPSS用于cover。 |
+| V1.4.0     | Fenrir Lin | 2022-10-10   | 修改RV1106 IPC和RV1103 IPC的IVS模块流程框图，<br/>rv1106_battery_ipc细分为rv1106_battery_ipc_client<br/>和rv1106_battery_ipc_tuya。 |
+| V1.5.0     | Fenrir Lin | 2022-10-25   | 修改ini模块参数说明，新增音视频模块API介绍。                 |
+| V1.6.0     | Fenrir Lin | 2022-12-02   | 新增RV1106 Dual-IPC框图。                                    |
+| V1.6.1     | Fenrir Lin | 2023-02-18   | 修改RV1126 IPC Rockit流程框图                                |
+| V1.6.2     | Fenrir Lin | 2023-03-08   | 修改RV1106 Dual-IPC流程框图                                  |
+| V1.6.3     | Ruby Zhang | 2023-08-22   | 格式更新                                                     |
+| V1.6.4     | Fenrir Lin | 2023-09-13   | 修改RV1126 IPC Rkmedia的流程框图，<br/>新增RV1126 Dual-IPC的流程框图。 |
+| V1.6.5     | Yu Zheng   | 2023-09-26   | 新增RV1126 IPC AIISP的流程框图                               |
+| V1.6.6     | Fenrir Lin | 2023-11-08   | 新增RV1106 IPC AIISP的流程框图                               |
 
 ---
 
@@ -100,17 +106,19 @@ Rockchip Electronics Co., Ltd.
 
 | 源码目录                  | 依赖外部库       | 功能                                                         |
 | ------------------------- | ---------------- | ------------------------------------------------------------ |
-| rv1103_ipc                | rockit、rkaiq    | 针对rv1103平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，默认开启卷绕。 |
-| rv1106_ipc                | rockit、rkaiq    | 针对rv1106平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，关闭卷绕。 |
-| rv1106_battery_ipc_client | rockit、rkaiq    | 针对rv1103/rv1106平台的电池类产品，支持网页和rtsp/rtmp预览，参数动态修改，做为快速启动双进程的client。 |
-| rv1106_battery_ipc_tuya   | rockit、rkaiq    | 针对rv1103/rv1106平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
-| rv1106_dual_ipc           | rockit、rkaiq    | 针对rv1103/rv1106平台的双目拼接类产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
-| rk3588_ipc                | rockit、rkaiq    | 针对rk3588平台的单目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
-| rk3588_muliti_ipc         | rockit、rkaiq    | 针对rk3588平台的多目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
-| rv1126_ipc_rkmedia        | rockit、rkaiq    | 针对rv1126/rv1109平台的IPC产品，使用rkmedia，支持网页和rtsp/rtmp预览，参数动态修改。 |
-| rv1126_ipc_rockit         | easymedia、rkaiq | 针对rv1126/rv1109平台的IPC产品，使用rockit，支持网页和rtsp/rtmp预览，参数动态修改。 |
-| rv1126_battery_ipc        | rockit、rkaiq    | 针对rv1126/rv1109平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
-| rv1126_snapshot           | easymedia、rkaiq | 针对rv1126/rv1109平台的抓拍类型产品，支持离线帧，本地拍照/录像，屏幕显示，插值放大(TODO)。 |
+| rv1103_ipc                | rockit、rkaiq    | 针对RV1103平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，默认开启卷绕。 |
+| rv1106_ipc                | rockit、rkaiq    | 针对RV1106平台的IPC产品，支持网页和rtsp/rtmp预览，参数动态修改，关闭卷绕。 |
+| rv1106_battery_ipc_client | rockit、rkaiq    | 针对RV1103/RV1106平台的电池类产品，支持网页和rtsp/rtmp预览，参数动态修改，做为快速启动双进程的client。 |
+| rv1106_battery_ipc_tuya   | rockit、rkaiq    | 针对RV1103/RV1106平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
+| rv1106_dual_ipc           | rockit、rkaiq    | 针对RV1103/RV1106平台的双目拼接类产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rk3588_ipc                | rockit、rkaiq    | 针对RK3588平台的单目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rk3588_muliti_ipc         | rockit、rkaiq    | 针对RK3588平台的多目IPC产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1126_ipc_rkmedia        | rockit、rkaiq    | 针对RV1126/RV1109平台的IPC产品，使用rkmedia，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1126_ipc_rockit         | easymedia、rkaiq | 针对RV1126/RV1109平台的IPC产品，使用rockit，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1126_battery_ipc        | rockit、rkaiq    | 针对RV1126/RV1109平台的电池类产品，支持涂鸦云手机APP预览，休眠唤醒功能。 |
+| rv1126_dual_ipc           | rockit、rkaiq    | 针对RV1126/RV1109平台的双目拼接类产品，支持网页和rtsp/rtmp预览，参数动态修改。 |
+| rv1126_snapshot           | easymedia、rkaiq | 针对RV1126/RV1109平台的抓拍类型产品，支持离线帧，本地拍照/录像，屏幕显示。 |
+| rv1126_aiisp              | rockit、rkaiq    | 针对RV1126/RV1109平台的IPC产品，使用aiisp，支持网页和rtsp/rtmp预览，参数动态修改。 |
 
 ### RV1103 IPC
 
@@ -149,7 +157,7 @@ graph LR
 	VENC_0--combo-->VENC_JPEG
 	VI_1--bind-->VENC_1_and_OSD_draw_NN_result-->RTSP_RTMP_1
 	VI_2--get and sned-->NPU
-	VI_2--bind-->IVS_for_OD_MD
+	VI_3--bind-->IVS_for_OD_MD
 ```
 
 ### RV1106 Battery IPC Tuya
@@ -168,11 +176,32 @@ graph LR
 ```
 
 ### RV1106 Dual-IPC
+
 ```mermaid
 graph LR
 	VI_0-->AVS
-	VI_1-->AVS-->VPSS-->VENC_0-->RTSP
+	VI_1-->AVS-->VENC_0-->RTSP_0
+	AVS-->VENC_1-->RTSP_1
+```
 
+### RV1106 AIISP
+
+```mermaid
+graph TB
+	VI--2688*1520-->VPSS_0(VPSS_GRP_0 AIISP)
+	VPSS_0--2688*1520-->VPSS_0_0(VPSS GRP 0 CHN 0)
+	VPSS_0--1280*720-->VPSS_0_1(VPSS GRP 0 CHN 1)
+	VPSS_0--704*576-->VPSS_0_2(VPSS GRP 0 CHN 2)
+
+	VPSS_0_1-->VPSS_1(VPSS_GRP_1)
+	VPSS_0_0-->VENC_0
+	VENC_0--combo-->VENC_JPEG
+	VPSS_0_1-->VENC_1
+	VPSS_0_2-->IVS
+	VPSS_0_2-->IVA
+
+	VPSS_1-->VPSS_1_0(VPSS GRP 1 CHN 0)
+	VPSS_1_0--640*480-->VENC_2(VENC_2)
 ```
 
 ### RK3588 IPC
@@ -212,18 +241,10 @@ graph TB
 ```mermaid
 graph LR
 	AI-->AENC-->MUXER-->file
-	VI_0[VI_0_2688*1520]-->NN_draw-->VENC_0(VENC_0 H264)-->RTSP_0
+	VI_0[VI_0_2688*1520]-->VENC_0(VENC_0 H264)-->RTSP_RTMP_0
 	VENC_0(VENC_0 H264)-->MUXER
-	VI_0-->VENC_3(VENC_3 JPEG)-->save_jpeg
-
-	VI_1[VI_1_640*480]-->move_detect-->NN_result
-	VI_1-->face_recognize-->NN_result
-	VI_1-->body_detect-->NN_result
-	VI_1-->VENC_1(VENC_1 H264)-->RTSP_1
-	VENC_1(VENC_1 H264)-->RTMP
-
-	VI_2[VI_2_1920*1080]-->VENC_2(VENC_2 H264)-->RTSP_2
-
+	VI_0-->VENC_JPEG-->save_jpeg
+	VI_1[VI_1_640*480]-->VENC_1(VENC_1 H264)-->RTSP_RTMP_1
 	VI_3[VI_3_1280*720]-->RGA_720*1280-->VO
 ```
 
@@ -232,12 +253,14 @@ graph LR
 ```mermaid
 graph LR
 	AI-->AENC-->MUXER-->MP4
-	VI-->VPSS-->VENC_0-->MUXER
+	VI_bypass_or_scale0-->VENC_0-->MUXER
+	VI_bypass_or_scale0-->VENC_JPEG
 	VENC_0-->RTSP_RTMP_0
-	VPSS-->VENC_1-->RTSP_RTMP_1
-	VPSS-->VENC_2-->RTSP_RTMP_2
-	VPSS-->VENC_3-->JPEG
-	VI-->VPSS_ROTATE-->VO
+	VI_scale1-->VENC_1-->RTSP_RTMP_1
+	VI_scale1-->VPSS_1-->VENC_2-->RTSP_RTMP_2
+	VI_scale2-->VPSS_2-->VO
+	VI_scale2-->IVS_for_MD_OD
+	VI_scale2-->NPU
 ```
 
 ### RV1126 Battery IPC
@@ -254,6 +277,15 @@ graph LR
 	VI_1-->face_recognize-->draw-->VO
 ```
 
+### RV1126 Dual-IPC
+
+```mermaid
+graph LR
+       VI_0-->AVS
+       VI_1-->AVS-->VENC_0-->RTSP_0
+       AVS-->VENC_1-->RTSP_1
+```
+
 ### RV1126 Snapshot
 
 ```mermaid
@@ -265,13 +297,37 @@ graph LR
 	VI_1(VI_1)-->VENC_2(VENC_2 JPEG)-->Interpolation_magnification(Interpolation magnification)-->jpeg[jpeg picture]
 ```
 
+### RV1126 AIISP
+
+```mermaid
+graph TB
+	VI--2688*1520-->VPSS_0(VPSS_GRP_0 AIISP)
+	VPSS_0--2688*1520-->VPSS_0_0(VPSS GRP 0 CHN 0)
+	VPSS_0--704*576-->VPSS_0_1(VPSS GRP 0 CHN 1)
+
+	VPSS_0_0-->VPSS_1(VPSS_GRP_1 osd cover)
+	VPSS_0_1-->IVS
+	VPSS_0_1-->IVA
+
+	VPSS_1--2688*1520-->VPSS_1_0(VPSS GRP 1 CHN 0)
+	VPSS_1--1280*720-->VPSS_1_1(VPSS GRP 1 CHN 1)
+
+	VPSS_1_0-->VENC_0
+	VPSS_1_0-->TDE-->VENC_JPEG
+	VPSS_1_1-->VENC_1
+	VPSS_1_1-->VPSS_2
+
+	VPSS_2--640*480-->VENC_2(VENC_2)
+	VPSS_2--720*1280-->VO
+```
+
 ## 代码结构
 
 ```shell
 ├── CMakeLists.txt
 ├── common # 通用模块
 │   ├── common.h # 一些通用函数功能
-│   ├── event # 事件处理模块：移动侦测，人脸人形识别
+│   ├── event # 事件处理模块
 │   ├── isp # 图像处理模块
 │   │   ├── rk3588
 │   │   ├── rv1106
@@ -283,7 +339,7 @@ graph LR
 │   │   └── simsun_en.ttf # 字体库
 │   ├── param # 参数管理模块
 │   ├── rkbar # 二维码识别模块
-│   ├── rockiva # 周界算法模块
+│   ├── rockiva # 周界算法模块，人脸人形识别
 │   ├── rtmp # rtmp推流模块
 │   ├── rtsp # rtsp推流模块
 │   ├── storage # 存储模块
@@ -330,7 +386,7 @@ graph LR
 
 **web前端→web后端→rkipc→底层模块→保存参数**
 
-以色调为例，前端基本已经实现不用改，web后端在app/ipcweb-backend/src/image_api.cpp里会收到"iHue":50，这样的json字符串。
+以色调为例，前端基本已经实现了，不需要修改；web后端在app/ipcweb-backend/src/image_api.cpp里会收到"iHue":50，这样的json字符串。
 
 然后调用app/ipcweb-backend/src/socket_client里封装好的函数，远程调用到rkipc中。
 
@@ -463,7 +519,7 @@ index 6613b90..52692c9 100644
 
 ### web后端新增相关判断
 
-ipcweb-backend主要判断web前端传入的数据，进而Get/Set数据，修改如下
+ipcweb-backend主要判断web前端传入的数据，进而Get/Set数据，修改如下：
 
 ```diff
 diff --git a/src/image_api.cpp b/src/image_api.cpp
@@ -662,12 +718,12 @@ submitOne(groupName: string, isReboot: boolean = false, isAppRestart = false) {
 | rk_network_nicspeed_support_get | 获取网卡支持速率          |
 | rk_ethernet_power_set           | 开关以太网                |
 | rk_nic_state_get                | 取得当前网卡状态          |
-| rk_wifi_power_get               | 获取当前wifi状态          |
-| rk_wifi_power_set               | 开关wifi                  |
-| rk_wifi_scan_wifi               | 立即扫描wifi              |
-| rk_wifi_get_list                | 获取wifi列表              |
-| rk_wifi_connect_with_ssid       | 连接wifi                  |
-| rk_wifi_forget_with_ssid        | 删除wifi                  |
+| rk_wifi_power_get               | 获取当前Wi-Fi状态         |
+| rk_wifi_power_set               | 开关Wi-Fi                 |
+| rk_wifi_scan_wifi               | 立即扫描Wi-Fi             |
+| rk_wifi_get_list                | 获取Wi-Fi列表             |
+| rk_wifi_connect_with_ssid       | 连接Wi-Fi                 |
+| rk_wifi_forget_with_ssid        | 删除Wi-Fi                 |
 
 ### 封装模块
 
@@ -889,7 +945,6 @@ submitOne(groupName: string, isReboot: boolean = false, isAppRestart = false) {
 
 | 函数名称                 | 功能                   |
 | ------------------------ | ---------------------- |
-| rkipc_audio_rtsp_init    | rtsp音频初始化         |
 | rkipc_audio_init         | 音频模块初始化         |
 | rkipc_audio_deinit       | 音频模块反初始化       |
 | rk_audio_restart         | 重启音频模块           |
@@ -991,7 +1046,7 @@ card_name = hw:0,0 ; 声卡名称
 encode_type = G711A ; 编码类型
 format = S16 ; 格式
 sample_rate = 8000 ; 采样率
-channels = 2 ; 声道数
+channels = 1 ; 声道数
 frame_size = 1152 ; 采样大小
 bit_rate = 16000 ; 比特率
 input = mic_in ; 输入类型，目前仅支持mic_in
@@ -1000,7 +1055,6 @@ enable_aed = 0 ; 是否使能声音检测
 enable_bcd = 0 ; 是否使能哭声检测
 enable_vqe = 1 ; 是否使能音频3A算法
 vqe_cfg = /oem/usr/share/vqefiles/config_aivqe.json ; 音频3A算法配置文件路径
-rt_audio_period_size = 1024 ; 音频period_size
 ```
 
 ### 视频模块
@@ -1053,7 +1107,7 @@ gop = 50 ; I帧间隔
 smartp_viridrlen = 25 ; smartP的虚拟I帧长度
 gop_mode = normalP ; gop模式
 stream_smooth = 50 ; 码流平滑度，目前未使用
-enable_motion_deblur = 1 ; 运动去模糊
+enable_motion_deblur = 1 ; 运动去模糊，目前只支持RV1103、RV1106
 enable_motion_static_switch = 0 ; 动静切换开关，用于完全静态场景节省码率，请注意完全静态场景下的质量
 frame_min_i_qp = 26 ; 帧级I帧最小QP
 frame_min_qp = 28 ; 帧级最小QP
@@ -1101,6 +1155,8 @@ scenario = normal ; normal or custom1
 init_form_ini = 1 ; 是否使用ini参数覆盖IQ参数进行初始化
 normal_scene = day ; 对应IQ文件中第一个场景的sub_scene字段
 custom1_scene = night ; 对应IQ文件中第二个场景的sub_scene字段
+ircut_open_gpio = 71 ; gpio2 RK_PA7 (N=X*32+Y*8+Z; X:gpioX, Y:0/1/2/...(RK_PA/B/C/...) Z:RK_PYZ)
+ircut_close_gpio = 70 ; gpio2 RK_PA6
 
 ; isp.0
 [isp.0.adjustment]
@@ -1141,10 +1197,10 @@ blc_strength = 1 ; 背光补偿强度
 wdr = close ; 宽动态模式，暂未使用
 wdr_level = 0 ; 宽动态强度，暂未使用
 hdr = close ; 高动态模式
-hdr_level = 1 ; 高动态强度
+hdr_level = 50 ; 高动态强度
 hlc = close ; 强光抑制
 hlc_level = 0 ; 强光抑制强度
-dark_boost_level = 0 ; 暗区增强级别
+dark_boost_level = 1 ; 暗区增强级别
 position_x = 0 ; 背光补偿区域x坐标
 position_y = 0 ; 背光补偿区域y坐标
 blc_region_width = 120 ; 背光补偿区域宽度
@@ -1229,14 +1285,14 @@ user_num = 1
 ```ini
 [capability.video]
 0 = {"disabled":[{"name":"sStreamType","options":{"subStream":{"sSmart":"close"},"thirdStream":{"sSmart":"close"}},"type":"disabled/limit"},{"name":"sSmart","options":{"open":{"iGOP":null,"iStreamSmooth":null,"sH264Profile":null,"sRCMode":null,"sRCQuality":null,"sSVC":null}},"type":"disabled"},{"name":"sRCMode","options":{"CBR":{"sRCQuality":null}},"type":"disabled"},{"name":"sOutputDataType","options":{"H.265":{"sH264Profile":null}},"type":"disabled"},{"name":"unspport","options":{"iStreamSmooth":null,"sVideoType":null},"type":"disabled"}],"dynamic":{"sSmart":{"open":{"iMinRate":{"dynamicRange":{"max":"iMaxRate","maxRate":1,"min":"iMaxRate","minRate":0.125},"type":"dynamicRange"}}},"sStreamType":{"mainStream":{"iMaxRate":{"options":[256,512,1024,2048,3072,4096,6144],"type":"options"},"sResolution":{"options":["2560*1440","1920*1080","1280*720"],"type":"options"}},"subStream":{"iMaxRate"
-1 = :{"options":[128,256,512],"type":"options"},"sResolution":{"options":["704*576","640*480","352*288","320*240"],"type":"options"}},"thirdStream":{"iMaxRate":{"options":[256,512],"type":"options"},"sResolution":{"options":["416*416"],"type":"options"}}}},"layout":{"encoder":["sStreamType","sVideoType","sResolution","sRCMode","sRCQuality","sFrameRate","sOutputDataType","sSmart","sH264Profile","sSVC","iMaxRate","iMinRate","iGOP","iStreamSmooth"]},"static":{"iGOP":{"range":{"max":400,"min":1},"type":"range"},"iStreamSmooth":{"range":{"max":100,"min":1,"step":1},"type":"range"},"sFrameRate":{"dynamicRange":{"max":"sFrameRateIn","maxRate":1},"options":["1/16","1/8","1/4","1/2","1","2","4","6","8","10","12","14","16","18","20","25","30"],"type":"options/dynamicRange"},"sH264Profile":{"options":["high","main","baseline"],"type":"options"},"sOutputDataType":{"options"
+1 = :{"options":[128,256,512],"type":"options"},"sResolution":{"options":["704*576","640*480","352*288","320*240"],"type":"options"}},"thirdStream":{"iMaxRate":{"options":[256,512],"type":"options"},"sResolution":{"options":["416*416"],"type":"options"}}}},"layout":{"encoder":["sStreamType","sVideoType","sResolution","sRCMode","sRCQuality","sFrameRate","sOutputDataType","sSmart","sH264Profile","sSVC","iMaxRate","iMinRate","iGOP","iStreamSmooth"]},"static":{"iGOP":{"range":{"max":400,"min":1},"type":"range"},"iStreamSmooth":{"range":{"max":100,"min":1,"step":1},"type":"range"},"sFrameRate":{"dynamicRange":{"max":"sFrameRateIn","maxRate":1},"options":["1/2","1","2","4","6","8","10","12","14","16","18","20","25","30"],"type":"options/dynamicRange"},"sH264Profile":{"options":["high","main","baseline"],"type":"options"},"sOutputDataType":{"options"
 2 = :["H.264","H.265"],"type":"options"},"sRCMode":{"options":["CBR","VBR"],"type":"options"},"sRCQuality":{"options":["lowest","lower","low","medium","high","higher","highest"],"type":"options"},"sSVC":{"options":["open","close"],"type":"options"},"sSmart":{"options":["open","close"],"type":"options"},"sStreamType":{"options":["mainStream","subStream","thirdStream"],"type":"options"},"sVideoType":{"options":["videoStream","compositeStream"],"type":"options"}}}
 
 [capability.image_adjustment]
 0 = {"layout":{"image_adjustment":["iBrightness","iContrast","iSaturation","iSharpness","iHue"]},"static":{"iBrightness":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iContrast":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iHue":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iSaturation":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iSharpness":{"range":{"max":100,"min":0,"step":1},"type":"range"}}}
 
 [capability.image_blc]
-0 = {"disabled":[{"name":"sHLC","options":{"open":{"sBLCRegion":null}},"type":"disabled"},{"name":"sBLCRegion","options":{"open":{"iDarkBoostLevel":null,"iHLCLevel":null,"sHLC":null}},"type":"disabled"}],"dynamic":{"sBLCRegion":{"open":{"iBLCStrength":{"range":{"max":100,"min":0,"step":1},"type":"range"}}},"sHDR":{"HDR2":{"iHDRLevel":{"options":[1,2,3,4],"type":"options"}},"close":{"sBLCRegion":{"options":["close","open"],"type":"options"},"sHLC":{"options"
+0 = {"disabled":[{"name":"sHLC","options":{"open":{"sBLCRegion":null}},"type":"disabled"},{"name":"sBLCRegion","options":{"open":{"iDarkBoostLevel":null,"iHLCLevel":null,"sHLC":null}},"type":"disabled"}],"dynamic":{"sBLCRegion":{"open":{"iBLCStrength":{"range":{"max":100,"min":0,"step":1},"type":"range"}}},"sHDR":{"HDR2":{"iHDRLevel":{"range":{"max":100,"min":1,"step":1},"type":"range"}},"close":{"sBLCRegion":{"options":["close","open"],"type":"options"},"sHLC":{"options"
 1 = :["close","open"],"type":"options"}}},"sHLC":{"open":{"iDarkBoostLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"},"iHLCLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"}}},"sWDR":{"open":{"iWDRLevel":{"range":{"max":100,"min":0,"step":1},"type":"range"}}}},"layout":{"image_blc":["sHDR","iHDRLevel","sBLCRegion","iBLCStrength","sHLC","iHLCLevel"]},"static":{"sHDR":{"options":["close","HDR2"],"type":"options"}}}
 
 [capability.image_enhancement]
@@ -1339,6 +1395,8 @@ image_path = /usr/share/image.bmp ; 图片路径
 
 ### 事件模块
 
+目前仅支持rv1126_ipc_rkmedia
+
 ```ini
 [event.regional_invasion]
 enabled = 1 ; 是否使能区域入侵
@@ -1403,7 +1461,7 @@ avs_width = 8192 ; 拼接后宽度
 avs_height = 2700 ; 拼接后高度
 avs_mode = 0 ; avs拼接模式，0为融合拼接, 1为垂直非融合拼接, 2为水平非融合拼接, 3为田字形非融合拼接
 sync = 1 ; avs同步模式，要求所有帧序列号同步
-param_source = 0 ; 参数来源, 0 is LUT, 1 is CALIB
+param_source = 0 ; 参数来源, 0 is CALIB, 1 is LUT, 2 is xml to lut
 calib_file_path = /oem/usr/share/avs_calib/calib_file.pto ; pto文件路径
 mesh_alpha_path = /oem/usr/share/avs_calib/ ; 生成的mesh表存放路径
 middle_lut_path = /oem/usr/share/middle_lut/ ; middle_lut文件路径

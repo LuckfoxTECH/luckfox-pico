@@ -13,7 +13,7 @@ namespace cgi {
 nlohmann::json roi_info_get() {
   int value;
   char *str;
-  char *tmp = new char[64];
+  char *tmp = new char[256];
   nlohmann::json roi_info;
   nlohmann::json normalized_screen_size;
 
@@ -58,7 +58,7 @@ nlohmann::json roi_info_get() {
 
 nlohmann::json roi_specific_get(std::string stream_type, int roi_id) {
   int actual_id, value;
-  char *tmp = new char[64];
+  char *tmp = new char[256];
   nlohmann::json roi_region;
 
   if (!stream_type.compare("main-stream")) {

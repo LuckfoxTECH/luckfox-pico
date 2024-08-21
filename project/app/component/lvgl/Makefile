@@ -11,15 +11,17 @@ CURRENT_DIR := $(shell pwd)
 PKG_NAME := lvgl
 PKG_BIN ?= out
 PKG_BUILD ?= build
-PKG_CFG := conf
+PKG_CFG := rockchip-conf
 
-LVGL_DEF_CONF := $(CURRENT_DIR)/$(PKG_CFG)/lv_conf_default.h
+LVGL_DEF_CONF := $(CURRENT_DIR)/$(PKG_NAME)/$(PKG_CFG)/lv_conf_default.h
 LVGL_DST_CONF := $(CURRENT_DIR)/$(PKG_NAME)/lv_conf.h
 
-ifeq ($(RK_APP_TYPE), RKCVR_RV1106)
-LVGL_SRC_CONF := $(CURRENT_DIR)/$(PKG_CFG)/lv_conf_cvr.h
-else ifeq ($(RK_APP_TYPE), FACIAL_GATE_RV1106_NORMAL)
-LVGL_SRC_CONF := $(CURRENT_DIR)/$(PKG_CFG)/lv_conf_facialgate.h
+ifneq (, $(filter RKCVR_RV1106, $(RK_APP_TYPE)))
+LVGL_SRC_CONF := $(CURRENT_DIR)/$(PKG_NAME)/$(PKG_CFG)/lv_conf_rv1106_cvr.h
+else ifneq (, $(filter FACIAL_GATE_RV1106_NORMAL, $(RK_APP_TYPE)))
+LVGL_SRC_CONF := $(CURRENT_DIR)/$(PKG_NAME)/$(PKG_CFG)/lv_conf_facialgate.h
+else ifneq (, $(filter RKCVR_RV1126, $(RK_APP_TYPE)))
+LVGL_SRC_CONF := $(CURRENT_DIR)/$(PKG_NAME)/$(PKG_CFG)/lv_conf_rv1126_cvr.h
 else
 LVGL_SRC_CONF := $(LVGL_DEF_CONF)
 endif

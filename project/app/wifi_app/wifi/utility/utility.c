@@ -58,8 +58,8 @@ static int system_fd_closexec(const char* command)
 
 int exec_command_system(const char *cmd)
 {
-	system(cmd);
-#if 0
+	//system(cmd);
+#if 1
 	pid_t status;
 
 	status = system_fd_closexec(cmd);
@@ -125,12 +125,11 @@ int test_pthread(pthread_t tid) /*pthread_kill的返回值：成功（0） 线�
 
 int get_ps_pid(const char Name[])
 {
-	int len;
-	char name[32] = {0};
+	char name[64] = {0};
 	char cmdresult[256] = {0};
-	char cmd[64] = {0};
+	char cmd[256] = {0};
 	FILE *pFile = NULL;
-	int  pid = 0;
+	//int pid = 0;
 	int retry_cnt = 3;
 
 retry:
@@ -138,9 +137,8 @@ retry:
 	memset(cmdresult, 0, 256);
 	memset(cmd, 0, 64);
 
-	len = strlen(Name);
-	strncpy(name,Name,len);
-	name[31] ='\0';
+	strncpy(name, Name, sizeof(name));
+	name[sizeof(name) - 1] = '\0'; // Ensure null-termination of the name string.
 
 //	sprintf(cmd, "pidof %s", name);
 	sprintf(cmd, "busybox ps | grep %s | grep -v grep", name);
@@ -165,7 +163,6 @@ retry:
 int kill_task(char *name)
 {
 	char cmd[128] = {0};
-	int exec_cnt = 3, retry_cnt = 10;
 
 	if (!get_ps_pid(name))
 		return 0;

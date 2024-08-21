@@ -21,6 +21,8 @@
 #include <linux/mtd/nand.h>
 #endif
 
+// #define MTD_BLK_VERBOSE
+
 #define MTD_PART_NAND_HEAD		"mtdparts="
 #define MTD_PART_INFO_MAX_SIZE		512
 #define MTD_SINGLE_PART_INFO_MAX_SIZE	40
@@ -29,6 +31,13 @@
 #define MTD_BLK_TABLE_BLOCK_SHIFT	(-1)
 
 static int *mtd_map_blk_table;
+
+#if CONFIG_IS_ENABLED(SUPPORT_USBPLUG)
+static loff_t usbplug_dummy_partition_write_last_addr;
+static loff_t usbplug_dummy_partition_write_seek;
+static loff_t usbplug_dummy_partition_read_last_addr;
+static loff_t usbplug_dummy_partition_read_seek;
+#endif
 
 int mtd_blk_map_table_init(struct blk_desc *desc,
 			   loff_t offset,
@@ -176,6 +185,13 @@ static __maybe_unused int mtd_map_read(struct mtd_info *mtd, loff_t offset,
 	u_char *p_buffer = buffer;
 	int rval;
 
+#if CONFIG_IS_ENABLED(SUPPORT_USBPLUG)
+	if (usbplug_dummy_partition_read_last_addr != offset)
+		usbplug_dummy_partition_read_seek = 0;
+	usbplug_dummy_partition_read_last_addr = offset + left_to_read;
+	offset += usbplug_dummy_partition_read_seek;
+#endif
+
 	while (left_to_read > 0) {
 		size_t block_offset = offset & (mtd->erasesize - 1);
 		size_t read_length;
@@ -188,9 +204,12 @@ static __maybe_unused int mtd_map_read(struct mtd_info *mtd, loff_t offset,
 		if (!get_mtd_blk_map_address(mtd, &mapped_offset)) {
 			if (mtd_block_isbad(mtd, mapped_offset &
 					    ~(mtd->erasesize - 1))) {
-				printf("Skipping bad block 0x%08llx\n",
-				       offset & ~(mtd->erasesize - 1));
+				printf("Skipping bad block 0x%08x in read\n",
+				       (u32)(offset & ~(mtd->erasesize - 1)));
 				offset += mtd->erasesize - block_offset;
+#if CONFIG_IS_ENABLED(SUPPORT_USBPLUG)
+				usbplug_dummy_partition_read_seek += mtd->erasesize;
+#endif
 				continue;
 			}
 		}
@@ -203,8 +222,8 @@ static __maybe_unused int mtd_map_read(struct mtd_info *mtd, loff_t offset,
 		rval = mtd_read(mtd, mapped_offset, read_length, &read_length,
 				p_buffer);
 		if (rval && rval != -EUCLEAN) {
-			printf("NAND read from offset %llx failed %d\n",
-			       offset, rval);
+			printf("NAND read from offset %x failed %d\n",
+			       (u32)offset, rval);
 			*length -= left_to_read;
 			return rval;
 		}
@@ -227,6 +246,13 @@ static __maybe_unused int mtd_map_write(struct mtd_info *mtd, loff_t offset,
 	struct erase_info ei;
 
 	blocksize = mtd->erasesize;
+
+#if CONFIG_IS_ENABLED(SUPPORT_USBPLUG)
+	if (usbplug_dummy_partition_write_last_addr != offset)
+		usbplug_dummy_partition_write_seek = 0;
+	usbplug_dummy_partition_write_last_addr = offset + left_to_write;
+	offset += usbplug_dummy_partition_write_seek;
+#endif
 
 	/*
 	 * nand_write() handles unaligned, partial page writes.
@@ -257,9 +283,12 @@ static __maybe_unused int mtd_map_write(struct mtd_info *mtd, loff_t offset,
 		if (!get_mtd_blk_map_address(mtd, &mapped_offset)) {
 			if (mtd_block_isbad(mtd, mapped_offset &
 					    ~(mtd->erasesize - 1))) {
-				printf("Skipping bad block 0x%08llx\n",
-				       offset & ~(mtd->erasesize - 1));
+				printf("Skipping bad block 0x%08x in write\n",
+				       (u32)(offset & ~(mtd->erasesize - 1)));
 				offset += mtd->erasesize - block_offset;
+#if CONFIG_IS_ENABLED(SUPPORT_USBPLUG)
+				usbplug_dummy_partition_write_seek += mtd->erasesize;
+#endif
 				continue;
 			}
 		}
@@ -458,6 +487,9 @@ ulong mtd_dread(struct udevice *udev, lbaint_t start,
 #endif
 	struct mtd_info *mtd;
 	int ret = 0;
+#ifdef MTD_BLK_VERBOSE
+	ulong us = 1;
+#endif
 
 	if (!desc)
 		return ret;
@@ -469,24 +501,21 @@ ulong mtd_dread(struct udevice *udev, lbaint_t start,
 	if (blkcnt == 0)
 		return 0;
 
-	pr_debug("mtd dread %s %lx %lx\n", mtd->name, start, blkcnt);
-
+#ifdef MTD_BLK_VERBOSE
+	us = get_ticks();
+#endif
 	if (desc->devnum == BLK_MTD_NAND) {
 		ret = mtd_map_read(mtd, off, &rwsize,
 				   NULL, mtd->size,
 				   (u_char *)(dst));
 		if (!ret)
-			return blkcnt;
-		else
-			return 0;
+			ret = blkcnt;
 	} else if (desc->devnum == BLK_MTD_SPI_NAND) {
 		ret = mtd_map_read(mtd, off, &rwsize,
 				   NULL, mtd->size,
 				   (u_char *)(dst));
 		if (!ret)
-			return blkcnt;
-		else
-			return 0;
+			ret = blkcnt;
 	} else if (desc->devnum == BLK_MTD_SPI_NOR) {
 #if defined(CONFIG_SPI_FLASH_MTD) || defined(CONFIG_SPL_BUILD)
 		struct spi_nor *nor = (struct spi_nor *)mtd->priv;
@@ -495,18 +524,22 @@ ulong mtd_dread(struct udevice *udev, lbaint_t start,
 
 		if (desc->op_flag == BLK_PRE_RW)
 			spi->mode |= SPI_DMA_PREPARE;
-		mtd_read(mtd, off, rwsize, &retlen_nor, dst);
+		ret = mtd_read(mtd, off, rwsize, &retlen_nor, dst);
 		if (desc->op_flag == BLK_PRE_RW)
 			spi->mode &= ~SPI_DMA_PREPARE;
 
 		if (retlen_nor == rwsize)
-			return blkcnt;
-		else
+			ret = blkcnt;
 #endif
-			return 0;
-	} else {
-		return 0;
 	}
+#ifdef MTD_BLK_VERBOSE
+	us = (get_ticks() - us) / 24UL;
+	pr_err("mtd dread %s %lx %lx cost %ldus: %ldMB/s\n\n", mtd->name, start, blkcnt, us, (blkcnt / 2) / ((us + 999) / 1000));
+#else
+	pr_debug("mtd dread %s %lx %lx\n\n", mtd->name, start, blkcnt);
+#endif
+
+	return ret;
 }
 
 #if CONFIG_IS_ENABLED(MTD_WRITE)
@@ -536,7 +569,7 @@ ulong mtd_dwrite(struct udevice *udev, lbaint_t start,
 	if (desc->devnum == BLK_MTD_NAND ||
 	    desc->devnum == BLK_MTD_SPI_NAND ||
 	    desc->devnum == BLK_MTD_SPI_NOR) {
-		if (desc->op_flag == BLK_MTD_CONT_WRITE) {
+		if (desc->op_flag & BLK_MTD_CONT_WRITE) {
 			ret = mtd_map_write(mtd, off, &rwsize,
 					    NULL, mtd->size,
 					    (u_char *)(src), 0);

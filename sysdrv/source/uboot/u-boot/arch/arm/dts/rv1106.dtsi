@@ -492,7 +492,7 @@
 	};
 
 	saradc: saradc@ff3c0000 {
-		compatible = "rockchip,rk3588-saradc";
+		compatible = "rockchip,rv1106-saradc";
 		reg = <0xff3c0000 0x100>;
 		interrupts = <GIC_SPI 62 IRQ_TYPE_LEVEL_HIGH>;
 		#io-channel-cells = <1>;
@@ -861,8 +861,11 @@
 	wdt: watchdog@ff5a0000 {
 		compatible = "rockchip,rv1106-wdt", "snps,dw-wdt";
 		reg = <0xff5a0000 0x100>;
-		clocks = <&cru PCLK_WDT_NS>;
+		clocks = <&cru TCLK_WDT_NS>, <&cru PCLK_WDT_NS>;
+		clock-names = "tclk", "pclk";
 		interrupts = <GIC_SPI 46 IRQ_TYPE_LEVEL_HIGH>;
+		resets = <&cru SRST_P_WDT_NS>;
+		reset-names = "reset";
 		status = "disabled";
 	};
 
@@ -1127,8 +1130,9 @@
 		cd-gpios = <&gpio3 RK_PA1 GPIO_ACTIVE_HIGH>;
 		fifo-depth = <0x100>;
 		max-frequency = <200000000>;
-		pinctrl-names = "default";
+		pinctrl-names = "default", "idle";
 		pinctrl-0 = <&sdmmc0_clk &sdmmc0_cmd &sdmmc0_det &sdmmc0_bus4>;
+		pinctrl-1 = <&sdmmc0_idle_pins &sdmmc0_det>;
 		status = "disabled";
 	};
 

@@ -11,6 +11,7 @@
 #include <linux/delay.h>
 #include <linux/dma-buf-cache.h>
 #include <linux/dma-iommu.h>
+#include <linux/dma-mapping.h>
 #include <linux/iommu.h>
 #include <linux/of.h>
 #include <linux/of_platform.h>
@@ -27,7 +28,7 @@
 #include "mpp_iommu.h"
 #include "mpp_common.h"
 
-static struct mpp_dma_buffer *
+struct mpp_dma_buffer *
 mpp_dma_find_buffer_fd(struct mpp_dma_session *dma, int fd)
 {
 	struct dma_buf *dmabuf;
@@ -374,6 +375,50 @@ mpp_dma_session_create(struct device *dev, u32 max_buffers)
 	return dma;
 }
 
+/*
+ * begin cpu access => for_cpu = true
+ * end cpu access => for_cpu = false
+ */
+void mpp_dma_buf_sync(struct mpp_dma_buffer *buffer, u32 offset, u32 length,
+		      enum dma_data_direction dir, bool for_cpu)
+{
+	struct device *dev = buffer->dma->dev;
+	struct sg_table *sgt = buffer->sgt;
+	struct scatterlist *sg = sgt->sgl;
+	dma_addr_t sg_dma_addr = sg_dma_address(sg);
+	unsigned int len = 0;
+	int i;
+
+	for_each_sgtable_sg(sgt, sg, i) {
+		unsigned int sg_offset, sg_left, size = 0;
+
+		len += sg->length;
+		if (len <= offset) {
+			sg_dma_addr += sg->length;
+			continue;
+		}
+
+		sg_left = len - offset;
+		sg_offset = sg->length - sg_left;
+
+		size = (length < sg_left) ? length : sg_left;
+
+		if (for_cpu)
+			dma_sync_single_range_for_cpu(dev, sg_dma_addr,
+						      sg_offset, size, dir);
+		else
+			dma_sync_single_range_for_device(dev, sg_dma_addr,
+							 sg_offset, size, dir);
+
+		offset += size;
+		length -= size;
+		sg_dma_addr += sg->length;
+
+		if (length == 0)
+			break;
+	}
+}
+
 int mpp_iommu_detach(struct mpp_iommu_info *info)
 {
 	if (!info)
@@ -544,6 +589,9 @@ int mpp_iommu_dev_activate(struct mpp_iommu_info *info, struct mpp_dev *dev)
 	unsigned long flags;
 	int ret = 0;
 
+	if (!info)
+		return 0;
+
 	spin_lock_irqsave(&info->dev_lock, flags);
 
 	if (info->dev_active || !dev) {
@@ -568,6 +616,9 @@ int mpp_iommu_dev_activate(struct mpp_iommu_info *info, struct mpp_dev *dev)
 int mpp_iommu_dev_deactivate(struct mpp_iommu_info *info, struct mpp_dev *dev)
 {
 	unsigned long flags;
+
+	if (!info)
+		return 0;
 
 	spin_lock_irqsave(&info->dev_lock, flags);
 

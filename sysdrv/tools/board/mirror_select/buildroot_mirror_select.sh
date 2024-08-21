@@ -1,7 +1,8 @@
 #!/bin/bash
 BACKUP_MIRROR_SITE="http://sources.buildroot.net"
 
-PRIMARY_MIRROR_SITES=("http://sources.buildroot.net" "https://mirrors.lzu.edu.cn/buildroot")
+#PRIMARY_MIRROR_SITES=("http://sources.buildroot.net" "https://mirrors.lzu.edu.cn/buildroot")
+PRIMARY_MIRROR_SITES=("http://sources.buildroot.net" "https://mirrors.nju.edu.cn/buildroot/")
 
 # Uncomment and use other mirror sites if needed
 # KERNEL_MIRROR_SITES=(

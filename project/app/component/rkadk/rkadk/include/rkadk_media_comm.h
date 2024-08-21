@@ -21,24 +21,30 @@
 extern "C" {
 #endif
 
-#include "rk_mpi_adec.h"
+#include "rk_comm_video.h"
+#include "rk_comm_aiisp.h"
 #include "rk_mpi_aenc.h"
+#include "rk_mpi_adec.h"
 #include "rk_mpi_ai.h"
 #include "rk_mpi_mb.h"
 #include "rk_mpi_sys.h"
 #include "rk_mpi_venc.h"
 #include "rk_mpi_vi.h"
-#ifdef RV1126_1109
-#include "rk_mpi_vdec.h"
-#include "rk_mpi_vo.h"
-#endif
-#include "rk_mpi_amix.h"
-#include "rk_mpi_cal.h"
-#include "rk_mpi_rgn.h"
 #include "rk_mpi_vpss.h"
+#include "rk_mpi_rgn.h"
+#include "rk_mpi_cal.h"
+#include "rk_mpi_mmz.h"
+#include "rk_mpi_vo.h"
+#include "rk_mpi_vdec.h"
+
+#ifdef RV1106_1103
+#include "rk_mpi_amix.h"
+#endif
+
 #include "rkadk_common.h"
 #include <stdbool.h>
 
+#define RKADK_ENCODE_SENSE_IPC SCENE_0
 #define RKADK_ENCODE_SENSE_CVR SCENE_2
 
 /* audio capture maximum count */
@@ -51,10 +57,13 @@ extern "C" {
 #define RKADK_MEDIA_VI_MAX_CNT (4 * RKADK_MAX_SENSOR_CNT)
 
 /* video encoder maximum count */
-#define RKADK_MEDIA_VENC_MAX_CNT RKADK_MEDIA_VI_MAX_CNT
+#define RKADK_MEDIA_VENC_MAX_CNT (7 * RKADK_MAX_SENSOR_CNT)
 
 /* vpss maximum count */
 #define RKADK_MEDIA_VPSS_MAX_CNT (6 * RKADK_MAX_SENSOR_CNT)
+
+/* vo maximum count */
+#define RKADK_MEDIA_VO_MAX_CNT (6 * RKADK_MAX_SENSOR_CNT)
 
 /* ai aenc maximum bind count */
 #define RKADK_AI_AENC_MAX_BIND_CNT RKADK_MEDIA_AENC_MAX_CNT
@@ -78,6 +87,14 @@ typedef void (*RKADK_MEDIA_VENC_DATA_PROC_FUNC)(RKADK_MEDIA_VENC_DATA_S stData,
 typedef void (*RKADK_MEDIA_AENC_DATA_PROC_FUNC)(AUDIO_STREAM_S stFrame,
                                                 RKADK_VOID *pHandle);
 
+typedef struct {
+  AIISP_CALLBACK_FUNC_S stAiIspCallback;      /* post isp callback function */
+  const RK_CHAR        *pModelFilePath;       /* post isp model file path   */
+  RK_U32                u32FrameBufCnt;       /* RW; frame buffer cnt    */
+} RKADK_POST_ISP_ATTR_S;
+
+#define RKADK_BUFINFO(fmt, ...)  RKADK_MEDIA_DumpBufinfo(fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__)
+
 RKADK_S32 RKADK_MPI_SYS_Init();
 RKADK_S32 RKADK_MPI_SYS_Exit();
 bool RKADK_MPI_SYS_CHECK();
@@ -85,7 +102,7 @@ bool RKADK_MPI_SYS_CHECK();
 AUDIO_SOUND_MODE_E RKADK_AI_GetSoundMode(RKADK_U32 ch);
 RKADK_S32 RKADK_MPI_AI_Init(AUDIO_DEV aiDevId, RKADK_S32 s32AiChnId,
                             AIO_ATTR_S *pstAiAttr, RKADK_VQE_MODE_E enMode,
-                            RKADK_U32 micType);
+                            const char *pVqeCfgPath, RKADK_U32 micType);
 RKADK_S32 RKADK_MPI_AI_DeInit(AUDIO_DEV aiDevId, RKADK_S32 s32AiChnId,
                               RKADK_VQE_MODE_E enMode);
 
@@ -104,17 +121,27 @@ RKADK_S32 RKADK_MPI_VENC_Init(RKADK_U32 u32CamId, RKADK_S32 s32ChnId,
 RKADK_S32 RKADK_MPI_VENC_DeInit(RKADK_S32 s32ChnId);
 
 RKADK_S32 RKADK_MPI_VPSS_Init(RKADK_S32 s32VpssGrp, RKADK_S32 s32VpssChn,
-                              VPSS_GRP_ATTR_S *pstVpssGrpAttr,
-                              VPSS_CHN_ATTR_S *pstVpssChnAttr);
+                              VPSS_GRP_ATTR_S *pstVpssGrpAttr, VPSS_CHN_ATTR_S *pstVpssChnAttr);
 
 RKADK_S32 RKADK_MPI_VPSS_DeInit(RKADK_S32 s32VpssGrp, RKADK_S32 s32VpssChn);
+
+RKADK_S32 RKADK_MPI_VO_Init(RKADK_S32 s32VoLay, RKADK_S32 s32VoDev, RKADK_S32 s32VoChn,
+                        VO_PUB_ATTR_S *pstVoPubAttr, VO_VIDEO_LAYER_ATTR_S *pstLayerAttr,
+                        VO_CHN_ATTR_S *pstChnAttr, RKADK_VO_SPLICE_MODE_E enSpliceMode);
+
+RKADK_S32 RKADK_MPI_VO_DeInit(RKADK_S32 s32VoLay, RKADK_S32 s32VoDev, RKADK_S32 s32VoChn);
 
 RKADK_S32 RKADK_MPI_SYS_Bind(const MPP_CHN_S *pstSrcChn,
                              const MPP_CHN_S *pstDestChn);
 RKADK_S32 RKADK_MPI_SYS_UnBind(const MPP_CHN_S *pstSrcChn,
                                const MPP_CHN_S *pstDestChn);
 
+PIXEL_FORMAT_E RKADK_MEDIA_GetRkPixelFormat(RKADK_FORMAT_E Format);
+
+VO_INTF_TYPE_E RKADK_MEDIA_GetRkVoIntfTpye(RKADK_VO_INTF_TYPE_E enIntfType);
+
 RKADK_CODEC_TYPE_E RKADK_MEDIA_GetCodecType(RK_CODEC_ID_E enType);
+
 RK_CODEC_ID_E RKADK_MEDIA_GetRkCodecType(RKADK_CODEC_TYPE_E enType);
 
 RKADK_S32 RKADK_MEDIA_SetRcAttr(VENC_RC_ATTR_S *pstRcAttr, RKADK_U32 u32Gop,
@@ -122,10 +149,11 @@ RKADK_S32 RKADK_MEDIA_SetRcAttr(VENC_RC_ATTR_S *pstRcAttr, RKADK_U32 u32Gop,
                                 RKADK_U32 u32DstFrameRate);
 
 bool RKADK_MEDIA_CompareResolution(VENC_CHN_ATTR_S *pstRecAttr,
-                                   RKADK_U32 u32Width, RKADK_U32 u32Height);
+                                RKADK_U32 u32Width, RKADK_U32 u32Height);
 
-bool RKADK_MEDIA_VencAttrCmp(VENC_CHN_ATTR_S *pstRecAttr, RK_CODEC_ID_E enType,
-                             RKADK_U32 u32DstFrameRate, RKADK_U32 u32Bitrate);
+bool RKADK_MEDIA_VencAttrCmp(VENC_CHN_ATTR_S *pstRecAttr,
+                                  RKADK_U32 u32Gop, RKADK_U32 u32DstFrameRate,
+                                  RKADK_U32 u32Bitrate);
 
 RKADK_S32 RKADK_MEDIA_GetAencBuffer(MPP_CHN_S *pstChn,
                                     RKADK_MEDIA_AENC_DATA_PROC_FUNC pfnDataCB,
@@ -133,7 +161,8 @@ RKADK_S32 RKADK_MEDIA_GetAencBuffer(MPP_CHN_S *pstChn,
 
 RKADK_S32
 RKADK_MEDIA_StopGetAencBuffer(MPP_CHN_S *pstChn,
-                              RKADK_MEDIA_AENC_DATA_PROC_FUNC pfnDataCB);
+                              RKADK_MEDIA_AENC_DATA_PROC_FUNC pfnDataCB,
+                              RKADK_VOID *pHandle);
 
 RKADK_S32 RKADK_MEDIA_GetVencBuffer(MPP_CHN_S *pstChn,
                                     RKADK_MEDIA_VENC_DATA_PROC_FUNC pfnDataCB,
@@ -141,7 +170,8 @@ RKADK_S32 RKADK_MEDIA_GetVencBuffer(MPP_CHN_S *pstChn,
 
 RKADK_S32
 RKADK_MEDIA_StopGetVencBuffer(MPP_CHN_S *pstChn,
-                              RKADK_MEDIA_VENC_DATA_PROC_FUNC pfnDataCB);
+                              RKADK_MEDIA_VENC_DATA_PROC_FUNC pfnDataCB,
+                              RKADK_VOID *pHandle);
 
 RKADK_S32 RKADK_MEDIA_FrameBufMalloc(RKADK_FRAME_ATTR_S *pstFrameAttr);
 
@@ -154,10 +184,33 @@ bool RKADK_MEDIA_CheckIdrFrame(RKADK_CODEC_TYPE_E enCodecType,
 
 RKADK_U16 RKADK_MEDIA_GetAudioBitWidth(AUDIO_BIT_WIDTH_E enBitWidth);
 
-int RKADK_MEDIA_GetPixelFormat(PIXEL_FORMAT_E enPixelFormat,
-                               RKADK_CHAR *cPixFmt);
+int RKADK_MEDIA_GetPixelFormat(PIXEL_FORMAT_E enPixelFormat, RKADK_CHAR *cPixFmt);
 
 bool RKADK_MEDIA_EnableAencRegister(RKADK_CODEC_TYPE_E eCodecType);
+
+RKADK_S32 RKADK_MEDIA_SetVencRotation(RKADK_U32 u32CamId,
+                              ROTATION_E enRotation, RKADK_STREAM_TYPE_E enStreamType);
+
+RKADK_S32 RKADK_MEDIA_QueryVencStatus(RKADK_U32 u32CamId, RKADK_STREAM_TYPE_E enStreamType);
+
+RKADK_S32 RKADK_MEDIA_ToggleVencMirror(RKADK_U32 u32CamId,
+                                    RKADK_STREAM_TYPE_E enStrmType,
+                                    bool mirror);
+
+RKADK_S32 RKADK_MEDIA_ToggleVencFlip(RKADK_U32 u32CamId,
+                                  RKADK_STREAM_TYPE_E enStrmType,
+                                  bool flip);
+
+void RKADK_MEDIA_DumpBufinfo(const char *fmt, const char *fname, const int row, ...);
+
+RKADK_S32 RKADK_MEDIA_EnablePostIsp(RKADK_U32 u32CamId, RKADK_STREAM_TYPE_E enStrmType,
+                                  RKADK_POST_ISP_ATTR_S *pstPostIspAttr);
+
+RKADK_S32 RKADK_MEDIA_SetPostIspAttr(RKADK_U32 u32CamId,
+                                  RKADK_STREAM_TYPE_E enStrmType, bool bEnable,
+                                  RKADK_POST_ISP_ATTR_S *pstPostIspAttr);
+
+RKADK_S32 RKADK_MEDIA_SetVencState(RKADK_U32 u32CamId, RKADK_S32 s32ChnId, bool state);
 
 #ifdef __cplusplus
 }

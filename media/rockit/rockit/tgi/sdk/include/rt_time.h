@@ -24,48 +24,48 @@
 #include "rt_log.h"    // NOLINT
 
 class RtTime {
-public:
-  struct DateTime {
-    UINT16 mYear;     //!< e.g. 2005
-    UINT8 mMonth;     //!< 1..12
-    UINT8 mDayOfWeek; //!< 0..6, 0==Sunday
-    UINT8 mDay;       //!< 1..31
-    UINT8 mHour;      //!< 0..23
-    UINT8 mMinute;    //!< 0..59
-    UINT8 mSecond;    //!< 0..59
-  };
+ public:
+    struct DateTime {
+        UINT16 mYear;          //!< e.g. 2005
+        UINT8  mMonth;         //!< 1..12
+        UINT8  mDayOfWeek;     //!< 0..6, 0==Sunday
+        UINT8  mDay;           //!< 1..31
+        UINT8  mHour;          //!< 0..23
+        UINT8  mMinute;        //!< 0..59
+        UINT8  mSecond;        //!< 0..59
+    };
 
-  static void getDateTime(DateTime *);
-  static UINT64 getNowTimeMs();
-  static UINT64 getNowTimeUs();
-  static UINT64 getRelativeTimeMs();
-  static UINT64 getRelativeTimeUs();
-  static void sleepMs(UINT64 time);
-  static void sleepUs(UINT64 time);
-  static INT32 randInt();
+    static void   getDateTime(DateTime*);
+    static UINT64 getNowTimeMs();
+    static UINT64 getNowTimeUs();
+    static UINT64 getRelativeTimeMs();
+    static UINT64 getRelativeTimeUs();
+    static void   sleepMs(UINT64 time);
+    static void   sleepUs(UINT64 time);
+    static INT32  randInt();
 };
 
 class RtAutoTimeoutLog {
-public:
-  // The label is not deep-copied, so its address must remain valid for the
-  // lifetime of this object
-  inline RtAutoTimeoutLog(const char *label = RT_NULL, UINT64 timeout_ms = 0)
-      : mLabel(label) {
-    mNow = RtTime::getNowTimeMs();
-    mTimeOut = timeout_ms;
-  }
-  inline ~RtAutoTimeoutLog() {
-    UINT64 duration = RtTime::getNowTimeMs() - mNow;
-    if (duration >= mTimeOut) {
-      (void)mLabel;
-      // RT_LOGE("%s [perf:%lld ms]\n", mLabel ? mLabel : "", duration);
+ public:
+    // The label is not deep-copied, so its address must remain valid for the
+    // lifetime of this object
+    inline RtAutoTimeoutLog(const char* label = RT_NULL,
+                                   UINT64 timeout_ms = 0)
+            : mLabel(label) {
+        mNow     = RtTime::getNowTimeMs();
+        mTimeOut = timeout_ms;
     }
-  }
-
-private:
-  const char *mLabel;
-  UINT64 mNow;
-  UINT64 mTimeOut;
+    inline ~RtAutoTimeoutLog() {
+        UINT64 duration = RtTime::getNowTimeMs() - mNow;
+        if (duration >= mTimeOut) {
+            (void)mLabel;
+            // RT_LOGE("%s [perf:%lld ms]\n", mLabel ? mLabel : "", duration);
+        }
+    }
+ private:
+    const char* mLabel;
+    UINT64      mNow;
+    UINT64      mTimeOut;
 };
 
-#endif // INCLUDE_RT_BASE_RT_TIME_H_
+#endif  // INCLUDE_RT_BASE_RT_TIME_H_

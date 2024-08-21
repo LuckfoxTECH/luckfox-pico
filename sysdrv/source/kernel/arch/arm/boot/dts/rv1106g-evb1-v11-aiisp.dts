@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2024 Rockchip Electronics Co., Ltd.
+ */
+
+/dts-v1/;
+
+#include "rv1106g-evb1-v11.dts"
+
+/ {
+	model = "Rockchip RV1106G EVB1 V11 Board For RV1106G AI-ISP";
+	compatible = "rockchip,rv1106g-evb1-v11", "rockchip,rv1106";
+};
+
+&sc4336 {
+	rockchip,camera-module-name = "CMK-OT01";
+	rockchip,camera-module-lens-name = "40IRC_F16";
+};

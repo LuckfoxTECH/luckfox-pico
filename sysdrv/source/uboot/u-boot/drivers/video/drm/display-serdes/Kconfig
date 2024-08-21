@@ -1,0 +1,29 @@
+#
+#(C) Copyright 2023-2025 Rockchip Electronics Co., Ltd
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# Multifunction miscellaneous devices
+#
+comment "driver for different display serdes"
+
+menuconfig SERDES_DISPLAY
+	tristate "rockchip display serdes drivers support"
+	select SERDES_DISPLAY_CHIP_ROHM
+	select SERDES_DISPLAY_CHIP_MAXIM
+	select SERDES_DISPLAY_CHIP_ROCKCHIP
+	select SERDES_DISPLAY_CHIP_NOVO
+	select I2C_MUX
+	select DRM_ROCKCHIP
+	default n
+	help
+	  This driver supports different serdes devices from different vendor such as
+	  maxim, rohm, rockchip etc.
+
+if SERDES_DISPLAY
+source "drivers/video/drm/display-serdes/maxim/Kconfig"
+source "drivers/video/drm/display-serdes/rohm/Kconfig"
+source "drivers/video/drm/display-serdes/rockchip/Kconfig"
+source "drivers/video/drm/display-serdes/novo/Kconfig"
+endif
+

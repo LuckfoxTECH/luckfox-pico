@@ -6,7 +6,11 @@ extern "C" {
 #endif
 
 #define INI_VERSION "0.1.1"
+#ifdef ANDROID_OS
+#define OFFLINE_INI_FILE "/mnt/vendor/aiq_offline.ini"
+#else
 #define OFFLINE_INI_FILE "/tmp/aiq_offline.ini"
+#endif
 
 typedef struct ini_t ini_t;
 

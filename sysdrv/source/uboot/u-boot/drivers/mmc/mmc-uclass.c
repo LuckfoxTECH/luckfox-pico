@@ -35,7 +35,8 @@ retry:
 	    cmd->cmdidx != MMC_CMD_SEND_OP_COND &&
 	    cmd->cmdidx != MMC_SEND_TUNING_BLOCK_HS200 &&
 	    cmd->cmdidx != MMC_CMD_READ_MULTIPLE_BLOCK &&
-	    cmd->cmdidx != MMC_CMD_WRITE_MULTIPLE_BLOCK) {
+	    cmd->cmdidx != MMC_CMD_WRITE_MULTIPLE_BLOCK &&
+	    cmd->cmdidx != MMC_CMD_STOP_TRANSMISSION ) {
 		/* execute tuning at last retry. */
 		if (retry_time == 1 &&
 		    mmc->timing == MMC_TIMING_MMC_HS200 &&

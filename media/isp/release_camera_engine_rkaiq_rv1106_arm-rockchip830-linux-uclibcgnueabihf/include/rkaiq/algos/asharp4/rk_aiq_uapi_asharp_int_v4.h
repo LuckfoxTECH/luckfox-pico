@@ -24,12 +24,15 @@ rk_aiq_uapi_asharpV4_GetAttrib(const RkAiqAlgoContext *ctx,
 
 XCamReturn
 rk_aiq_uapi_asharpV4_SetStrength(const RkAiqAlgoContext *ctx,
-                                 float fPercent);
+                                 rk_aiq_sharp_strength_v4_t *pStrength);
 
 XCamReturn
 rk_aiq_uapi_asharpV4_GetStrength(const RkAiqAlgoContext *ctx,
-                                 float *pPercent);
+                                 rk_aiq_sharp_strength_v4_t *pStrength);
 
+XCamReturn
+rk_aiq_uapi_asharpV4_GetInfo(const RkAiqAlgoContext *ctx,
+                             rk_aiq_sharp_info_v4_t *pInfo);
 
 
 

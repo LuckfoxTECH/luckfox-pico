@@ -36,33 +36,34 @@ extern "C" {
 #endif
 
 #ifndef MSG
-#define MSG(level, fmt, args...)                                      \
-    fprintf(stderr, #level ": %s(%d) [%s]: " fmt, __FILE__, __LINE__, \
-        __func__, ##args)
+#define MSG(level, fmt, ...)                                                            \
+    fprintf(stderr, "" #level ": %s(%d) [%s]: " fmt "\n", __FILE__, __LINE__, __func__, \
+            ##__VA_ARGS__)
 #endif
 
 #ifndef DBG
 #if defined(NDEBUG)
 #define DBG(fmt, args...)
 #elif defined(DEBUG)
-#define DBG(fmt, args...) MSG(D, fmt, ##args)
+#define DBG(fmt, ...) MSG(D, fmt, ##__VA_ARGS__)
 #else
-#define DBG(fmt, args...)    \
-    if (getenv("J2S_DEBUG")) \
-    MSG(D, fmt, ##args)
+#define DBG(fmt, ...)                                        \
+    do {                                                     \
+        if (getenv("J2S_DEBUG")) MSG(D, fmt, ##__VA_ARGS__); \
+    } while (0)
 #endif
 #endif
 
 #ifndef INFO
-#define INFO(fmt, args...) MSG(I, fmt, ##args)
+#define INFO(fmt, ...) MSG(I, fmt, ##__VA_ARGS__)
 #endif
 
 #ifndef WARN
-#define WARN(fmt, args...) MSG(W, fmt, ##args)
+#define WARN(fmt, ...) MSG(W, fmt, ##__VA_ARGS__)
 #endif
 
 #ifndef ERR
-#define ERR(fmt, args...) MSG(E, fmt, ##args)
+#define ERR(fmt, ...) MSG(E, fmt, ##__VA_ARGS__)
 #endif
 
 #ifndef DASSERT
@@ -76,12 +77,12 @@ extern "C" {
 #endif
 
 #ifndef DASSERT_MSG
-#define DASSERT_MSG(b, action, fmt, args...) \
-    do {                                     \
-        if (unlikely(!(b))) {                \
-            ERR(fmt, ##args);                \
-            action;                          \
-        }                                    \
+#define DASSERT_MSG(b, action, fmt, ...) \
+    do {                                 \
+        if (unlikely(!(b))) {            \
+            ERR(fmt, ##__VA_ARGS__);     \
+            action;                      \
+        }                                \
     } while (0)
 #endif
 

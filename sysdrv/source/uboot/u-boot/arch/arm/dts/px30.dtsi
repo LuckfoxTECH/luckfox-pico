@@ -288,13 +288,6 @@
 		status = "disabled";
 	};
 
-	secure_otp: secure_otp@ff110000 {
-		compatible = "rockchip,px30-secure-otp";
-		reg = <0x0 0xff110000 0x0 0x4000>;
-		secure_conf = <0xff11C008>;
-		mask_addr = <0xff2d0000>;
-	};
-
 	gic: interrupt-controller@ff131000 {
 		compatible = "arm,gic-400";
 		#interrupt-cells = <3>;

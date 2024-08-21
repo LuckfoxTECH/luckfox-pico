@@ -1,0 +1,29 @@
+config RECPEN_CAPTURE_SOUND_CARD
+    string "Recording sound card"
+    default "pdmc"
+    help
+        Set recording sound card name
+
+config RECPEN_PLAYBACK_SOUND_CARD
+    string "Playback sound card"
+    default "es8388p"
+    help
+        Set playback sound card name
+
+config RECPEN_RECORD_FILE_DIR
+    string "Recording file path"
+    default "/record"
+    help
+        Set where to save recording file
+
+config RECPEN_RECORD_FILE_TYPE
+    string "Recordind file type"
+    default "wav"
+    help
+        Set which type of recording encorder
+
+config RECPEN_RECORD_MAX_DURATION
+    int "Max recording time(minutes)"
+    default 300
+    help
+        Limit max recording time in minutes, 0 for no limit

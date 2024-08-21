@@ -13,6 +13,11 @@ typedef struct {
 	uint32_t total[2];
 	uint32_t state[8];
 	uint8_t buffer[64];
+
+#if !defined(USE_HOSTCC)
+    struct udevice *cdev;
+    u32 length; /* Data total length */
+#endif
 } sha256_context;
 
 void sha256_starts(sha256_context * ctx);

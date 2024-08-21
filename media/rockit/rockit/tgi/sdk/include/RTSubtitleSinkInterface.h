@@ -17,36 +17,40 @@
 #ifndef INCLUDE_RT_PLAYER_RTSUBTITLESINKINTERFACE_H_
 #define INCLUDE_RT_PLAYER_RTSUBTITLESINKINTERFACE_H_
 
-#include "rt_type.h" // NOLINT
-#include <inttypes.h>
 #include <sys/types.h>
+#include <inttypes.h>
+#include "rt_type.h"   // NOLINT
 
-typedef enum _RTSubRenderType { RENDER_RGA, RENDER_GPU } RTSubRenderType;
+typedef enum _RTSubRenderType {
+    RENDER_RGA,
+    RENDER_GPU
+} RTSubRenderType;
 
 typedef struct _RTSubFrame {
-  void *data;
-  INT32 x;
-  INT32 y;
-  INT32 width;
-  INT32 height;
-  INT32 subWidth;
-  INT32 subHeight;
-  bool needcrop;
+    void* data;
+    INT32 x;
+    INT32 y;
+    INT32 width;
+    INT32 height;
+    INT32 subWidth;
+    INT32 subHeight;
+    bool  needcrop;
 } RTSubFrame;
 
 class RTSubtitleSinkInterface {
-public:
-  virtual ~RTSubtitleSinkInterface() {}
+ public:
+    virtual ~RTSubtitleSinkInterface() {}
 
-  virtual void create(INT32 renderType, INT32 display) = 0;
-  virtual void destroy() = 0;
-  virtual void initScene() = 0;
-  virtual void showScene() = 0; // swap buffer to screen
-  virtual void render(RTSubFrame *frame) = 0;
-  virtual void clean() = 0;
-  virtual void show() = 0;
-  virtual void hide() = 0;
-  virtual bool isShowing() = 0;
+    virtual void        create(INT32 renderType, INT32 display) = 0;
+    virtual void        destroy() = 0;
+    virtual void        initScene() = 0;
+    virtual void        showScene() = 0;    // swap buffer to screen
+    virtual void        render(RTSubFrame *frame) = 0;
+    virtual void        clean() = 0;
+    virtual void        show() = 0;
+    virtual void        hide() = 0;
+    virtual bool        isShowing() = 0;
 };
 
-#endif // INCLUDE_RT_PLAYER_RTSUBTITLESINKINTERFACE_H_
+#endif  // INCLUDE_RT_PLAYER_RTSUBTITLESINKINTERFACE_H_
+

@@ -9,6 +9,12 @@ ifeq ($(RK_PROJECT_OUTPUT),)
 -include $(KMPP_CURRENT_DIR)/../../../.BoardConfig.mk
 endif
 
+ifneq ($(SYSDRV_KERNEL_OBJS_OUTPUT_DIR),)
+__ROCKIT_BUILD_OBJ_DIR__=$(SYSDRV_KERNEL_OBJS_OUTPUT_DIR)/drivers/kmpp
+else
+__ROCKIT_BUILD_OBJ_DIR__=$(ROCKIT_CURRENT_DIR)/kmpp
+endif
+
 ifeq ($(ARCH), arm)
 MPP_KO=ko_32_rel
 RELEASE_KO=arm
@@ -57,7 +63,11 @@ clean:
 ################################################################################
 __RELEASE__: # DO NOT RUN THIS TARGET
 ifeq ($(RK_ENABLE_FASTBOOT),y)
+ifneq ($(SYSDRV_KERNEL_OBJS_OUTPUT_DIR),)
+	$(call MAROC_PKG_RELEASE_ASM_NEW, $(KMPP_CURRENT_DIR),$(PKG_NAME_KMPP), $(__ROCKIT_BUILD_OBJ_DIR__))
+else
 	$(call MAROC_PKG_RELEASE_ASM, $(KMPP_CURRENT_DIR),$(PKG_NAME_KMPP))
+endif
 else
 	$(call MAROC_PKG_RELEASE, $(KMPP_CURRENT_DIR),$(PKG_NAME_KMPP),$(PKG_OUT))
 endif

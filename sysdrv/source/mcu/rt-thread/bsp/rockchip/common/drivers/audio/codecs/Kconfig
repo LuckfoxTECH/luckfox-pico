@@ -1,0 +1,35 @@
+config RT_USING_CODEC
+    bool
+    default n
+
+    config RT_USING_ACDCDIG
+        depends on RT_USING_CODEC
+        bool
+
+    config RT_USING_ACODEC
+        depends on RT_USING_CODEC
+        bool
+
+    config RT_USING_CODEC_AW8896
+        depends on RT_USING_CODEC
+        bool
+
+    config RT_USING_CODEC_ES7243
+        depends on RT_USING_CODEC
+        bool
+
+    config RT_USING_CODEC_ES8156
+        depends on RT_USING_CODEC
+        bool
+
+    config RT_USING_CODEC_ES8311
+        depends on RT_USING_CODEC
+        bool
+
+    config RT_USING_CODEC_ES8388
+        depends on RT_USING_CODEC
+        bool
+
+    config RT_USING_CODEC_TDA7803
+        depends on RT_USING_CODEC
+        bool

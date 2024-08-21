@@ -15,6 +15,9 @@ set(RK_MPI_TEST_ADEC_SRC
 set(RK_MPI_TEST_VPSS_SRC
     test_mpi_vpss.cpp
 )
+set(RK_MPI_TEST_AVS_SRC
+    test_mpi_avs.cpp
+)
 
 set(RK_MPI_TEST_VGS_SRC
     test_mpi_vgs.cpp
@@ -106,6 +109,14 @@ install(TARGETS rk_mpi_adec_test RUNTIME DESTINATION "bin")
 add_executable(rk_mpi_vpss_test ${RK_MPI_TEST_VPSS_SRC} ${RK_MPI_TEST_COMMON_SRC})
 target_link_libraries(rk_mpi_vpss_test ${ROCKIT_DEP_COMMON_LIBS})
 install(TARGETS rk_mpi_vpss_test RUNTIME DESTINATION "bin")
+
+#--------------------------
+# rk_mpi_avs_test
+#--------------------------
+add_definitions(-DHAVE_AVS)
+add_executable(rk_mpi_avs_test ${RK_MPI_TEST_AVS_SRC} ${RK_MPI_TEST_COMMON_SRC})
+target_link_libraries(rk_mpi_avs_test ${ROCKIT_DEP_COMMON_LIBS_FULL})
+install(TARGETS rk_mpi_avs_test RUNTIME DESTINATION "bin")
 
 #--------------------------
 # rk_mpi_vgs_test

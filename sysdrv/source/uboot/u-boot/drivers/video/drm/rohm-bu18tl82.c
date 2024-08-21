@@ -7,6 +7,7 @@
 #include <dm.h>
 #include <errno.h>
 #include <i2c.h>
+#include <drm/drm_mipi_dsi.h>
 #include <video_bridge.h>
 #include <asm/unaligned.h>
 #include <linux/media-bus-format.h>
@@ -31,6 +32,7 @@ struct bu18tl82_priv {
 	struct udevice *power_supply;
 	struct gpio_desc enable_gpio;
 	struct serdes_init_seq *serdes_init_seq;
+	bool sel_mipi;
 };
 
 static void bu18tl82_bridge_reset(struct rockchip_bridge *bridge)
@@ -216,6 +218,20 @@ static int bu18tl82_probe(struct udevice *dev)
 		return ret;
 	}
 
+	priv->sel_mipi = dev_read_bool(dev, "sel-mipi");
+	if (priv->sel_mipi) {
+		struct mipi_dsi_device *device = dev_get_platdata(dev);
+
+		device->dev = dev;
+		device->lanes = dev_read_u32_default(dev, "dsi,lanes", 4);
+		device->format = dev_read_u32_default(dev, "dsi,format",
+						      MIPI_DSI_FMT_RGB888);
+		device->mode_flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_BURST |
+				     MIPI_DSI_MODE_VIDEO_HBP | MIPI_DSI_MODE_LPM |
+				     MIPI_DSI_MODE_EOT_PACKET;
+		device->channel = dev_read_u32_default(dev, "reg", 0);
+	}
+
 	bridge = calloc(1, sizeof(*bridge));
 	if (!bridge)
 		return -ENOMEM;
@@ -250,4 +266,5 @@ U_BOOT_DRIVER(bu18tl82) = {
 	.of_match = bu18tl82_of_match,
 	.probe = bu18tl82_probe,
 	.priv_auto_alloc_size = sizeof(struct bu18tl82_priv),
+	.platdata_auto_alloc_size = sizeof(struct mipi_dsi_device),
 };

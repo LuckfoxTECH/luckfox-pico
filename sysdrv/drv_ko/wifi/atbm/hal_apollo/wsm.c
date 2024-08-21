@@ -29,8 +29,6 @@
 #include "mac80211/rc80211_minstrel.h"
 #include "mac80211/rc80211_minstrel_ht.h"
 
-
-
 #ifdef ATBM_SUPPORT_SMARTCONFIG
 extern int smartconfig_start_rx(struct atbm_common *hw_priv,struct sk_buff *skb,int channel );
 #endif
@@ -42,11 +40,11 @@ extern void etf_v2_scan_rx(struct atbm_common *hw_priv,struct sk_buff *skb,u8 rs
 #endif /*ROAM_OFFLOAD*/
 #endif
 //#define CONFIG_ATBM_APOLLO_WSM_DEBUG
-//#if defined(CONFIG_ATBM_APOLLO_WSM_DEBUG)
-//#define wsm_printk  printk
-//#else
-#define wsm_printk atbm_printk_wsm
-//#endif
+#if defined(CONFIG_ATBM_APOLLO_WSM_DEBUG)
+#define wsm_printk  printk
+#else
+#define wsm_printk(...)
+#endif
 extern int test_cnt_packet;
 
 #define WSM_CMD_TIMEOUT		(60 * HZ) /* With respect to interrupt loss */
@@ -993,7 +991,8 @@ void wsm_sync_channl_reset(struct atbm_work_struct *work)
 		}
 		if(retry>20){
 			atbm_printk_err("What'happend(RetryTimes) %d\n",retry);
-			BUG_ON(1);
+			//BUG_ON(1);
+			return;
 		}
 		mdelay(100);
 	}while(1);
@@ -1688,7 +1687,10 @@ static void atbm_pm_timer_setup(struct atbm_common *hw_priv)
 	atbm_hold_suspend(hw_priv);
 	spin_unlock_bh(&hw_priv->wsm_pm_spin_lock);
 	#else
-	BUG_ON(hw_priv == NULL);
+	//BUG_ON(hw_priv == NULL);
+	if(hw_priv == NULL){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv is NULL\n",__func__,__LINE__);
+	}
 	#endif
 }
 
@@ -1701,7 +1703,10 @@ static void atbm_pm_timer_cancle(struct atbm_common *hw_priv)
 	atbm_release_suspend(hw_priv);
 	spin_unlock_bh(&hw_priv->wsm_pm_spin_lock);
 	#else
-	BUG_ON(hw_priv == NULL);
+	//BUG_ON(hw_priv == NULL);
+	if(hw_priv == NULL){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv is NULL\n",__func__,__LINE__);
+	}
 	#endif
 }
 /* ******************************************************************** */
@@ -1873,6 +1878,7 @@ static int wsm_give_buffer_confirm(struct atbm_common *hw_priv,
                             struct wsm_buf *buf)
 {
 	wsm_printk( "[WSM] HW Buf count %d\n", hw_priv->hw_bufs_used);
+	//wsm_printk( "[WSM] HW Buf short count %d\n", hw_priv->hw_bufs_used_short);
 	if (!(hw_priv->hw_bufs_used))
 		wake_up(&hw_priv->bh_evt_wq);
 	return 0;
@@ -2069,7 +2075,6 @@ static int wsm_startup_indication(struct atbm_common *hw_priv,
 	hw_priv->wsm_caps.NumOfHwXmitedAddr = Config[3];
 	hw_priv->hw_bufs_free = hw_priv->wsm_caps.numInpChBufs;
 	hw_priv->hw_bufs_free_init = hw_priv->hw_bufs_free;
-//	BUG_ON(hw_priv->wsm_caps.NumOfHwXmitedAddr == 0);
 //	printk("wsm_caps.firmwareCap %x firmware used %s-rate policy\n",hw_priv->wsm_caps.firmwareCap,hw_priv->wsm_caps.firmwareCap&CAPABILITIES_NEW_RATE_POLICY?"new":"old");
 	atbm_printk_init("wsm_caps.firmwareCap %x",hw_priv->wsm_caps.firmwareCap);
 /*
@@ -2113,8 +2118,12 @@ static int wsm_startup_indication(struct atbm_common *hw_priv,
 		hw_priv->wsm_caps.firmwareBuildNumber,
 		hw_priv->wsm_caps.firmwareApiVer,
 		hw_priv->wsm_caps.firmwareCap,Config[0],Config[1],Config[2],hw_priv->wsm_caps.NumOfStations,hw_priv->wsm_caps.NumOfInterfaces);
-	BUG_ON(hw_priv->wsm_caps.NumOfStations == 0);
-	BUG_ON(hw_priv->wsm_caps.NumOfStations > ATBMWIFI_MAX_STA_IN_AP_MODE);
+
+	if((hw_priv->wsm_caps.NumOfStations == 0) || 
+		(hw_priv->wsm_caps.NumOfStations > ATBMWIFI_MAX_STA_IN_AP_MODE)){
+		atbm_printk_err("%s %d ,ERROR !!! NumOfStations=%d\n",__func__,__LINE__,hw_priv->wsm_caps.NumOfStations);
+		return -EINVAL;
+	}
 	hw_priv->wsm_caps.firmwareReady = 1;
 	hw_priv->wsm_caps.exceptionaddr =Config[1];
 	hw_priv->wsm_caps.HiHwCnfBufaddr = Config[2];//ep0 addr
@@ -2174,13 +2183,15 @@ static int wsm_startup_indication(struct atbm_common *hw_priv,
 	if((hw_priv->wsm_caps.firmwareCap &CAPABILITIES_NO_CONFIRM)==0){
 		
 		atbm_printk_init("LMAC NOT CAPABILITIES_NO_CONFIRM <ERROR>\n");
-		BUG_ON(1);
+		//BUG_ON(1);
+		return -EINVAL;
 	}
 #else
 	if((hw_priv->wsm_caps.firmwareCap &CAPABILITIES_NO_CONFIRM)){
 		
 		atbm_printk_init("LMAC SET CAPABILITIES_NO_CONFIRM <ERROR>\n");
-		BUG_ON(1);
+		//BUG_ON(1);
+		return -EINVAL;
 	}
 #endif
 
@@ -2799,7 +2810,7 @@ error:
 #else
 int wsm_recovery_chip_ares(struct atbm_common *hw_priv)
 {
-	
+#if 0	
 	u32 addr = hw_priv->wsm_caps.HiHwCnfBufaddr;
 	int ret=0;
 	u32 buf[DOWNLOAD_BLOCK_SIZE/4];
@@ -2890,6 +2901,9 @@ error:
 	wsm_unlock_tx_async(hw_priv);
 	__atbm_usb_resume(hw_priv->sbus_priv);
 	return RECOVERY_ERR;
+#endif
+	atbm_bh_halt(hw_priv);
+	return RECOVERY_BH_HALT;
 }
 
 #endif
@@ -2917,6 +2931,11 @@ int  wsm_sync_channle_process(struct atbm_common *hw_priv,int type)
 }
 int wsm_recovery(struct atbm_common *hw_priv)
 {
+#ifdef SDIO_BUS
+	if(hw_priv->sdio_status == -1)
+		return RECOVERY_ERR;
+#endif
+
 #if(PROJ_TYPE < ARES_A)
 	return RECOVERY_ERR;
 #endif
@@ -2969,11 +2988,11 @@ int wsm_cmd_send(struct atbm_common *hw_priv,
 	}
 	
 	if (cmd == 0x0006) /* Write MIB */
-		wsm_printk( "[WSM] >>> 0x%.4X [MIB: 0x%.4X] (%d)\n",
+		wsm_printk( "[WSM] >>> 0x%.4X [MIB: 0x%.4X] (%ld)\n",
 			cmd, __le16_to_cpu(((__le16 *)buf->begin)[sizeof(struct wsm_hdr_tx)/2]),
 			buf_len);
 	else
-		wsm_printk( "[WSM] >>> 0x%.4X (%d)\n", cmd, buf_len);
+		wsm_printk( "[WSM] >>> 0x%.4X (%ld)\n", cmd, buf_len);
 
 	/* Fill HI message header */
 	/* BH will add sequence number */
@@ -3012,7 +3031,12 @@ int wsm_cmd_send(struct atbm_common *hw_priv,
 TxCmdAgain:
 #endif //
 	spin_lock_bh(&hw_priv->wsm_cmd.lock);
-    BUG_ON(hw_priv->wsm_cmd.ptr);
+  //  BUG_ON(hw_priv->wsm_cmd.ptr);
+	if(hw_priv->wsm_cmd.ptr){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv->wsm_cmd.ptr is NULL\n",__func__,__LINE__);
+		spin_unlock_bh(&hw_priv->wsm_cmd.lock);
+		return -1;
+	}
 	hw_priv->wsm_cmd.done = 0;
 	hw_priv->wsm_cmd.ptr = buf->begin;
 	hw_priv->wsm_cmd.len = buf_len;
@@ -3049,10 +3073,25 @@ TxCmdAgain:
 		do {
 			/* It's safe to use unprotected access to
 			 * wsm_cmd.done here */
+#ifdef SDIO_BUS
+			if(hw_priv->sdio_status == -1){
+				ret = atbm_wait_event_timeout_stay_awake(hw_priv,
+					hw_priv->wsm_cmd_wq,
+					hw_priv->wsm_cmd.done
+					, 100,true);
+			}else{
+				ret = atbm_wait_event_timeout_stay_awake(hw_priv,
+					hw_priv->wsm_cmd_wq,
+					hw_priv->wsm_cmd.done
+					, tmo,true);
+			}
+
+#else
 			ret = atbm_wait_event_timeout_stay_awake(hw_priv,
 					hw_priv->wsm_cmd_wq,
 					hw_priv->wsm_cmd.done
 					, tmo,true);
+#endif
 			wsm_cmd_runtime = jiffies - wsm_cmd_starttime;
 			if(!ret  &&
 					wsm_cmd_runtime < wsm_cmd_max_tmo && 
@@ -3157,10 +3196,19 @@ TxCmdAgain:
 			/* If wsm_handle_rx got stuck in _confirm we will hang
 			 * system there. It's better than silently currupt
 			 * stack or heap, isn't it? */
+			 /*
 			BUG_ON(atbm_wait_event_timeout_stay_awake(hw_priv,
 					hw_priv->wsm_cmd_wq,
 					hw_priv->wsm_cmd.done
-		,WSM_CMD_LAST_CHANCE_TIMEOUT,true) <= 0);
+		,WSM_CMD_LAST_CHANCE_TIMEOUT,true) <= 0);*/
+			if(atbm_wait_event_timeout_stay_awake(hw_priv,
+					hw_priv->wsm_cmd_wq,
+					hw_priv->wsm_cmd.done
+					,WSM_CMD_LAST_CHANCE_TIMEOUT,true) <= 0){
+					atbm_printk_err("%s %d ,ERROR !!! atbm_wait_event_timeout_stay_awake < 0\n",__func__,__LINE__);
+				return -1;
+			}
+			
 		}
 		atbm_printk_err("wsm_cmd_send timeout cmd %x tmo %ld\n",cmd,tmo);
 		
@@ -3184,7 +3232,12 @@ TxCmdAgain:
 		ret = -ETIMEDOUT;
 	} else {
 		spin_lock_bh(&hw_priv->wsm_cmd.lock);
-		BUG_ON(!hw_priv->wsm_cmd.done);
+		//BUG_ON(!hw_priv->wsm_cmd.done);
+		if(!hw_priv->wsm_cmd.done){
+			atbm_printk_err("%s %d ,ERROR !!! hw_priv->wsm_cmd.done is NULL\n",__func__,__LINE__);
+			spin_unlock_bh(&hw_priv->wsm_cmd.lock);
+			return -1;
+		}
 		ret = hw_priv->wsm_cmd.ret;
 		spin_unlock_bh(&hw_priv->wsm_cmd.lock);
 	}
@@ -3251,8 +3304,11 @@ bool wsm_flush_tx(struct atbm_common *hw_priv)
 
 
 	/* Flush must be called with TX lock held. */
-	BUG_ON(!atomic_read(&hw_priv->tx_lock));
-
+	//BUG_ON(!atomic_read(&hw_priv->tx_lock));
+	if(!atomic_read(&hw_priv->tx_lock)){
+		atbm_printk_err("%s %d ,ERROR !!! atomic_read(&hw_priv->tx_lock) is NULL\n",__func__,__LINE__);
+		return false;
+	}
 	/* First check if we really need to do something.
 	 * It is safe to use unprotected access, as hw_bufs_used
 	 * can only decrements. */
@@ -3356,8 +3412,12 @@ bool wsm_vif_flush_tx(struct atbm_vif *priv)
 	struct atbm_seq_bit_map *bitmap=NULL,*tmp=NULL;
 #endif
 	/* Flush must be called with TX lock held. */
-	BUG_ON(!atomic_read(&hw_priv->tx_lock));
-
+	//BUG_ON(!atomic_read(&hw_priv->tx_lock));
+	if(!atomic_read(&hw_priv->tx_lock)){
+		atbm_printk_err("%s %d ,ERROR !!! atomic_read(&hw_priv->tx_lock) is NULL\n",__func__,__LINE__);
+		WARN_ON(1);
+		return false;
+	}
 	/* First check if we really need to do something.
 	 * It is safe to use unprotected access, as hw_bufs_used
 	 * can only decrements. */
@@ -3440,7 +3500,8 @@ void wsm_unlock_tx(struct atbm_common *hw_priv)
 	else {
 		tx_lock = atomic_sub_return(1, &hw_priv->tx_lock);
 		if (tx_lock < 0) {
-			BUG_ON(1);
+			atbm_printk_err("%s %d ,ERROR !!! tx_lock < 0\n",__func__,__LINE__);
+			WARN_ON(1);
 		} else if (tx_lock == 0) {
 			atbm_bh_wakeup(hw_priv);
 			wsm_printk(KERN_DEBUG "[WSM] TX is unlocked.\n");
@@ -3730,7 +3791,10 @@ int wsm_handle_rx(struct atbm_common *hw_priv, int id,
 					id & ~0x0400);
 			break;
 		default:
-			BUG_ON(1);
+			atbm_printk_err("%s %d ,ERROR !!! id is %x\n",__func__,__LINE__,id);
+			
+			ret = -1;
+			goto out ;
 		}
 
 		spin_lock_bh(&hw_priv->wsm_cmd.lock);
@@ -3891,7 +3955,10 @@ static bool wsm_handle_tx_data(struct atbm_vif *priv,
 			}
 		}else 
 #endif
-		if (unlikely((priv->join_status <= ATBM_APOLLO_JOIN_STATUS_MONITOR) || memcmp(frame->addr1, priv->join_bssid,sizeof(priv->join_bssid)))) {
+		if (unlikely(
+			(priv->join_status <= ATBM_APOLLO_JOIN_STATUS_MONITOR) ||
+			memcmp(frame->addr1, priv->join_bssid,
+				sizeof(priv->join_bssid)))) {
 #ifdef CONFIG_ATBM_SUPPORT_P2P
 #ifdef P2P_MULTIVIF
 			if (p2p_if_vif && (p2p_if_vif->join_status >
@@ -3935,6 +4002,9 @@ static bool wsm_handle_tx_data(struct atbm_vif *priv,
 				atbm_printk_warn("Scan ONGOING dropping offchannel"
 					" eligible frame.\n");
 				action = doDrop;
+			}else if(ieee80211_is_deauth(fctl)){
+				atbm_printk_err("%s : send deauth \n",__func__);
+				action = doTx;
 			}
 			else{
 				/*
@@ -3984,7 +4054,10 @@ static bool wsm_handle_tx_data(struct atbm_vif *priv,
 			action = doTx;
 			break;
 		}
-   fallthrough;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 10, 60))
+		
+			fallthrough;
+#endif
 	default:
 		action = doDrop;
 		break;
@@ -4044,11 +4117,19 @@ static bool wsm_handle_tx_data(struct atbm_vif *priv,
 		 * We are dropping everything except AUTH in non-joined mode. */
 		wsm_printk( "[WSM] Drop frame (0x%.4X).\n", fctl);
 #ifdef CONFIG_ATBM_APOLLO_TESTMODE
-		BUG_ON(atbm_queue_remove(hw_priv, queue,
-			__le32_to_cpu(wsm->packetID)));
+		
+		
+		if(atbm_queue_remove(hw_priv, queue,
+			__le32_to_cpu(wsm->packetID))){
+			atbm_printk_err("%s %d ,ERROR !!! atbm_queue_remove ERROR\n",__func__,__LINE__);
+			return false;
+		}
 #else
-		BUG_ON(atbm_queue_remove(queue,
-			__le32_to_cpu(wsm->packetID)));
+		if(atbm_queue_remove(queue,
+			__le32_to_cpu(wsm->packetID))){
+			atbm_printk_err("%s %d ,ERROR !!! atbm_queue_remove ERROR\n",__func__,__LINE__);
+			return false;
+		}
 #endif /*CONFIG_ATBM_APOLLO_TESTMODE*/
 		handled = true;
 	}
@@ -4083,11 +4164,19 @@ static bool wsm_handle_tx_data(struct atbm_vif *priv,
 #else
 	{
 #ifdef CONFIG_ATBM_APOLLO_TESTMODE
-		BUG_ON(atbm_queue_remove(hw_priv, queue,
-			__le32_to_cpu(wsm->packetID)));
+			
+			
+			if(atbm_queue_remove(hw_priv, queue,
+				__le32_to_cpu(wsm->packetID))){
+				atbm_printk_err("%s %d ,ERROR !!! atbm_queue_remove ERROR\n",__func__,__LINE__);
+				return false;
+			}
 #else
-		BUG_ON(atbm_queue_remove(queue,
-			__le32_to_cpu(wsm->packetID)));
+			if(atbm_queue_remove(queue,
+				__le32_to_cpu(wsm->packetID))){
+				atbm_printk_err("%s %d ,ERROR !!! atbm_queue_remove ERROR\n",__func__,__LINE__);
+				return false;
+			}
 #endif /*CONFIG_ATBM_APOLLO_TESTMODE*/
 		handled = true;
 	}
@@ -4370,7 +4459,13 @@ int wsm_get_tx(struct atbm_common *hw_priv, u8 **data,
 	if (hw_priv->wsm_cmd.ptr) {
 		++count;
 		spin_lock_bh(&hw_priv->wsm_cmd.lock);
-		BUG_ON(!hw_priv->wsm_cmd.ptr);
+		//BUG_ON(!hw_priv->wsm_cmd.ptr);
+		
+		if(!hw_priv->wsm_cmd.ptr){
+			atbm_printk_err("%s %d ,ERROR !!! hw_priv->wsm_cmd.ptr is NULL\n",__func__,__LINE__);
+			spin_unlock_bh(&hw_priv->wsm_cmd.lock);
+			return -1;
+		}		
 		*data = hw_priv->wsm_cmd.ptr;
 #ifdef ATBM_SDIO_PATCH
 		*tx_len = ALINE_BYTE(hw_priv->wsm_cmd.len+4,4);
@@ -4587,7 +4682,11 @@ int wsm_txed(struct atbm_common *hw_priv, u8 *data)
 #endif
 void wsm_buf_init(struct wsm_buf *buf)
 {
-	BUG_ON(buf->begin);
+	if(buf->begin){	
+		atbm_printk_err("%s %d ,ERROR !!! buf->begin is used\n",__func__,__LINE__);
+		WARN_ON(1);
+		return;
+	}
 	buf->begin = atbm_kmalloc(/*SDIO_BLOCK_SIZE*/ MAX_WSM_BUF_LEN, GFP_KERNEL | GFP_DMA);
 	buf->end = buf->begin ? &buf->begin[MAX_WSM_BUF_LEN] : buf->begin;
 	wsm_buf_reset(buf);

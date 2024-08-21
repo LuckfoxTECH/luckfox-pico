@@ -409,7 +409,12 @@ void rate_control_get_rate(struct ieee80211_sub_if_data *sdata,
 		}
 	}
 
-	BUG_ON(info->control.rates[0].idx < 0);
+	//BUG_ON(info->control.rates[0].idx < 0);
+	
+	if(info->control.rates[0].idx < 0){
+		atbm_printk_err("%s %d ,ERROR !!!info->control.rates[0].idx < 0\n",__func__,__LINE__);
+		return;
+	}
 #if defined(CONFIG_NL80211_TESTMODE) || defined(CONFIG_ATBM_IOCTRL)
 
 

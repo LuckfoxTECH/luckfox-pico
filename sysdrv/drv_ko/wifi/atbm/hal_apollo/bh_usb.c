@@ -29,7 +29,12 @@ int atbm_register_bh(struct atbm_common *hw_priv)
 	int err = 0;
 	struct sched_param param = { .sched_priority = 1 };
 	bh_printk( "[BH] register.\n");
-	BUG_ON(hw_priv->bh_thread);
+//	BUG_ON(hw_priv->bh_thread);
+	if(hw_priv->bh_thread){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv->bh_thread is runing\n",__func__,__LINE__);
+		WARN_ON(hw_priv->bh_thread);
+		return 0;
+	}
 	atomic_set(&hw_priv->bh_rx, 0);
 	atomic_set(&hw_priv->bh_suspend_usb, 1);
 	atomic_set(&hw_priv->bh_tx, 0);
@@ -344,12 +349,19 @@ static bool atbm_rx_serial(struct atbm_common *hw_priv,u8 wsm_seq,int wsm_id)
 	else if (WARN_ON(wsm_seq != hw_priv->wsm_rx_seq)) {
 		atbm_printk_err("rx wsm_seq error wsm_seq[%d] wsm_rx_seq[%d] wsm_id[%x]\n",
 			wsm_seq,hw_priv->wsm_rx_seq,wsm_id);
+
+		atbm_printk_err("change hw_priv->wsm_rx_seq form wsm_seq \n");
+		hw_priv->wsm_rx_seq = wsm_seq;
 		//frame_hexdump("rxdata",wsm,64);
 		//BUG_ON(1);
-		atbm_hif_status_set(1);
-		atbm_bh_halt(hw_priv);
-		serial_rx = false;
+		
+		/*******yzh *******
+			atbm_hif_status_set(1);
+			atbm_bh_halt(hw_priv);
+			serial_rx = false;
+		
 		goto ret;
+		*/
 	}
 	hw_priv->wsm_rx_seq = (wsm_seq + 1) & 7;
 ret:
@@ -381,7 +393,13 @@ static void atbm_rx_multi_rx(struct atbm_common *hw_priv,struct sk_buff *skb,
 			atbm_printk_err("skb->len %x,wsm_len %x\n",skb->len,wsm_len);
 			break;
 		}
-		BUG_ON((wsm_id  & ~WSM_TX_LINK_ID(WSM_TX_LINK_ID_MAX)) !=  WSM_RECEIVE_INDICATION_ID);
+		//BUG_ON((wsm_id  & ~WSM_TX_LINK_ID(WSM_TX_LINK_ID_MAX)) !=  WSM_RECEIVE_INDICATION_ID);
+		if((wsm_id  & ~WSM_TX_LINK_ID(WSM_TX_LINK_ID_MAX)) !=  WSM_RECEIVE_INDICATION_ID){
+			atbm_printk_err("%s %d ,ERROR !!! (wsm_id=%d  & ~WSM_TX_LINK_ID(WSM_TX_LINK_ID_MAX)) = %d != 0x0804\n",__func__,__LINE__,
+				wsm_id,(wsm_id  & ~WSM_TX_LINK_ID(WSM_TX_LINK_ID_MAX)));
+			return;
+		}
+		
 		wsm_seq = (__le32_to_cpu(wsm->id) >> 13) & 7;
 
 		if((serial_check == true)&&
@@ -411,7 +429,10 @@ next_skb:
 		wsm_id	= __le32_to_cpu(wsm->id) & 0xFFF;
 		
 	}while((RxFrameNum>0) && (data_len > 32));
-	BUG_ON(RxFrameNum != 0);
+	//BUG_ON(RxFrameNum != 0);
+	if(RxFrameNum != 0){
+		atbm_printk_err("%s : RxFrameNum = %d £¬ data_len(%d)\n",__FUNCTION__,RxFrameNum,data_len);
+	}
 }
 static bool atbm_process_ieee80211_frame(struct atbm_common *hw_priv,struct sk_buff *skb,
 	int (*rx_func)(struct atbm_common *hw_priv,struct sk_buff *skb))
@@ -589,14 +610,16 @@ restart:
 			atbm_skb_queue_tail(&hw_priv->rx_frame_free, skb);
 			break;
 		default:
-			BUG_ON(1);
-			break;
+			//BUG_ON(1);
+			atbm_printk_err("%s %d , unknow frame_type = %x\n",__func__,__LINE__,frame_type);
+			//break;
+			atbm_dev_kfree_skb(skb);
+			break;;
 		}		
 	}	
 	while ((skb = atbm_skb_dequeue(&hw_priv->rx_frame_free)) != NULL) {
 		/*atbm transmit packet to device*/			
 		hw_priv->sbus_ops->lock(hw_priv->sbus_priv);
-		
 		hw_priv->sbus_ops->sbus_read_async(hw_priv->sbus_priv,0x2,skb,RX_BUFFER_SIZE,NULL);
 		hw_priv->sbus_ops->unlock(hw_priv->sbus_priv);	
 	}

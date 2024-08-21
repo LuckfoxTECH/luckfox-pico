@@ -20,6 +20,7 @@
 
 #include "RkAiqCalibDbTypes.h"
 #include "rk_aiq_comm.h"
+#include "agic_uapi_head.h"
 
 typedef struct rkaiq_gic_v1_hw_param_s {
     uint8_t edge_open;
@@ -93,93 +94,7 @@ typedef struct rkaiq_gic_v2_hw_param_s {
     uint16_t sigma_y[15];
 } __attribute__((packed)) rkaiq_gic_v2_hw_param_t;
 
-typedef struct rkaiq_gic_v1_param_selected_s {
-    uint32_t iso;
-    uint8_t bypass;
-    uint8_t gr_ratio;
-    uint16_t min_busy_thre;
-    uint16_t min_grad_thr1;
-    uint16_t min_grad_thr2;
-    uint16_t k_grad1;
-    uint16_t k_grad2;
-    uint16_t gb_thre;
-    uint16_t maxCorV;
-    uint16_t maxCorVboth;
-    uint16_t dark_thre;
-    uint16_t dark_threHi;
-    uint16_t k_grad1_dark;
-    uint16_t k_grad2_dark;
-    uint16_t min_grad_thr_dark1;
-    uint16_t min_grad_thr_dark2;
-    float noiseCurve_0;
-    float noiseCurve_1;
-    float GValueLimitLo;
-    float GValueLimitHi;
-    float textureStrength;
-    float ScaleLo;
-    float ScaleHi;
-    float globalStrength;
-    uint16_t diff_clip;
-} rkaiq_gic_v1_param_selected_t;
-
-typedef struct rkaiq_gic_v2_param_selected_s {
-    uint32_t iso;
-    uint8_t bypass;
-    uint8_t gr_ratio;
-    uint16_t min_busy_thre;
-    uint16_t min_grad_thr1;
-    uint16_t min_grad_thr2;
-    uint16_t k_grad1;
-    uint16_t k_grad2;
-    uint16_t gb_thre;
-    uint16_t maxCorV;
-    uint16_t maxCorVboth;
-    uint16_t dark_thre;
-    uint16_t dark_threHi;
-    uint16_t k_grad1_dark;
-    uint16_t k_grad2_dark;
-    uint16_t min_grad_thr_dark1;
-    uint16_t min_grad_thr_dark2;
-    int NoiseScale;
-    int NoiseBase;
-    float noiseCurve_0;
-    float noiseCurve_1;
-    float globalStrength;
-    uint16_t diff_clip;
-} rkaiq_gic_v2_param_selected_t;
-
-enum { GIC_NORMAL = 0, GIC_HDR = 1, GIC_NIGHT = 2 };
-
-typedef enum rkaiq_gic_api_op_mode_e {
-    RKAIQ_GIC_API_OPMODE_OFF    = 0,  // run IQ agic
-    RKAIQ_GIC_API_OPMODE_AUTO   = 1,  // run api auto agic
-    RKAIQ_GIC_API_OPMODE_MANUAL = 2,  // run api manual agic
-} rkaiq_gic_api_op_mode_t;
-
-#define RKAIQ_GIC_MAX_ISO_CNT 16
-
-typedef struct rkaiq_gic_v1_api_attr_s {
-    rk_aiq_uapi_sync_t sync;
-    uint8_t gic_en;
-    uint8_t edge_open;
-    uint8_t noise_cut_en;
-    rkaiq_gic_api_op_mode_t op_mode;
-    uint32_t iso_cnt;
-    rkaiq_gic_v1_param_selected_t auto_params[RKAIQ_GIC_MAX_ISO_CNT];
-    rkaiq_gic_v1_param_selected_t manual_param;
-} rkaiq_gic_v1_api_attr_t;
-
-typedef struct rkaiq_gic_v2_api_attr_s {
-    rk_aiq_uapi_sync_t sync;
-    uint8_t gic_en;
-    rkaiq_gic_api_op_mode_t op_mode;
-    uint32_t iso_cnt;
-    rkaiq_gic_v2_param_selected_t auto_params[RKAIQ_GIC_MAX_ISO_CNT];
-    rkaiq_gic_v2_param_selected_t manual_param;
-} rkaiq_gic_v2_api_attr_t;
-
 typedef struct AgicProcResult_s {
-    bool gic_cfg_update;
     union {
         rkaiq_gic_v1_hw_param_t ProcResV20;
         rkaiq_gic_v2_hw_param_t ProcResV21;

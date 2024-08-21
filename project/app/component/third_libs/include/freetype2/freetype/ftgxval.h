@@ -104,8 +104,7 @@ FT_BEGIN_HEADER
 /* Up to 0x1000 is used by otvalid.
    Ox2xxx is reserved for feature OT extension. */
 #define FT_VALIDATE_GX_START 0x4000
-#define FT_VALIDATE_GX_BITFIELD(tag)                                           \
-  (FT_VALIDATE_GX_START << FT_VALIDATE_##tag##_INDEX)
+#define FT_VALIDATE_GX_BITFIELD(tag) (FT_VALIDATE_GX_START << FT_VALIDATE_##tag##_INDEX)
 
 /**************************************************************************
  *
@@ -164,10 +163,10 @@ FT_BEGIN_HEADER
 #define FT_VALIDATE_prop FT_VALIDATE_GX_BITFIELD(prop)
 #define FT_VALIDATE_lcar FT_VALIDATE_GX_BITFIELD(lcar)
 
-#define FT_VALIDATE_GX                                                         \
-  (FT_VALIDATE_feat | FT_VALIDATE_mort | FT_VALIDATE_morx | FT_VALIDATE_bsln | \
-   FT_VALIDATE_just | FT_VALIDATE_kern | FT_VALIDATE_opbd | FT_VALIDATE_trak | \
-   FT_VALIDATE_prop | FT_VALIDATE_lcar)
+#define FT_VALIDATE_GX                                                                             \
+	(FT_VALIDATE_feat | FT_VALIDATE_mort | FT_VALIDATE_morx | FT_VALIDATE_bsln |                   \
+	 FT_VALIDATE_just | FT_VALIDATE_kern | FT_VALIDATE_opbd | FT_VALIDATE_trak |                   \
+	 FT_VALIDATE_prop | FT_VALIDATE_lcar)
 
 /**************************************************************************
  *
@@ -212,8 +211,7 @@ FT_BEGIN_HEADER
  */
 FT_EXPORT(FT_Error)
 FT_TrueTypeGX_Validate(FT_Face face, FT_UInt validation_flags,
-                       FT_Bytes tables[FT_VALIDATE_GX_LENGTH],
-                       FT_UInt table_length);
+                       FT_Bytes tables[FT_VALIDATE_GX_LENGTH], FT_UInt table_length);
 
 /**************************************************************************
  *
@@ -298,8 +296,7 @@ FT_TrueTypeGX_Free(FT_Face face, FT_Bytes table);
  *   indicates that the table doesn't exist in the font.
  */
 FT_EXPORT(FT_Error)
-FT_ClassicKern_Validate(FT_Face face, FT_UInt validation_flags,
-                        FT_Bytes *ckern_table);
+FT_ClassicKern_Validate(FT_Face face, FT_UInt validation_flags, FT_Bytes *ckern_table);
 
 /**************************************************************************
  *

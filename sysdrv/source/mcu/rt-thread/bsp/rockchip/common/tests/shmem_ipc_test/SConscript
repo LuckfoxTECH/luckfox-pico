@@ -1,0 +1,13 @@
+Import('RTT_ROOT')
+Import('rtconfig')
+from building import *
+
+cwd     = GetCurrentDir()
+src = Glob('*.c')
+CPPPATH = [cwd]
+group = []
+
+if GetDepend('RT_USING_COMMON_TEST_IPC') or GetDepend('RT_USING_COMMON_TEST_AMPMSG'):
+    group = DefineGroup('ipc', src, depend = [], CPPPATH = CPPPATH)
+
+Return('group')

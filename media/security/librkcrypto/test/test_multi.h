@@ -9,3 +9,4 @@
 RK_RES test_multi(void);
 
 #endif
+

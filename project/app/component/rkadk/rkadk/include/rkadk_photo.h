@@ -21,8 +21,9 @@
 extern "C" {
 #endif
 
-#include "rk_comm_video.h"
 #include "rkadk_common.h"
+#include "rkadk_media_comm.h"
+#include <stdbool.h>
 
 #define RKADK_MPF_LARGE_THUMB_NUM_MAX 2
 
@@ -92,10 +93,13 @@ typedef struct {
   RKADK_U8 *pu8DataBuf;
   RKADK_U32 u32DataLen;
   RKADK_U32 u32CamId;
+  bool bStreamEnd;
+  void *userdata;
 } RKADK_PHOTO_RECV_DATA_S;
 
 /* photo data recv callback */
-typedef void (*RKADK_PHOTO_DATA_RECV_FN_PTR)(RKADK_PHOTO_RECV_DATA_S *pstData);
+typedef void (*RKADK_PHOTO_DATA_RECV_FN_PTR)(
+    RKADK_PHOTO_RECV_DATA_S *pstData);
 
 typedef struct {
   RKADK_PHOTO_TYPE_E enPhotoType;
@@ -110,6 +114,8 @@ typedef struct {
   RKADK_U32 u32CamId; /** cam id, 0--front 1--rear */
   RKADK_PHOTO_THUMB_ATTR_S stThumbAttr;
   RKADK_PHOTO_DATA_RECV_FN_PTR pfnPhotoDataProc;
+  void *userdata;
+  RKADK_POST_ISP_ATTR_S *pstPostIspAttr;
 } RKADK_PHOTO_ATTR_S;
 
 /****************************************************************************/
@@ -120,8 +126,7 @@ typedef struct {
  * @param[in] pstPhotoAttr: photo attribute
  * @return 0 success, non-zero error code.
  */
-RKADK_S32 RKADK_PHOTO_Init(RKADK_PHOTO_ATTR_S *pstPhotoAttr,
-                           RKADK_MW_PTR *ppHandle);
+RKADK_S32 RKADK_PHOTO_Init(RKADK_PHOTO_ATTR_S *pstPhotoAttr, RKADK_MW_PTR *ppHandle);
 
 /**
  * @brief deinit photo
@@ -135,8 +140,7 @@ RKADK_S32 RKADK_PHOTO_DeInit(RKADK_MW_PTR pHandle);
  * @param[in] pstPhotoAttr: photo attribute
  * @return 0 success, non-zero error code.
  */
-RKADK_S32 RKADK_PHOTO_TakePhoto(RKADK_MW_PTR pHandle,
-                                RKADK_TAKE_PHOTO_ATTR_S *pstAttr);
+RKADK_S32 RKADK_PHOTO_TakePhoto(RKADK_MW_PTR pHandle, RKADK_TAKE_PHOTO_ATTR_S *pstAttr);
 
 /**
  * @brief get thumbnail in jpg
@@ -156,7 +160,12 @@ RKADK_S32 RKADK_PHOTO_GetThmInJpgEx(RKADK_U32 u32CamId, RKADK_CHAR *pszFileName,
 
 RKADK_S32 RKADK_PHOTO_ThumbBufFree(RKADK_THUMB_ATTR_S *pstThumbAttr);
 
-RKADK_S32 RKADK_PHOTO_Reset(RKADK_MW_PTR *pHandle);
+RKADK_S32 RKADK_PHOTO_Reset(RKADK_MW_PTR *ppHandle);
+
+RKADK_S32 RKADK_PHOTO_GetData(RKADK_CHAR *pcFileName,
+                              RKADK_PHOTO_DATA_ATTR_S *pstDataAttr);
+
+RKADK_S32 RKADK_PHOTO_FreeData(RKADK_PHOTO_DATA_ATTR_S *pstDataAttr);
 
 #ifdef __cplusplus
 }

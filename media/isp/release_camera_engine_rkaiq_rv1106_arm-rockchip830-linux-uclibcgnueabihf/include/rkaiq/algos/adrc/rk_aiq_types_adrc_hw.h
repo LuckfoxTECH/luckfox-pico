@@ -26,60 +26,58 @@
 #define DRC_V12_Y_NUM DRC_V10_Y_NUM
 
 typedef struct DrcProcResV10_s {
-    int sw_drc_offset_pow2;
-    int sw_drc_compres_scl;
-    int sw_drc_position;
-    int sw_drc_delta_scalein;
-    int sw_drc_hpdetail_ratio;
-    int sw_drc_lpdetail_ratio;
-    int sw_drc_weicur_pix;
-    int sw_drc_weipre_frame;
-    int sw_drc_force_sgm_inv0;
-    int sw_drc_motion_scl;
-    int sw_drc_edge_scl;
-    int sw_drc_space_sgm_inv1;
-    int sw_drc_space_sgm_inv0;
-    int sw_drc_range_sgm_inv1;
-    int sw_drc_range_sgm_inv0;
-    int sw_drc_weig_maxl;
-    int sw_drc_weig_bilat;
-    int sw_drc_gain_y[DRC_V10_Y_NUM];
-    int sw_drc_compres_y[DRC_V10_Y_NUM];
-    int sw_drc_scale_y[DRC_V10_Y_NUM];
-    float sw_drc_adrc_gain;
-    int sw_drc_iir_weight;
-    int sw_drc_min_ogain;
+    unsigned char sw_drc_offset_pow2;
+    unsigned short sw_drc_compres_scl;
+    unsigned short sw_drc_position;
+    unsigned short sw_drc_delta_scalein;
+    unsigned short sw_drc_hpdetail_ratio;
+    unsigned short sw_drc_lpdetail_ratio;
+    unsigned char sw_drc_weicur_pix;
+    unsigned char sw_drc_weipre_frame;
+    unsigned short sw_drc_force_sgm_inv0;
+    unsigned char sw_drc_motion_scl;
+    unsigned char sw_drc_edge_scl;
+    unsigned short sw_drc_space_sgm_inv1;
+    unsigned short sw_drc_space_sgm_inv0;
+    unsigned short sw_drc_range_sgm_inv1;
+    unsigned short sw_drc_range_sgm_inv0;
+    unsigned char sw_drc_weig_maxl;
+    unsigned char sw_drc_weig_bilat;
+    unsigned short sw_drc_gain_y[DRC_V10_Y_NUM];
+    unsigned short sw_drc_compres_y[DRC_V10_Y_NUM];
+    unsigned short sw_drc_scale_y[DRC_V10_Y_NUM];
+    unsigned short sw_drc_iir_weight;
+    unsigned short sw_drc_min_ogain;
 } DrcProcResV10_t;
 
 typedef struct DrcProcResV11_s {
-    int bypass_en;
-    int offset_pow2;
-    int compres_scl;
-    int position;
-    int delta_scalein;
-    int hpdetail_ratio;
-    int lpdetail_ratio;
-    int weicur_pix;
-    int weipre_frame;
-    int bilat_wt_off;
-    int force_sgm_inv0;
-    int motion_scl;
-    int edge_scl;
-    int space_sgm_inv1;
-    int space_sgm_inv0;
-    int range_sgm_inv1;
-    int range_sgm_inv0;
-    int weig_maxl;
-    int weig_bilat;
-    int enable_soft_thd;
-    int bilat_soft_thd;
-    int gain_y[DRC_V11_Y_NUM];
-    int compres_y[DRC_V11_Y_NUM];
-    int scale_y[DRC_V11_Y_NUM];
-    float adrc_gain;
-    int wr_cycle;
-    int iir_weight;
-    int min_ogain;
+    unsigned char bypass_en;
+    unsigned char offset_pow2;
+    unsigned short compres_scl;
+    unsigned short position;
+    unsigned short delta_scalein;
+    unsigned short hpdetail_ratio;
+    unsigned short lpdetail_ratio;
+    unsigned char weicur_pix;
+    unsigned char weipre_frame;
+    unsigned char bilat_wt_off;
+    unsigned short force_sgm_inv0;
+    unsigned char motion_scl;
+    unsigned char edge_scl;
+    unsigned short space_sgm_inv1;
+    unsigned short space_sgm_inv0;
+    unsigned short range_sgm_inv1;
+    unsigned short range_sgm_inv0;
+    unsigned char weig_maxl;
+    unsigned char weig_bilat;
+    unsigned char enable_soft_thd;
+    unsigned short bilat_soft_thd;
+    unsigned short gain_y[DRC_V11_Y_NUM];
+    unsigned short compres_y[DRC_V11_Y_NUM];
+    unsigned short scale_y[DRC_V11_Y_NUM];
+    unsigned short wr_cycle;
+    unsigned short iir_weight;
+    unsigned short min_ogain;
 } DrcProcResV11_t;
 
 typedef struct DrcProcResV12_s {
@@ -123,13 +121,12 @@ typedef struct DrcProcRes_s {
 #if RKAIQ_HAVE_DRC_V11
     DrcProcResV11_t Drc_v11;
 #endif
-#if RKAIQ_HAVE_DRC_V12
+#if RKAIQ_HAVE_DRC_V12 || RKAIQ_HAVE_DRC_V12_LITE
     DrcProcResV12_t Drc_v12;
 #endif
 } DrcProcRes_t;
 
 typedef struct RkAiqAdrcProcResult_s {
-    bool update;
     bool bDrcEn;
     DrcProcRes_t DrcProcRes;
 } RkAiqAdrcProcResult_t;

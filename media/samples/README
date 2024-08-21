@@ -1,0 +1,6 @@
+Directory Description
+.
+├── example ........................... some media's demos what are maintaining, the code here is recommended reference.
+├── format.sh ......................... formatting project's codes.
+├── Makefile .......................... Manage and Compile sample project.
+└── simple_test ....................... Engineers can quickly experience some functions here.

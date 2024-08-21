@@ -77,7 +77,7 @@ mpp_enc_ref_cfg_init:
 	mov	r4, r0
 	cbnz	r0, .L9
 	ldr	r1, .L13
-	movs	r2, #48
+	movs	r2, #49
 	ldr	r0, .L13+4
 .L12:
 	bl	printk
@@ -90,7 +90,7 @@ mpp_enc_ref_cfg_init:
 	bl	mpp_osal_calloc
 	str	r0, [r4]
 	cbnz	r0, .L11
-	movs	r2, #55
+	movs	r2, #56
 	ldr	r1, .L13
 	ldr	r0, .L13+12
 	b	.L12
@@ -126,7 +126,7 @@ mpp_enc_ref_cfg_deinit:
 	cbnz	r0, .L16
 .L18:
 	mov	r3, r4
-	movs	r2, #69
+	movs	r2, #71
 	ldr	r1, .L30
 	mvn	r6, #5
 	ldr	r0, .L30+4
@@ -247,7 +247,7 @@ mpp_enc_ref_cfg_set_cfg_cnt:
 	cmp	r8, #0
 	beq	.L48
 .L47:
-	movs	r2, #111
+	movs	r2, #114
 	ldr	r1, .L62+4
 	ldr	r0, .L62+8
 	bl	printk
@@ -271,7 +271,7 @@ mpp_enc_ref_cfg_set_cfg_cnt:
 	mov	r9, r0
 	cbnz	r0, .L51
 	mov	r3, r5
-	movs	r2, #119
+	movs	r2, #122
 	ldr	r1, .L62+4
 	ldr	r0, .L62+12
 	bl	printk
@@ -284,7 +284,7 @@ mpp_enc_ref_cfg_set_cfg_cnt:
 	mov	r8, r0
 	cbnz	r0, .L52
 	mov	r3, r5
-	movs	r2, #125
+	movs	r2, #128
 	ldr	r1, .L62+4
 	ldr	r0, .L62+16
 	bl	printk
@@ -342,7 +342,7 @@ mpp_enc_ref_cfg_add_lt_cfg:
 	cbz	r3, .L66
 	ldr	r3, [r5, #8]
 	mov	r2, r4
-	movs	r1, #151
+	movs	r1, #153
 	ldr	r0, .L71+4
 	str	r3, [sp, #16]
 	ldr	r3, [r5, #20]
@@ -405,7 +405,7 @@ mpp_enc_ref_cfg_add_st_cfg:
 	mov	r6, r0
 	cbz	r0, .L74
 	mov	r3, r4
-	movs	r2, #164
+	movs	r2, #167
 	ldr	r1, .L80+4
 	mvn	r6, #5
 	ldr	r0, .L80+8
@@ -420,7 +420,7 @@ mpp_enc_ref_cfg_add_st_cfg:
 	cbz	r3, .L76
 	ldr	r3, [r5, #12]
 	mov	r2, r4
-	movs	r1, #174
+	movs	r1, #176
 	ldr	r0, .L80+12
 	str	r3, [sp, #16]
 	ldr	r3, [r5, #8]
@@ -501,7 +501,7 @@ mpp_enc_ref_cfg_check:
 	ble	.L86
 	mov	r3, r4
 	strd	r6, r9, [sp]
-	movs	r2, #220
+	movs	r2, #221
 	ldr	r1, .L139+4
 	ldr	r0, .L139+8
 	bl	printk
@@ -526,7 +526,7 @@ mpp_enc_ref_cfg_check:
 	cbz	r2, .L88
 	strd	r6, r2, [sp]
 	mov	r3, r4
-	movs	r2, #243
+	movs	r2, #242
 	ldr	r1, .L139+4
 	ldr	r0, .L139+16
 	bl	printk
@@ -534,7 +534,7 @@ mpp_enc_ref_cfg_check:
 	bhi	.L89
 .L92:
 	mov	r3, r4
-	mov	r2, #360
+	movw	r2, #353
 	ldr	r1, .L139+4
 	ldr	r0, .L139+20
 	bl	printk
@@ -551,7 +551,7 @@ mpp_enc_ref_cfg_check:
 	ldr	r1, .L139+4
 	mov	r3, r4
 	ldr	r0, .L139+24
-	movs	r2, #252
+	movs	r2, #250
 	strd	r6, r8, [sp]
 .L138:
 	bl	printk
@@ -635,7 +635,7 @@ mpp_enc_ref_cfg_check:
 	ble	.L115
 	mov	r3, r4
 	strd	r6, r9, [sp]
-	mov	r2, #280
+	movw	r2, #277
 	ldr	r1, .L139+4
 	ldr	r0, .L139+28
 	bl	printk
@@ -648,7 +648,7 @@ mpp_enc_ref_cfg_check:
 	cmp	r3, #29
 	beq	.L97
 	strd	r6, r3, [sp]
-	movw	r2, #289
+	movw	r2, #285
 	mov	r3, r4
 	ldr	r1, .L139+4
 	ldr	r0, .L139+32
@@ -660,7 +660,7 @@ mpp_enc_ref_cfg_check:
 	cmp	r3, #0
 	bge	.L98
 	strd	r6, r3, [sp]
-	mov	r2, #296
+	movw	r2, #291
 	mov	r3, r4
 	ldr	r1, .L139+4
 	ldr	r0, .L139+36
@@ -678,7 +678,7 @@ mpp_enc_ref_cfg_check:
 	cbz	r3, .L101
 	str	r6, [sp]
 	mov	r3, r4
-	movw	r2, #305
+	movw	r2, #299
 	ldr	r1, .L139+4
 	ldr	r0, .L139+40
 	bl	printk
@@ -687,7 +687,7 @@ mpp_enc_ref_cfg_check:
 .L102:
 	strd	r6, r9, [sp]
 	mov	r3, r4
-	mov	r2, #312
+	movw	r2, #305
 	ldr	r1, .L139+4
 	ldr	r0, .L139+44
 	b	.L138
@@ -881,7 +881,7 @@ mpp_enc_ref_cfg_copy:
 	mov	r10, r0
 	cbnz	r0, .L159
 	mov	r3, r6
-	mov	r2, #416
+	movw	r2, #409
 	ldr	r1, .L175+4
 	mov	r6, #-1
 	ldr	r0, .L175+8
@@ -898,7 +898,7 @@ mpp_enc_ref_cfg_copy:
 	mov	r9, r0
 	cbnz	r0, .L162
 	mov	r3, r8
-	movw	r2, #431
+	mov	r2, #424
 	ldr	r1, .L175+4
 	ldr	r0, .L175+12
 	bl	printk
@@ -991,73 +991,73 @@ mpp_enc_ref_default:
 	.section	.rodata
 	.align	2
 	.set	.LANCHOR0,. + 0
-	.type	__func__.8856, %object
-	.size	__func__.8856, 21
-__func__.8856:
+	.type	__func__.8909, %object
+	.size	__func__.8909, 21
+__func__.8909:
 	.ascii	"mpp_enc_ref_cfg_init\000"
-	.type	__FUNCTION__.8857, %object
-	.size	__FUNCTION__.8857, 21
-__FUNCTION__.8857:
+	.type	__FUNCTION__.8910, %object
+	.size	__FUNCTION__.8910, 21
+__FUNCTION__.8910:
 	.ascii	"mpp_enc_ref_cfg_init\000"
-	.type	__func__.8863, %object
-	.size	__func__.8863, 23
-__func__.8863:
-	.ascii	"mpp_enc_ref_cfg_deinit\000"
-	.type	__FUNCTION__.8862, %object
-	.size	__FUNCTION__.8862, 23
-__FUNCTION__.8862:
-	.ascii	"mpp_enc_ref_cfg_deinit\000"
-	.type	__FUNCTION__.8868, %object
-	.size	__FUNCTION__.8868, 22
-__FUNCTION__.8868:
-	.ascii	"mpp_enc_ref_cfg_reset\000"
-	.type	__FUNCTION__.8877, %object
-	.size	__FUNCTION__.8877, 28
-__FUNCTION__.8877:
-	.ascii	"mpp_enc_ref_cfg_set_cfg_cnt\000"
-	.type	__func__.8878, %object
-	.size	__func__.8878, 28
-__func__.8878:
-	.ascii	"mpp_enc_ref_cfg_set_cfg_cnt\000"
-	.type	__FUNCTION__.8885, %object
-	.size	__FUNCTION__.8885, 27
-__FUNCTION__.8885:
-	.ascii	"mpp_enc_ref_cfg_add_lt_cfg\000"
-	.type	__FUNCTION__.8892, %object
-	.size	__FUNCTION__.8892, 27
-__FUNCTION__.8892:
-	.ascii	"mpp_enc_ref_cfg_add_st_cfg\000"
-	.type	__func__.8893, %object
-	.size	__func__.8893, 27
-__func__.8893:
-	.ascii	"mpp_enc_ref_cfg_add_st_cfg\000"
-	.type	__FUNCTION__.8909, %object
-	.size	__FUNCTION__.8909, 22
-__FUNCTION__.8909:
-	.ascii	"mpp_enc_ref_cfg_check\000"
 	.type	__func__.8916, %object
-	.size	__func__.8916, 22
+	.size	__func__.8916, 23
 __func__.8916:
+	.ascii	"mpp_enc_ref_cfg_deinit\000"
+	.type	__FUNCTION__.8915, %object
+	.size	__FUNCTION__.8915, 23
+__FUNCTION__.8915:
+	.ascii	"mpp_enc_ref_cfg_deinit\000"
+	.type	__FUNCTION__.8921, %object
+	.size	__FUNCTION__.8921, 22
+__FUNCTION__.8921:
+	.ascii	"mpp_enc_ref_cfg_reset\000"
+	.type	__FUNCTION__.8930, %object
+	.size	__FUNCTION__.8930, 28
+__FUNCTION__.8930:
+	.ascii	"mpp_enc_ref_cfg_set_cfg_cnt\000"
+	.type	__func__.8931, %object
+	.size	__func__.8931, 28
+__func__.8931:
+	.ascii	"mpp_enc_ref_cfg_set_cfg_cnt\000"
+	.type	__FUNCTION__.8938, %object
+	.size	__FUNCTION__.8938, 27
+__FUNCTION__.8938:
+	.ascii	"mpp_enc_ref_cfg_add_lt_cfg\000"
+	.type	__FUNCTION__.8945, %object
+	.size	__FUNCTION__.8945, 27
+__FUNCTION__.8945:
+	.ascii	"mpp_enc_ref_cfg_add_st_cfg\000"
+	.type	__func__.8946, %object
+	.size	__func__.8946, 27
+__func__.8946:
+	.ascii	"mpp_enc_ref_cfg_add_st_cfg\000"
+	.type	__FUNCTION__.8962, %object
+	.size	__FUNCTION__.8962, 22
+__FUNCTION__.8962:
 	.ascii	"mpp_enc_ref_cfg_check\000"
-	.type	__FUNCTION__.8936, %object
-	.size	__FUNCTION__.8936, 29
-__FUNCTION__.8936:
+	.type	__func__.8969, %object
+	.size	__func__.8969, 22
+__func__.8969:
+	.ascii	"mpp_enc_ref_cfg_check\000"
+	.type	__FUNCTION__.8989, %object
+	.size	__FUNCTION__.8989, 29
+__FUNCTION__.8989:
 	.ascii	"mpp_enc_ref_cfg_set_keep_cpb\000"
-	.type	__FUNCTION__.8940, %object
-	.size	__FUNCTION__.8940, 21
-__FUNCTION__.8940:
+	.type	__FUNCTION__.8993, %object
+	.size	__FUNCTION__.8993, 21
+__FUNCTION__.8993:
 	.ascii	"mpp_enc_ref_cfg_show\000"
-	.type	__FUNCTION__.8950, %object
-	.size	__FUNCTION__.8950, 21
-__FUNCTION__.8950:
+	.type	__FUNCTION__.9003, %object
+	.size	__FUNCTION__.9003, 21
+__FUNCTION__.9003:
 	.ascii	"mpp_enc_ref_cfg_copy\000"
-	.type	__func__.8952, %object
-	.size	__func__.8952, 21
-__func__.8952:
+	.type	__func__.9005, %object
+	.size	__func__.9005, 21
+__func__.9005:
 	.ascii	"mpp_enc_ref_cfg_copy\000"
-	.type	__FUNCTION__.8958, %object
-	.size	__FUNCTION__.8958, 29
-__FUNCTION__.8958:
+	.type	__FUNCTION__.9011, %object
+	.size	__FUNCTION__.9011, 29
+__FUNCTION__.9011:
 	.ascii	"mpp_enc_ref_cfg_get_cpb_info\000"
 	.type	default_ref_cfg, %object
 	.size	default_ref_cfg, 68

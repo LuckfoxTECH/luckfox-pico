@@ -65,8 +65,7 @@ FT_BEGIN_HEADER
 #define FT_PARAM_TAG_IGNORE_TYPOGRAPHIC_FAMILY FT_MAKE_TAG('i', 'g', 'p', 'f')
 
 /* this constant is deprecated */
-#define FT_PARAM_TAG_IGNORE_PREFERRED_FAMILY                                   \
-  FT_PARAM_TAG_IGNORE_TYPOGRAPHIC_FAMILY
+#define FT_PARAM_TAG_IGNORE_PREFERRED_FAMILY FT_PARAM_TAG_IGNORE_TYPOGRAPHIC_FAMILY
 
 /**************************************************************************
  *
@@ -83,12 +82,10 @@ FT_BEGIN_HEADER
  *   2.8
  *
  */
-#define FT_PARAM_TAG_IGNORE_TYPOGRAPHIC_SUBFAMILY                              \
-  FT_MAKE_TAG('i', 'g', 'p', 's')
+#define FT_PARAM_TAG_IGNORE_TYPOGRAPHIC_SUBFAMILY FT_MAKE_TAG('i', 'g', 'p', 's')
 
 /* this constant is deprecated */
-#define FT_PARAM_TAG_IGNORE_PREFERRED_SUBFAMILY                                \
-  FT_PARAM_TAG_IGNORE_TYPOGRAPHIC_SUBFAMILY
+#define FT_PARAM_TAG_IGNORE_PREFERRED_SUBFAMILY FT_PARAM_TAG_IGNORE_TYPOGRAPHIC_SUBFAMILY
 
 /**************************************************************************
  *

@@ -1,0 +1,5 @@
+config RT_USING_NET_HTTP
+    bool "Enable http"
+    default n
+    help
+        Select this option to enable HTTP

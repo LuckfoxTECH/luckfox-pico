@@ -68,7 +68,7 @@ get_ref_from_cpb:
 	ldrh	r0, [r4, #6]
 	str	r3, [sp]
 	strd	r2, r0, [sp, #4]
-	movw	r2, #379
+	mov	r2, #380
 	ldrh	r3, [r1, #6]
 	ldr	r0, .L21+8
 	ldr	r1, .L21+12
@@ -89,7 +89,7 @@ get_ref_from_cpb:
 	b	.L20
 .L3:
 	str	r3, [sp]
-	mov	r2, #368
+	movw	r2, #369
 	ldrh	r3, [r1, #6]
 	ldr	r0, .L21+16
 	ldr	r1, .L21+12
@@ -101,7 +101,7 @@ get_ref_from_cpb:
 	ldrh	r0, [r4, #6]
 	str	r3, [sp]
 	strd	r2, r0, [sp, #4]
-	movw	r2, #383
+	mov	r2, #384
 	ldrh	r3, [r1, #6]
 	ldr	r0, .L21+20
 	ldr	r1, .L21+12
@@ -322,7 +322,7 @@ set_st_cfg_to_frm:
 	ldr	r3, [r3]
 	lsls	r3, r3, #29
 	bpl	.L42
-	mov	r2, #316
+	movw	r2, #317
 	ldr	r1, .L44+4
 	pop	{r4, r5}
 	b	_dump_frm
@@ -358,7 +358,7 @@ store_ref_to_cpb:
 	ldrb	r3, [r1]	@ zero_extendqisi2
 	lsls	r1, r3, #31
 	bmi	.L47
-	movw	r1, #501
+	mov	r1, #502
 	ldr	r3, .L85
 	str	r1, [sp]
 	ldr	r2, .L85+4
@@ -403,7 +403,7 @@ store_ref_to_cpb:
 	bne	.L52
 	str	r7, [sp]
 	mov	r3, r8
-	movw	r2, #546
+	movw	r2, #547
 	ldr	r1, .L85+12
 	ldr	r0, .L85+16
 	bl	printk
@@ -442,7 +442,7 @@ store_ref_to_cpb:
 	ldr	r0, .L85+32
 	strd	r2, r3, [sp, #4]
 	mov	r3, r8
-	movw	r2, #542
+	movw	r2, #543
 	ldr	r1, .L85+12
 	bl	printk
 .L55:
@@ -450,7 +450,7 @@ store_ref_to_cpb:
 	ldr	r3, [r5]
 	lsls	r7, r3, #30
 	bpl	.L46
-	movw	r2, #562
+	movw	r2, #563
 	ldr	r1, .L85+12
 	ldr	r0, .L85+36
 	bl	printk
@@ -465,7 +465,7 @@ store_ref_to_cpb:
 	ldrb	r3, [r4, r3, lsl #3]	@ zero_extendqisi2
 	lsls	r0, r3, #31
 	bpl	.L59
-	movw	r2, #566
+	movw	r2, #567
 	mov	r1, r8
 	add	r0, r7, r6, lsl #3
 	bl	_dump_frm
@@ -476,7 +476,7 @@ store_ref_to_cpb:
 	ldr	r3, [r5]
 	lsls	r1, r3, #30
 	bpl	.L46
-	mov	r2, #568
+	movw	r2, #569
 	ldr	r1, .L85+12
 	ldr	r0, .L85+40
 	add	sp, sp, #16
@@ -554,7 +554,7 @@ save_cpb_status:
 	bpl	.L87
 	mov	r3, r5
 	strd	r4, r6, [sp]
-	mov	r2, #488
+	movw	r2, #489
 	ldr	r1, .L109+4
 	ldr	r0, .L109+8
 	bl	printk
@@ -574,7 +574,7 @@ save_cpb_status:
 	lsls	r0, r3, #30
 	bpl	.L90
 	str	r4, [sp]
-	movw	r2, #459
+	mov	r2, #460
 	ldrh	r3, [r5, #6]
 	mov	r0, fp
 	ldr	r1, .L109+4
@@ -597,7 +597,7 @@ save_cpb_status:
 	lsls	r1, r3, #30
 	bpl	.L95
 	str	r5, [sp]
-	movw	r2, #481
+	mov	r2, #482
 	ldrh	r3, [r8, #6]
 	ldr	r1, .L109+4
 	ldr	r0, .L109+12
@@ -618,7 +618,7 @@ save_cpb_status:
 	b	.L92
 .L100:
 	add	r0, r9, r4, lsl #3
-	movw	r2, #491
+	mov	r2, #492
 	mov	r1, r6
 	adds	r4, r4, #1
 	bl	_dump_frm
@@ -785,7 +785,7 @@ check_ref_cpb_pos:
 	lsls	r2, r3, #30
 	bpl	.L131
 	mov	r3, r6
-	movw	r2, #397
+	mov	r2, #398
 	ldr	r1, .L150+4
 	ldr	r0, .L150+8
 	bl	printk
@@ -814,11 +814,11 @@ check_ref_cpb_pos:
 	bne	.L127
 .L128:
 	mov	r3, r6
-	movw	r2, #431
+	mov	r2, #432
 	ldr	r1, .L150+4
 	ldr	r0, .L150+12
 	bl	printk
-	movw	r2, #433
+	mov	r2, #434
 	ldr	r1, .L150+16
 	mov	r0, r5
 	bl	_dump_cpb
@@ -834,7 +834,7 @@ check_ref_cpb_pos:
 	tst	r3, #2
 	beq	.L129
 	add	r3, r5, r7, lsl #3
-	movw	r2, #419
+	mov	r2, #420
 	mov	r1, r10
 	ldr	r0, .L150+20
 	ldrh	r3, [r3, #6]
@@ -854,7 +854,7 @@ check_ref_cpb_pos:
 	bpl	.L122
 	str	r4, [sp]
 	mov	r3, r6
-	movw	r2, #423
+	mov	r2, #424
 	ldr	r1, .L150+4
 	ldr	r0, .L150+24
 	bl	printk
@@ -896,7 +896,7 @@ mpp_enc_refs_init:
 	mov	r5, r0
 	cbnz	r0, .L153
 	ldr	r1, .L162
-	movs	r2, #172
+	movs	r2, #173
 	ldr	r0, .L162+4
 .L161:
 	bl	printk
@@ -909,7 +909,7 @@ mpp_enc_refs_init:
 	lsls	r3, r2, #31
 	bpl	.L155
 	mov	r3, r0
-	movs	r2, #176
+	movs	r2, #177
 	ldr	r1, .L162
 	ldr	r0, .L162+12
 	bl	printk
@@ -920,7 +920,7 @@ mpp_enc_refs_init:
 	mov	r3, r0
 	str	r0, [r5]
 	cbnz	r0, .L156
-	movs	r2, #181
+	movs	r2, #182
 	ldr	r1, .L162
 	ldr	r0, .L162+20
 	b	.L161
@@ -928,7 +928,7 @@ mpp_enc_refs_init:
 	ldr	r2, [r4]
 	ands	r2, r2, #1
 	beq	.L157
-	movs	r2, #186
+	movs	r2, #187
 	ldr	r1, .L162
 	ldr	r0, .L162+24
 	bl	printk
@@ -964,7 +964,7 @@ mpp_enc_refs_deinit:
 	.save {r3, r4, r5, lr}
 	mov	r4, r0
 	cbnz	r0, .L165
-	movs	r2, #194
+	movs	r2, #195
 	ldr	r1, .L176
 	ldr	r0, .L176+4
 	bl	printk
@@ -977,7 +977,7 @@ mpp_enc_refs_deinit:
 	lsls	r3, r2, #31
 	bpl	.L167
 	mov	r3, r0
-	movs	r2, #198
+	movs	r2, #199
 	ldr	r1, .L176
 	ldr	r0, .L176+12
 	bl	printk
@@ -991,7 +991,7 @@ mpp_enc_refs_deinit:
 	ands	r0, r0, #1
 	beq	.L164
 	mov	r3, r4
-	movs	r2, #203
+	movs	r2, #204
 	ldr	r1, .L176
 	ldr	r0, .L176+20
 	bl	printk
@@ -1028,7 +1028,7 @@ mpp_enc_refs_set_cfg:
 .L182:
 	str	r5, [sp]
 	mov	r3, r4
-	movs	r2, #214
+	movs	r2, #215
 	ldr	r1, .L206
 	ldr	r0, .L206+4
 	bl	printk
@@ -1051,7 +1051,7 @@ mpp_enc_refs_set_cfg:
 	beq	.L183
 	str	r5, [sp]
 	mov	r3, r4
-	movs	r2, #218
+	movs	r2, #219
 	ldr	r1, .L206
 	ldr	r0, .L206+16
 	bl	printk
@@ -1093,7 +1093,7 @@ mpp_enc_refs_set_cfg:
 	lsls	r3, r3, #30
 	bpl	.L194
 	ldr	r3, [r4, #64]
-	mov	r2, #268
+	movw	r2, #269
 	ldr	r1, .L206
 	ldr	r0, .L206+20
 	str	r3, [sp, #8]
@@ -1109,7 +1109,7 @@ mpp_enc_refs_set_cfg:
 	beq	.L178
 	str	r5, [sp]
 	mov	r3, r4
-	mov	r2, #270
+	movw	r2, #271
 	ldr	r1, .L206
 	ldr	r0, .L206+24
 	bl	printk
@@ -1118,7 +1118,7 @@ mpp_enc_refs_set_cfg:
 .L186:
 	cmp	r3, #15
 	ble	.L189
-	movs	r1, #242
+	movs	r1, #243
 	ldr	r3, .L206+8
 	str	r1, [sp]
 	ldr	r2, .L206+28
@@ -1190,7 +1190,7 @@ mpp_enc_refs_dryrun:
 	.pad #44
 	sub	sp, sp, #44
 	cbnz	r0, .L209
-	movw	r2, #585
+	movw	r2, #586
 	ldr	r1, .L253
 	ldr	r0, .L253+4
 	bl	printk
@@ -1205,7 +1205,7 @@ mpp_enc_refs_dryrun:
 	lsls	r6, r2, #31
 	bpl	.L211
 	mov	r3, r0
-	movw	r2, #589
+	movw	r2, #590
 	ldr	r1, .L253
 	ldr	r0, .L253+12
 	bl	printk
@@ -1226,7 +1226,7 @@ mpp_enc_refs_dryrun:
 	lsls	r4, r3, #30
 	bpl	.L213
 	ldr	r3, [sp, #20]
-	movw	r2, #605
+	movw	r2, #606
 	ldr	r1, .L253
 	ldr	r0, .L253+16
 	str	r3, [sp]
@@ -1255,7 +1255,7 @@ mpp_enc_refs_dryrun:
 	str	r3, [r5, #48]
 	lsls	r2, r1, #28
 	bpl	.L230
-	movw	r2, #677
+	movw	r2, #678
 	ldr	r1, .L253
 	ldr	r0, .L253+20
 	bl	printk
@@ -1264,7 +1264,7 @@ mpp_enc_refs_dryrun:
 	ands	r0, r0, #1
 	beq	.L208
 	mov	r3, r5
-	movw	r2, #679
+	mov	r2, #680
 	ldr	r1, .L253
 	ldr	r0, .L253+24
 	bl	printk
@@ -1319,7 +1319,7 @@ mpp_enc_refs_dryrun:
 	lsls	r1, r3, #30
 	bpl	.L232
 	mov	r3, r4
-	movw	r2, #661
+	movw	r2, #662
 	ldr	r1, .L253
 	ldr	r0, .L253+28
 	bl	printk
@@ -1389,7 +1389,7 @@ mpp_enc_refs_dryrun:
 	lsls	r0, r2, #29
 	bpl	.L223
 	ldr	r1, .L253+32
-	mov	r2, #332
+	movw	r2, #333
 	add	r0, sp, #32
 	str	r3, [sp, #28]
 	bl	_dump_frm
@@ -1430,7 +1430,7 @@ mpp_enc_refs_set_usr_cfg:
 	mov	r5, r1
 	mov	r4, r0
 	cbnz	r0, .L256
-	mov	r2, #688
+	movw	r2, #689
 	ldr	r1, .L269
 	ldr	r0, .L269+4
 	bl	printk
@@ -1443,7 +1443,7 @@ mpp_enc_refs_set_usr_cfg:
 	lsls	r3, r2, #31
 	bpl	.L258
 	mov	r3, r0
-	mov	r2, #692
+	movw	r2, #693
 	ldr	r1, .L269
 	ldr	r0, .L269+12
 	bl	printk
@@ -1466,7 +1466,7 @@ mpp_enc_refs_set_usr_cfg:
 	ands	r0, r0, #1
 	beq	.L255
 	mov	r3, r4
-	movw	r2, #699
+	mov	r2, #700
 	ldr	r1, .L269
 	ldr	r0, .L269+16
 	bl	printk
@@ -1498,7 +1498,7 @@ mpp_enc_refs_set_rc_igop:
 	mov	r6, r1
 	mov	r4, r0
 	cbnz	r0, .L272
-	movw	r2, #707
+	mov	r2, #708
 	ldr	r1, .L280
 	ldr	r0, .L280+4
 	bl	printk
@@ -1511,7 +1511,7 @@ mpp_enc_refs_set_rc_igop:
 	lsls	r3, r2, #31
 	bpl	.L274
 	mov	r3, r0
-	movw	r2, #711
+	mov	r2, #712
 	ldr	r1, .L280
 	ldr	r0, .L280+12
 	bl	printk
@@ -1527,7 +1527,7 @@ mpp_enc_refs_set_rc_igop:
 	ands	r0, r0, #1
 	beq	.L271
 	mov	r3, r4
-	mov	r2, #720
+	movw	r2, #721
 	ldr	r1, .L280
 	ldr	r0, .L280+16
 	bl	printk
@@ -1558,7 +1558,7 @@ mpp_enc_refs_update_hdr:
 	.save {r4, r5, r6, lr}
 	mov	r4, r0
 	cbnz	r0, .L283
-	movw	r2, #730
+	movw	r2, #731
 	ldr	r1, .L292
 	ldr	r0, .L292+4
 	mov	r6, r4
@@ -1572,7 +1572,7 @@ mpp_enc_refs_update_hdr:
 	lsls	r2, r2, #31
 	bpl	.L285
 	mov	r3, r0
-	movw	r2, #734
+	movw	r2, #735
 	ldr	r1, .L292
 	ldr	r0, .L292+12
 	bl	printk
@@ -1582,7 +1582,7 @@ mpp_enc_refs_update_hdr:
 	lsls	r3, r3, #31
 	bpl	.L282
 	mov	r3, r4
-	movw	r2, #739
+	mov	r2, #740
 	ldr	r1, .L292
 	ldr	r0, .L292+16
 	bl	printk
@@ -1618,7 +1618,7 @@ mpp_enc_refs_get_cpb_info:
 .L295:
 	str	r5, [sp]
 	mov	r3, r4
-	movw	r2, #747
+	mov	r2, #748
 	ldr	r1, .L308
 	ldr	r0, .L308+4
 	bl	printk
@@ -1633,7 +1633,7 @@ mpp_enc_refs_get_cpb_info:
 	lsls	r3, r2, #31
 	bpl	.L298
 	mov	r3, r0
-	movw	r2, #751
+	mov	r2, #752
 	ldr	r1, .L308
 	ldr	r0, .L308+12
 	bl	printk
@@ -1649,7 +1649,7 @@ mpp_enc_refs_get_cpb_info:
 	ands	r0, r0, #1
 	beq	.L294
 	mov	r3, r4
-	mov	r2, #756
+	movw	r2, #757
 	ldr	r1, .L308
 	ldr	r0, .L308+16
 	bl	printk
@@ -1683,7 +1683,7 @@ mpp_enc_refs_get_cpb:
 	sub	sp, sp, #20
 	mov	r4, r0
 	cbnz	r0, .L311
-	movw	r2, #789
+	movw	r2, #790
 	ldr	r1, .L379
 	ldr	r0, .L379+4
 	bl	printk
@@ -1698,7 +1698,7 @@ mpp_enc_refs_get_cpb:
 	lsls	r6, r3, #31
 	bpl	.L313
 	mov	r3, r0
-	movw	r2, #793
+	movw	r2, #794
 	ldr	r1, .L379
 	ldr	r0, .L379+12
 	bl	printk
@@ -1778,7 +1778,7 @@ mpp_enc_refs_get_cpb:
 	lsls	r2, r3, #28
 	beq	.L330
 	bfc	r3, #0, #4
-	movw	r2, #871
+	mov	r2, #872
 	strb	r3, [r5, #9]
 	ldr	r1, .L379
 	ldr	r0, .L379+16
@@ -1860,7 +1860,7 @@ mpp_enc_refs_get_cpb:
 	bl	check_ref_cpb_pos
 	cmp	r0, #0
 	bge	.L337
-	movw	r1, #913
+	movw	r1, #914
 	ldr	r3, .L379+20
 	str	r1, [sp]
 	ldr	r2, .L379+24
@@ -1876,19 +1876,19 @@ mpp_enc_refs_get_cpb:
 	ldr	r3, [r7]
 	lsls	r3, r3, #29
 	bpl	.L339
-	mov	r2, #920
+	movw	r2, #921
 	ldr	r1, .L379
 	ldr	r0, .L379+32
 	bl	printk
-	movw	r2, #921
+	movw	r2, #922
 	ldr	r1, .L379+20
 	mov	r0, r9
 	bl	_dump_frm
-	movw	r2, #922
+	movw	r2, #923
 	ldr	r1, .L379
 	ldr	r0, .L379+36
 	bl	printk
-	movw	r2, #923
+	mov	r2, #924
 	ldr	r1, .L379+20
 	add	r0, r5, #16
 	bl	_dump_frm
@@ -1916,7 +1916,7 @@ mpp_enc_refs_get_cpb:
 	ands	r0, r0, #1
 	beq	.L310
 	mov	r3, r4
-	movw	r2, #938
+	movw	r2, #939
 	ldr	r1, .L379
 	ldr	r0, .L379+40
 	bl	printk
@@ -2002,7 +2002,7 @@ mpp_enc_refs_get_cpb:
 	lsls	r2, r2, #29
 	bpl	.L326
 	ldr	r1, .L381
-	mov	r2, #332
+	movw	r2, #333
 	mov	r0, r9
 	bl	_dump_frm
 	movs	r1, #1
@@ -2039,7 +2039,7 @@ mpp_enc_refs_next_frm_is_intra:
 	.save {r4, r5, r6, lr}
 	mov	r5, r0
 	cbnz	r0, .L384
-	movw	r2, #949
+	movw	r2, #950
 	ldr	r1, .L401
 	ldr	r0, .L401+4
 	mvn	r4, #5
@@ -2053,7 +2053,7 @@ mpp_enc_refs_next_frm_is_intra:
 	lsls	r2, r2, #31
 	bpl	.L386
 	mov	r3, r0
-	movw	r2, #953
+	movw	r2, #954
 	ldr	r1, .L401
 	ldr	r0, .L401+12
 	bl	printk
@@ -2079,7 +2079,7 @@ mpp_enc_refs_next_frm_is_intra:
 	lsls	r3, r3, #31
 	bpl	.L383
 	mov	r3, r5
-	movw	r2, #966
+	movw	r2, #967
 	ldr	r1, .L401
 	ldr	r0, .L401+16
 	bl	printk
@@ -2110,7 +2110,7 @@ mpp_enc_refs_next_frm_is_kpfrm:
 	.save {r4, r5, r6, lr}
 	mov	r5, r0
 	cbnz	r0, .L404
-	movw	r2, #979
+	mov	r2, #980
 	ldr	r1, .L417
 	ldr	r0, .L417+4
 	mvn	r4, #5
@@ -2124,7 +2124,7 @@ mpp_enc_refs_next_frm_is_kpfrm:
 	lsls	r2, r2, #31
 	bpl	.L406
 	mov	r3, r0
-	movw	r2, #983
+	mov	r2, #984
 	ldr	r1, .L417
 	ldr	r0, .L417+12
 	bl	printk
@@ -2142,7 +2142,7 @@ mpp_enc_refs_next_frm_is_kpfrm:
 	lsls	r3, r3, #31
 	bpl	.L403
 	mov	r3, r5
-	mov	r2, #1000
+	movw	r2, #1001
 	ldr	r1, .L417
 	ldr	r0, .L417+16
 	bl	printk
@@ -2176,7 +2176,7 @@ mpp_enc_refs_get_cpb_pass1:
 	add	r7, r0, #48
 	add	r8, r1, #8
 	cbnz	r0, .L420
-	movw	r2, #1014
+	movw	r2, #1015
 	ldr	r1, .L435
 	ldr	r0, .L435+4
 	bl	printk
@@ -2191,7 +2191,7 @@ mpp_enc_refs_get_cpb_pass1:
 	lsls	r2, r3, #31
 	bpl	.L422
 	mov	r3, r0
-	movw	r2, #1018
+	movw	r2, #1019
 	ldr	r1, .L435
 	ldr	r0, .L435+12
 	bl	printk
@@ -2214,7 +2214,7 @@ mpp_enc_refs_get_cpb_pass1:
 	bl	check_ref_cpb_pos
 	cmp	r0, #0
 	bge	.L424
-	movw	r1, #1033
+	movw	r1, #1034
 	ldr	r3, .L435+16
 	str	r1, [sp]
 	ldr	r2, .L435+20
@@ -2230,19 +2230,19 @@ mpp_enc_refs_get_cpb_pass1:
 	ldr	r3, [r6]
 	lsls	r3, r3, #29
 	bpl	.L426
-	mov	r2, #1040
+	movw	r2, #1041
 	ldr	r1, .L435
 	ldr	r0, .L435+28
 	bl	printk
-	movw	r2, #1041
+	movw	r2, #1042
 	ldr	r1, .L435+16
 	mov	r0, r8
 	bl	_dump_frm
-	movw	r2, #1042
+	movw	r2, #1043
 	ldr	r1, .L435
 	ldr	r0, .L435+32
 	bl	printk
-	movw	r2, #1043
+	movw	r2, #1044
 	ldr	r1, .L435+16
 	add	r0, r4, #16
 	bl	_dump_frm
@@ -2270,7 +2270,7 @@ mpp_enc_refs_get_cpb_pass1:
 	ands	r0, r0, #1
 	beq	.L419
 	mov	r3, r5
-	movw	r2, #1058
+	movw	r2, #1059
 	ldr	r1, .L435
 	ldr	r0, .L435+36
 	bl	printk
@@ -2310,7 +2310,7 @@ mpp_enc_refs_stash:
 	.save {r3, r4, r5, lr}
 	mov	r4, r0
 	cbnz	r0, .L438
-	movw	r2, #1067
+	movw	r2, #1068
 	ldr	r1, .L445
 	ldr	r0, .L445+4
 	bl	printk
@@ -2323,7 +2323,7 @@ mpp_enc_refs_stash:
 	lsls	r3, r2, #31
 	bpl	.L440
 	mov	r3, r0
-	movw	r2, #1071
+	mov	r2, #1072
 	ldr	r1, .L445
 	ldr	r0, .L445+12
 	bl	printk
@@ -2336,7 +2336,7 @@ mpp_enc_refs_stash:
 	ands	r0, r0, #1
 	beq	.L437
 	mov	r3, r4
-	movw	r2, #1076
+	movw	r2, #1077
 	ldr	r1, .L445
 	ldr	r0, .L445+16
 	bl	printk
@@ -2367,7 +2367,7 @@ mpp_enc_refs_rollback:
 	.save {r3, r4, r5, lr}
 	mov	r4, r0
 	cbnz	r0, .L448
-	movw	r2, #1084
+	movw	r2, #1085
 	ldr	r1, .L455
 	ldr	r0, .L455+4
 	bl	printk
@@ -2380,7 +2380,7 @@ mpp_enc_refs_rollback:
 	lsls	r3, r2, #31
 	bpl	.L450
 	mov	r3, r0
-	mov	r2, #1088
+	movw	r2, #1089
 	ldr	r1, .L455
 	ldr	r0, .L455+12
 	bl	printk
@@ -2393,7 +2393,7 @@ mpp_enc_refs_rollback:
 	ands	r0, r0, #1
 	beq	.L447
 	mov	r3, r4
-	movw	r2, #1093
+	movw	r2, #1094
 	ldr	r1, .L455
 	ldr	r0, .L455+16
 	bl	printk
@@ -2412,121 +2412,121 @@ mpp_enc_refs_rollback:
 	.global	enc_refs_debug
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__func__.8991, %object
-	.size	__func__.8991, 17
-__func__.8991:
+	.type	__func__.9044, %object
+	.size	__func__.9044, 17
+__func__.9044:
 	.ascii	"get_ref_from_cpb\000"
-	.type	__FUNCTION__.8968, %object
-	.size	__FUNCTION__.8968, 18
-__FUNCTION__.8968:
+	.type	__FUNCTION__.9021, %object
+	.size	__FUNCTION__.9021, 18
+__FUNCTION__.9021:
 	.ascii	"set_st_cfg_to_frm\000"
-	.type	__FUNCTION__.9055, %object
-	.size	__FUNCTION__.9055, 17
-__FUNCTION__.9055:
+	.type	__FUNCTION__.9108, %object
+	.size	__FUNCTION__.9108, 17
+__FUNCTION__.9108:
 	.ascii	"store_ref_to_cpb\000"
-	.type	__func__.9068, %object
-	.size	__func__.9068, 17
-__func__.9068:
+	.type	__func__.9121, %object
+	.size	__func__.9121, 17
+__func__.9121:
 	.ascii	"store_ref_to_cpb\000"
-	.type	__func__.9029, %object
-	.size	__func__.9029, 16
-__func__.9029:
+	.type	__func__.9082, %object
+	.size	__func__.9082, 16
+__func__.9082:
 	.ascii	"save_cpb_status\000"
-	.type	__FUNCTION__.9022, %object
-	.size	__FUNCTION__.9022, 16
-__FUNCTION__.9022:
+	.type	__FUNCTION__.9075, %object
+	.size	__FUNCTION__.9075, 16
+__FUNCTION__.9075:
 	.ascii	"save_cpb_status\000"
-	.type	__FUNCTION__.8912, %object
-	.size	__FUNCTION__.8912, 10
-__FUNCTION__.8912:
+	.type	__FUNCTION__.8965, %object
+	.size	__FUNCTION__.8965, 10
+__FUNCTION__.8965:
 	.ascii	"_dump_cpb\000"
+	.type	__func__.9052, %object
+	.size	__func__.9052, 18
+__func__.9052:
+	.ascii	"check_ref_cpb_pos\000"
+	.type	__FUNCTION__.9062, %object
+	.size	__FUNCTION__.9062, 18
+__FUNCTION__.9062:
+	.ascii	"check_ref_cpb_pos\000"
+	.type	__func__.8982, %object
+	.size	__func__.8982, 18
+__func__.8982:
+	.ascii	"mpp_enc_refs_init\000"
+	.type	__FUNCTION__.8983, %object
+	.size	__FUNCTION__.8983, 18
+__FUNCTION__.8983:
+	.ascii	"mpp_enc_refs_init\000"
+	.type	__func__.8988, %object
+	.size	__func__.8988, 20
+__func__.8988:
+	.ascii	"mpp_enc_refs_deinit\000"
+	.type	__FUNCTION__.8989, %object
+	.size	__FUNCTION__.8989, 20
+__FUNCTION__.8989:
+	.ascii	"mpp_enc_refs_deinit\000"
 	.type	__func__.8999, %object
-	.size	__func__.8999, 18
+	.size	__func__.8999, 21
 __func__.8999:
-	.ascii	"check_ref_cpb_pos\000"
-	.type	__FUNCTION__.9009, %object
-	.size	__FUNCTION__.9009, 18
-__FUNCTION__.9009:
-	.ascii	"check_ref_cpb_pos\000"
-	.type	__func__.8929, %object
-	.size	__func__.8929, 18
-__func__.8929:
-	.ascii	"mpp_enc_refs_init\000"
-	.type	__FUNCTION__.8930, %object
-	.size	__FUNCTION__.8930, 18
-__FUNCTION__.8930:
-	.ascii	"mpp_enc_refs_init\000"
-	.type	__func__.8935, %object
-	.size	__func__.8935, 20
-__func__.8935:
-	.ascii	"mpp_enc_refs_deinit\000"
-	.type	__FUNCTION__.8936, %object
-	.size	__FUNCTION__.8936, 20
-__FUNCTION__.8936:
-	.ascii	"mpp_enc_refs_deinit\000"
-	.type	__func__.8946, %object
-	.size	__func__.8946, 21
-__func__.8946:
 	.ascii	"mpp_enc_refs_set_cfg\000"
-	.type	__FUNCTION__.8945, %object
-	.size	__FUNCTION__.8945, 21
-__FUNCTION__.8945:
+	.type	__FUNCTION__.8998, %object
+	.size	__FUNCTION__.8998, 21
+__FUNCTION__.8998:
 	.ascii	"mpp_enc_refs_set_cfg\000"
-	.type	__func__.9088, %object
-	.size	__func__.9088, 20
-__func__.9088:
+	.type	__func__.9141, %object
+	.size	__func__.9141, 20
+__func__.9141:
 	.ascii	"mpp_enc_refs_dryrun\000"
-	.type	__FUNCTION__.8973, %object
-	.size	__FUNCTION__.8973, 18
-__FUNCTION__.8973:
+	.type	__FUNCTION__.9026, %object
+	.size	__FUNCTION__.9026, 18
+__FUNCTION__.9026:
 	.ascii	"set_lt_cfg_to_frm\000"
-	.type	__func__.9112, %object
-	.size	__func__.9112, 25
-__func__.9112:
+	.type	__func__.9165, %object
+	.size	__func__.9165, 25
+__func__.9165:
 	.ascii	"mpp_enc_refs_set_usr_cfg\000"
-	.type	__func__.9118, %object
-	.size	__func__.9118, 25
-__func__.9118:
+	.type	__func__.9171, %object
+	.size	__func__.9171, 25
+__func__.9171:
 	.ascii	"mpp_enc_refs_set_rc_igop\000"
-	.type	__func__.9124, %object
-	.size	__func__.9124, 24
-__func__.9124:
+	.type	__func__.9177, %object
+	.size	__func__.9177, 24
+__func__.9177:
 	.ascii	"mpp_enc_refs_update_hdr\000"
-	.type	__func__.9130, %object
-	.size	__func__.9130, 26
-__func__.9130:
+	.type	__func__.9183, %object
+	.size	__func__.9183, 26
+__func__.9183:
 	.ascii	"mpp_enc_refs_get_cpb_info\000"
-	.type	__func__.9154, %object
-	.size	__func__.9154, 21
-__func__.9154:
+	.type	__func__.9207, %object
+	.size	__func__.9207, 21
+__func__.9207:
 	.ascii	"mpp_enc_refs_get_cpb\000"
-	.type	__FUNCTION__.9160, %object
-	.size	__FUNCTION__.9160, 21
-__FUNCTION__.9160:
+	.type	__FUNCTION__.9213, %object
+	.size	__FUNCTION__.9213, 21
+__FUNCTION__.9213:
 	.ascii	"mpp_enc_refs_get_cpb\000"
-	.type	__func__.9170, %object
-	.size	__func__.9170, 31
-__func__.9170:
+	.type	__func__.9223, %object
+	.size	__func__.9223, 31
+__func__.9223:
 	.ascii	"mpp_enc_refs_next_frm_is_intra\000"
-	.type	__func__.9178, %object
-	.size	__func__.9178, 31
-__func__.9178:
+	.type	__func__.9231, %object
+	.size	__func__.9231, 31
+__func__.9231:
 	.ascii	"mpp_enc_refs_next_frm_is_kpfrm\000"
-	.type	__func__.9188, %object
-	.size	__func__.9188, 27
-__func__.9188:
+	.type	__func__.9241, %object
+	.size	__func__.9241, 27
+__func__.9241:
 	.ascii	"mpp_enc_refs_get_cpb_pass1\000"
-	.type	__FUNCTION__.9190, %object
-	.size	__FUNCTION__.9190, 27
-__FUNCTION__.9190:
+	.type	__FUNCTION__.9243, %object
+	.size	__FUNCTION__.9243, 27
+__FUNCTION__.9243:
 	.ascii	"mpp_enc_refs_get_cpb_pass1\000"
-	.type	__func__.9197, %object
-	.size	__func__.9197, 19
-__func__.9197:
+	.type	__func__.9250, %object
+	.size	__func__.9250, 19
+__func__.9250:
 	.ascii	"mpp_enc_refs_stash\000"
-	.type	__func__.9202, %object
-	.size	__func__.9202, 22
-__func__.9202:
+	.type	__func__.9255, %object
+	.size	__func__.9255, 22
+__func__.9255:
 	.ascii	"mpp_enc_refs_rollback\000"
 	.bss
 	.align	2

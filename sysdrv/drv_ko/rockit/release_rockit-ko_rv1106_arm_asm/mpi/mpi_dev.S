@@ -90,23 +90,23 @@ __kstrtabns_mpi_node_pick_out_buffer:
 	.previous						
 
 	.section "__ksymtab_strings","aMS",%progbits,1	
-__kstrtab_mpi_node_release_buffer:					
-	.asciz 	"mpi_node_release_buffer"					
-__kstrtabns_mpi_node_release_buffer:					
+__kstrtab_mpi_node_release_buffer_flag:					
+	.asciz 	"mpi_node_release_buffer_flag"					
+__kstrtabns_mpi_node_release_buffer_flag:					
 	.asciz 	""					
 	.previous						
 
 	.section "__ksymtab_strings","aMS",%progbits,1	
-__kstrtab_mpi_node_set_in_frame_rate:					
-	.asciz 	"mpi_node_set_in_frame_rate"					
-__kstrtabns_mpi_node_set_in_frame_rate:					
+__kstrtab_mpi_node_set_frame_rate:					
+	.asciz 	"mpi_node_set_frame_rate"					
+__kstrtabns_mpi_node_set_frame_rate:					
 	.asciz 	""					
 	.previous						
 
 	.section "__ksymtab_strings","aMS",%progbits,1	
-__kstrtab_mpi_node_set_out_frame_rate:					
-	.asciz 	"mpi_node_set_out_frame_rate"					
-__kstrtabns_mpi_node_set_out_frame_rate:					
+__kstrtab_mpi_node_force_lost_frame:					
+	.asciz 	"mpi_node_force_lost_frame"					
+__kstrtabns_mpi_node_force_lost_frame:					
 	.asciz 	""					
 	.previous						
 
@@ -246,66 +246,23 @@ __kstrtabns_mpi_dev_register:
 	.thumb
 	.syntax unified
 	.align	1
+	.global	mpi_node_force_lost_frame
 	.syntax unified
 	.thumb
 	.thumb_func
 	.fpu softvfp
-	.type	add_user_to_buf, %function
-add_user_to_buf:
+	.type	mpi_node_force_lost_frame, %function
+mpi_node_force_lost_frame:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
 	@ link register save eliminated.
-	cbz	r1, .L1
-	ldr	r3, [r0, #76]
-	adds	r2, r3, #1
-	bne	.L4
-	movs	r3, #0
-.L12:
-	str	r3, [r0, #76]
-	ldr	r3, [r0, #76]
-	cmp	r3, #31
-	ble	.L8
-.L9:
-	mvn	r3, #1
-	str	r3, [r0, #76]
-.L7:
-	ldr	r3, [r0, #76]
-	cmp	r3, #0
-	itt	ge
-	addge	r1, r1, r3, lsl #2
-	strge	r0, [r1, #68]
-.L1:
-	bx	lr
-.L8:
-	add	r2, r1, r3, lsl #2
-	ldr	r2, [r2, #68]
-	cmp	r2, #0
-	beq	.L7
-	adds	r3, r3, #1
-	b	.L12
-.L4:
-	cmp	r3, #31
-	ble	.L7
-	b	.L9
-	.fnend
-	.size	add_user_to_buf, .-add_user_to_buf
-	.align	1
-	.global	mpi_node_set_out_frame_rate
-	.syntax unified
-	.thumb
-	.thumb_func
-	.fpu softvfp
-	.type	mpi_node_set_out_frame_rate, %function
-mpi_node_set_out_frame_rate:
-	.fnstart
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	@ link register save eliminated.
+	bic	r1, r1, r1, asr #31
+	str	r1, [r0]
 	movs	r0, #0
 	bx	lr
 	.fnend
-	.size	mpi_node_set_out_frame_rate, .-mpi_node_set_out_frame_rate
+	.size	mpi_node_force_lost_frame, .-mpi_node_force_lost_frame
 	.align	1
 	.syntax unified
 	.thumb
@@ -319,32 +276,33 @@ mpi_node_cleanup_in_buffer:
 	push	{r3, r4, r5, lr}
 	.save {r3, r4, r5, lr}
 	mov	r4, r0
-	cbnz	r1, .L15
-	ldr	r3, [r0, #284]
-	cbnz	r3, .L14
-	ldr	r3, [r0, #288]
-	cbnz	r3, .L14
-.L15:
+	cbnz	r1, .L3
+	ldr	r3, [r0, #324]
+	cbnz	r3, .L2
+	ldr	r3, [r0, #328]
+	cbnz	r3, .L2
+.L3:
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r5, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
 	.thumb
 	.syntax unified
-	ldr	r0, [r4, #308]
-	cbz	r0, .L17
-	bl	mpi_obj_unref
+	ldr	r0, [r4, #348]
+	cbz	r0, .L5
+	movs	r1, #0
+	bl	mpi_queue_destroy
 	movs	r3, #0
-	str	r3, [r4, #308]
-.L17:
+	str	r3, [r4, #348]
+.L5:
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r5	@ local_irq_restore
 @ 0 "" 2
 	.thumb
 	.syntax unified
-.L14:
+.L2:
 	pop	{r3, r4, r5, pc}
 	.fnend
 	.size	mpi_node_cleanup_in_buffer, .-mpi_node_cleanup_in_buffer
@@ -361,32 +319,33 @@ mpi_node_cleanup_out_buffer:
 	push	{r3, r4, r5, lr}
 	.save {r3, r4, r5, lr}
 	mov	r4, r0
-	cbnz	r1, .L22
-	ldr	r3, [r0, #296]
-	cbnz	r3, .L21
-	ldr	r3, [r0, #300]
-	cbnz	r3, .L21
-.L22:
+	cbnz	r1, .L10
+	ldr	r3, [r0, #336]
+	cbnz	r3, .L9
+	ldr	r3, [r0, #340]
+	cbnz	r3, .L9
+.L10:
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r5, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
 	.thumb
 	.syntax unified
-	ldr	r0, [r4, #312]
-	cbz	r0, .L24
-	bl	mpi_obj_unref
+	ldr	r0, [r4, #352]
+	cbz	r0, .L12
+	movs	r1, #0
+	bl	mpi_queue_destroy
 	movs	r3, #0
-	str	r3, [r4, #312]
-.L24:
+	str	r3, [r4, #352]
+.L12:
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r5	@ local_irq_restore
 @ 0 "" 2
 	.thumb
 	.syntax unified
-.L21:
+.L9:
 	pop	{r3, r4, r5, pc}
 	.fnend
 	.size	mpi_node_cleanup_out_buffer, .-mpi_node_cleanup_out_buffer
@@ -408,61 +367,61 @@ mpi_node_streamon:
 	ldr	r3, [r0, #12]
 	ldr	r6, [r0, #44]
 	tst	r3, #3072
-	bne	.L35
-	cbz	r0, .L30
+	bne	.L23
+	cbz	r0, .L18
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L31
-.L30:
-.L35:
+	beq	.L19
+.L18:
+.L23:
 	mov	r5, #-1
-	b	.L28
-.L31:
+	b	.L16
+.L19:
 	bl	mpi_obj_ref
 	ldr	r5, [r4, #12]
 	ands	r5, r5, #4096
-	beq	.L32
-.L34:
+	beq	.L20
+.L22:
 	movs	r5, #0
-.L33:
+.L21:
 	mov	r0, r4
 	bl	mpi_obj_unref
-.L28:
+.L16:
 	mov	r0, r5
 	add	sp, sp, #16
 	@ sp needed
 	pop	{r4, r5, r6, pc}
-.L32:
+.L20:
 	ldr	r3, [r4]
 	movs	r1, #5
-	ldr	r2, .L42
+	ldr	r2, .L30
 	mov	r0, r5
 	str	r3, [sp, #8]
 	ldr	r3, [r4, #44]
 	ldr	r3, [r3, #44]
 	str	r3, [sp, #4]
-	mov	r3, #338
+	mov	r3, #406
 	str	r3, [sp]
-	ldr	r3, .L42+4
+	ldr	r3, .L30+4
 	bl	vlog
 	ldr	r3, [r6, #80]
 	cmp	r3, #0
-	beq	.L34
+	beq	.L22
 	mov	r2, r5
 	movs	r1, #5
 	mov	r0, r4
 	blx	r3
 	mov	r5, r0
 	cmp	r0, #0
-	bne	.L33
+	bne	.L21
 	ldr	r3, [r4, #12]
 	orr	r3, r3, #4096
 	str	r3, [r4, #12]
-	b	.L33
-.L43:
+	b	.L21
+.L31:
 	.align	2
-.L42:
+.L30:
 	.word	.LC0
 	.word	.LANCHOR0
 	.fnend
@@ -481,17 +440,17 @@ mpi_node_stream_pause:
 	push	{r4, lr}
 	.save {r4, lr}
 	mov	r4, r0
-	cbz	r0, .L45
+	cbz	r0, .L33
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L46
-.L45:
+	beq	.L34
+.L33:
 	mov	r0, #-1
-.L44:
+.L32:
 	pop	{r4, pc}
-.L46:
-.L48:
+.L34:
+.L36:
 	bl	mpi_obj_ref
 	ldr	r3, [r4, #12]
 	mov	r0, r4
@@ -501,7 +460,7 @@ mpi_node_stream_pause:
 	strmi	r3, [r4, #12]
 	bl	mpi_obj_unref
 	movs	r0, #0
-	b	.L44
+	b	.L32
 	.fnend
 	.size	mpi_node_stream_pause, .-mpi_node_stream_pause
 	.align	1
@@ -521,158 +480,101 @@ mpi_node_streamoff:
 	.pad #20
 	sub	sp, sp, #20
 	ldr	r5, [r0, #44]
-	cbz	r0, .L56
+	cbz	r0, .L44
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L57
-.L56:
+	beq	.L45
+.L44:
 	mov	r0, #-1
-.L55:
+.L43:
 	add	sp, sp, #20
 	@ sp needed
 	pop	{r4, r5, pc}
-.L57:
+.L45:
 	bl	mpi_obj_ref
 	ldr	r3, [r4, #12]
 	lsls	r3, r3, #19
-	bpl	.L59
+	bpl	.L47
 	ldr	r3, [r4]
 	movs	r1, #5
-	ldr	r2, .L70
+	ldr	r2, .L68
 	movs	r0, #0
 	str	r3, [sp, #8]
 	ldr	r3, [r4, #44]
 	ldr	r3, [r3, #44]
 	str	r3, [sp, #4]
-	movw	r3, #371
+	mov	r3, #438
 	str	r3, [sp]
-	ldr	r3, .L70+4
+	ldr	r3, .L68+4
 	bl	vlog
 	ldr	r3, [r4, #12]
 	bic	r3, r3, #4096
 	str	r3, [r4, #12]
 	ldr	r3, [r5, #80]
-	cbz	r3, .L60
+	cbz	r3, .L48
 	movs	r2, #0
 	movs	r1, #6
 	mov	r0, r4
 	blx	r3
-.L60:
+.L48:
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r5, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
 	.thumb
 	.syntax unified
-	add	r0, r4, #316
+	ldr	r3, [r4, #324]
+	cbnz	r3, .L49
+.L53:
+	ldr	r3, [r4, #336]
+	cbnz	r3, .L51
+.L50:
+	add	r0, r4, #356
 	bl	complete_all
-	add	r0, r4, #328
+	add	r0, r4, #368
 	bl	complete_all
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r5	@ local_irq_restore
 @ 0 "" 2
 	.thumb
 	.syntax unified
-.L59:
+.L47:
 	mov	r0, r4
 	bl	mpi_obj_unref
 	movs	r0, #0
-	b	.L55
-.L71:
+	b	.L43
+.L52:
+	bl	mpi_obj_unref
+	ldr	r3, [r4, #396]
+	subs	r3, r3, #1
+	str	r3, [r4, #396]
+.L49:
+	ldr	r0, [r4, #348]
+	bl	mpi_queue_pop_obj
+	cmp	r0, #0
+	bne	.L52
+	b	.L53
+.L54:
+	bl	mpi_obj_unref
+	ldr	r3, [r4, #400]
+	subs	r3, r3, #1
+	str	r3, [r4, #400]
+.L51:
+	ldr	r0, [r4, #352]
+	bl	mpi_queue_pop_obj
+	cmp	r0, #0
+	bne	.L54
+	b	.L50
+.L69:
 	.align	2
-.L70:
+.L68:
 	.word	.LC1
 	.word	.LANCHOR0+18
 	.fnend
 	.size	mpi_node_streamoff, .-mpi_node_streamoff
-	.align	1
-	.global	mpi_node_request_buf
-	.syntax unified
-	.thumb
-	.thumb_func
-	.fpu softvfp
-	.type	mpi_node_request_buf, %function
-mpi_node_request_buf:
-	.fnstart
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, lr}
-	.save {r4, r5, r6, lr}
-	mov	r4, r0
-	.pad #24
-	sub	sp, sp, #24
-	mov	r5, r1
-	ldr	r6, [r0, #60]
-	cbz	r0, .L73
-	ldr	r3, [r0, #12]
-	and	r3, r3, #6
-	cmp	r3, #2
-	beq	.L74
-.L73:
-	movs	r5, #0
-.L72:
-	mov	r0, r5
-	add	sp, sp, #24
-	@ sp needed
-	pop	{r4, r5, r6, pc}
-.L74:
-	ldr	r3, [r0, #44]
-	ldr	r1, [r0]
-	ldr	r2, [r3, #44]
-	cbz	r5, .L78
-	ldr	r3, [r5]
-.L76:
-	strd	r1, r3, [sp, #8]
-	movs	r0, #0
-	str	r2, [sp, #4]
-	movw	r3, #650
-	ldr	r2, .L85
-	movs	r1, #5
-	str	r3, [sp]
-	ldr	r3, .L85+4
-	bl	vlog
-	mov	r1, r5
-	mov	r0, r6
-	bl	mpi_buf_pool_request_buf
-	mov	r5, r0
-	cbz	r0, .L77
-	ldr	r3, [r6]
-	movs	r1, #5
-	ldr	r2, .L85+8
-	str	r3, [sp, #16]
-	ldr	r3, [r0]
-	movs	r0, #0
-	str	r3, [sp, #12]
-	ldr	r3, [r4]
-	str	r3, [sp, #8]
-	ldr	r3, [r4, #44]
-	ldr	r3, [r3, #44]
-	str	r3, [sp, #4]
-	mov	r3, #656
-	str	r3, [sp]
-	ldr	r3, .L85+4
-	bl	vlog
-	ldr	r3, [r6, #64]
-	str	r3, [r4, #72]
-.L77:
-	mov	r1, r5
-	mov	r0, r4
-	bl	add_user_to_buf
-	b	.L72
-.L78:
-	mov	r3, #-1
-	b	.L76
-.L86:
-	.align	2
-.L85:
-	.word	.LC2
-	.word	.LANCHOR0+37
-	.word	.LC3
-	.fnend
-	.size	mpi_node_request_buf, .-mpi_node_request_buf
 	.align	1
 	.global	mpi_node_flush
 	.syntax unified
@@ -692,72 +594,72 @@ mpi_node_flush:
 	mov	r5, r1
 	ldr	r7, [r0, #44]
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r2, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
 	.thumb
 	.syntax unified
 	ldr	r3, [r0, #12]
-	add	r6, r0, #272
+	add	r6, r0, #312
 	ands	r1, r3, #2048
-	beq	.L88
+	beq	.L71
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r2	@ local_irq_restore
 @ 0 "" 2
 	.thumb
 	.syntax unified
 	mov	r0, r6
 	bl	wait_for_completion
-.L89:
+.L72:
 	movs	r0, #0
 	add	sp, sp, #20
 	@ sp needed
 	pop	{r4, r5, r6, r7, pc}
-.L88:
+.L71:
 	orr	r3, r3, #2048
-	str	r1, [r0, #272]
+	str	r1, [r0, #312]
 	str	r3, [r0, #12]
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r2	@ local_irq_restore
 @ 0 "" 2
 	.thumb
 	.syntax unified
 	ldr	r3, [r0, #12]
 	lsls	r3, r3, #19
-	bpl	.L90
+	bpl	.L73
 	bl	mpi_node_streamoff
-.L90:
+.L73:
 	ldr	r3, [r4]
 	movs	r1, #5
-	ldr	r2, .L104
+	ldr	r2, .L87
 	movs	r0, #0
 	str	r3, [sp, #8]
 	ldr	r3, [r7, #44]
 	str	r3, [sp, #4]
-	movw	r3, #689
+	mov	r3, #828
 	str	r3, [sp]
-	ldr	r3, .L104+4
+	ldr	r3, .L87+4
 	bl	vlog
-	ldr	r0, [r4, #268]
-	cbz	r0, .L91
+	ldr	r0, [r4, #308]
+	cbz	r0, .L74
 	movs	r2, #0
 	mov	r1, r5
 	bl	mpi_queue_flush
-.L91:
+.L74:
 	ldr	r3, [r7, #80]
-	cbz	r3, .L92
-	cbz	r5, .L93
+	cbz	r3, .L75
+	cbz	r5, .L76
 	movs	r2, #0
 	movs	r1, #3
-.L103:
+.L86:
 	mov	r0, r4
 	blx	r3
-.L92:
+.L75:
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r5, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
@@ -769,21 +671,21 @@ mpi_node_flush:
 	bic	r3, r3, #2048
 	str	r3, [r4, #12]
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r5	@ local_irq_restore
 @ 0 "" 2
 	.thumb
 	.syntax unified
-	b	.L89
-.L93:
+	b	.L72
+.L76:
 	mov	r2, r5
 	movs	r1, #2
-	b	.L103
-.L105:
+	b	.L86
+.L88:
 	.align	2
-.L104:
-	.word	.LC4
-	.word	.LANCHOR0+58
+.L87:
+	.word	.LC2
+	.word	.LANCHOR0+37
 	.fnend
 	.size	mpi_node_flush, .-mpi_node_flush
 	.align	1
@@ -803,7 +705,7 @@ mpi_node_unbind:
 	sub	sp, sp, #28
 	ldr	r3, [r1]
 	mov	r4, r1
-	ldr	r2, .L115
+	ldr	r2, .L98
 	mov	r5, r0
 	str	r3, [sp, #16]
 	ldr	r3, [r1, #44]
@@ -816,9 +718,9 @@ mpi_node_unbind:
 	movs	r0, #0
 	ldr	r3, [r3, #44]
 	str	r3, [sp, #4]
-	mov	r3, #740
+	movw	r3, #879
 	str	r3, [sp]
-	ldr	r3, .L115+4
+	ldr	r3, .L98+4
 	bl	vlog
 	movs	r1, #1
 	mov	r0, r4
@@ -827,54 +729,42 @@ mpi_node_unbind:
 	bl	mpi_node_streamoff
 	ldr	r3, [r4, #12]
 	lsls	r2, r3, #18
-	bpl	.L106
+	bpl	.L89
 	bic	r3, r3, #8192
 	str	r3, [r4, #12]
 	ldr	r3, [r4, #44]
 	ldr	r3, [r3, #72]
-	cbz	r3, .L109
+	cbz	r3, .L92
 	movs	r1, #0
-	ldr	r0, [r4, #248]
+	ldr	r0, [r4, #288]
 	blx	r3
-	str	r0, [r4, #248]
-.L109:
-	movs	r1, #1
-	mov	r0, r4
-	bl	mpi_node_cleanup_in_buffer
-	movs	r1, #1
-	mov	r0, r4
-	bl	mpi_node_cleanup_out_buffer
-	movs	r1, #1
-	mov	r0, r5
-	bl	mpi_node_cleanup_in_buffer
-	movs	r1, #1
-	mov	r0, r5
-	bl	mpi_node_cleanup_out_buffer
+	str	r0, [r4, #288]
+.L92:
 	mov	r1, r4
-	add	r0, r5, #260
+	add	r0, r5, #300
 	bl	mpi_list_del_obj_rcu
-	cbnz	r0, .L110
+	cbnz	r0, .L93
 	mov	r0, r4
 	bl	mpi_obj_unref
-.L110:
+.L93:
 	mov	r1, r5
-	add	r0, r4, #252
+	add	r0, r4, #292
 	bl	mpi_list_del_obj_rcu
-	cbnz	r0, .L106
+	cbnz	r0, .L89
 	mov	r0, r5
 	add	sp, sp, #28
 	@ sp needed
 	pop	{r4, r5, lr}
 	b	mpi_obj_unref
-.L106:
+.L89:
 	add	sp, sp, #28
 	@ sp needed
 	pop	{r4, r5, pc}
-.L116:
+.L99:
 	.align	2
-.L115:
-	.word	.LC5
-	.word	.LANCHOR0+73
+.L98:
+	.word	.LC3
+	.word	.LANCHOR0+52
 	.fnend
 	.size	mpi_node_unbind, .-mpi_node_unbind
 	.align	1
@@ -894,47 +784,47 @@ mpi_node_bind:
 	.pad #24
 	sub	sp, sp, #24
 	mov	r4, r1
-	cbz	r0, .L118
+	cbz	r0, .L101
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L119
-.L118:
+	beq	.L102
+.L101:
 	mov	r6, #-1
-.L117:
+.L100:
 	mov	r0, r6
 	add	sp, sp, #24
 	@ sp needed
 	pop	{r4, r5, r6, pc}
-.L119:
+.L102:
 	bl	mpi_obj_ref
-	cbz	r4, .L121
+	cbz	r4, .L104
 	ldr	r3, [r4, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L122
-.L121:
+	beq	.L105
+.L104:
 	mov	r6, #-1
-.L123:
+.L106:
 	mov	r0, r5
 	bl	mpi_obj_unref
-	b	.L117
-.L122:
+	b	.L100
+.L105:
 	mov	r0, r4
 	bl	mpi_obj_ref
 	ldr	r3, [r5, #12]
 	lsls	r2, r3, #21
-	bmi	.L128
+	bmi	.L111
 	ldr	r3, [r4, #12]
 	tst	r3, #9216
-	bne	.L128
+	bne	.L111
 	mov	r1, r4
-	add	r0, r5, #260
+	add	r0, r5, #300
 	bl	mpi_list_add_tail_obj_rcu
 	mov	r0, r5
 	bl	mpi_obj_ref
 	mov	r1, r5
-	add	r0, r4, #252
+	add	r0, r4, #292
 	bl	mpi_list_add_tail_obj_rcu
 	mov	r0, r4
 	bl	mpi_obj_ref
@@ -943,15 +833,15 @@ mpi_node_bind:
 	str	r3, [r4, #12]
 	ldr	r3, [r4, #44]
 	ldr	r3, [r3, #72]
-	cbz	r3, .L125
+	cbz	r3, .L108
 	mov	r1, r5
-	ldr	r0, [r4, #248]
+	ldr	r0, [r4, #288]
 	blx	r3
-	str	r0, [r4, #248]
-.L125:
+	str	r0, [r4, #288]
+.L108:
 	ldr	r3, [r4]
 	movs	r1, #5
-	ldr	r2, .L142
+	ldr	r2, .L125
 	movs	r0, #0
 	str	r3, [sp, #16]
 	ldr	r3, [r4, #44]
@@ -962,34 +852,34 @@ mpi_node_bind:
 	ldr	r3, [r5, #44]
 	ldr	r3, [r3, #44]
 	str	r3, [sp, #4]
-	movw	r3, #809
+	movw	r3, #942
 	str	r3, [sp]
-	ldr	r3, .L142+4
+	ldr	r3, .L125+4
 	bl	vlog
 	ldr	r3, [r4, #12]
 	lsls	r3, r3, #17
-	bpl	.L126
+	bpl	.L109
 	mov	r0, r4
 	bl	mpi_node_streamon
-.L126:
+.L109:
 	ldr	r6, [r5, #12]
 	ands	r6, r6, #16384
-	beq	.L124
+	beq	.L107
 	mov	r0, r5
 	movs	r6, #0
 	bl	mpi_node_streamon
-.L124:
+.L107:
 	mov	r0, r4
 	bl	mpi_obj_unref
-	b	.L123
-.L128:
+	b	.L106
+.L111:
 	mov	r6, #-1
-	b	.L124
-.L143:
+	b	.L107
+.L126:
 	.align	2
-.L142:
-	.word	.LC6
-	.word	.LANCHOR0+89
+.L125:
+	.word	.LC4
+	.word	.LANCHOR0+68
 	.fnend
 	.size	mpi_node_bind, .-mpi_node_bind
 	.align	1
@@ -1007,37 +897,39 @@ mpi_node_set_params:
 	.save {r4, r5, r6, lr}
 	mov	r4, r0
 	mov	r6, r1
-	cbz	r0, .L145
+	cbz	r0, .L128
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L146
-.L145:
+	beq	.L129
+.L128:
 	mov	r5, #-1
-.L144:
+.L127:
 	mov	r0, r5
 	pop	{r4, r5, r6, pc}
-.L146:
+.L129:
 	bl	mpi_obj_ref
 	ldr	r3, [r4, #44]
-	cbz	r3, .L148
+	cbz	r3, .L131
 	ldr	r3, [r3, #80]
-	cbz	r3, .L148
+	cbz	r3, .L131
 	mov	r2, r6
 	movs	r1, #4
 	mov	r0, r4
 	blx	r3
 	mov	r5, r0
-	cbnz	r0, .L148
+	cbnz	r0, .L131
 	ldr	r0, [r4, #80]
-	cbz	r0, .L149
+	cbz	r0, .L132
+	cmp	r0, r6
+	beq	.L132
 	bl	kfree
-.L149:
+.L132:
 	str	r6, [r4, #80]
-.L148:
+.L131:
 	mov	r0, r4
 	bl	mpi_obj_unref
-	b	.L144
+	b	.L127
 	.fnend
 	.size	mpi_node_set_params, .-mpi_node_set_params
 	.align	1
@@ -1072,15 +964,15 @@ __init_completion:
 	@ frame_needed = 0, uses_anonymous_args = 0
 	@ link register save eliminated.
 	movs	r3, #0
-	ldr	r2, .L164
+	ldr	r2, .L147
 	str	r3, [r0], #4
-	ldr	r1, .L164+4
+	ldr	r1, .L147+4
 	b	__init_swait_queue_head
-.L165:
+.L148:
 	.align	2
-.L164:
+.L147:
 	.word	.LANCHOR1
-	.word	.LC7
+	.word	.LC5
 	.fnend
 	.size	__init_completion, .-__init_completion
 	.align	1
@@ -1098,95 +990,95 @@ mpi_dev_run_job:
 	.save {r3, r4, r5, r6, r7, r8, r9, lr}
 	mov	r8, r0
 	mov	r6, r1
-	cbz	r0, .L167
+	cbz	r0, .L150
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L168
-.L167:
+	beq	.L151
+.L150:
 	movs	r4, #0
-.L166:
+.L149:
 	mov	r0, r4
 	pop	{r3, r4, r5, r6, r7, r8, r9, pc}
-.L168:
+.L151:
 	mov	r9, r0
 	movs	r5, #0
 	ldr	r4, [r9, #88]!
 	subs	r4, r4, #48
-.L170:
+.L153:
 	add	r3, r4, #48
 	cmp	r3, r9
-	bne	.L172
+	bne	.L155
 	mov	r2, r6
 	movs	r1, #0
 	ldr	r0, [r8, #84]
 	bl	mpi_job_pool_choose_job
 	mov	r4, r0
-	cbz	r0, .L173
-	cbz	r5, .L174
-	cbz	r6, .L174
+	cbz	r0, .L156
+	cbz	r5, .L157
+	cbz	r6, .L157
 	mov	r1, r5
 	blx	r6
 	bics	r4, r4, r0, asr #32
 	it	cs
 	movcs	r4, r5
-.L174:
+.L157:
 	ldr	r3, [r4, #48]
-	cbz	r3, .L207
+	cbz	r3, .L190
 	ldr	r2, [r3, #12]
 	and	r2, r2, #6
 	cmp	r2, #2
-	beq	.L177
-.L207:
+	beq	.L160
+.L190:
 	mov	r0, r4
 	bl	mpi_job_set_running
 	cmp	r0, #0
-	bge	.L175
-	b	.L180
-.L172:
-	ldr	r0, [r4, #268]
-	cbz	r0, .L171
+	bge	.L158
+	b	.L163
+.L155:
+	ldr	r0, [r4, #308]
+	cbz	r0, .L154
 	bl	mpi_queue_front_obj
 	mov	r7, r0
-	cbz	r0, .L171
+	cbz	r0, .L154
 	ldr	r3, [r0, #68]
 	cmp	r3, #2
-	bne	.L171
-	cbz	r5, .L181
-	cbz	r6, .L171
+	bne	.L154
+	cbz	r5, .L164
+	cbz	r6, .L154
 	mov	r1, r0
 	mov	r0, r5
 	blx	r6
 	bics	r5, r5, r0, asr #32
 	it	cs
 	movcs	r5, r7
-.L171:
+.L154:
 	ldr	r4, [r4, #48]
 	subs	r4, r4, #48
-	b	.L170
-.L181:
+	b	.L153
+.L164:
 	mov	r5, r0
-	b	.L171
-.L173:
-	cbnz	r5, .L182
-.L180:
+	b	.L154
+.L156:
+	cbnz	r5, .L165
+.L163:
 	movs	r4, #0
-.L175:
-	b	.L166
-.L182:
+.L158:
+	b	.L149
+.L165:
 	mov	r4, r5
-	b	.L174
-.L177:
-	ldr	r0, [r3, #268]
-	cbz	r0, .L179
+	b	.L157
+.L160:
+	ldr	r0, [r3, #308]
+	cbz	r0, .L162
 	mov	r1, r4
 	bl	mpi_queue_try_pop_obj
-	cbnz	r0, .L179
-	b	.L180
-.L179:
+	cbnz	r0, .L162
+	b	.L163
+.L162:
 	mov	r0, r4
 	bl	mpi_obj_unref
-	b	.L207
+	b	.L190
 	.fnend
 	.size	mpi_dev_run_job, .-mpi_dev_run_job
 	.align	1
@@ -1221,183 +1113,300 @@ mpi_dev_register:
 	mov	r0, r4
 	bl	mpi_job_pool_create
 	str	r0, [r4, #84]
-	cbnz	r0, .L209
+	cbnz	r0, .L192
 	mov	r0, r4
 	bl	mpi_obj_unregister
 	mov	r0, #-1
-.L208:
+.L191:
 	add	sp, sp, #12
 	@ sp needed
 	pop	{r4, r5, pc}
-.L209:
+.L192:
 	ldr	r3, [r4, #44]
 	movs	r1, #5
-	ldr	r2, .L211
+	ldr	r2, .L194
 	movs	r0, #0
 	str	r3, [sp, #4]
-	mov	r3, #1168
+	movw	r3, #1313
 	str	r3, [sp]
-	ldr	r3, .L211+4
+	ldr	r3, .L194+4
 	bl	vlog
 	movs	r0, #0
-	b	.L208
-.L212:
+	b	.L191
+.L195:
 	.align	2
-.L211:
-	.word	.LC8
-	.word	.LANCHOR0+103
+.L194:
+	.word	.LC6
+	.word	.LANCHOR0+82
 	.fnend
 	.size	mpi_dev_register, .-mpi_dev_register
-	.global	__aeabi_idivmod
-	.global	__aeabi_uidivmod
 	.align	1
-	.global	mpi_node_set_in_frame_rate
 	.syntax unified
 	.thumb
 	.thumb_func
 	.fpu softvfp
-	.type	mpi_node_set_in_frame_rate, %function
-mpi_node_set_in_frame_rate:
+	.type	count_frame_rate.part.1, %function
+count_frame_rate.part.1:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	ldr	r3, [r0, #124]
+	ldr	r2, [r0, #128]
+	adds	r3, r3, #1
+	str	r3, [r0, #124]
+	push	{r4, lr}
+	.save {r4, lr}
+	adds	r3, r2, #1
+	str	r3, [r0, #128]
+	cbz	r1, .L197
+	ldr	r3, [r0, #132]
+	adds	r3, r3, #1
+	str	r3, [r0, #132]
+.L197:
+	ldr	r1, .L202
+	ldr	r4, [r0, #140]
+	ldr	r3, [r1]
+	rsb	r3, r3, #100
+	cmn	r3, r4
+	itttt	mi
+	ldrmi	r3, [r1]
+	strdmi	r2, r3, [r0, #136]
+	movmi	r3, #0
+	strmi	r3, [r0, #128]
+	pop	{r4, pc}
+.L203:
+	.align	2
+.L202:
+	.word	jiffies
+	.fnend
+	.size	count_frame_rate.part.1, .-count_frame_rate.part.1
+	.global	__aeabi_idivmod
+	.align	1
+	.global	mpi_node_set_frame_rate
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpi_node_set_frame_rate, %function
+mpi_node_set_frame_rate:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 40
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, r7, r8, r9, lr}
-	.save {r4, r5, r6, r7, r8, r9, lr}
-	subs	r5, r2, #0
-	ldr	r7, .L246
-	.pad #44
-	sub	sp, sp, #44
-	mov	r4, r0
-	mov	r6, r1
-	ldr	r3, [r7]
-	str	r3, [sp, #36]
+	push	{r4, r5, r6, r7, r8, r9, r10, lr}
+	.save {r4, r5, r6, r7, r8, r9, r10, lr}
+	mov	r7, r2
+	ldr	r2, .L255
+	.pad #40
+	sub	sp, sp, #40
+	mov	r5, r0
+	ldr	r4, [r2]
+	mov	r8, r2
+	str	r4, [sp, #36]
+	subs	r4, r1, #0
 	blt	.L236
-	cmp	r1, r5
-	blt	.L236
-	subs	r3, r1, #1
-	cmp	r3, #29
+	subs	r2, r0, #1
+	cmp	r2, #29
 	bhi	.L236
-	cbnz	r5, .L215
-	adds	r4, r4, #120
-	movs	r3, #1
-	add	r6, r6, r4
-.L216:
-	strb	r3, [r4], #1
-	cmp	r4, r6
-	bne	.L216
-.L224:
-	movs	r0, #0
-.L213:
+	cbnz	r4, .L206
+	mov	r3, r4
+	mov	r2, r4
+.L207:
+	strb	r2, [r7, r3]
+	adds	r3, r3, #1
+	cmp	r5, r3
+	bgt	.L207
+.L205:
 	ldr	r2, [sp, #36]
-	ldr	r3, [r7]
+	mov	r0, r4
+	ldr	r3, [r8]
 	cmp	r2, r3
-	beq	.L233
+	beq	.L234
 	bl	__stack_chk_fail
-.L215:
-	str	r1, [r4, #116]
-	mov	r0, r6
-	mov	r1, r5
+.L206:
+	cmp	r0, r4
+	bne	.L208
+	movs	r4, #0
+	str	r4, [r3]
+	b	.L205
+.L208:
+	str	r0, [r3]
+	ble	.L209
 	bl	__aeabi_idivmod
 	mov	r9, r0
-	mov	r8, r1
-	cbnz	r1, .L217
-	adds	r4, r4, #120
-.L218:
-	mov	r0, r8
+	mov	r6, r1
+	cbnz	r1, .L210
+.L211:
+	mov	r0, r6
 	mov	r1, r9
 	bl	__aeabi_idivmod
-	add	r8, r8, #1
-	cmp	r6, r8
-	strb	r1, [r4], #1
-	bne	.L218
-	b	.L224
-.L217:
-	subs	r3, r6, r5
-	cmp	r5, r3
-	ble	.L220
-	movs	r2, #0
-	add	r1, r4, #120
-	mov	r0, r2
-.L221:
-	strb	r0, [r1, r2, lsl #1]
-	adds	r2, r2, #1
-	cmp	r5, r2
-	bgt	.L221
-	adds	r4, r4, #121
-	movs	r2, #0
-	movs	r1, #1
-.L222:
-	cmp	r3, r2
-	ble	.L224
-	strb	r1, [r4, r2, lsl #1]
-	adds	r2, r2, #1
-	b	.L222
-.L220:
-	cmp	r6, r5
-	ble	.L224
-	add	r0, sp, #6
-	movs	r2, #0
-	mov	r6, r2
-	mov	r1, r0
-.L226:
-	adds	r2, r2, #1
-	strb	r6, [r1], #1
-	cmp	r5, r2
-	bgt	.L226
-.L227:
-	mov	r1, r0
-	movs	r2, #0
-.L229:
-	adds	r2, r2, #1
-	ldrb	r6, [r1]	@ zero_extendqisi2
-	cmp	r2, r3
-	add	r6, r6, #1
-	strb	r6, [r1], #1
-	beq	.L228
-	cmp	r5, r2
-	bgt	.L229
-.L228:
-	subs	r3, r3, r2
-	bne	.L227
-	mov	r2, r3
-	mov	lr, r3
-	mov	r8, #1
-.L232:
-	adds	r1, r4, r2
-	add	r6, r2, #121
-	add	r6, r6, r4
-	mov	ip, #0
-	strb	lr, [r1, #120]
-	ldrb	r1, [r0], #1	@ zero_extendqisi2
-.L230:
-	cmp	ip, r1
-	blt	.L231
-	adds	r3, r3, #1
-	adds	r1, r1, #1
-	cmp	r5, r3
-	add	r2, r2, r1
-	bgt	.L232
-	add	r4, r4, r2
+	clz	r1, r1
+	lsrs	r1, r1, #5
+	strb	r1, [r7, r6]
+	adds	r6, r6, #1
+	cmp	r5, r6
+	bgt	.L211
+.L212:
+	movs	r4, #0
+	b	.L205
+.L210:
+	subs	r6, r5, r4
+	mov	r0, r5
+	mov	r1, r6
+	bl	__aeabi_idivmod
+	mov	r10, r0
+	mov	r9, r1
+	cbnz	r1, .L237
+.L214:
+	mov	r0, r9
+	mov	r1, r10
+	bl	__aeabi_idivmod
+	adds	r1, r1, #0
+	it	ne
+	movne	r1, #1
+	strb	r1, [r7, r9]
+	add	r9, r9, #1
+	cmp	r5, r9
+	bgt	.L214
+	b	.L212
+.L237:
 	movs	r3, #0
-	strb	r3, [r4, #120]
-	b	.L224
-.L231:
-	strb	r8, [r6], #1
-	add	ip, ip, #1
-	b	.L230
-.L236:
-	mov	r0, #-1
-	b	.L213
+	add	r1, sp, #6
+	mov	r2, r3
+.L213:
+	strb	r2, [r3, r1]
+	adds	r3, r3, #1
+	cmp	r4, r3
+	bne	.L213
+.L215:
+	mov	r2, r1
+	movs	r3, #0
+.L217:
+	adds	r3, r3, #1
+	ldrb	r0, [r2]	@ zero_extendqisi2
+	cmp	r3, r6
+	add	r0, r0, #1
+	strb	r0, [r2], #1
+	beq	.L238
+	cmp	r4, r3
+	bne	.L217
+	mov	r3, r4
+.L216:
+	subs	r6, r6, r3
+	bne	.L215
+	mov	r3, r6
+	mov	ip, #1
+	mov	lr, r6
+.L218:
+	cmp	r4, r3
+	ble	.L212
+	ldrb	r2, [r1, r3]	@ zero_extendqisi2
+	adds	r5, r7, r6
+	movs	r0, #0
+	strb	ip, [r7, r6]
+.L219:
+	cmp	r0, r2
+	blt	.L220
+	adds	r2, r2, #1
+	adds	r3, r3, #1
+	add	r6, r6, r2
+	b	.L218
+.L238:
+	mov	r3, r6
+	b	.L216
+.L220:
+	strb	lr, [r5, #1]!
+	adds	r0, r0, #1
+	b	.L219
+.L209:
+	mov	r1, r0
+	mov	r0, r4
+	bl	__aeabi_idivmod
+	cbnz	r1, .L222
+.L223:
+	strb	r0, [r7, r1]
+	adds	r1, r1, #1
+	cmp	r5, r1
+	bgt	.L223
+	b	.L212
+.L222:
+	subs	r6, r4, r5
+	mov	r0, r4
+	mov	r1, r6
+	bl	__aeabi_idivmod
+	mov	r9, r0
+	mov	r4, r1
+	cbnz	r1, .L224
+.L226:
+	mov	r0, r4
+	mov	r1, r9
+	bl	__aeabi_idivmod
+	cmp	r1, #0
+	ite	ne
+	movne	r3, #1
+	moveq	r3, #2
+	strb	r3, [r7, r4]
+	adds	r4, r4, #1
+	cmp	r5, r4
+	bgt	.L226
+	b	.L212
+.L224:
+	add	r2, sp, #6
+	movs	r3, #0
+	mov	r0, r3
+	mov	r1, r2
+.L227:
+	adds	r3, r3, #1
+	strb	r0, [r1], #1
+	cmp	r5, r3
+	bgt	.L227
+.L228:
+	mov	r1, r2
+	movs	r3, #0
+.L230:
+	adds	r3, r3, #1
+	ldrb	r0, [r1]	@ zero_extendqisi2
+	cmp	r3, r6
+	add	r0, r0, #1
+	strb	r0, [r1], #1
+	beq	.L229
+	cmp	r5, r3
+	bgt	.L230
+.L229:
+	subs	r6, r6, r3
+	bne	.L228
+	subs	r3, r7, #1
+	movs	r4, #1
+	subs	r7, r4, r7
 .L233:
-	add	sp, sp, #44
+	ldrb	r6, [r2], #1	@ zero_extendqisi2
+	movs	r1, #0
+	strb	r4, [r3, #1]!
+.L231:
+	cmp	r1, r6
+	blt	.L232
+	adds	r1, r7, r3
+	cmp	r5, r1
+	bgt	.L233
+	b	.L212
+.L232:
+	ldrb	r0, [r3]	@ zero_extendqisi2
+	adds	r1, r1, #1
+	adds	r0, r0, #1
+	strb	r0, [r3]
+	b	.L231
+.L236:
+	mov	r4, #-1
+	b	.L205
+.L234:
+	add	sp, sp, #40
 	@ sp needed
-	pop	{r4, r5, r6, r7, r8, r9, pc}
-.L247:
+	pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+.L256:
 	.align	2
-.L246:
+.L255:
 	.word	__stack_chk_guard
 	.fnend
-	.size	mpi_node_set_in_frame_rate, .-mpi_node_set_in_frame_rate
+	.size	mpi_node_set_frame_rate, .-mpi_node_set_frame_rate
 	.align	1
 	.global	mpi_node_add_in_watcher
 	.syntax unified
@@ -1409,42 +1418,69 @@ mpi_node_add_in_watcher:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r0, r1, r2, r3, r4, lr}
-	.save {r4, lr}
+	push	{r0, r1, r2, r3, r4, r5, r6, lr}
+	.save {r4, r5, r6, lr}
 	.pad #16
 	mov	r4, r0
-	cbz	r0, .L255
+	mov	r5, r1
+	cbz	r0, .L268
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L250
-.L255:
+	beq	.L259
+.L268:
 	add	sp, sp, #16
 	@ sp needed
-	pop	{r4, pc}
-.L250:
+	pop	{r4, r5, r6, pc}
+.L259:
 	str	r1, [sp, #12]
 	movs	r1, #5
 	ldr	r3, [r0]
-	ldr	r2, .L256
+	ldr	r2, .L269
 	str	r3, [sp, #8]
 	ldr	r3, [r0, #44]
 	movs	r0, #0
 	ldr	r3, [r3, #44]
 	str	r3, [sp, #4]
-	movs	r3, #183
+	movs	r3, #199
 	str	r3, [sp]
-	ldr	r3, .L256+4
+	ldr	r3, .L269+4
 	bl	vlog
-	ldr	r3, [r4, #284]
-	adds	r3, r3, #1
-	str	r3, [r4, #284]
-	b	.L255
-.L257:
+	.syntax unified
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		mrs	r6, cpsr	@ arch_local_irq_save
+	cpsid	i
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	ldr	r3, [r4, #324]
+	cmp	r5, #0
+	add	r3, r3, #1
+	str	r3, [r4, #324]
+	ble	.L261
+	cbz	r3, .L261
+	ldr	r2, .L269+8
+	movs	r1, #4
+	mov	r0, r5
+	bl	mpi_queue_create
+	movs	r3, #0
+	str	r5, [r4, #388]
+	str	r3, [r4, #396]
+	str	r0, [r4, #348]
+.L261:
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r6	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	b	.L268
+.L270:
 	.align	2
-.L256:
-	.word	.LC9
-	.word	.LANCHOR0+120
+.L269:
+	.word	.LC7
+	.word	.LANCHOR0+99
+	.word	mpi_obj_unref
 	.fnend
 	.size	mpi_node_add_in_watcher, .-mpi_node_add_in_watcher
 	.align	1
@@ -1458,42 +1494,70 @@ mpi_node_add_in_filter:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r0, r1, r2, r3, r4, lr}
-	.save {r4, lr}
+	push	{r0, r1, r2, r3, r4, r5, r6, lr}
+	.save {r4, r5, r6, lr}
 	.pad #16
 	mov	r4, r0
-	cbz	r0, .L265
+	mov	r5, r1
+	cbz	r0, .L282
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L260
-.L265:
+	beq	.L273
+.L282:
 	add	sp, sp, #16
 	@ sp needed
-	pop	{r4, pc}
-.L260:
+	pop	{r4, r5, r6, pc}
+.L273:
 	str	r1, [sp, #12]
 	movs	r1, #5
 	ldr	r3, [r0]
-	ldr	r2, .L266
+	ldr	r2, .L283
 	str	r3, [sp, #8]
 	ldr	r3, [r0, #44]
 	movs	r0, #0
 	ldr	r3, [r3, #44]
 	str	r3, [sp, #4]
-	movs	r3, #184
+	movs	r3, #200
 	str	r3, [sp]
-	ldr	r3, .L266+4
+	ldr	r3, .L283+4
 	bl	vlog
-	ldr	r3, [r4, #288]
-	adds	r3, r3, #1
-	str	r3, [r4, #288]
-	b	.L265
-.L267:
+	.syntax unified
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		mrs	r6, cpsr	@ arch_local_irq_save
+	cpsid	i
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	ldr	r3, [r4, #328]
+	cmp	r5, #0
+	add	r3, r3, #1
+	str	r3, [r4, #328]
+	ble	.L275
+	ldr	r3, [r4, #324]
+	cbz	r3, .L275
+	ldr	r2, .L283+8
+	movs	r1, #4
+	mov	r0, r5
+	bl	mpi_queue_create
+	movs	r3, #0
+	str	r5, [r4, #388]
+	str	r3, [r4, #396]
+	str	r0, [r4, #348]
+.L275:
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r6	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	b	.L282
+.L284:
 	.align	2
-.L266:
-	.word	.LC10
-	.word	.LANCHOR0+144
+.L283:
+	.word	.LC8
+	.word	.LANCHOR0+123
+	.word	mpi_obj_unref
 	.fnend
 	.size	mpi_node_add_in_filter, .-mpi_node_add_in_filter
 	.align	1
@@ -1507,42 +1571,69 @@ mpi_node_add_out_watcher:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r0, r1, r2, r3, r4, lr}
-	.save {r4, lr}
+	push	{r0, r1, r2, r3, r4, r5, r6, lr}
+	.save {r4, r5, r6, lr}
 	.pad #16
 	mov	r4, r0
-	cbz	r0, .L275
+	mov	r5, r1
+	cbz	r0, .L296
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L270
-.L275:
+	beq	.L287
+.L296:
 	add	sp, sp, #16
 	@ sp needed
-	pop	{r4, pc}
-.L270:
+	pop	{r4, r5, r6, pc}
+.L287:
 	str	r1, [sp, #12]
 	movs	r1, #5
 	ldr	r3, [r0]
-	ldr	r2, .L276
+	ldr	r2, .L297
 	str	r3, [sp, #8]
 	ldr	r3, [r0, #44]
 	movs	r0, #0
 	ldr	r3, [r3, #44]
 	str	r3, [sp, #4]
-	movs	r3, #185
+	movs	r3, #201
 	str	r3, [sp]
-	ldr	r3, .L276+4
+	ldr	r3, .L297+4
 	bl	vlog
-	ldr	r3, [r4, #296]
-	adds	r3, r3, #1
-	str	r3, [r4, #296]
-	b	.L275
-.L277:
+	.syntax unified
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		mrs	r6, cpsr	@ arch_local_irq_save
+	cpsid	i
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	ldr	r3, [r4, #336]
+	cmp	r5, #0
+	add	r3, r3, #1
+	str	r3, [r4, #336]
+	ble	.L289
+	cbz	r3, .L289
+	ldr	r2, .L297+8
+	movs	r1, #4
+	mov	r0, r5
+	bl	mpi_queue_create
+	movs	r3, #0
+	str	r5, [r4, #392]
+	str	r3, [r4, #400]
+	str	r0, [r4, #352]
+.L289:
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r6	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	b	.L296
+.L298:
 	.align	2
-.L276:
-	.word	.LC11
-	.word	.LANCHOR0+167
+.L297:
+	.word	.LC9
+	.word	.LANCHOR0+146
+	.word	mpi_obj_unref
 	.fnend
 	.size	mpi_node_add_out_watcher, .-mpi_node_add_out_watcher
 	.align	1
@@ -1556,42 +1647,70 @@ mpi_node_add_out_filter:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r0, r1, r2, r3, r4, lr}
-	.save {r4, lr}
+	push	{r0, r1, r2, r3, r4, r5, r6, lr}
+	.save {r4, r5, r6, lr}
 	.pad #16
 	mov	r4, r0
-	cbz	r0, .L285
+	mov	r5, r1
+	cbz	r0, .L310
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L280
-.L285:
+	beq	.L301
+.L310:
 	add	sp, sp, #16
 	@ sp needed
-	pop	{r4, pc}
-.L280:
+	pop	{r4, r5, r6, pc}
+.L301:
 	str	r1, [sp, #12]
 	movs	r1, #5
 	ldr	r3, [r0]
-	ldr	r2, .L286
+	ldr	r2, .L311
 	str	r3, [sp, #8]
 	ldr	r3, [r0, #44]
 	movs	r0, #0
 	ldr	r3, [r3, #44]
 	str	r3, [sp, #4]
-	movs	r3, #186
+	movs	r3, #202
 	str	r3, [sp]
-	ldr	r3, .L286+4
+	ldr	r3, .L311+4
 	bl	vlog
-	ldr	r3, [r4, #300]
-	adds	r3, r3, #1
-	str	r3, [r4, #300]
-	b	.L285
-.L287:
+	.syntax unified
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		mrs	r6, cpsr	@ arch_local_irq_save
+	cpsid	i
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	ldr	r3, [r4, #340]
+	cmp	r5, #0
+	add	r3, r3, #1
+	str	r3, [r4, #340]
+	ble	.L303
+	ldr	r3, [r4, #336]
+	cbz	r3, .L303
+	ldr	r2, .L311+8
+	movs	r1, #4
+	mov	r0, r5
+	bl	mpi_queue_create
+	movs	r3, #0
+	str	r5, [r4, #392]
+	str	r3, [r4, #400]
+	str	r0, [r4, #352]
+.L303:
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r6	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	b	.L310
+.L312:
 	.align	2
-.L286:
-	.word	.LC12
-	.word	.LANCHOR0+192
+.L311:
+	.word	.LC10
+	.word	.LANCHOR0+171
+	.word	mpi_obj_unref
 	.fnend
 	.size	mpi_node_add_out_filter, .-mpi_node_add_out_filter
 	.align	1
@@ -1609,43 +1728,42 @@ mpi_node_del_in_watcher:
 	.save {r4, lr}
 	.pad #16
 	mov	r4, r0
-	cbz	r0, .L299
+	cbz	r0, .L324
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L290
-.L299:
+	beq	.L315
+.L324:
 	add	sp, sp, #16
 	@ sp needed
 	pop	{r4, pc}
-.L290:
-	str	r1, [sp, #12]
-	movs	r1, #5
+.L315:
 	ldr	r3, [r0]
-	ldr	r2, .L300
+	movs	r1, #5
+	ldr	r2, .L325
 	str	r3, [sp, #8]
 	ldr	r3, [r0, #44]
 	movs	r0, #0
 	ldr	r3, [r3, #44]
 	str	r3, [sp, #4]
-	movs	r3, #187
+	movs	r3, #203
 	str	r3, [sp]
-	ldr	r3, .L300+4
+	ldr	r3, .L325+4
 	bl	vlog
-	ldr	r3, [r4, #284]
-	cbz	r3, .L292
+	ldr	r3, [r4, #324]
+	cbz	r3, .L317
 	subs	r3, r3, #1
-	str	r3, [r4, #284]
-.L292:
+	str	r3, [r4, #324]
+.L317:
 	movs	r1, #0
 	mov	r0, r4
 	bl	mpi_node_cleanup_in_buffer
-	b	.L299
-.L301:
+	b	.L324
+.L326:
 	.align	2
-.L300:
-	.word	.LC13
-	.word	.LANCHOR0+216
+.L325:
+	.word	.LC11
+	.word	.LANCHOR0+195
 	.fnend
 	.size	mpi_node_del_in_watcher, .-mpi_node_del_in_watcher
 	.align	1
@@ -1663,43 +1781,42 @@ mpi_node_del_in_filter:
 	.save {r4, lr}
 	.pad #16
 	mov	r4, r0
-	cbz	r0, .L313
+	cbz	r0, .L338
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L304
-.L313:
+	beq	.L329
+.L338:
 	add	sp, sp, #16
 	@ sp needed
 	pop	{r4, pc}
-.L304:
-	str	r1, [sp, #12]
-	movs	r1, #5
+.L329:
 	ldr	r3, [r0]
-	ldr	r2, .L314
+	movs	r1, #5
+	ldr	r2, .L339
 	str	r3, [sp, #8]
 	ldr	r3, [r0, #44]
 	movs	r0, #0
 	ldr	r3, [r3, #44]
 	str	r3, [sp, #4]
-	movs	r3, #188
+	movs	r3, #204
 	str	r3, [sp]
-	ldr	r3, .L314+4
+	ldr	r3, .L339+4
 	bl	vlog
-	ldr	r3, [r4, #288]
-	cbz	r3, .L306
+	ldr	r3, [r4, #328]
+	cbz	r3, .L331
 	subs	r3, r3, #1
-	str	r3, [r4, #288]
-.L306:
+	str	r3, [r4, #328]
+.L331:
 	movs	r1, #0
 	mov	r0, r4
 	bl	mpi_node_cleanup_in_buffer
-	b	.L313
-.L315:
+	b	.L338
+.L340:
 	.align	2
-.L314:
-	.word	.LC14
-	.word	.LANCHOR0+240
+.L339:
+	.word	.LC12
+	.word	.LANCHOR0+219
 	.fnend
 	.size	mpi_node_del_in_filter, .-mpi_node_del_in_filter
 	.align	1
@@ -1717,43 +1834,42 @@ mpi_node_del_out_watcher:
 	.save {r4, lr}
 	.pad #16
 	mov	r4, r0
-	cbz	r0, .L327
+	cbz	r0, .L352
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L318
-.L327:
+	beq	.L343
+.L352:
 	add	sp, sp, #16
 	@ sp needed
 	pop	{r4, pc}
-.L318:
-	str	r1, [sp, #12]
-	movs	r1, #5
+.L343:
 	ldr	r3, [r0]
-	ldr	r2, .L328
+	movs	r1, #5
+	ldr	r2, .L353
 	str	r3, [sp, #8]
 	ldr	r3, [r0, #44]
 	movs	r0, #0
 	ldr	r3, [r3, #44]
 	str	r3, [sp, #4]
-	movs	r3, #189
+	movs	r3, #205
 	str	r3, [sp]
-	ldr	r3, .L328+4
+	ldr	r3, .L353+4
 	bl	vlog
-	ldr	r3, [r4, #296]
-	cbz	r3, .L320
+	ldr	r3, [r4, #336]
+	cbz	r3, .L345
 	subs	r3, r3, #1
-	str	r3, [r4, #296]
-.L320:
+	str	r3, [r4, #336]
+.L345:
 	movs	r1, #0
 	mov	r0, r4
 	bl	mpi_node_cleanup_out_buffer
-	b	.L327
-.L329:
+	b	.L352
+.L354:
 	.align	2
-.L328:
-	.word	.LC15
-	.word	.LANCHOR0+263
+.L353:
+	.word	.LC13
+	.word	.LANCHOR0+242
 	.fnend
 	.size	mpi_node_del_out_watcher, .-mpi_node_del_out_watcher
 	.align	1
@@ -1771,43 +1887,42 @@ mpi_node_del_out_filter:
 	.save {r4, lr}
 	.pad #16
 	mov	r4, r0
-	cbz	r0, .L341
+	cbz	r0, .L366
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L332
-.L341:
+	beq	.L357
+.L366:
 	add	sp, sp, #16
 	@ sp needed
 	pop	{r4, pc}
-.L332:
-	str	r1, [sp, #12]
-	movs	r1, #5
+.L357:
 	ldr	r3, [r0]
-	ldr	r2, .L342
+	movs	r1, #5
+	ldr	r2, .L367
 	str	r3, [sp, #8]
 	ldr	r3, [r0, #44]
 	movs	r0, #0
 	ldr	r3, [r3, #44]
 	str	r3, [sp, #4]
-	movs	r3, #190
+	movs	r3, #206
 	str	r3, [sp]
-	ldr	r3, .L342+4
+	ldr	r3, .L367+4
 	bl	vlog
-	ldr	r3, [r4, #300]
-	cbz	r3, .L334
+	ldr	r3, [r4, #340]
+	cbz	r3, .L359
 	subs	r3, r3, #1
-	str	r3, [r4, #300]
-.L334:
+	str	r3, [r4, #340]
+.L359:
 	movs	r1, #0
 	mov	r0, r4
 	bl	mpi_node_cleanup_out_buffer
-	b	.L341
-.L343:
+	b	.L366
+.L368:
 	.align	2
-.L342:
-	.word	.LC16
-	.word	.LANCHOR0+288
+.L367:
+	.word	.LC14
+	.word	.LANCHOR0+267
 	.fnend
 	.size	mpi_node_del_out_filter, .-mpi_node_del_out_filter
 	.align	1
@@ -1823,347 +1938,19 @@ mpi_node_enable_auto_streamon:
 	@ frame_needed = 0, uses_anonymous_args = 0
 	@ link register save eliminated.
 	ldr	r3, [r0, #12]
-	cbz	r1, .L345
+	cbz	r1, .L370
 	orr	r1, r3, #16384
 	lsls	r3, r3, #18
 	str	r1, [r0, #12]
-	bpl	.L344
+	bpl	.L369
 	b	mpi_node_streamon
-.L345:
+.L370:
 	bic	r3, r3, #16384
 	str	r3, [r0, #12]
-.L344:
+.L369:
 	bx	lr
 	.fnend
 	.size	mpi_node_enable_auto_streamon, .-mpi_node_enable_auto_streamon
-	.align	1
-	.global	mpi_node_get_in_buffer
-	.syntax unified
-	.thumb
-	.thumb_func
-	.fpu softvfp
-	.type	mpi_node_get_in_buffer, %function
-mpi_node_get_in_buffer:
-	.fnstart
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, r7, lr}
-	.save {r4, r5, r6, r7, lr}
-	mov	r4, r0
-	.pad #28
-	sub	sp, sp, #28
-	mov	r6, r1
-	cbz	r0, .L351
-	ldr	r3, [r0, #12]
-	and	r3, r3, #6
-	cmp	r3, #2
-	beq	.L352
-.L351:
-	movs	r5, #0
-.L350:
-	mov	r0, r5
-	add	sp, sp, #28
-	@ sp needed
-	pop	{r4, r5, r6, r7, pc}
-.L352:
-	bl	mpi_obj_ref
-	cbz	r6, .L354
-	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
-		mrs	r2, cpsr	@ arch_local_irq_save
-	cpsid	i
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	ldr	r5, [r4, #12]
-	add	r0, r4, #316
-	ldr	r3, .L369
-	ands	r5, r5, #4096
-	bne	.L355
-	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
-		msr	cpsr_c, r2	@ local_irq_restore
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	ldr	r2, [r4, #340]
-	str	r5, [r4, #316]
-	umull	r2, r3, r2, r3
-	lsrs	r1, r3, #1
-	bl	wait_for_completion_interruptible_timeout
-.L356:
-	mov	r0, r4
-	bl	mpi_obj_unref
-	b	.L350
-.L355:
-	movs	r1, #0
-	str	r1, [r4, #316]
-	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
-		msr	cpsr_c, r2	@ local_irq_restore
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	ldr	r2, [r4, #340]
-	umull	r2, r3, r2, r3
-	lsrs	r1, r3, #1
-	bl	wait_for_completion_interruptible_timeout
-.L354:
-	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
-		mrs	r7, cpsr	@ arch_local_irq_save
-	cpsid	i
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	ldr	r5, [r4, #308]
-	cbz	r5, .L357
-	mov	r0, r5
-	bl	mpi_obj_ref
-	ldr	r5, [r4, #308]
-	ldr	r3, [r4, #44]
-	ldr	r0, .L369+4
-	ldr	r1, .L369+8
-	ldr	r3, [r3, #44]
-	cmp	r6, #0
-	it	eq
-	moveq	r1, r0
-	ldr	r2, [r4]
-	ldr	r0, [r5]
-	strd	r3, r2, [sp, #4]
-	movw	r3, #565
-	strd	r1, r0, [sp, #12]
-	movs	r1, #5
-	str	r3, [sp]
-	movs	r0, #0
-	ldr	r3, .L369+12
-	ldr	r2, .L369+16
-	bl	vlog
-	ldr	r6, [r4, #284]
-	cbnz	r6, .L357
-	ldr	r3, [r4, #288]
-	cmp	r3, #1
-	bne	.L357
-	ldr	r0, [r4, #308]
-	bl	mpi_obj_unref
-	str	r6, [r4, #308]
-.L357:
-	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
-		msr	cpsr_c, r7	@ local_irq_restore
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	mov	r1, r5
-	mov	r0, r4
-	bl	add_user_to_buf
-	b	.L356
-.L370:
-	.align	2
-.L369:
-	.word	-1431655765
-	.word	.LC18
-	.word	.LC17
-	.word	.LANCHOR0+312
-	.word	.LC19
-	.fnend
-	.size	mpi_node_get_in_buffer, .-mpi_node_get_in_buffer
-	.align	1
-	.global	mpi_node_pick_in_buffer
-	.syntax unified
-	.thumb
-	.thumb_func
-	.fpu softvfp
-	.type	mpi_node_pick_in_buffer, %function
-mpi_node_pick_in_buffer:
-	.fnstart
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, lr}
-	.save {r4, r5, r6, lr}
-	mov	r4, r0
-	ldr	r5, .L372
-	mov	r1, r5
-	bl	mpi_node_add_in_watcher
-	movs	r1, #1
-	mov	r0, r4
-	bl	mpi_node_get_in_buffer
-	mov	r1, r5
-	mov	r6, r0
-	mov	r0, r4
-	bl	mpi_node_del_in_watcher
-	mov	r0, r6
-	pop	{r4, r5, r6, pc}
-.L373:
-	.align	2
-.L372:
-	.word	.LC20
-	.fnend
-	.size	mpi_node_pick_in_buffer, .-mpi_node_pick_in_buffer
-	.align	1
-	.global	mpi_node_get_out_buffer
-	.syntax unified
-	.thumb
-	.thumb_func
-	.fpu softvfp
-	.type	mpi_node_get_out_buffer, %function
-mpi_node_get_out_buffer:
-	.fnstart
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, r7, lr}
-	.save {r4, r5, r6, r7, lr}
-	mov	r4, r0
-	.pad #28
-	sub	sp, sp, #28
-	mov	r6, r1
-	cbz	r0, .L375
-	ldr	r3, [r0, #12]
-	and	r3, r3, #6
-	cmp	r3, #2
-	beq	.L376
-.L375:
-	movs	r5, #0
-.L374:
-	mov	r0, r5
-	add	sp, sp, #28
-	@ sp needed
-	pop	{r4, r5, r6, r7, pc}
-.L376:
-	bl	mpi_obj_ref
-	cbz	r6, .L378
-	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
-		mrs	r2, cpsr	@ arch_local_irq_save
-	cpsid	i
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	ldr	r5, [r4, #12]
-	add	r0, r4, #328
-	ldr	r3, .L393
-	ands	r5, r5, #4096
-	bne	.L379
-	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
-		msr	cpsr_c, r2	@ local_irq_restore
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	ldr	r2, [r4, #344]
-	str	r5, [r4, #328]
-	umull	r2, r3, r2, r3
-	lsrs	r1, r3, #1
-	bl	wait_for_completion_interruptible_timeout
-.L380:
-	mov	r0, r4
-	bl	mpi_obj_unref
-	b	.L374
-.L379:
-	movs	r1, #0
-	str	r1, [r4, #328]
-	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
-		msr	cpsr_c, r2	@ local_irq_restore
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	ldr	r2, [r4, #344]
-	umull	r2, r3, r2, r3
-	lsrs	r1, r3, #1
-	bl	wait_for_completion_interruptible_timeout
-.L378:
-	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
-		mrs	r7, cpsr	@ arch_local_irq_save
-	cpsid	i
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	ldr	r5, [r4, #312]
-	cbz	r5, .L381
-	mov	r0, r5
-	bl	mpi_obj_ref
-	ldr	r5, [r4, #312]
-	ldr	r3, [r4, #44]
-	ldr	r0, .L393+4
-	ldr	r1, .L393+8
-	ldr	r3, [r3, #44]
-	cmp	r6, #0
-	it	eq
-	moveq	r1, r0
-	ldr	r2, [r4]
-	ldr	r0, [r5]
-	strd	r3, r2, [sp, #4]
-	movw	r3, #617
-	strd	r1, r0, [sp, #12]
-	movs	r1, #5
-	str	r3, [sp]
-	movs	r0, #0
-	ldr	r3, .L393+12
-	ldr	r2, .L393+16
-	bl	vlog
-	ldr	r6, [r4, #296]
-	cbnz	r6, .L381
-	ldr	r3, [r4, #300]
-	cmp	r3, #1
-	bne	.L381
-	ldr	r0, [r4, #312]
-	bl	mpi_obj_unref
-	str	r6, [r4, #312]
-.L381:
-	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
-		msr	cpsr_c, r7	@ local_irq_restore
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	mov	r1, r5
-	mov	r0, r4
-	bl	add_user_to_buf
-	b	.L380
-.L394:
-	.align	2
-.L393:
-	.word	-1431655765
-	.word	.LC18
-	.word	.LC17
-	.word	.LANCHOR0+335
-	.word	.LC21
-	.fnend
-	.size	mpi_node_get_out_buffer, .-mpi_node_get_out_buffer
-	.align	1
-	.global	mpi_node_pick_out_buffer
-	.syntax unified
-	.thumb
-	.thumb_func
-	.fpu softvfp
-	.type	mpi_node_pick_out_buffer, %function
-mpi_node_pick_out_buffer:
-	.fnstart
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, lr}
-	.save {r4, r5, r6, lr}
-	mov	r4, r0
-	ldr	r5, .L396
-	mov	r1, r5
-	bl	mpi_node_add_out_watcher
-	movs	r1, #1
-	mov	r0, r4
-	bl	mpi_node_get_out_buffer
-	mov	r1, r5
-	mov	r6, r0
-	mov	r0, r4
-	bl	mpi_node_del_out_watcher
-	mov	r0, r6
-	pop	{r4, r5, r6, pc}
-.L397:
-	.align	2
-.L396:
-	.word	.LC20
-	.fnend
-	.size	mpi_node_pick_out_buffer, .-mpi_node_pick_out_buffer
 	.align	1
 	.global	mpi_dev_request_job
 	.syntax unified
@@ -2181,40 +1968,40 @@ mpi_dev_request_job:
 	mov	r4, r0
 	ldr	r3, [r0, #44]
 	movs	r1, #5
-	ldr	r2, .L409
+	ldr	r2, .L386
 	movs	r0, #0
 	str	r3, [sp, #4]
-	movw	r3, #1002
+	movw	r3, #1147
 	str	r3, [sp]
-	ldr	r3, .L409+4
+	ldr	r3, .L386+4
 	bl	vlog
-	cbz	r4, .L399
+	cbz	r4, .L376
 	ldr	r3, [r4, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L400
-.L399:
+	beq	.L377
+.L376:
 	movs	r5, #0
-.L398:
+.L375:
 	mov	r0, r5
 	add	sp, sp, #12
 	@ sp needed
 	pop	{r4, r5, pc}
-.L400:
+.L377:
 	ldr	r0, [r4, #84]
 	bl	mpi_job_pool_request_job
 	mov	r5, r0
-	cbz	r0, .L402
+	cbz	r0, .L379
 	mov	r0, r4
 	bl	mpi_obj_ref
 	str	r4, [r5, #44]
-.L402:
-	b	.L398
-.L410:
+.L379:
+	b	.L375
+.L387:
 	.align	2
-.L409:
-	.word	.LC22
-	.word	.LANCHOR0+359
+.L386:
+	.word	.LC15
+	.word	.LANCHOR0+291
 	.fnend
 	.size	mpi_dev_request_job, .-mpi_dev_request_job
 	.align	1
@@ -2235,257 +2022,45 @@ mpi_dev_request_job_for_node:
 	ldr	r3, [r1]
 	mov	r5, r0
 	mov	r4, r1
-	ldr	r2, .L422
+	ldr	r2, .L399
 	movs	r1, #5
 	str	r3, [sp, #8]
 	ldr	r3, [r0, #44]
 	movs	r0, #0
 	str	r3, [sp, #4]
-	movw	r3, #1028
+	movw	r3, #1173
 	str	r3, [sp]
-	ldr	r3, .L422+4
+	ldr	r3, .L399+4
 	bl	vlog
-	cbz	r4, .L412
+	cbz	r4, .L389
 	ldr	r3, [r4, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L413
-.L412:
+	beq	.L390
+.L389:
 	movs	r5, #0
-.L411:
+.L388:
 	mov	r0, r5
 	add	sp, sp, #20
 	@ sp needed
 	pop	{r4, r5, pc}
-.L413:
+.L390:
 	mov	r0, r5
 	bl	mpi_dev_request_job
 	mov	r5, r0
-	cbz	r0, .L415
+	cbz	r0, .L392
 	mov	r0, r4
 	bl	mpi_obj_ref
 	str	r4, [r5, #48]
-.L415:
-	b	.L411
-.L423:
+.L392:
+	b	.L388
+.L400:
 	.align	2
-.L422:
-	.word	.LC23
-	.word	.LANCHOR0+379
+.L399:
+	.word	.LC16
+	.word	.LANCHOR0+311
 	.fnend
 	.size	mpi_dev_request_job_for_node, .-mpi_dev_request_job_for_node
-	.align	1
-	.syntax unified
-	.thumb
-	.thumb_func
-	.fpu softvfp
-	.type	atomic_add.constprop.23, %function
-atomic_add.constprop.23:
-	.fnstart
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	@ link register save eliminated.
-	pld	[r0]
-	.syntax unified
-@ 223 "./arch/arm/include/asm/atomic.h" 1
-	@ atomic_add
-1:	ldrex	r3, [r0]
-	add	r3, r3, #1
-	strex	r2, r3, [r0]
-	teq	r2, #0
-	bne	1b
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	bx	lr
-	.fnend
-	.size	atomic_add.constprop.23, .-atomic_add.constprop.23
-	.align	1
-	.global	mpi_node_destroy
-	.syntax unified
-	.thumb
-	.thumb_func
-	.fpu softvfp
-	.type	mpi_node_destroy, %function
-mpi_node_destroy:
-	.fnstart
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, r7, lr}
-	.save {r4, r5, r6, r7, lr}
-	.pad #20
-	sub	sp, sp, #20
-	ldr	r3, [r0]
-	mov	r4, r0
-	ldr	r2, .L455
-	movs	r1, #5
-	str	r3, [sp, #8]
-	ldr	r3, [r0, #44]
-	movs	r0, #0
-	ldr	r3, [r3, #44]
-	str	r3, [sp, #4]
-	movw	r3, #871
-	str	r3, [sp]
-	ldr	r3, .L455+4
-	bl	vlog
-	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
-		mrs	r1, cpsr	@ arch_local_irq_save
-	cpsid	i
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	ldrd	r2, r3, [r4, #48]
-	str	r3, [r2, #4]
-	str	r2, [r3]
-	mov	r2, #256
-	mov	r3, #290
-	strd	r2, r3, [r4, #48]
-	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
-		msr	cpsr_c, r1	@ local_irq_restore
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	ldr	r3, [r4, #12]
-	movs	r1, #1
-	mov	r0, r4
-	orr	r3, r3, #1024
-	str	r3, [r4, #12]
-	bl	mpi_node_flush
-	cbz	r4, .L426
-	mov	r0, r4
-	bl	mpi_obj_ref
-.L426:
-	ldr	r3, [r4, #12]
-	bic	r3, r3, #2
-	str	r3, [r4, #12]
-	bl	synchronize_rcu
-	ldr	r0, [r4, #60]
-	cbz	r0, .L427
-	mov	r1, r4
-	bl	mpi_buf_pool_del_user
-.L427:
-	add	r6, r4, #252
-.L428:
-	mov	r0, r6
-	bl	mpi_list_pop_obj_rcu
-	mov	r5, r0
-	cmp	r0, #0
-	bne	.L429
-	add	r6, r4, #260
-.L430:
-	mov	r0, r6
-	bl	mpi_list_pop_obj_rcu
-	mov	r5, r0
-	cmp	r0, #0
-	bne	.L431
-	ldr	r0, [r4, #268]
-	cbz	r0, .L432
-	mov	r1, r5
-	bl	mpi_queue_destroy
-.L432:
-	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
-		mrs	r3, cpsr	@ arch_local_irq_save
-	cpsid	i
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	ldr	r0, [r4, #248]
-	cbz	r0, .L433
-	movs	r2, #0
-	str	r2, [r4, #248]
-.L433:
-	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
-		msr	cpsr_c, r3	@ local_irq_restore
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	cbz	r0, .L434
-	ldr	r3, [r4, #44]
-	ldr	r3, [r3, #76]
-	cbz	r3, .L434
-	blx	r3
-.L434:
-	ldr	r5, [r4, #24]
-	adds	r6, r5, #4
-	add	r7, r5, #8
-	mov	r0, r5
-	bl	atomic_add.constprop.23
-	mov	r0, r6
-	bl	atomic_add.constprop.23
-	ldr	r3, [r4, #16]
-	cbnz	r3, .L435
-	mov	r0, r7
-	bl	complete_all
-.L435:
-	mov	r0, r4
-	pld	[r6]
-	bl	mpi_obj_unref
-	mov	r0, r7
-	bl	wait_for_completion
-	.syntax unified
-@ 224 "./arch/arm/include/asm/atomic.h" 1
-	@ atomic_sub
-1:	ldrex	r3, [r6]
-	sub	r3, r3, #1
-	strex	r2, r3, [r6]
-	teq	r2, #0
-	bne	1b
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	pld	[r5]
-	.syntax unified
-@ 224 "./arch/arm/include/asm/atomic.h" 1
-	@ atomic_sub_return
-1:	ldrex	r3, [r5]
-	sub	r3, r3, #1
-	strex	r2, r3, [r5]
-	teq	r2, #0
-	bne	1b
-@ 0 "" 2
-	.thumb
-	.syntax unified
-	cbnz	r3, .L436
-	mov	r0, r5
-	bl	kfree
-.L436:
-	mov	r0, r4
-	movs	r1, #1
-	bl	mpi_node_cleanup_in_buffer
-	movs	r1, #1
-	mov	r0, r4
-	bl	mpi_node_cleanup_out_buffer
-	ldr	r0, [r4, #80]
-	bl	kfree
-	mov	r0, r4
-	add	sp, sp, #20
-	@ sp needed
-	pop	{r4, r5, r6, r7, lr}
-	b	mpi_obj_unregister
-.L429:
-	mov	r1, r4
-	bl	mpi_node_unbind
-	mov	r0, r5
-	bl	mpi_obj_unref
-	b	.L428
-.L431:
-	mov	r0, r4
-	mov	r1, r5
-	bl	mpi_node_unbind
-	mov	r0, r5
-	bl	mpi_obj_unref
-	b	.L430
-.L456:
-	.align	2
-.L455:
-	.word	.LC24
-	.word	.LANCHOR0+408
-	.fnend
-	.size	mpi_node_destroy, .-mpi_node_destroy
 	.align	1
 	.global	mpi_dev_create_node_with_params
 	.syntax unified
@@ -2505,73 +2080,69 @@ mpi_dev_create_node_with_params:
 	mov	r9, r1
 	mov	r8, r2
 	mov	r7, r3
-	cbz	r0, .L458
+	cbz	r0, .L402
 	ldr	r6, [r0, #12]
 	and	r6, r6, #6
 	cmp	r6, #2
-	beq	.L459
-.L458:
+	beq	.L403
+.L402:
 	movs	r4, #0
-.L457:
+.L401:
 	mov	r0, r4
 	add	sp, sp, #20
 	@ sp needed
 	pop	{r4, r5, r6, r7, r8, r9, pc}
-.L459:
+.L403:
 	bl	mpi_obj_ref
-	ldr	r3, .L480
+	ldr	r3, .L424
 	mov	r1, #3520
 	ldr	r0, [r3, #36]
 	bl	kmem_cache_alloc
 	mov	r4, r0
-	cmp	r0, #0
-	beq	.L461
+	cbz	r0, .L405
 	mov	r3, #-1
 	str	r3, [r0, #76]
 	movs	r3, #0
-	strd	r3, r3, [r0, #96]
-	strd	r3, r3, [r0, #104]
-	strd	r3, r3, [r0, #152]
-	strd	r3, r3, [r0, #160]
-	ldr	r3, .L480+4
+	strd	r3, r3, [r0, #124]
+	strd	r3, r3, [r0, #132]
+	strd	r3, r3, [r0, #184]
+	strd	r3, r3, [r0, #192]
+	ldr	r3, .L424+4
 	str	r5, [r0, #44]
 	str	r9, [r0, #56]
 	ldr	r3, [r3]
-	str	r3, [r0, #168]
-	str	r3, [r0, #112]
-	ldr	r3, .L480+8
-	strd	r3, r3, [r0, #340]
-	add	r3, r0, #252
-	str	r3, [r0, #252]
-	str	r3, [r0, #256]
-	add	r3, r0, #260
-	str	r3, [r0, #260]
-	str	r3, [r0, #264]
-	add	r3, r0, #84
-	str	r3, [r0, #84]
-	str	r3, [r0, #88]
+	str	r3, [r0, #200]
+	str	r3, [r0, #140]
+	ldr	r3, .L424+8
+	strd	r3, r3, [r0, #380]
+	add	r3, r0, #292
+	str	r3, [r0, #292]
+	str	r3, [r0, #296]
+	add	r3, r0, #300
+	str	r3, [r0, #300]
+	str	r3, [r0, #304]
 	cmp	r8, #0
-	beq	.L462
+	beq	.L406
 	mov	r1, r6
-	ldr	r2, .L480+12
+	ldr	r2, .L424+12
 	mov	r0, r8
 	bl	mpi_queue_create
 	mov	r6, r0
-	str	r0, [r4, #268]
-	cbnz	r0, .L462
+	str	r0, [r4, #308]
+	cbnz	r0, .L406
 	mov	r0, r4
 	mov	r4, r6
 	bl	kfree
-.L461:
+.L405:
 	mov	r0, r5
 	bl	mpi_obj_unref
-	b	.L457
-.L462:
-	add	r0, r4, #272
+	b	.L401
+.L406:
+	add	r0, r4, #312
 	bl	__init_completion
-	add	r0, r4, #316
+	add	r0, r4, #356
 	bl	__init_completion
-	add	r0, r4, #328
+	add	r0, r4, #368
 	bl	__init_completion
 	movs	r3, #0
 	movs	r2, #96
@@ -2579,7 +2150,7 @@ mpi_dev_create_node_with_params:
 	mov	r0, r4
 	bl	mpi_obj_register
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r1, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
@@ -2592,80 +2163,345 @@ mpi_dev_create_node_with_params:
 	strd	r0, r2, [r4, #48]
 	str	r3, [r2]
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r1	@ local_irq_restore
 @ 0 "" 2
 	.thumb
 	.syntax unified
-	cbz	r7, .L463
+	ldr	r3, [r5, #68]
+	cbz	r3, .L407
+	mov	r0, r4
+	blx	r3
+	str	r0, [r4, #288]
+.L407:
+	cbz	r7, .L408
 	mov	r1, r7
 	mov	r0, r4
 	bl	mpi_node_set_params
-.L463:
-	ldr	r3, [r5, #68]
-	cbz	r3, .L464
-	mov	r0, r4
-	blx	r3
-	str	r0, [r4, #248]
-.L464:
+.L408:
 	ldr	r3, [r4]
 	movs	r1, #5
-	ldr	r2, .L480+16
+	ldr	r2, .L424+16
 	movs	r0, #0
 	str	r3, [sp, #8]
 	ldr	r3, [r5, #44]
 	str	r3, [sp, #4]
-	mov	r3, #984
+	movw	r3, #1129
 	str	r3, [sp]
-	ldr	r3, .L480+20
+	ldr	r3, .L424+20
 	bl	vlog
-	b	.L461
-.L481:
+	b	.L405
+.L425:
 	.align	2
-.L480:
+.L424:
 	.word	kmalloc_caches
 	.word	jiffies
 	.word	500000
 	.word	_mpi_job_discard
-	.word	.LC25
-	.word	.LANCHOR0+425
+	.word	.LC17
+	.word	.LANCHOR0+340
 	.fnend
 	.size	mpi_dev_create_node_with_params, .-mpi_dev_create_node_with_params
 	.align	1
-	.global	mpi_node_release_buffer
 	.syntax unified
 	.thumb
 	.thumb_func
 	.fpu softvfp
-	.type	mpi_node_release_buffer, %function
-mpi_node_release_buffer:
+	.type	atomic_add.constprop.26, %function
+atomic_add.constprop.26:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r3, lr}
-	.save {r3, lr}
-	cbz	r0, .L493
-	ldr	r3, [r0, #12]
-	and	r3, r3, #6
-	cmp	r3, #2
-	beq	.L484
-.L493:
-	pop	{r3, pc}
-.L484:
-	cbz	r1, .L486
-	ldr	r3, [r0, #76]
-	cmp	r3, #0
-	itttt	ge
-	addge	r3, r3, #16
-	movge	r2, #0
-	addge	r3, r1, r3, lsl #2
-	strge	r2, [r3, #4]
-.L486:
-	mov	r0, r1
-	bl	mpi_obj_unref
-	b	.L493
+	@ link register save eliminated.
+	pld	[r0]
+	.syntax unified
+@ 223 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
+	@ atomic_add
+1:	ldrex	r3, [r0]
+	add	r3, r3, #1
+	strex	r2, r3, [r0]
+	teq	r2, #0
+	bne	1b
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	bx	lr
 	.fnend
-	.size	mpi_node_release_buffer, .-mpi_node_release_buffer
+	.size	atomic_add.constprop.26, .-atomic_add.constprop.26
+	.align	1
+	.global	mpi_node_destroy
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpi_node_destroy, %function
+mpi_node_destroy:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, lr}
+	.save {r4, r5, r6, r7, lr}
+	.pad #20
+	sub	sp, sp, #20
+	ldr	r3, [r0]
+	mov	r4, r0
+	ldr	r2, .L473
+	movs	r1, #5
+	str	r3, [sp, #8]
+	ldr	r3, [r0, #44]
+	movs	r0, #0
+	ldr	r3, [r3, #44]
+	str	r3, [sp, #4]
+	movw	r3, #1005
+	str	r3, [sp]
+	ldr	r3, .L473+4
+	bl	vlog
+	.syntax unified
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		mrs	r1, cpsr	@ arch_local_irq_save
+	cpsid	i
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	ldrd	r2, r3, [r4, #48]
+	str	r3, [r2, #4]
+	str	r2, [r3]
+	mov	r2, #256
+	mov	r3, #290
+	strd	r2, r3, [r4, #48]
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r1	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	ldr	r3, [r4, #12]
+	movs	r1, #1
+	mov	r0, r4
+	orr	r3, r3, #1024
+	str	r3, [r4, #12]
+	bl	mpi_node_flush
+	cbz	r4, .L428
+	mov	r0, r4
+	bl	mpi_obj_ref
+.L428:
+	ldr	r3, [r4, #12]
+	bic	r3, r3, #2
+	str	r3, [r4, #12]
+	bl	synchronize_rcu
+	ldr	r0, [r4, #60]
+	cbz	r0, .L429
+	mov	r1, r4
+	bl	mpi_buf_pool_del_user
+.L429:
+	add	r6, r4, #292
+.L430:
+	mov	r0, r6
+	bl	mpi_list_pop_obj_rcu
+	mov	r5, r0
+	cmp	r0, #0
+	bne	.L431
+	add	r6, r4, #300
+.L432:
+	mov	r0, r6
+	bl	mpi_list_pop_obj_rcu
+	mov	r5, r0
+	cmp	r0, #0
+	bne	.L433
+	ldr	r0, [r4, #308]
+	cbz	r0, .L434
+	mov	r1, r5
+	bl	mpi_queue_destroy
+.L434:
+	.syntax unified
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		mrs	r3, cpsr	@ arch_local_irq_save
+	cpsid	i
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	ldr	r0, [r4, #288]
+	cbz	r0, .L435
+	movs	r2, #0
+	str	r2, [r4, #288]
+.L435:
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r3	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	cbz	r0, .L436
+	ldr	r3, [r4, #44]
+	ldr	r3, [r3, #76]
+	cbz	r3, .L436
+	blx	r3
+.L436:
+	ldr	r3, [r4, #120]
+	cbz	r3, .L437
+	mov	r0, r4
+	blx	r3
+.L437:
+	ldr	r1, [r4, #76]
+	cmp	r1, #15
+	bhi	.L438
+	.syntax unified
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		mrs	r5, cpsr	@ arch_local_irq_save
+	cpsid	i
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	ldr	r2, .L473+8
+	mov	r0, #-1
+	ldr	r3, [r2]
+	subs	r3, r3, #36
+.L439:
+	add	r1, r3, #36
+	cmp	r1, r2
+	bne	.L441
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r5	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+.L442:
+	ldr	r5, [r4, #24]
+	adds	r6, r5, #4
+	add	r7, r5, #8
+	mov	r0, r5
+	bl	atomic_add.constprop.26
+	mov	r0, r6
+	bl	atomic_add.constprop.26
+	ldr	r3, [r4, #16]
+	cbnz	r3, .L443
+	mov	r0, r7
+	bl	complete_all
+.L443:
+	mov	r0, r4
+	pld	[r6]
+	bl	mpi_obj_unref
+	mov	r0, r7
+	bl	wait_for_completion
+	.syntax unified
+@ 224 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
+	@ atomic_sub
+1:	ldrex	r3, [r6]
+	sub	r3, r3, #1
+	strex	r2, r3, [r6]
+	teq	r2, #0
+	bne	1b
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	pld	[r5]
+	.syntax unified
+@ 224 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
+	@ atomic_sub_return
+1:	ldrex	r3, [r5]
+	sub	r3, r3, #1
+	strex	r2, r3, [r5]
+	teq	r2, #0
+	bne	1b
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	cbnz	r3, .L444
+	mov	r0, r5
+	bl	kfree
+.L444:
+	movs	r1, #1
+	mov	r0, r4
+	bl	mpi_node_cleanup_in_buffer
+	mov	r0, r4
+	movs	r1, #1
+	bl	mpi_node_cleanup_out_buffer
+	ldr	r0, [r4, #80]
+	cbz	r0, .L445
+	bl	kfree
+.L445:
+	mov	r0, r4
+	add	sp, sp, #20
+	@ sp needed
+	pop	{r4, r5, r6, r7, lr}
+	b	mpi_obj_unregister
+.L431:
+	mov	r1, r4
+	bl	mpi_node_unbind
+	mov	r0, r5
+	bl	mpi_obj_unref
+	b	.L430
+.L433:
+	mov	r0, r4
+	mov	r1, r5
+	bl	mpi_node_unbind
+	mov	r0, r5
+	bl	mpi_obj_unref
+	b	.L432
+.L441:
+	ldr	r1, [r4, #76]
+	add	r1, r3, r1, lsl #2
+	ldr	r6, [r1, #452]
+	cbnz	r6, .L440
+	str	r0, [r1, #452]
+	ldr	r1, [r4, #76]
+	add	r1, r3, r1, lsl #2
+	str	r0, [r1, #516]
+.L440:
+	ldr	r3, [r3, #36]
+	subs	r3, r3, #36
+	b	.L439
+.L438:
+	adds	r3, r1, #1
+	beq	.L442
+	ldr	r0, .L473+12
+	bl	printk
+	b	.L442
+.L474:
+	.align	2
+.L473:
+	.word	.LC18
+	.word	.LANCHOR0+372
+	.word	mpi_buf_list
+	.word	.LC19
+	.fnend
+	.size	mpi_node_destroy, .-mpi_node_destroy
+	.align	1
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	count_frame_rate.constprop.27, %function
+count_frame_rate.constprop.27:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	ldr	r1, .L477
+	ldr	r2, [r0, #188]
+	ldr	r3, [r0, #184]
+	push	{r4, lr}
+	.save {r4, lr}
+	adds	r3, r3, #1
+	str	r3, [r0, #184]
+	adds	r3, r2, #1
+	str	r3, [r0, #188]
+	ldr	r3, [r1]
+	ldr	r4, [r0, #200]
+	rsb	r3, r3, #100
+	cmn	r3, r4
+	itttt	mi
+	ldrmi	r3, [r1]
+	strdmi	r2, r3, [r0, #196]
+	movmi	r3, #0
+	strmi	r3, [r0, #188]
+	pop	{r4, pc}
+.L478:
+	.align	2
+.L477:
+	.word	jiffies
+	.fnend
+	.size	count_frame_rate.constprop.27, .-count_frame_rate.constprop.27
 	.align	1
 	.global	mpi_dev_unregister
 	.syntax unified
@@ -2683,17 +2519,17 @@ mpi_dev_unregister:
 	mov	r5, r0
 	ldr	r3, [r0, #44]
 	movs	r1, #5
-	ldr	r2, .L503
+	ldr	r2, .L488
 	movs	r0, #0
 	str	r3, [sp, #4]
-	movw	r3, #1119
+	mov	r3, #1264
 	str	r3, [sp]
-	ldr	r3, .L503+4
+	ldr	r3, .L488+4
 	bl	vlog
-	cbz	r5, .L495
+	cbz	r5, .L480
 	mov	r0, r5
 	bl	mpi_obj_ref
-.L495:
+.L480:
 	ldr	r3, [r5, #12]
 	mov	r6, r5
 	bic	r3, r3, #2
@@ -2702,10 +2538,10 @@ mpi_dev_unregister:
 	ldr	r0, [r6, #88]!
 	ldr	r4, [r0], #-48
 	subs	r4, r4, #48
-.L496:
+.L481:
 	add	r3, r0, #48
 	cmp	r3, r6
-	bne	.L497
+	bne	.L482
 	ldr	r0, [r5, #84]
 	bl	mpi_job_pool_destroy
 	ldr	r4, [r5, #24]
@@ -2715,21 +2551,21 @@ mpi_dev_unregister:
 	orr	r3, r3, #4
 	mov	r0, r4
 	str	r3, [r5, #12]
-	bl	atomic_add.constprop.23
+	bl	atomic_add.constprop.26
 	mov	r0, r6
-	bl	atomic_add.constprop.23
+	bl	atomic_add.constprop.26
 	ldr	r3, [r5, #16]
-	cbnz	r3, .L498
+	cbnz	r3, .L483
 	mov	r0, r7
 	bl	complete_all
-.L498:
+.L483:
 	mov	r0, r5
 	pld	[r6]
 	bl	mpi_obj_unref
 	mov	r0, r7
 	bl	wait_for_completion
 	.syntax unified
-@ 224 "./arch/arm/include/asm/atomic.h" 1
+@ 224 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_sub
 1:	ldrex	r3, [r6]
 	sub	r3, r3, #1
@@ -2741,7 +2577,7 @@ mpi_dev_unregister:
 	.syntax unified
 	pld	[r4]
 	.syntax unified
-@ 224 "./arch/arm/include/asm/atomic.h" 1
+@ 224 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_sub_return
 1:	ldrex	r3, [r4]
 	sub	r3, r3, #1
@@ -2751,10 +2587,10 @@ mpi_dev_unregister:
 @ 0 "" 2
 	.thumb
 	.syntax unified
-	cbnz	r3, .L499
+	cbnz	r3, .L484
 	mov	r0, r4
 	bl	kfree
-.L499:
+.L484:
 	ldr	r0, [r5, #44]
 	bl	kfree
 	mov	r0, r5
@@ -2763,19 +2599,83 @@ mpi_dev_unregister:
 	add	sp, sp, #12
 	@ sp needed
 	pop	{r4, r5, r6, r7, pc}
-.L497:
+.L482:
 	bl	mpi_node_destroy
 	ldr	r3, [r4, #48]
 	mov	r0, r4
 	sub	r4, r3, #48
-	b	.L496
-.L504:
+	b	.L481
+.L489:
 	.align	2
-.L503:
-	.word	.LC26
-	.word	.LANCHOR0+457
+.L488:
+	.word	.LC20
+	.word	.LANCHOR0+389
 	.fnend
 	.size	mpi_dev_unregister, .-mpi_dev_unregister
+	.align	1
+	.global	add_user_to_buf
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	add_user_to_buf, %function
+add_user_to_buf:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, lr}
+	.save {r4, r5, lr}
+	cbz	r1, .L490
+	ldr	r3, [r0, #76]
+	adds	r3, r3, #1
+	bne	.L493
+	.syntax unified
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		mrs	r4, cpsr	@ arch_local_irq_save
+	cpsid	i
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	movs	r3, #0
+.L504:
+	str	r3, [r0, #76]
+	ldr	r3, [r0, #76]
+	cmp	r3, #15
+	ble	.L496
+.L495:
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r4	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+.L493:
+	ldr	r3, [r0, #76]
+	cmp	r3, #15
+	itt	gt
+	mvngt	r3, #1
+	strgt	r3, [r0, #76]
+	ldr	r3, [r0, #76]
+	cmp	r3, #0
+	blt	.L490
+	cmp	r2, #0
+	ite	ne
+	movne	r2, #16
+	moveq	r2, #0
+	add	r3, r3, r2
+	add	r1, r1, r3, lsl #2
+	str	r0, [r1, #452]
+.L490:
+	pop	{r4, r5, pc}
+.L496:
+	add	r5, r1, r3, lsl #2
+	ldr	r5, [r5, #452]
+	adds	r5, r5, #1
+	beq	.L495
+	adds	r3, r3, #1
+	b	.L504
+	.fnend
+	.size	add_user_to_buf, .-add_user_to_buf
 	.align	1
 	.global	mpi_node_buffer_in
 	.syntax unified
@@ -2785,176 +2685,744 @@ mpi_dev_unregister:
 	.type	mpi_node_buffer_in, %function
 mpi_node_buffer_in:
 	.fnstart
-	@ args = 0, pretend = 0, frame = 32
+	@ args = 0, pretend = 0, frame = 40
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, r7, lr}
-	.save {r4, r5, r6, r7, lr}
+	push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+	.save {r4, r5, r6, r7, r8, r9, r10, fp, lr}
 	mov	r4, r0
-	.pad #60
-	sub	sp, sp, #60
-	mov	r5, r1
-	mov	r6, r2
+	.pad #68
+	sub	sp, sp, #68
+	mov	r6, r1
+	mov	r8, r2
 	cbz	r0, .L506
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
 	beq	.L507
 .L506:
+	movs	r5, #32
 .L505:
-	add	sp, sp, #60
+	mov	r0, r5
+	add	sp, sp, #68
 	@ sp needed
-	pop	{r4, r5, r6, r7, pc}
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
 .L507:
-	adds	r0, r0, #208
+	adds	r0, r0, #248
 	bl	ktime_get_ts64
 	mov	r0, r4
 	bl	mpi_obj_ref
-	ldr	r3, [r4, #12]
-	lsls	r3, r3, #19
-	bpl	.L510
+	ldr	r5, [r4, #12]
+	ands	r5, r5, #4096
+	beq	.L509
 	ldr	r3, [r4, #44]
-	ldr	r0, [r5]
+	ldr	r0, [r6]
 	ldr	r1, [r4]
 	ldr	r2, [r3, #44]
-	ldr	r7, .L548
-	ldr	r3, .L548+4
+	ldr	r5, .L552
+	ldr	r3, .L552+4
 	strd	r2, r1, [sp, #4]
 	movs	r1, #5
-	cmp	r6, #0
+	cmp	r8, #0
 	it	eq
-	moveq	r3, r7
-	ldr	r2, .L548+8
+	moveq	r3, r5
+	ldr	r2, .L552+8
 	strd	r0, r3, [sp, #12]
-	mov	r3, #454
+	movw	r3, #527
 	movs	r0, #0
 	str	r3, [sp]
-	ldr	r3, .L548+12
+	ldr	r3, .L552+12
 	bl	vlog
-	cmp	r6, #0
-	bne	.L512
-	ldr	r3, [r4, #284]
-	cbnz	r3, .L513
-	ldr	r3, [r4, #288]
+	ldr	r1, [r4, #144]
+	cmp	r1, #0
+	beq	.L529
+	ldr	r3, [r4, #148]
 	cmp	r3, #0
-	beq	.L512
+	ble	.L512
+	subs	r3, r3, #1
+	str	r3, [r4, #148]
 .L513:
+	movs	r1, #0
+	mov	r0, r4
+	bl	count_frame_rate.part.1
+	movs	r5, #0
+	b	.L509
+.L512:
+	ldr	r0, [r4, #124]
+	bl	__aeabi_idivmod
+	add	r1, r1, r4
+	ldrb	r7, [r1, #152]	@ zero_extendqisi2
+	cmp	r7, #0
+	beq	.L513
+.L511:
+	ldr	r9, .L552+12
+	movs	r5, #0
+	ldr	r10, .L552+24
+	add	r3, r4, #356
+	str	r3, [sp, #28]
+.L514:
+	adds	r7, r7, #-1
+	bcc	.L509
+	cmp	r8, #0
+	bne	.L515
+	ldr	r3, [r4, #324]
+	cbnz	r3, .L516
+	ldr	r3, [r4, #328]
+	cmp	r3, #0
+	beq	.L515
+.L516:
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
-		mrs	r6, cpsr	@ arch_local_irq_save
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		mrs	fp, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
 	.thumb
 	.syntax unified
-	ldr	r0, [r4, #308]
-	cbz	r0, .L514
-	bl	mpi_obj_unref
-.L514:
-	cbz	r5, .L515
-	mov	r0, r5
+	ldr	r3, [r4, #324]
+	cbz	r3, .L517
+	cbz	r6, .L518
+	mov	r0, r6
 	bl	mpi_obj_ref
-.L515:
-	str	r5, [r4, #308]
-	add	r0, r4, #316
+.L518:
+	ldr	r2, [r4, #396]
+	ldr	r3, [r4, #388]
+	ldr	r0, [r4, #348]
+	cmp	r2, r3
+	bcs	.L519
+	mov	r1, r6
+	bl	mpi_queue_push_obj
+	cmp	r0, #0
+	beq	.L520
+	ldr	r3, [r4, #396]
+	adds	r3, r3, #1
+	str	r3, [r4, #396]
+.L521:
+	ldr	r0, [sp, #28]
 	bl	complete_all
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
-		msr	cpsr_c, r6	@ local_irq_restore
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, fp	@ local_irq_restore
 @ 0 "" 2
 	.thumb
 	.syntax unified
-	ldr	r3, [r4, #288]
-	cbz	r3, .L512
-	ldr	r3, [r4, #292]
-	cbz	r3, .L510
-	mov	r1, r5
+.L517:
+	ldr	r3, [r4, #328]
+	cmp	r3, #0
+	beq	.L515
+	ldr	r3, [r4, #332]
+	cbz	r3, .L524
+	mov	r1, r6
 	mov	r0, r4
 	blx	r3
-.L510:
-	add	r0, sp, #24
+.L524:
+	movs	r1, #0
+	mov	r0, r4
+	bl	count_frame_rate.part.1
+.L509:
+	add	r0, sp, #32
 	bl	ktime_get_ts64
-	ldr	r1, [r4, #216]
-	ldrd	r2, r3, [r4, #208]
-	ldr	r0, [sp, #32]
-	ldr	r5, [sp, #24]
+	ldr	r1, [r4, #256]
+	ldrd	r2, r3, [r4, #248]
+	ldr	r0, [sp, #40]
+	ldr	r6, [sp, #32]
 	subs	r0, r0, r1
-	subs	r2, r5, r2
+	subs	r2, r6, r2
 	asr	r1, r0, #31
 	strd	r0, [sp]
-	ldr	r1, [sp, #28]
-	add	r0, sp, #40
+	ldr	r1, [sp, #36]
+	add	r0, sp, #48
 	sbc	r3, r1, r3
 	bl	set_normalized_timespec64
-	ldr	r0, .L548+16
-	ldr	r3, [sp, #48]
-	ldr	r2, [sp, #40]
+	ldr	r0, .L552+16
+	ldr	r3, [sp, #56]
+	ldr	r2, [sp, #48]
 	smull	r0, r1, r3, r0
 	asrs	r3, r3, #31
 	mov	r0, r4
 	rsb	r3, r3, r1, asr #6
-	ldr	r1, .L548+20
+	ldr	r1, .L552+20
 	mla	r3, r1, r2, r3
-	str	r3, [r4, #240]
+	str	r3, [r4, #280]
 	bl	mpi_obj_unref
 	b	.L505
-.L512:
-	ldr	r1, [r4, #116]
-	ldr	r6, .L548+24
-	cbz	r1, .L517
-	ldr	r7, [r4, #96]
-	mov	r0, r7
-	bl	__aeabi_idivmod
-	add	r1, r1, r4
-	ldrb	r3, [r1, #120]	@ zero_extendqisi2
-	cbnz	r3, .L518
-.L517:
-	mov	r1, r5
+.L529:
+	movs	r7, #1
+	b	.L511
+.L520:
+	movw	r3, #541
+	mov	r2, r10
+	str	r3, [sp]
+	movs	r1, #2
+	mov	r3, r9
+	bl	vlog
+.L551:
+	mov	r0, r6
+	orr	r5, r5, #1
+	bl	mpi_obj_unref
+	b	.L521
+.L519:
+	bl	mpi_queue_pop_obj
+	cmp	r0, #0
+	beq	.L551
+	bl	mpi_obj_unref
+	mov	r1, r6
+	ldr	r0, [r4, #348]
+	bl	mpi_queue_push_obj
+	cbz	r0, .L523
+	orr	r5, r5, #2
+	b	.L521
+.L523:
+	movw	r3, #555
+	mov	r2, r10
+	str	r3, [sp]
+	movs	r1, #2
+	mov	r3, r9
+	orr	r5, r5, #3
+	bl	vlog
+	mov	r0, r6
+	bl	mpi_obj_unref
+	b	.L521
+.L515:
+	mov	r1, r6
 	mov	r0, r4
+	movs	r2, #0
 	bl	add_user_to_buf
 	ldr	r3, [r4, #44]
-	mov	r2, r5
+	mov	r2, r6
 	movs	r1, #1
 	ldr	r3, [r3, #80]
 	blx	r3
-	ldr	r3, [r4, #96]
-	ldr	r2, [r4, #100]
-	adds	r3, r3, #1
-	str	r3, [r4, #96]
-	adds	r3, r2, #1
-	str	r3, [r4, #100]
-	cbz	r0, .L547
-	ldr	r3, [r4, #104]
-	adds	r3, r3, #1
-	str	r3, [r4, #104]
-.L547:
-	ldr	r3, [r6]
-	ldr	r1, [r4, #112]
-	rsb	r3, r3, #300
-	cmn	r3, r1
-	itttt	mi
-	ldrmi	r3, [r6]
-	strdmi	r2, r3, [r4, #108]
-	movmi	r3, #0
-	strmi	r3, [r4, #100]
-	b	.L510
-.L518:
-	ldr	r2, [r4, #100]
-	adds	r7, r7, #1
-	str	r7, [r4, #96]
-	adds	r3, r2, #1
-	str	r3, [r4, #100]
-	b	.L547
-.L549:
+	subs	r1, r0, #0
+	mov	r0, r4
+	it	lt
+	orrlt	r5, r5, #4
+	bl	count_frame_rate.part.1
+	b	.L514
+.L553:
 	.align	2
-.L548:
-	.word	.LC18
-	.word	.LC27
-	.word	.LC28
-	.word	.LANCHOR0+476
+.L552:
+	.word	.LC22
+	.word	.LC21
+	.word	.LC23
+	.word	.LANCHOR0+408
 	.word	274877907
 	.word	1000000
-	.word	jiffies
+	.word	.LC24
 	.fnend
 	.size	mpi_node_buffer_in, .-mpi_node_buffer_in
+	.align	1
+	.global	mpi_node_get_in_buffer
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpi_node_get_in_buffer, %function
+mpi_node_get_in_buffer:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, lr}
+	.save {r4, r5, r6, r7, lr}
+	mov	r4, r0
+	.pad #28
+	sub	sp, sp, #28
+	mov	r6, r1
+	cbz	r0, .L555
+	ldr	r3, [r0, #12]
+	and	r3, r3, #6
+	cmp	r3, #2
+	beq	.L556
+.L555:
+	movs	r5, #0
+.L554:
+	mov	r0, r5
+	add	sp, sp, #28
+	@ sp needed
+	pop	{r4, r5, r6, r7, pc}
+.L556:
+	bl	mpi_obj_ref
+	cbz	r6, .L558
+.L565:
+	.syntax unified
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		mrs	r2, cpsr	@ arch_local_irq_save
+	cpsid	i
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	ldr	r5, [r4, #12]
+	add	r0, r4, #356
+	ldr	r3, .L574
+	ands	r5, r5, #4096
+	bne	.L559
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r2	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	ldr	r2, [r4, #380]
+	str	r5, [r4, #356]
+	umull	r2, r3, r2, r3
+	lsrs	r1, r3, #3
+	bl	wait_for_completion_interruptible_timeout
+.L560:
+	mov	r0, r4
+	bl	mpi_obj_unref
+	b	.L554
+.L559:
+	movs	r1, #0
+	str	r1, [r4, #356]
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r2	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	ldr	r2, [r4, #380]
+	movs	r6, #1
+	umull	r2, r3, r2, r3
+	lsrs	r1, r3, #3
+	bl	wait_for_completion_interruptible_timeout
+.L558:
+	.syntax unified
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		mrs	r7, cpsr	@ arch_local_irq_save
+	cpsid	i
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	ldr	r3, [r4, #324]
+	cbnz	r3, .L561
+.L564:
+	movs	r5, #0
+.L562:
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r7	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	movs	r2, #1
+	mov	r1, r5
+	mov	r0, r4
+	bl	add_user_to_buf
+	b	.L560
+.L561:
+	ldr	r0, [r4, #348]
+	bl	mpi_queue_pop_obj
+	mov	r5, r0
+	cbnz	r0, .L563
+	cmp	r6, #0
+	bne	.L564
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r7	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	b	.L565
+.L563:
+	ldr	r3, [r4, #44]
+	ldr	r0, .L574+4
+	ldr	r1, .L574+8
+	ldr	r3, [r3, #44]
+	cmp	r6, #0
+	it	eq
+	moveq	r1, r0
+	ldr	r2, [r4]
+	ldr	r0, [r5]
+	strd	r3, r2, [sp, #4]
+	movw	r3, #710
+	strd	r1, r0, [sp, #12]
+	movs	r1, #5
+	str	r3, [sp]
+	movs	r0, #0
+	ldr	r3, .L574+12
+	ldr	r2, .L574+16
+	bl	vlog
+	b	.L562
+.L575:
+	.align	2
+.L574:
+	.word	-858993459
+	.word	.LC26
+	.word	.LC25
+	.word	.LANCHOR0+427
+	.word	.LC27
+	.fnend
+	.size	mpi_node_get_in_buffer, .-mpi_node_get_in_buffer
+	.align	1
+	.global	mpi_node_pick_in_buffer
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpi_node_pick_in_buffer, %function
+mpi_node_pick_in_buffer:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r3, r4, r5, lr}
+	.save {r3, r4, r5, lr}
+	movs	r1, #1
+	mov	r4, r0
+	bl	mpi_node_add_in_watcher
+	movs	r1, #1
+	mov	r0, r4
+	bl	mpi_node_get_in_buffer
+	mov	r5, r0
+	mov	r0, r4
+	bl	mpi_node_del_in_watcher
+	mov	r0, r5
+	pop	{r3, r4, r5, pc}
+	.fnend
+	.size	mpi_node_pick_in_buffer, .-mpi_node_pick_in_buffer
+	.align	1
+	.global	mpi_node_get_out_buffer
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpi_node_get_out_buffer, %function
+mpi_node_get_out_buffer:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, r7, lr}
+	.save {r4, r5, r6, r7, lr}
+	mov	r4, r0
+	.pad #28
+	sub	sp, sp, #28
+	mov	r6, r1
+	cbz	r0, .L578
+	ldr	r3, [r0, #12]
+	and	r3, r3, #6
+	cmp	r3, #2
+	beq	.L579
+.L578:
+	movs	r5, #0
+.L577:
+	mov	r0, r5
+	add	sp, sp, #28
+	@ sp needed
+	pop	{r4, r5, r6, r7, pc}
+.L579:
+	bl	mpi_obj_ref
+	cbz	r6, .L581
+.L588:
+	.syntax unified
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		mrs	r2, cpsr	@ arch_local_irq_save
+	cpsid	i
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	ldr	r5, [r4, #12]
+	add	r0, r4, #368
+	ldr	r3, .L597
+	ands	r5, r5, #4096
+	bne	.L582
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r2	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	ldr	r2, [r4, #384]
+	str	r5, [r4, #368]
+	umull	r2, r3, r2, r3
+	lsrs	r1, r3, #3
+	bl	wait_for_completion_interruptible_timeout
+.L583:
+	mov	r0, r4
+	bl	mpi_obj_unref
+	b	.L577
+.L582:
+	movs	r1, #0
+	str	r1, [r4, #368]
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r2	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	ldr	r2, [r4, #384]
+	movs	r6, #1
+	umull	r2, r3, r2, r3
+	lsrs	r1, r3, #3
+	bl	wait_for_completion_interruptible_timeout
+.L581:
+	.syntax unified
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		mrs	r7, cpsr	@ arch_local_irq_save
+	cpsid	i
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	ldr	r3, [r4, #336]
+	cbnz	r3, .L584
+.L587:
+	movs	r5, #0
+.L585:
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r7	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	movs	r2, #1
+	mov	r1, r5
+	mov	r0, r4
+	bl	add_user_to_buf
+	b	.L583
+.L584:
+	ldr	r0, [r4, #352]
+	bl	mpi_queue_pop_obj
+	mov	r5, r0
+	cbnz	r0, .L586
+	cmp	r6, #0
+	bne	.L587
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r7	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	b	.L588
+.L586:
+	ldr	r3, [r4, #44]
+	ldr	r0, .L597+4
+	ldr	r1, .L597+8
+	ldr	r3, [r3, #44]
+	cmp	r6, #0
+	it	eq
+	moveq	r1, r0
+	ldr	r2, [r4]
+	ldr	r0, [r5]
+	strd	r3, r2, [sp, #4]
+	movw	r3, #763
+	strd	r1, r0, [sp, #12]
+	movs	r1, #5
+	str	r3, [sp]
+	movs	r0, #0
+	ldr	r3, .L597+12
+	ldr	r2, .L597+16
+	bl	vlog
+	b	.L585
+.L598:
+	.align	2
+.L597:
+	.word	-858993459
+	.word	.LC22
+	.word	.LC25
+	.word	.LANCHOR0+450
+	.word	.LC28
+	.fnend
+	.size	mpi_node_get_out_buffer, .-mpi_node_get_out_buffer
+	.align	1
+	.global	mpi_node_pick_out_buffer
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpi_node_pick_out_buffer, %function
+mpi_node_pick_out_buffer:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r3, r4, r5, lr}
+	.save {r3, r4, r5, lr}
+	movs	r1, #1
+	mov	r4, r0
+	bl	mpi_node_add_out_watcher
+	movs	r1, #1
+	mov	r0, r4
+	bl	mpi_node_get_out_buffer
+	mov	r5, r0
+	mov	r0, r4
+	bl	mpi_node_del_out_watcher
+	mov	r0, r5
+	pop	{r3, r4, r5, pc}
+	.fnend
+	.size	mpi_node_pick_out_buffer, .-mpi_node_pick_out_buffer
+	.align	1
+	.global	mpi_node_request_buf
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpi_node_request_buf, %function
+mpi_node_request_buf:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, r5, r6, lr}
+	.save {r4, r5, r6, lr}
+	mov	r4, r0
+	.pad #24
+	sub	sp, sp, #24
+	mov	r5, r1
+	ldr	r6, [r0, #60]
+	cbz	r0, .L601
+	ldr	r3, [r0, #12]
+	and	r3, r3, #6
+	cmp	r3, #2
+	beq	.L602
+.L601:
+	movs	r5, #0
+.L600:
+	mov	r0, r5
+	add	sp, sp, #24
+	@ sp needed
+	pop	{r4, r5, r6, pc}
+.L602:
+	ldr	r3, [r0, #44]
+	ldr	r1, [r0]
+	ldr	r2, [r3, #44]
+	cbz	r5, .L606
+	ldr	r3, [r5]
+.L604:
+	strd	r1, r3, [sp, #8]
+	movs	r0, #0
+	str	r2, [sp, #4]
+	movw	r3, #789
+	ldr	r2, .L613
+	movs	r1, #5
+	str	r3, [sp]
+	ldr	r3, .L613+4
+	bl	vlog
+	mov	r1, r5
+	mov	r0, r6
+	bl	mpi_buf_pool_request_buf
+	mov	r5, r0
+	cbz	r0, .L605
+	ldr	r3, [r6]
+	movs	r1, #5
+	ldr	r2, .L613+8
+	str	r3, [sp, #16]
+	ldr	r3, [r0]
+	movs	r0, #0
+	str	r3, [sp, #12]
+	ldr	r3, [r4]
+	str	r3, [sp, #8]
+	ldr	r3, [r4, #44]
+	ldr	r3, [r3, #44]
+	str	r3, [sp, #4]
+	movw	r3, #795
+	str	r3, [sp]
+	ldr	r3, .L613+4
+	bl	vlog
+	ldr	r3, [r6, #64]
+	str	r3, [r4, #72]
+.L605:
+	movs	r2, #0
+	mov	r1, r5
+	mov	r0, r4
+	bl	add_user_to_buf
+	b	.L600
+.L606:
+	mov	r3, #-1
+	b	.L604
+.L614:
+	.align	2
+.L613:
+	.word	.LC29
+	.word	.LANCHOR0+474
+	.word	.LC30
+	.fnend
+	.size	mpi_node_request_buf, .-mpi_node_request_buf
+	.align	1
+	.global	remove_user_from_buf
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	remove_user_from_buf, %function
+remove_user_from_buf:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	@ link register save eliminated.
+	cbz	r1, .L615
+	cmp	r0, #0
+	blt	.L615
+	cmp	r2, #0
+	mov	r2, #0
+	ite	ne
+	movne	r3, #16
+	moveq	r3, #0
+	add	r3, r3, r0
+	adds	r3, r3, #112
+	add	r3, r1, r3, lsl #2
+	str	r2, [r3, #4]
+.L615:
+	bx	lr
+	.fnend
+	.size	remove_user_from_buf, .-remove_user_from_buf
+	.align	1
+	.global	mpi_node_release_buffer_flag
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpi_node_release_buffer_flag, %function
+mpi_node_release_buffer_flag:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r3, r4, r5, r6, r7, lr}
+	.save {r3, r4, r5, r6, r7, lr}
+	mov	r4, r0
+	mov	r6, r1
+	mov	r5, r2
+	cbz	r0, .L623
+	ldr	r3, [r0, #12]
+	and	r3, r3, #6
+	cmp	r3, #2
+	beq	.L624
+.L623:
+	pop	{r3, r4, r5, r6, r7, pc}
+.L624:
+	bl	mpi_obj_ref
+	.syntax unified
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		mrs	r7, cpsr	@ arch_local_irq_save
+	cpsid	i
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	movs	r2, #1
+	ldr	r0, [r4, #76]
+	mov	r1, r6
+	bl	remove_user_from_buf
+	mov	r0, r6
+	bl	mpi_obj_unref
+	cbz	r5, .L626
+	ldr	r3, [r5]
+	cbnz	r3, .L627
+	ldr	r1, [r4]
+	ldr	r0, .L635
+	bl	printk
+.L626:
+	.syntax unified
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r7	@ local_irq_restore
+@ 0 "" 2
+	.thumb
+	.syntax unified
+	mov	r0, r4
+	pop	{r3, r4, r5, r6, r7, lr}
+	b	mpi_obj_unref
+.L627:
+	subs	r3, r3, #1
+	str	r3, [r5]
+	b	.L626
+.L636:
+	.align	2
+.L635:
+	.word	.LC31
+	.fnend
+	.size	mpi_node_release_buffer_flag, .-mpi_node_release_buffer_flag
 	.align	1
 	.global	mpi_node_buffer_out
 	.syntax unified
@@ -2964,165 +3432,235 @@ mpi_node_buffer_in:
 	.type	mpi_node_buffer_out, %function
 mpi_node_buffer_out:
 	.fnstart
-	@ args = 0, pretend = 0, frame = 32
+	@ args = 0, pretend = 0, frame = 40
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, r7, lr}
-	.save {r4, r5, r6, r7, lr}
+	push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+	.save {r4, r5, r6, r7, r8, r9, r10, fp, lr}
 	mov	r4, r0
-	.pad #60
-	sub	sp, sp, #60
+	.pad #68
+	sub	sp, sp, #68
 	mov	r6, r1
-	mov	r5, r2
-	cbz	r0, .L551
+	mov	r9, r2
+	cbz	r0, .L638
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L552
-.L551:
-.L550:
-	add	sp, sp, #60
+	beq	.L639
+.L638:
+	movs	r5, #32
+.L637:
+	mov	r0, r5
+	add	sp, sp, #68
 	@ sp needed
-	pop	{r4, r5, r6, r7, pc}
-.L552:
-	adds	r0, r0, #224
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+.L639:
+	add	r0, r0, #264
 	bl	ktime_get_ts64
 	mov	r0, r4
 	bl	mpi_obj_ref
 	ldr	r3, [r4, #44]
-	ldr	r1, [r4]
 	ldr	r0, [r6]
+	ldr	r1, [r4]
 	ldr	r2, [r3, #44]
-	ldr	r7, .L585
-	ldr	r3, .L585+4
+	ldr	r5, .L685
+	ldr	r3, .L685+4
 	strd	r2, r1, [sp, #4]
 	movs	r1, #5
-	cmp	r5, #0
+	cmp	r9, #0
 	it	eq
-	moveq	r3, r7
-	ldr	r2, .L585+8
+	moveq	r3, r5
+	ldr	r2, .L685+8
 	strd	r0, r3, [sp, #12]
-	mov	r3, #500
+	movw	r3, #607
 	movs	r0, #0
 	str	r3, [sp]
-	ldr	r3, .L585+12
+	ldr	r3, .L685+12
 	bl	vlog
-	cmp	r5, #0
-	bne	.L555
-	ldr	r3, [r4, #296]
-	cbnz	r3, .L556
-	ldr	r3, [r4, #300]
+	ldr	r1, [r4, #204]
+	cmp	r1, #0
+	beq	.L662
+	ldr	r3, [r4, #208]
 	cmp	r3, #0
-	beq	.L555
-.L556:
+	ble	.L643
+	subs	r3, r3, #1
+	str	r3, [r4, #208]
+.L644:
+	mov	r0, r4
+	movs	r5, #0
+	bl	count_frame_rate.constprop.27
+	b	.L655
+.L643:
+	ldr	r0, [r4, #184]
+	bl	__aeabi_idivmod
+	add	r1, r1, r4
+	ldrb	r8, [r1, #212]	@ zero_extendqisi2
+	cmp	r8, #0
+	beq	.L644
+.L642:
+	add	r3, r4, #368
+	movs	r5, #0
+	str	r3, [sp, #24]
+	ldr	r10, .L685+12
+	ldr	fp, .L685+24
+	b	.L659
+.L650:
+	mov	r3, #620
+	mov	r2, fp
+	str	r3, [sp]
+	movs	r1, #2
+	mov	r3, r10
+	bl	vlog
+.L684:
+	mov	r0, r6
+	orr	r5, r5, #1
+	bl	mpi_obj_unref
+	b	.L651
+.L649:
+	bl	mpi_queue_pop_obj
+	cmp	r0, #0
+	beq	.L684
+	bl	mpi_obj_unref
+	mov	r1, r6
+	ldr	r0, [r4, #352]
+	bl	mpi_queue_push_obj
+	cbz	r0, .L653
+	orr	r5, r5, #2
+	b	.L651
+.L653:
+	movw	r3, #635
+	mov	r2, fp
+	str	r3, [sp]
+	movs	r1, #2
+	mov	r3, r10
+	orr	r5, r5, #3
+	bl	vlog
+	mov	r0, r6
+	bl	mpi_obj_unref
+	b	.L651
+.L645:
+	movs	r2, #0
+	mov	r1, r6
+	ldr	r0, [r4, #76]
+	bl	remove_user_from_buf
+	mov	r0, r4
+	bl	count_frame_rate.constprop.27
+	ldr	r7, [r4, #300]
+	add	r3, r4, #300
+	subs	r7, r7, #4
+.L656:
+	adds	r2, r7, #4
+	cmp	r2, r3
+	bne	.L658
+.L659:
+	adds	r8, r8, #-1
+	bcc	.L655
+	cmp	r9, #0
+	bne	.L645
+	ldr	r3, [r4, #336]
+	cbnz	r3, .L646
+	ldr	r3, [r4, #340]
+	cmp	r3, #0
+	beq	.L645
+.L646:
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
-		mrs	r5, cpsr	@ arch_local_irq_save
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		mrs	r7, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
 	.thumb
 	.syntax unified
-	ldr	r0, [r4, #312]
-	cbz	r0, .L557
-	bl	mpi_obj_unref
-.L557:
-	cbz	r6, .L558
+	ldr	r3, [r4, #336]
+	cbz	r3, .L647
+	cbz	r6, .L648
 	mov	r0, r6
 	bl	mpi_obj_ref
-.L558:
-	str	r6, [r4, #312]
-	add	r0, r4, #328
+.L648:
+	ldr	r2, [r4, #400]
+	ldr	r3, [r4, #392]
+	ldr	r0, [r4, #352]
+	cmp	r2, r3
+	bcs	.L649
+	mov	r1, r6
+	bl	mpi_queue_push_obj
+	cmp	r0, #0
+	beq	.L650
+	ldr	r3, [r4, #400]
+	adds	r3, r3, #1
+	str	r3, [r4, #400]
+.L651:
+	ldr	r0, [sp, #24]
 	bl	complete_all
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
-		msr	cpsr_c, r5	@ local_irq_restore
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
+		msr	cpsr_c, r7	@ local_irq_restore
 @ 0 "" 2
 	.thumb
 	.syntax unified
-	ldr	r3, [r4, #300]
-	cbz	r3, .L555
-	ldr	r3, [r4, #304]
-	cbz	r3, .L560
+.L647:
+	ldr	r3, [r4, #340]
+	cmp	r3, #0
+	beq	.L645
+	ldr	r3, [r4, #344]
+	cbz	r3, .L654
 	mov	r1, r6
 	mov	r0, r4
 	blx	r3
-.L560:
-	add	r0, sp, #24
+.L654:
+	mov	r0, r4
+	bl	count_frame_rate.constprop.27
+.L655:
+	add	r0, sp, #32
 	bl	ktime_get_ts64
-	ldr	r1, [r4, #232]
-	ldrd	r2, r3, [r4, #224]
-	ldr	r0, [sp, #32]
-	ldr	r5, [sp, #24]
+	ldr	r1, [r4, #272]
+	ldrd	r2, r3, [r4, #264]
+	ldr	r0, [sp, #40]
+	ldr	r6, [sp, #32]
 	subs	r0, r0, r1
-	subs	r2, r5, r2
+	subs	r2, r6, r2
 	asr	r1, r0, #31
 	strd	r0, [sp]
-	ldr	r1, [sp, #28]
-	add	r0, sp, #40
+	ldr	r1, [sp, #36]
+	add	r0, sp, #48
 	sbc	r3, r1, r3
 	bl	set_normalized_timespec64
-	ldr	r0, .L585+16
-	ldr	r3, [sp, #48]
-	ldr	r2, [sp, #40]
+	ldr	r0, .L685+16
+	ldr	r3, [sp, #56]
+	ldr	r2, [sp, #48]
 	smull	r0, r1, r3, r0
 	asrs	r3, r3, #31
 	mov	r0, r4
 	rsb	r3, r3, r1, asr #6
-	ldr	r1, .L585+20
+	ldr	r1, .L685+20
 	mla	r3, r1, r2, r3
-	str	r3, [r4, #244]
+	str	r3, [r4, #284]
 	bl	mpi_obj_unref
-	b	.L550
-.L555:
-	cbz	r6, .L561
-	ldr	r3, [r4, #76]
-	cmp	r3, #0
-	itttt	ge
-	addge	r3, r3, #16
-	movge	r2, #0
-	addge	r3, r6, r3, lsl #2
-	strge	r2, [r3, #4]
-.L561:
-	ldr	r1, .L585+24
-	add	r7, r4, #260
-	ldr	r2, [r4, #156]
-	ldr	r3, [r4, #152]
-	ldr	r0, [r4, #168]
-	adds	r3, r3, #1
-	str	r3, [r4, #152]
-	adds	r3, r2, #1
-	str	r3, [r4, #156]
-	ldr	r3, [r1]
-	rsb	r3, r3, #300
-	cmn	r3, r0
-	it	mi
-	ldrmi	r3, [r1]
-	ldr	r5, [r4, #260]
-	sub	r5, r5, #4
-	ittt	mi
-	strdmi	r2, r3, [r4, #164]
-	movmi	r3, #0
-	strmi	r3, [r4, #156]
-.L563:
-	adds	r3, r5, #4
-	cmp	r3, r7
-	beq	.L560
-	ldr	r0, [r5]
+	b	.L637
+.L658:
 	movs	r2, #0
 	mov	r1, r6
+	ldr	r0, [r7]
+	str	r3, [sp, #28]
 	bl	mpi_node_buffer_in
-	ldr	r5, [r5, #4]
-	subs	r5, r5, #4
-	b	.L563
-.L586:
+	ldr	r3, [sp, #28]
+	cbz	r0, .L657
+	orr	r5, r5, #16
+.L657:
+	ldr	r7, [r7, #4]
+	subs	r7, r7, #4
+	b	.L656
+.L662:
+	mov	r8, #1
+	b	.L642
+.L686:
 	.align	2
-.L585:
-	.word	.LC18
-	.word	.LC27
-	.word	.LC29
+.L685:
+	.word	.LC22
+	.word	.LC21
+	.word	.LC32
 	.word	.LANCHOR0+495
 	.word	274877907
 	.word	1000000
-	.word	jiffies
+	.word	.LC33
 	.fnend
 	.size	mpi_node_buffer_out, .-mpi_node_buffer_out
 	.align	1
@@ -3142,23 +3680,24 @@ mpi_node_buffer_available:
 	mov	r4, r0
 	mov	r5, r1
 	ldr	r6, [r0, #44]
-	cbz	r0, .L588
+	cbz	r0, .L688
 	ldr	r3, [r0, #12]
 	and	r3, r3, #6
 	cmp	r3, #2
-	beq	.L589
-.L588:
+	beq	.L689
+.L688:
 	add	sp, sp, #16
 	@ sp needed
 	pop	{r4, r5, r6, pc}
-.L589:
+.L689:
 	bl	mpi_obj_ref
 	ldr	r3, [r4, #12]
 	lsls	r3, r3, #19
-	bpl	.L592
+	bpl	.L692
+	cbz	r5, .L693
 	ldr	r3, [r4]
 	movs	r1, #5
-	ldr	r2, .L601
+	ldr	r2, .L705
 	movs	r0, #0
 	str	r3, [sp, #12]
 	ldr	r3, [r4, #44]
@@ -3166,233 +3705,242 @@ mpi_node_buffer_available:
 	str	r3, [sp, #8]
 	ldr	r3, [r5]
 	str	r3, [sp, #4]
-	mov	r3, #428
+	mov	r3, #498
 	str	r3, [sp]
-	ldr	r3, .L601+4
+	ldr	r3, .L705+4
 	bl	vlog
+.L693:
 	ldr	r3, [r6, #80]
-	cbz	r3, .L592
+	cbz	r3, .L692
 	mov	r2, r5
 	movs	r1, #0
 	mov	r0, r4
 	blx	r3
-.L592:
+.L692:
 	mov	r0, r4
 	add	sp, sp, #16
 	@ sp needed
 	pop	{r4, r5, r6, lr}
 	b	mpi_obj_unref
-.L602:
+.L706:
 	.align	2
-.L601:
-	.word	.LC30
+.L705:
+	.word	.LC34
 	.word	.LANCHOR0+515
 	.fnend
 	.size	mpi_node_buffer_available, .-mpi_node_buffer_available
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__func__.36464, %object
-	.size	__func__.36464, 18
-__func__.36464:
+	.type	__func__.36046, %object
+	.size	__func__.36046, 18
+__func__.36046:
 	.ascii	"mpi_node_streamon\000"
-	.type	__func__.36479, %object
-	.size	__func__.36479, 19
-__func__.36479:
+	.type	__func__.36061, %object
+	.size	__func__.36061, 19
+__func__.36061:
 	.ascii	"mpi_node_streamoff\000"
-	.type	__func__.36677, %object
-	.size	__func__.36677, 21
-__func__.36677:
-	.ascii	"mpi_node_request_buf\000"
-	.type	__func__.36696, %object
-	.size	__func__.36696, 15
-__func__.36696:
+	.type	__func__.36319, %object
+	.size	__func__.36319, 15
+__func__.36319:
 	.ascii	"mpi_node_flush\000"
-	.type	__func__.36724, %object
-	.size	__func__.36724, 16
-__func__.36724:
+	.type	__func__.36347, %object
+	.size	__func__.36347, 16
+__func__.36347:
 	.ascii	"mpi_node_unbind\000"
-	.type	__func__.36750, %object
-	.size	__func__.36750, 14
-__func__.36750:
+	.type	__func__.36373, %object
+	.size	__func__.36373, 14
+__func__.36373:
 	.ascii	"mpi_node_bind\000"
-	.type	__func__.36990, %object
-	.size	__func__.36990, 17
-__func__.36990:
+	.type	__func__.36632, %object
+	.size	__func__.36632, 17
+__func__.36632:
 	.ascii	"mpi_dev_register\000"
-	.type	__func__.36253, %object
-	.size	__func__.36253, 24
-__func__.36253:
+	.type	__func__.35790, %object
+	.size	__func__.35790, 24
+__func__.35790:
 	.ascii	"mpi_node_add_in_watcher\000"
-	.type	__func__.36260, %object
-	.size	__func__.36260, 23
-__func__.36260:
+	.type	__func__.35804, %object
+	.size	__func__.35804, 23
+__func__.35804:
 	.ascii	"mpi_node_add_in_filter\000"
-	.type	__func__.36267, %object
-	.size	__func__.36267, 25
-__func__.36267:
+	.type	__func__.35818, %object
+	.size	__func__.35818, 25
+__func__.35818:
 	.ascii	"mpi_node_add_out_watcher\000"
-	.type	__func__.36274, %object
-	.size	__func__.36274, 24
-__func__.36274:
+	.type	__func__.35832, %object
+	.size	__func__.35832, 24
+__func__.35832:
 	.ascii	"mpi_node_add_out_filter\000"
-	.type	__func__.36281, %object
-	.size	__func__.36281, 24
-__func__.36281:
+	.type	__func__.35844, %object
+	.size	__func__.35844, 24
+__func__.35844:
 	.ascii	"mpi_node_del_in_watcher\000"
-	.type	__func__.36290, %object
-	.size	__func__.36290, 23
-__func__.36290:
+	.type	__func__.35852, %object
+	.size	__func__.35852, 23
+__func__.35852:
 	.ascii	"mpi_node_del_in_filter\000"
-	.type	__func__.36299, %object
-	.size	__func__.36299, 25
-__func__.36299:
+	.type	__func__.35860, %object
+	.size	__func__.35860, 25
+__func__.35860:
 	.ascii	"mpi_node_del_out_watcher\000"
-	.type	__func__.36308, %object
-	.size	__func__.36308, 24
-__func__.36308:
+	.type	__func__.35868, %object
+	.size	__func__.35868, 24
+__func__.35868:
 	.ascii	"mpi_node_del_out_filter\000"
-	.type	__func__.36633, %object
-	.size	__func__.36633, 23
-__func__.36633:
-	.ascii	"mpi_node_get_in_buffer\000"
-	.type	__func__.36663, %object
-	.size	__func__.36663, 24
-__func__.36663:
-	.ascii	"mpi_node_get_out_buffer\000"
-	.type	__func__.36852, %object
-	.size	__func__.36852, 20
-__func__.36852:
+	.type	__func__.36494, %object
+	.size	__func__.36494, 20
+__func__.36494:
 	.ascii	"mpi_dev_request_job\000"
-	.type	__func__.36866, %object
-	.size	__func__.36866, 29
-__func__.36866:
+	.type	__func__.36508, %object
+	.size	__func__.36508, 29
+__func__.36508:
 	.ascii	"mpi_dev_request_job_for_node\000"
-	.type	__func__.36778, %object
-	.size	__func__.36778, 17
-__func__.36778:
-	.ascii	"mpi_node_destroy\000"
-	.type	__func__.36839, %object
-	.size	__func__.36839, 32
-__func__.36839:
+	.type	__func__.36481, %object
+	.size	__func__.36481, 32
+__func__.36481:
 	.ascii	"mpi_dev_create_node_with_params\000"
-	.type	__func__.36951, %object
-	.size	__func__.36951, 19
-__func__.36951:
+	.type	__func__.36402, %object
+	.size	__func__.36402, 17
+__func__.36402:
+	.ascii	"mpi_node_destroy\000"
+	.type	__func__.36593, %object
+	.size	__func__.36593, 19
+__func__.36593:
 	.ascii	"mpi_dev_unregister\000"
-	.type	__func__.36525, %object
-	.size	__func__.36525, 19
-__func__.36525:
+	.type	__func__.36111, %object
+	.size	__func__.36111, 19
+__func__.36111:
 	.ascii	"mpi_node_buffer_in\000"
-	.type	__func__.36552, %object
-	.size	__func__.36552, 20
-__func__.36552:
+	.type	__func__.36249, %object
+	.size	__func__.36249, 23
+__func__.36249:
+	.ascii	"mpi_node_get_in_buffer\000"
+	.type	__func__.36286, %object
+	.size	__func__.36286, 24
+__func__.36286:
+	.ascii	"mpi_node_get_out_buffer\000"
+	.type	__func__.36300, %object
+	.size	__func__.36300, 21
+__func__.36300:
+	.ascii	"mpi_node_request_buf\000"
+	.type	__func__.36151, %object
+	.size	__func__.36151, 20
+__func__.36151:
 	.ascii	"mpi_node_buffer_out\000"
-	.type	__func__.36512, %object
-	.size	__func__.36512, 26
-__func__.36512:
+	.type	__func__.36094, %object
+	.size	__func__.36094, 26
+__func__.36094:
 	.ascii	"mpi_node_buffer_available\000"
 	.data
 	.align	2
 	.type	___modver_attr, %object
 	.size	___modver_attr, 36
 ___modver_attr:
-	.word	.LC31
+	.word	.LC35
 	.short	292
 	.space	2
 	.word	__modver_version_show
 	.space	16
-	.word	.LC32
-	.word	.LC33
+	.word	.LC36
+	.word	.LC37
 	.bss
 	.set	.LANCHOR1,. + 0
-	.type	__key.10560, %object
-	.size	__key.10560, 0
-__key.10560:
+	.type	__key.10574, %object
+	.size	__key.10574, 0
+__key.10574:
 	.section	.modinfo,"a"
-	.type	__UNIQUE_ID_version249, %object
-	.size	__UNIQUE_ID_version249, 19
-__UNIQUE_ID_version249:
+	.type	__UNIQUE_ID_version257, %object
+	.size	__UNIQUE_ID_version257, 19
+__UNIQUE_ID_version257:
 	.ascii	"rockit.version=0.1\000"
-	.type	__UNIQUE_ID_license248, %object
-	.size	__UNIQUE_ID_license248, 19
-__UNIQUE_ID_license248:
+	.type	__UNIQUE_ID_license256, %object
+	.size	__UNIQUE_ID_license256, 19
+__UNIQUE_ID_license256:
 	.ascii	"rockit.license=GPL\000"
-	.type	__UNIQUE_ID_file247, %object
-	.size	__UNIQUE_ID_file247, 37
-__UNIQUE_ID_file247:
+	.type	__UNIQUE_ID_file255, %object
+	.size	__UNIQUE_ID_file255, 37
+__UNIQUE_ID_file255:
 	.ascii	"rockit.file=drivers/rockit-ko/rockit\000"
-	.type	__UNIQUE_ID_author246, %object
-	.size	__UNIQUE_ID_author246, 23
-__UNIQUE_ID_author246:
+	.type	__UNIQUE_ID_author254, %object
+	.size	__UNIQUE_ID_author254, 23
+__UNIQUE_ID_author254:
 	.ascii	"rockit.author=Rockchip\000"
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:
-	.ascii	"%s,%d:node(%s-%d) stream on\000"
+	.ascii	"node(%s-%d) stream on\000"
 .LC1:
-	.ascii	"%s,%d:node(%s-%d) stream off\000"
+	.ascii	"node(%s-%d) stream off\000"
 .LC2:
-	.ascii	"%s,%d:node(%s-%d) request buf(%d)\000"
+	.ascii	"node(%s-%d) flushing\000"
 .LC3:
-	.ascii	"%s,%d:node(%s-%d) got buf(%d) from pool(%d)\000"
+	.ascii	"unbinding source(%s-%d) sink(%s-%d)\000"
 .LC4:
-	.ascii	"%s,%d:node(%s-%d) flushing\000"
+	.ascii	"bind source(%s-%d) sink(%s-%d)\000"
 .LC5:
-	.ascii	"%s,%d:unbinding source(%s-%d) sink(%s-%d)\000"
-.LC6:
-	.ascii	"%s,%d:bind source(%s-%d) sink(%s-%d)\000"
-.LC7:
 	.ascii	"&x->wait\000"
+.LC6:
+	.ascii	"device(%s) registered\000"
+.LC7:
+	.ascii	"node(%s-%d) add in watcherdepth(%d)\000"
 .LC8:
-	.ascii	"%s,%d:device(%s) registered\000"
+	.ascii	"node(%s-%d) add in filterdepth(%d)\000"
 .LC9:
-	.ascii	"%s,%d:node(%s-%d) add in watcher(%s)\000"
+	.ascii	"node(%s-%d) add out watcherdepth(%d)\000"
 .LC10:
-	.ascii	"%s,%d:node(%s-%d) add in filter(%s)\000"
+	.ascii	"node(%s-%d) add out filterdepth(%d)\000"
 .LC11:
-	.ascii	"%s,%d:node(%s-%d) add out watcher(%s)\000"
+	.ascii	"node(%s-%d) del in watcher\000"
 .LC12:
-	.ascii	"%s,%d:node(%s-%d) add out filter(%s)\000"
+	.ascii	"node(%s-%d) del in filter\000"
 .LC13:
-	.ascii	"%s,%d:node(%s-%d) del in watcher(%s)\000"
+	.ascii	"node(%s-%d) del out watcher\000"
 .LC14:
-	.ascii	"%s,%d:node(%s-%d) del in filter(%s)\000"
+	.ascii	"node(%s-%d) del out filter\000"
 .LC15:
-	.ascii	"%s,%d:node(%s-%d) del out watcher(%s)\000"
+	.ascii	"device(%s) request job\000"
 .LC16:
-	.ascii	"%s,%d:node(%s-%d) del out filter(%s)\000"
+	.ascii	"device(%s) request job for node %d\000"
 .LC17:
-	.ascii	" next\000"
+	.ascii	"node(%s-%d) created\000"
 .LC18:
-	.ascii	"\000"
+	.ascii	"node(%s-%d) destroying\000"
 .LC19:
-	.ascii	"%s,%d:node(%s-%d) got%s input buf(%d)\000"
+	.ascii	"node buf user id error = %d\000"
 .LC20:
-	.ascii	"pick-watcher\000"
+	.ascii	"device(%s) unregistering\000"
 .LC21:
-	.ascii	"%s,%d:node(%s-%d) got%s output buf(%d)\000"
-.LC22:
-	.ascii	"%s,%d:device(%s) request job\000"
-.LC23:
-	.ascii	"%s,%d:device(%s) request job for node %d\000"
-.LC24:
-	.ascii	"%s,%d:node(%s-%d) destroying\000"
-.LC25:
-	.ascii	"%s,%d:node(%s-%d) created\000"
-.LC26:
-	.ascii	"%s,%d:device(%s) unregistering\000"
-.LC27:
 	.ascii	" injected\000"
+.LC22:
+	.ascii	"\000"
+.LC23:
+	.ascii	"node(%s-%d) input buf(%d)%s\000"
+.LC24:
+	.ascii	"\033[1;31mpush in buf queue fail\033[0m\000"
+.LC25:
+	.ascii	" next\000"
+.LC26:
+	.ascii	"current\000"
+.LC27:
+	.ascii	"node(%s-%d) got%s input buf(%d)\000"
 .LC28:
-	.ascii	"%s,%d:node(%s-%d) input buf(%d)%s\000"
+	.ascii	"node(%s-%d) got%s output buf(%d)\000"
 .LC29:
-	.ascii	"%s,%d:node(%s-%d) output buf(%d)%s\000"
+	.ascii	"node(%s-%d) request buf(%d)\000"
 .LC30:
-	.ascii	"%s,%d:buf(%d) available for node(%s-%d)\000"
+	.ascii	"node(%s-%d) got buf(%d) from pool(%d)\000"
 .LC31:
-	.ascii	"version\000"
+	.ascii	"watcher release error node_id = %d\000"
 .LC32:
-	.ascii	"rockit\000"
+	.ascii	"node(%s-%d) output buf(%d)%s\000"
 .LC33:
+	.ascii	"\033[1;31mpush out buf queue fail\033[0m\000"
+.LC34:
+	.ascii	"buf(%d) available for node(%s-%d)\000"
+.LC35:
+	.ascii	"version\000"
+.LC36:
+	.ascii	"rockit\000"
+.LC37:
 	.ascii	"0.1\000"
 	.section	___ksymtab_gpl+mpi_dev_create_node_with_params,"a"
 	.align	2
@@ -3554,6 +4102,14 @@ __ksymtab_mpi_node_flush:
 	.word	mpi_node_flush
 	.word	__kstrtab_mpi_node_flush
 	.word	__kstrtabns_mpi_node_flush
+	.section	___ksymtab_gpl+mpi_node_force_lost_frame,"a"
+	.align	2
+	.type	__ksymtab_mpi_node_force_lost_frame, %object
+	.size	__ksymtab_mpi_node_force_lost_frame, 12
+__ksymtab_mpi_node_force_lost_frame:
+	.word	mpi_node_force_lost_frame
+	.word	__kstrtab_mpi_node_force_lost_frame
+	.word	__kstrtabns_mpi_node_force_lost_frame
 	.section	___ksymtab_gpl+mpi_node_get_in_buffer,"a"
 	.align	2
 	.type	__ksymtab_mpi_node_get_in_buffer, %object
@@ -3586,14 +4142,14 @@ __ksymtab_mpi_node_pick_out_buffer:
 	.word	mpi_node_pick_out_buffer
 	.word	__kstrtab_mpi_node_pick_out_buffer
 	.word	__kstrtabns_mpi_node_pick_out_buffer
-	.section	___ksymtab_gpl+mpi_node_release_buffer,"a"
+	.section	___ksymtab_gpl+mpi_node_release_buffer_flag,"a"
 	.align	2
-	.type	__ksymtab_mpi_node_release_buffer, %object
-	.size	__ksymtab_mpi_node_release_buffer, 12
-__ksymtab_mpi_node_release_buffer:
-	.word	mpi_node_release_buffer
-	.word	__kstrtab_mpi_node_release_buffer
-	.word	__kstrtabns_mpi_node_release_buffer
+	.type	__ksymtab_mpi_node_release_buffer_flag, %object
+	.size	__ksymtab_mpi_node_release_buffer_flag, 12
+__ksymtab_mpi_node_release_buffer_flag:
+	.word	mpi_node_release_buffer_flag
+	.word	__kstrtab_mpi_node_release_buffer_flag
+	.word	__kstrtabns_mpi_node_release_buffer_flag
 	.section	___ksymtab_gpl+mpi_node_request_buf,"a"
 	.align	2
 	.type	__ksymtab_mpi_node_request_buf, %object
@@ -3602,22 +4158,14 @@ __ksymtab_mpi_node_request_buf:
 	.word	mpi_node_request_buf
 	.word	__kstrtab_mpi_node_request_buf
 	.word	__kstrtabns_mpi_node_request_buf
-	.section	___ksymtab_gpl+mpi_node_set_in_frame_rate,"a"
+	.section	___ksymtab_gpl+mpi_node_set_frame_rate,"a"
 	.align	2
-	.type	__ksymtab_mpi_node_set_in_frame_rate, %object
-	.size	__ksymtab_mpi_node_set_in_frame_rate, 12
-__ksymtab_mpi_node_set_in_frame_rate:
-	.word	mpi_node_set_in_frame_rate
-	.word	__kstrtab_mpi_node_set_in_frame_rate
-	.word	__kstrtabns_mpi_node_set_in_frame_rate
-	.section	___ksymtab_gpl+mpi_node_set_out_frame_rate,"a"
-	.align	2
-	.type	__ksymtab_mpi_node_set_out_frame_rate, %object
-	.size	__ksymtab_mpi_node_set_out_frame_rate, 12
-__ksymtab_mpi_node_set_out_frame_rate:
-	.word	mpi_node_set_out_frame_rate
-	.word	__kstrtab_mpi_node_set_out_frame_rate
-	.word	__kstrtabns_mpi_node_set_out_frame_rate
+	.type	__ksymtab_mpi_node_set_frame_rate, %object
+	.size	__ksymtab_mpi_node_set_frame_rate, 12
+__ksymtab_mpi_node_set_frame_rate:
+	.word	mpi_node_set_frame_rate
+	.word	__kstrtab_mpi_node_set_frame_rate
+	.word	__kstrtabns_mpi_node_set_frame_rate
 	.section	___ksymtab_gpl+mpi_node_set_params,"a"
 	.align	2
 	.type	__ksymtab_mpi_node_set_params, %object

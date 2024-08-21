@@ -8,7 +8,10 @@
 
 #pragma pack(4)
 
+#ifndef CAMCALIBDBCONTEXT_T
+#define CAMCALIBDBCONTEXT_T
 typedef void CamCalibDbContext_t;
+#endif
 
 #if 0
 #define RKAIQ_CALIB_GET_HW_VER(ctx) \
@@ -148,7 +151,8 @@ calibdb_get_module_ptr(void* ctx,
                        calibdb_ctx_infos_t* info_array,
                        const char* module_name) {
     calibdb_ctx_infos_t* ctx_info = NULL;
-    for (int i = 0; info_array[i].offset_info != NULL; i++) {
+    int i;
+    for (i = 0; info_array[i].offset_info != NULL; i++) {
         if (g_rkaiq_isp_hw_ver == info_array[i].ver) {
             ctx_info =  &info_array[i];
             break;

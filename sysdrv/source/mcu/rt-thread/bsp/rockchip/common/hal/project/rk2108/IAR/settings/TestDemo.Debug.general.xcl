@@ -1,0 +1,13 @@
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\bin\armproc.dll" 
+
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\bin\armjlink2.dll" 
+
+"\\192.168.0.102\home1\rtos\swallow\bsp\rockchip\common\hal\project\rk2108\IAR\Debug\Exe\TestDemo.out" 
+
+--plugin="C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4\arm\bin\armbat.dll" 
+
+--flash_loader="\\192.168.0.102\home1\rtos\swallow\bsp\rockchip\common\hal\project\rk2108\IAR\FlashRK2108.board" 
+
+
+
+

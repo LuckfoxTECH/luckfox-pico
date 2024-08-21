@@ -481,21 +481,6 @@ static int initr_mmc(void)
 }
 #endif
 
-#ifdef CONFIG_MTD_BLK
-static int initr_mtd_blk(void)
-{
-#ifndef CONFIG_USING_KERNEL_DTB
-	struct blk_desc *dev_desc;
-
-	puts("mtd_blk:   ");
-	dev_desc = rockchip_get_bootdev();
-	if (dev_desc)
-		mtd_blk_map_partitions(dev_desc);
-#endif
-	return 0;
-}
-#endif
-
 #if !defined(CONFIG_USING_KERNEL_DTB) || !defined(CONFIG_ENV_IS_NOWHERE)
 /*
  * Tell if it's OK to load the environment early in boot.
@@ -966,9 +951,6 @@ static init_fnc_t init_sequence_r[] = {
 #endif
 #ifdef CONFIG_CMD_ONENAND
 	initr_onenand,
-#endif
-#ifdef CONFIG_MTD_BLK
-	initr_mtd_blk,
 #endif
 #ifdef CONFIG_MMC
 	initr_mmc,

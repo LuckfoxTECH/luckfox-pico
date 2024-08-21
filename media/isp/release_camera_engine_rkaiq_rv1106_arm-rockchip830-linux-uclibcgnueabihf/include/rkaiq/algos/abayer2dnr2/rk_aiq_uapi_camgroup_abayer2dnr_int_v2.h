@@ -15,20 +15,24 @@
 
 XCamReturn
 rk_aiq_uapi_camgroup_abayer2dnrV2_SetAttrib(RkAiqAlgoContext *ctx,
-                                   rk_aiq_bayer2dnr_attrib_v2_t *attr,
-                                   bool need_sync);
+        rk_aiq_bayer2dnr_attrib_v2_t *attr,
+        bool need_sync);
 
 XCamReturn
 rk_aiq_uapi_camgroup_abayer2dnrV2_GetAttrib(const RkAiqAlgoContext *ctx,
-                                   rk_aiq_bayer2dnr_attrib_v2_t *attr);
+        rk_aiq_bayer2dnr_attrib_v2_t *attr);
 
 XCamReturn
 rk_aiq_uapi_camgroup_abayer2dnrV2_SetStrength(const RkAiqAlgoContext *ctx,
-                                     float fPercent);
+        rk_aiq_bayer2dnr_strength_v2_t *pStrength);
 
 XCamReturn
 rk_aiq_uapi_camgroup_abayer2dnrV2_GetStrength(const RkAiqAlgoContext *ctx,
-                                     float *pPercent);
+        rk_aiq_bayer2dnr_strength_v2_t *pStrength);
+
+XCamReturn
+rk_aiq_uapi_camgroup_abayer2dnrV2_GetInfo(const RkAiqAlgoContext *ctx,
+        rk_aiq_bayer2dnr_info_v2_t *pInfo);
 
 
 

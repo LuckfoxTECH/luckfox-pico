@@ -256,19 +256,20 @@ hal_jpege_init:
 	.save {r4, r5, r6, lr}
 	.pad #16
 	mov	r5, r0
-	ldr	r4, .L74
+	ldr	r4, .L75
 	mov	r6, r1
 	cbnz	r4, .L73
-	movs	r1, #59
-	ldr	r3, .L74+4
+	movs	r1, #39
+	ldr	r3, .L75+4
 	str	r1, [sp]
-	ldr	r2, .L74+8
-	ldr	r0, .L74+12
+	ldr	r2, .L75+8
+	ldr	r0, .L75+12
 	bl	printk
 .L73:
 	ldr	r1, [r4, #8]
-	ldr	r0, .L74+4
+	ldr	r0, .L75+4
 	bl	mpp_osal_calloc
+	cbz	r0, .L74
 	ldr	r3, [r4, #16]
 	mov	r1, r6
 	strd	r4, r0, [r5]
@@ -277,9 +278,14 @@ hal_jpege_init:
 	@ sp needed
 	pop	{r4, r5, r6, lr}
 	bx	r3
-.L75:
-	.align	2
 .L74:
+	mvn	r0, #3
+	add	sp, sp, #16
+	@ sp needed
+	pop	{r4, r5, r6, pc}
+.L76:
+	.align	2
+.L75:
 	.word	hal_jpege_vepu540c
 	.word	.LANCHOR0+17
 	.word	.LC0
@@ -291,13 +297,13 @@ hal_jpege_init:
 	.section	.rodata
 	.align	2
 	.set	.LANCHOR0,. + 0
-	.type	__FUNCTION__.9194, %object
-	.size	__FUNCTION__.9194, 17
-__FUNCTION__.9194:
+	.type	__FUNCTION__.9258, %object
+	.size	__FUNCTION__.9258, 17
+__FUNCTION__.9258:
 	.ascii	"hal_jpege_deinit\000"
-	.type	__FUNCTION__.9184, %object
-	.size	__FUNCTION__.9184, 15
-__FUNCTION__.9184:
+	.type	__FUNCTION__.9248, %object
+	.size	__FUNCTION__.9248, 15
+__FUNCTION__.9248:
 	.ascii	"hal_jpege_init\000"
 	.type	hal_api_jpege_v2, %object
 	.size	hal_api_jpege_v2, 64

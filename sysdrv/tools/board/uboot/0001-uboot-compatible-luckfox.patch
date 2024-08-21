@@ -1,0 +1,172 @@
+From 816477167f7fec38674690a576a9f17100707441 Mon Sep 17 00:00:00 2001
+From: luckfox-eng29 <eng29@luckfox.com>
+Date: Wed, 21 Aug 2024 14:35:48 +0800
+Subject: [PATCH] uboot compatible luckfox
+
+---
+ .../arm/include/asm/arch-rockchip/boot_mode.h |  2 ++
+ .../u-boot/arch/arm/mach-rockchip/boot_mode.c | 19 +++++++++++++++----
+ sysdrv/source/uboot/u-boot/common/autoboot.c  |  3 ++-
+ sysdrv/source/uboot/u-boot/common/image-fit.c | 14 +++++++++++---
+ sysdrv/source/uboot/u-boot/drivers/mmc/mmc.c  |  5 +++++
+ .../source/uboot/u-boot/include/boot_rkimg.h  |  3 ++-
+ 6 files changed, 37 insertions(+), 9 deletions(-)
+
+diff --git a/sysdrv/source/uboot/u-boot/arch/arm/include/asm/arch-rockchip/boot_mode.h b/sysdrv/source/uboot/u-boot/arch/arm/include/asm/arch-rockchip/boot_mode.h
+index 063fd6b47..a34ec828f 100644
+--- a/sysdrv/source/uboot/u-boot/arch/arm/include/asm/arch-rockchip/boot_mode.h
++++ b/sysdrv/source/uboot/u-boot/arch/arm/include/asm/arch-rockchip/boot_mode.h
+@@ -28,6 +28,8 @@
+ /* enter bootrom download mode */
+ #define BOOT_BROM_DOWNLOAD	0xEF08A53C
+ 
++#define BOOT_TO_UBOOT   (REBOOT_FLAG + 16)
++
+ #ifndef __ASSEMBLY__
+ int setup_boot_mode(void);
+ #endif
+diff --git a/sysdrv/source/uboot/u-boot/arch/arm/mach-rockchip/boot_mode.c b/sysdrv/source/uboot/u-boot/arch/arm/mach-rockchip/boot_mode.c
+index 6f4858bba..cd8b65f25 100644
+--- a/sysdrv/source/uboot/u-boot/arch/arm/mach-rockchip/boot_mode.c
++++ b/sysdrv/source/uboot/u-boot/arch/arm/mach-rockchip/boot_mode.c
+@@ -194,7 +194,7 @@ int rockchip_get_boot_mode(void)
+ 			boot_mode[PL] = BOOT_MODE_CHARGING;
+ 			clear_boot_reg = 1;
+ 			break;
+-		case BOOT_PANIC:
++    case BOOT_PANIC:
+ 			printf("boot mode: panic\n");
+ 			boot_mode[PL] = BOOT_MODE_PANIC;
+ 			break;
+@@ -203,9 +203,14 @@ int rockchip_get_boot_mode(void)
+ 			boot_mode[PL] = BOOT_MODE_WATCHDOG;
+ 			break;
+ 		case BOOT_QUIESCENT:
+-			printf("boot mode: quiescent\n");
+-			boot_mode[PL] = BOOT_MODE_QUIESCENT;
+-			break;
++			printf("boot mode: quiescent\n");
++			boot_mode[PL] = BOOT_MODE_QUIESCENT;
++			break;
++    case BOOT_TO_UBOOT:
++      printf("boot mode: uboot\n");
++      boot_mode[PL] = BOOT_MODE_UBOOT_TERMINAL;
++      clear_boot_reg = 1;
++      break;
+ 		default:
+ 			printf("boot mode: None\n");
+ 			boot_mode[PL] = BOOT_MODE_UNDEFINE;
+@@ -231,6 +236,8 @@ int setup_boot_mode(void)
+ {
+ 	char env_preboot[256] = {0};
+ 
++  env_set("cli", NULL); /* removed by default */
++
+ 	switch (rockchip_get_boot_mode()) {
+ 	case BOOT_MODE_BOOTLOADER:
+ 		printf("enter fastboot!\n");
+@@ -263,6 +270,10 @@ int setup_boot_mode(void)
+ 		printf("enter charging!\n");
+ 		env_set("preboot", "setenv preboot; charge");
+ 		break;
++  case BOOT_MODE_UBOOT_TERMINAL:
++    printf("enter uboot!\n");
++    env_set("cli", "yes");
++    break;
+ 	}
+ 
+ 	return 0;
+diff --git a/sysdrv/source/uboot/u-boot/common/autoboot.c b/sysdrv/source/uboot/u-boot/common/autoboot.c
+index c64d566d1..9cf947b98 100644
+--- a/sysdrv/source/uboot/u-boot/common/autoboot.c
++++ b/sysdrv/source/uboot/u-boot/common/autoboot.c
+@@ -220,7 +220,8 @@ static int __abortboot(int bootdelay)
+ #endif
+ 
+ #ifdef CONFIG_ARCH_ROCKCHIP
+-	if (!IS_ENABLED(CONFIG_CONSOLE_DISABLE_CLI) && ctrlc()) {	/* we press ctrl+c ? */
++//	if (!IS_ENABLED(CONFIG_CONSOLE_DISABLE_CLI) && ctrlc()) {	/* we press ctrl+c ? */
++	if ((!IS_ENABLED(CONFIG_CONSOLE_DISABLE_CLI) && ctrlc()) || env_get("cli")) {	/* we press ctrl+c ? */
+ #else
+ 	/*
+ 	 * Check if key already pressed
+diff --git a/sysdrv/source/uboot/u-boot/common/image-fit.c b/sysdrv/source/uboot/u-boot/common/image-fit.c
+index 0ee9eab69..632551b88 100644
+--- a/sysdrv/source/uboot/u-boot/common/image-fit.c
++++ b/sysdrv/source/uboot/u-boot/common/image-fit.c
+@@ -32,6 +32,7 @@ DECLARE_GLOBAL_DATA_PTR;
+ #include <u-boot/sha1.h>
+ #include <u-boot/sha256.h>
+ 
++#define FDT_DEFAULT_LOAD_ADDR 0x00c00000
+ #define __round_mask(x, y) ((__typeof__(x))((y)-1))
+ #define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
+ 
+@@ -2140,7 +2141,13 @@ int fit_image_load_index(bootm_headers_t *images, ulong addr,
+ 	ret = fit_image_select(fit, noffset, images->verify);
+ 	if (ret) {
+ 		bootstage_error(bootstage_id + BOOTSTAGE_SUB_HASH);
+-		return ret;
++		/* Use the memory fdt directly */
++		printf("   Use the memory fdt directly\n");
++		*datap = FDT_DEFAULT_LOAD_ADDR;
++		fit_image_get_data_size(fit, noffset, (int *)&size);
++		*lenp = (ulong)size;
++		return noffset;
++		//return ret;
+ 	}
+ 
+ 	bootstage_mark(bootstage_id + BOOTSTAGE_SUB_CHECK_ARCH);
+@@ -2175,7 +2182,6 @@ int fit_image_load_index(bootm_headers_t *images, ulong addr,
+ 		fit_image_check_os(fit, noffset, IH_OS_ARM_TRUSTED_FIRMWARE) ||
+ 		fit_image_check_os(fit, noffset, IH_OS_OP_TEE) ||
+ 		fit_image_check_os(fit, noffset, IH_OS_U_BOOT) ||
+-		fit_image_check_os(fit, noffset, IH_OS_QNX) ||
+ 		fit_image_check_os(fit, noffset, IH_OS_OPENRTOS);
+ 
+ 	/*
+@@ -2261,8 +2267,10 @@ int fit_image_load_index(bootm_headers_t *images, ulong addr,
+ 			return -EXDEV;
+ 		}
+ 
++		//printf("   Loading %s from 0x%08lx to 0x%08lx\n",
++		//       prop_name, data, load);
+ 		printf("   Loading %s from 0x%08lx to 0x%08lx\n",
+-		       prop_name, data, load);
++		       prop_name, image_start, load);
+ 
+ 		dst = map_sysmem(load, len);
+ 		memmove(dst, buf, len);
+diff --git a/sysdrv/source/uboot/u-boot/drivers/mmc/mmc.c b/sysdrv/source/uboot/u-boot/drivers/mmc/mmc.c
+index 59805d33a..d352b00a3 100644
+--- a/sysdrv/source/uboot/u-boot/drivers/mmc/mmc.c
++++ b/sysdrv/source/uboot/u-boot/drivers/mmc/mmc.c
+@@ -2288,6 +2288,11 @@ int mmc_start_init(struct mmc *mmc)
+ 
+ 	/* Test for SD version 2 */
+ 	err = mmc_send_if_cond(mmc);
++  if (err) {
++    mmc_go_idle(mmc);
++	  mmc_get_blk_desc(mmc)->hwpart = 0;
++	  mmc_send_if_cond(mmc);
++  }
+ 
+ 	/* Now try to get the SD card's operating condition */
+ 	err = sd_send_op_cond(mmc);
+diff --git a/sysdrv/source/uboot/u-boot/include/boot_rkimg.h b/sysdrv/source/uboot/u-boot/include/boot_rkimg.h
+index 9cb709703..fc8356704 100644
+--- a/sysdrv/source/uboot/u-boot/include/boot_rkimg.h
++++ b/sysdrv/source/uboot/u-boot/include/boot_rkimg.h
+@@ -20,7 +20,8 @@ enum _boot_mode {
+ 	BOOT_MODE_WATCHDOG,
+ 	BOOT_MODE_DFU,
+ 	BOOT_MODE_QUIESCENT,
+-	BOOT_MODE_UNDEFINE,
++  BOOT_MODE_UBOOT_TERMINAL,
++  BOOT_MODE_UNDEFINE,
+ };
+ 
+ struct bootloader_message {
+-- 
+2.34.1
+

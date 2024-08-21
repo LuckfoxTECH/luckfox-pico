@@ -1,0 +1,159 @@
+﻿console:/data # cat /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+userspace
+console:/data # cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq
+1800000
+console:/data # cat /sys/class/devfreq/dmc/governor
+userspace
+console:/data # cat /sys/class/devfreq/dmc/cur_freq
+1056000000
+console:/data # 
+console:/data # 
+console:/data # cat /sys/kernel/debug/clk/clk_summary | grep crypto
+                clk_crypto_ns_rng       0        0        0   148500000          0     0  50000
+                hclk_crypto_ns        0        0        0   148500000          0     0  50000
+             clk_crypto_ns_core       0        0        0   198000000          0     0  50000
+                aclk_crypto_ns        0        0        0   198000000          0     0  50000
+             clk_crypto_ns_pka        0        0        0   297000000          0     0  50000
+console:/data # 
+console:/data # 
+console:/data # librkcrypto_test -t
+dma_fd: otpkey  [AES-256]       ECB     ENCRYPT 360MB/s.
+dma_fd: otpkey  [AES-256]       ECB     DECRYPT 360MB/s.
+dma_fd: otpkey  [AES-256]       CBC     ENCRYPT 164MB/s.
+dma_fd: otpkey  [AES-256]       CBC     DECRYPT 360MB/s.
+dma_fd: otpkey  [AES-256]       CTR     ENCRYPT 360MB/s.
+dma_fd: otpkey  [AES-256]       CTR     DECRYPT 360MB/s.
+dma_fd: otpkey  [SM4-128]       ECB     ENCRYPT 297MB/s.
+dma_fd: otpkey  [SM4-128]       ECB     DECRYPT 297MB/s.
+dma_fd: otpkey  [SM4-128]       CBC     ENCRYPT 84MB/s.
+dma_fd: otpkey  [SM4-128]       CBC     DECRYPT 297MB/s.
+dma_fd: otpkey  [SM4-128]       CTR     ENCRYPT 297MB/s.
+dma_fd: otpkey  [SM4-128]       CTR     DECRYPT 297MB/s.
+dma_fd: test otp_key throughput SUCCESS.
+
+virt:   otpkey  [AES-256]       ECB     ENCRYPT 203MB/s.
+virt:   otpkey  [AES-256]       ECB     DECRYPT 202MB/s.
+virt:   otpkey  [AES-256]       CBC     ENCRYPT 122MB/s.
+virt:   otpkey  [AES-256]       CBC     DECRYPT 196MB/s.
+virt:   otpkey  [AES-256]       CTR     ENCRYPT 191MB/s.
+virt:   otpkey  [AES-256]       CTR     DECRYPT 191MB/s.
+virt:   otpkey  [SM4-128]       ECB     ENCRYPT 173MB/s.
+virt:   otpkey  [SM4-128]       ECB     DECRYPT 172MB/s.
+virt:   otpkey  [SM4-128]       CBC     ENCRYPT 70MB/s.
+virt:   otpkey  [SM4-128]       CBC     DECRYPT 172MB/s.
+virt:   otpkey  [SM4-128]       CTR     ENCRYPT 172MB/s.
+virt:   otpkey  [SM4-128]       CTR     DECRYPT 171MB/s.
+virt:   test otp_key throughput SUCCESS.
+
+dma_fd: [DES-64]        ECB     ENCRYPT 299MB/s.
+dma_fd: [DES-64]        ECB     DECRYPT 299MB/s.
+dma_fd: [DES-64]        CBC     ENCRYPT 79MB/s.
+dma_fd: [DES-64]        CBC     DECRYPT 299MB/s.
+dma_fd: [TDES-192]      ECB     ENCRYPT 108MB/s.
+dma_fd: [TDES-192]      ECB     DECRYPT 108MB/s.
+dma_fd: [TDES-192]      CBC     ENCRYPT 28MB/s.
+dma_fd: [TDES-192]      CBC     DECRYPT 108MB/s.
+dma_fd: [AES-256]       ECB     ENCRYPT 457MB/s.
+dma_fd: [AES-256]       ECB     DECRYPT 457MB/s.
+dma_fd: [AES-256]       CBC     ENCRYPT 182MB/s.
+dma_fd: [AES-256]       CBC     DECRYPT 457MB/s.
+dma_fd: [AES-256]       CTS     N/A
+dma_fd: [AES-256]       CTS     N/A
+dma_fd: [AES-256]       CTR     ENCRYPT 404MB/s.
+dma_fd: [AES-256]       CTR     DECRYPT 404MB/s.
+dma_fd: [SM4-128]       ECB     ENCRYPT 332MB/s.
+dma_fd: [SM4-128]       ECB     DECRYPT 332MB/s.
+dma_fd: [SM4-128]       CBC     ENCRYPT 88MB/s.
+dma_fd: [SM4-128]       CBC     DECRYPT 332MB/s.
+dma_fd: [SM4-128]       CTS     N/A
+dma_fd: [SM4-128]       CTS     N/A
+dma_fd: [SM4-128]       CTR     ENCRYPT 303MB/s.
+dma_fd: [SM4-128]       CTR     DECRYPT 303MB/s.
+dma_fd: test cipher throughput SUCCESS.
+
+virt:   [DES-64]        ECB     ENCRYPT 281MB/s.
+virt:   [DES-64]        ECB     DECRYPT 282MB/s.
+virt:   [DES-64]        CBC     ENCRYPT 78MB/s.
+virt:   [DES-64]        CBC     DECRYPT 284MB/s.
+virt:   [TDES-192]      ECB     ENCRYPT 106MB/s.
+virt:   [TDES-192]      ECB     DECRYPT 106MB/s.
+virt:   [TDES-192]      CBC     ENCRYPT 28MB/s.
+virt:   [TDES-192]      CBC     DECRYPT 106MB/s.
+virt:   [AES-256]       ECB     ENCRYPT 422MB/s.
+virt:   [AES-256]       ECB     DECRYPT 422MB/s.
+virt:   [AES-256]       CBC     ENCRYPT 176MB/s.
+virt:   [AES-256]       CBC     DECRYPT 418MB/s.
+virt:   [AES-256]       CTS     N/A
+virt:   [AES-256]       CTS     N/A
+virt:   [AES-256]       CTR     ENCRYPT 376MB/s.
+virt:   [AES-256]       CTR     DECRYPT 376MB/s.
+virt:   [SM4-128]       ECB     ENCRYPT 313MB/s.
+virt:   [SM4-128]       ECB     DECRYPT 311MB/s.
+virt:   [SM4-128]       CBC     ENCRYPT 86MB/s.
+virt:   [SM4-128]       CBC     DECRYPT 310MB/s.
+virt:   [SM4-128]       CTS     N/A
+virt:   [SM4-128]       CTS     N/A
+virt:   [SM4-128]       CTR     ENCRYPT 285MB/s.
+virt:   [SM4-128]       CTR     DECRYPT 285MB/s.
+virt:   test cipher throughput SUCCESS.
+
+dma_fd: [AES-256]       GCM     ENCRYPT 181MB/s.
+dma_fd: [AES-256]       GCM     DECRYPT 181MB/s.
+dma_fd: [SM4-128]       GCM     ENCRYPT 87MB/s.
+dma_fd: [SM4-128]       GCM     DECRYPT 88MB/s.
+dma_fd: test aead throughput SUCCESS.
+
+virt:   [AES-256]       GCM     N/A
+virt:   [SM4-128]       GCM     N/A
+virt:   test aead throughput SUCCESS.
+
+virt:   [         MD5]  179MB/s.
+virt:   [        SHA1]  145MB/s.
+virt:   [      SHA256]  179MB/s.
+virt:   [      SHA224]  179MB/s.
+virt:   [      SHA512]  280MB/s.
+virt:   [      SHA384]  278MB/s.
+virt:   [  SHA512_224]  N/A
+virt:   [  SHA512_256]  N/A
+virt:   [         SM3]  179MB/s.
+virt:   test hash throughput SUCCESS.
+
+dma_fd: [         MD5]  182MB/s.
+dma_fd: [        SHA1]  147MB/s.
+dma_fd: [      SHA256]  182MB/s.
+dma_fd: [      SHA224]  182MB/s.
+dma_fd: [      SHA512]  288MB/s.
+dma_fd: [      SHA384]  288MB/s.
+dma_fd: [  SHA512_224]  N/A
+dma_fd: [  SHA512_256]  N/A
+dma_fd: [         SM3]  182MB/s.
+dma_fd: test hash throughput SUCCESS.
+
+virt:   [    HMAC_MD5]  179MB/s.
+virt:   [   HMAC_SHA1]  145MB/s.
+virt:   [ HMAC_SHA256]  179MB/s.
+virt:   [ HMAC_SHA512]  280MB/s.
+virt:   [    HMAC_SM3]  179MB/s.
+virt:   test hmac throughput SUCCESS.
+
+dma_fd: [    HMAC_MD5]  182MB/s.
+dma_fd: [   HMAC_SHA1]  147MB/s.
+dma_fd: [ HMAC_SHA256]  182MB/s.
+dma_fd: [ HMAC_SHA512]  288MB/s.
+dma_fd: [    HMAC_SM3]  182MB/s.
+dma_fd: test hmac throughput SUCCESS.
+
+virt:   [RSA-1024]      PRIV    ENCRYPT 21ms.
+virt:   [RSA-1024]      PUB     DECRYPT 6ms.
+virt:   [RSA-2048]      PRIV    ENCRYPT 116ms.
+virt:   [RSA-2048]      PUB     DECRYPT 9ms.
+virt:   [RSA-3072]      PRIV    ENCRYPT 346ms.
+virt:   [RSA-3072]      PUB     DECRYPT 31ms.
+virt:   [RSA-4096]      PRIV    ENCRYPT 772ms.
+virt:   [RSA-4096]      PUB     DECRYPT 64ms.
+test rsa throughput SUCCESS.
+
+Test throughput SUCCESS.
+
+######## Test done ########
+console:/data # 

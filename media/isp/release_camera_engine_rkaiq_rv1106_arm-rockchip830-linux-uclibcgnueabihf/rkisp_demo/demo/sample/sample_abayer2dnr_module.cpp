@@ -772,7 +772,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
         ret = rk_aiq_user_api2_abayer2dnrV2_GetAttrib(ctx, &default_bayer2dnrV2_attr);
         printf("get abayer2dnr v2 default auto attri ret:%d \n\n", ret);
     }
-    if (CHECK_ISP_HW_V32()) {
+    if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
         ret = rk_aiq_user_api2_abayer2dnrV23_GetAttrib(ctx, &default_bayer2dnrV23_attr);
         printf("get abayer2dnr v23 default auto attri ret:%d \n\n", ret);
     }
@@ -790,7 +790,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayer2dnr_getAttri_v2(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_getAttri_v23(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
@@ -798,7 +798,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayer2dnr_getStrength_v2(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_getStrength_v23(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
@@ -807,7 +807,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
                 sample_abayer2dnr_setAuto_v2(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
 
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_setAuto_v23(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
@@ -816,7 +816,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
                 sample_abayer2dnr_setManual_v2(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
 
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_setManual_v23(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
@@ -824,7 +824,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayer2dnr_setReg_v2(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_setReg_v23(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
@@ -832,7 +832,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayer2dnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_SYNC, 1.0);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_setStrength_v23(ctx, RK_AIQ_UAPI_MODE_SYNC, 1.0);
             }
             break;
@@ -840,7 +840,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayer2dnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_SYNC, 0.0);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_setStrength_v23(ctx, RK_AIQ_UAPI_MODE_SYNC, 0.0);
             }
             break;
@@ -848,7 +848,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayer2dnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_SYNC, 0.5);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_setStrength_v23(ctx, RK_AIQ_UAPI_MODE_SYNC, 0.5);
             }
             break;
@@ -856,7 +856,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayer2dnr_setDefault_v2(ctx, RK_AIQ_UAPI_MODE_SYNC, default_bayer2dnrV2_attr);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_setDefault_v23(ctx, RK_AIQ_UAPI_MODE_SYNC, default_bayer2dnrV23_attr);
             }
             break;
@@ -864,7 +864,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayer2dnr_getAttri_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_getAttri_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
             break;
@@ -872,7 +872,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayer2dnr_getStrength_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_getStrength_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
             break;
@@ -881,7 +881,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
                 sample_abayer2dnr_setAuto_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
 
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_setAuto_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
 
@@ -891,7 +891,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
                 sample_abayer2dnr_setManual_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
 
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_setManual_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
 
@@ -901,7 +901,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayer2dnr_setReg_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_setReg_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
             break;
@@ -909,7 +909,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayer2dnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC, 1.0);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_setStrength_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC, 1.0);
             }
             break;
@@ -917,7 +917,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayer2dnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC, 0.0);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_setStrength_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC, 0.0);
             }
             break;
@@ -925,7 +925,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayer2dnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC, 0.5);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_setStrength_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC, 0.5);
             }
             break;
@@ -933,7 +933,7 @@ XCamReturn sample_abayer2dnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayer2dnr_setDefault_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC, default_bayer2dnrV2_attr);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayer2dnr_setDefault_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC, default_bayer2dnrV23_attr);
             }
             break;

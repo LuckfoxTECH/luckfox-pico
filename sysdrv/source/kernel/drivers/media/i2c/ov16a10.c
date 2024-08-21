@@ -1185,9 +1185,7 @@ static int ov16a10_g_frame_interval(struct v4l2_subdev *sd,
 	struct ov16a10 *ov16a10 = to_ov16a10(sd);
 	const struct ov16a10_mode *mode = ov16a10->cur_mode;
 
-	mutex_lock(&ov16a10->mutex);
 	fi->interval = mode->max_fps;
-	mutex_unlock(&ov16a10->mutex);
 
 	return 0;
 }
@@ -1601,9 +1599,7 @@ static int ov16a10_enum_frame_interval(struct v4l2_subdev *sd,
 	if (fie->index >= ARRAY_SIZE(supported_modes))
 		return -EINVAL;
 
-	if (fie->code != OV16A10_MEDIA_BUS_FMT)
-		return -EINVAL;
-
+	fie->code = OV16A10_MEDIA_BUS_FMT;
 	fie->width = supported_modes[fie->index].width;
 	fie->height = supported_modes[fie->index].height;
 	fie->interval = supported_modes[fie->index].max_fps;

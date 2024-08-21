@@ -16,6 +16,7 @@ typedef enum AdebayerHwVersion_e
 {
     ADEBAYER_HARDWARE_V1 = 0,  // rk1126/1109/356X/3588
     ADEBAYER_HARDWARE_V2 = 1,  //rk1106
+    ADEBAYER_HARDWARE_V2_LITE = 2,  //rk3562
     ADEBAYER_HARDWARE_MAX,
 } AdebayerHwVersion_t;
 
@@ -85,12 +86,37 @@ typedef struct AdebayerSeletedParamV2_s {
 
 } AdebayerSeletedParamV2_t;
 
+typedef struct AdebayerSeletedParamV2Lite_s {
+    bool debayer_en;
+
+    //filter coef
+    int lowfreq_filter1[4];
+    int highfreq_filter2[4];
+
+    //g_interp
+    unsigned char debayer_clip_en;
+    unsigned short debayer_gain_offset;
+    unsigned char debayer_max_ratio;
+
+    //g_drctwgt
+    unsigned short debayer_hf_offset;
+    unsigned char debayer_thed0;
+    unsigned char debayer_thed1;
+    unsigned char debayer_dist_scale;
+    unsigned char debayer_select_thed;
+
+    //g_filter
+    unsigned char debayer_gfilter_en;
+    unsigned short debayer_gfilter_offset;
+
+} AdebayerSeletedParamV2Lite_t;
+
 typedef struct AdebayerProcResultV1_s {
-    AdebayerHwConfigV1_t config;
+    AdebayerHwConfigV1_t* config;
 } AdebayerProcResultV1_t;
 
 typedef struct AdebayerProcResultV2_s {
-    AdebayerHwConfigV2_t config;
+    AdebayerHwConfigV2_t* config;
 } AdebayerProcResultV2_t;
 
 #endif//__RKAIQ_TYPES_ADEBAYER_ALGO_INT_H__

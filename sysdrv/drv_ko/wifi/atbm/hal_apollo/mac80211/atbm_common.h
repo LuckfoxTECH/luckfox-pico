@@ -37,6 +37,25 @@ typedef struct atbm_private_data{
 	char user_data[USER_DATE_LEN+1];
 }ATBM_PRIVATE_DATA;
 
+/************** 6441 ***************************/
+
+struct atbm_vendor_cfg_ie{
+	u8 ie_id;
+	u8 ie_len;
+	u8 OUI[4];
+	u8 ssid_len;
+	u8 password_len;
+	u8 ssid[32];
+	u8 password[64];
+};	
+#define ATBM_6441_PRIVATE_OUI 0x4154424d
+
+
+
+
+
+/*****************************************/
+
 
 #define AP_SCAN_NUM_MAX 32 //ap number per channel
 #ifdef CONFIG_ATBM_5G_PRETEND_2G

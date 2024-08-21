@@ -2,6 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 #include "common.h"
+#include "version.h"
+
+#ifdef LOG_TAG
+#undef LOG_TAG
+#endif
+#define LOG_TAG "common.c"
 
 typedef struct rk_signal_t {
 	sem_t sem;
@@ -107,10 +113,10 @@ void rk_signal_reset(void *sem) { rk_signal_give(sem); }
 long long rkipc_get_curren_time_ms() {
 	long long msec = 0;
 	char str[20] = {0};
-	struct timeval stuCurrentTime;
+	struct timespec current_time = {0, 0};
 
-	gettimeofday(&stuCurrentTime, NULL);
-	sprintf(str, "%ld%03ld", stuCurrentTime.tv_sec, (stuCurrentTime.tv_usec) / 1000);
+	clock_gettime(CLOCK_MONOTONIC, &current_time);
+	sprintf(str, "%ld%03ld", current_time.tv_sec, (current_time.tv_nsec) / 1000000);
 	for (size_t i = 0; i < strlen(str); i++) {
 		msec = msec * 10 + (str[i] - '0');
 	}
@@ -166,4 +172,10 @@ long get_cmd_val(const char *string, int len) {
 		printf("get %s value: 0x%0lx\n", string, value);
 	}
 	return value;
+}
+
+void rkipc_version_dump() {
+	LOG_INFO("rkipc version: %s\n", RKIPC_VERSION_INFO);
+	LOG_INFO("rkipc info: %s\n", RKIPC_BUILD_INFO);
+	LOG_INFO("rkipc type: %s\n", RKIPC_TYPE);
 }

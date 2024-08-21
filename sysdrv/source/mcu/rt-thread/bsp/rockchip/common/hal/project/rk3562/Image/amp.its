@@ -1,0 +1,93 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright (c) 2023 Rockchip Electronics Co., Ltd.
+ */
+
+/dts-v1/;
+/ {
+	description = "FIT source file for rockchip AMP";
+	#address-cells = <1>;
+
+	images {
+
+		amp0 {
+			description  = "bare-mental-core0";
+			data         = /incbin/("hal0.bin");
+			type         = "firmware";
+			compression  = "none";
+			arch         = "arm";	 // "arm64" or "arm"
+			cpu          = <0x0>;    // mpidr
+			thumb        = <0>;      // 0: arm or thumb2; 1: thumb
+			hyp          = <0>;      // 0: el1/svc; 1: el2/hyp
+			load         = <0x02000000>;
+			udelay       = <10000>;
+			hash {
+				algo = "sha256";
+			};
+		};
+
+		amp1 {
+			description  = "bare-mental-core1";
+			data         = /incbin/("hal1.bin");
+			type         = "firmware";
+			compression  = "none";
+			arch         = "arm";
+			cpu          = <0x1>;
+			thumb        = <0>;
+			hyp          = <0>;
+			load         = <0x00800000>;
+			udelay       = <10000>;
+			hash {
+				algo = "sha256";
+			};
+		};
+
+		amp2 {
+			description  = "bare-mental-core2";
+			data         = /incbin/("hal2.bin");
+			type         = "firmware";
+			compression  = "none";
+			arch         = "arm";
+			cpu          = <0x2>;
+			thumb        = <0>;
+			hyp          = <0>;
+			load         = <0x01000000>;
+			udelay       = <10000>;
+			hash {
+				algo = "sha256";
+			};
+		};
+
+		amp3 {
+			description  = "bare-mental-core3";
+			data         = /incbin/("hal3.bin");
+			type         = "firmware";
+			compression  = "none";
+			arch         = "arm";
+			cpu          = <0x3>;
+			thumb        = <0>;
+			hyp          = <0>;
+			load         = <0x01800000>;
+			udelay       = <10000>;
+			hash {
+				algo = "sha256";
+			};
+		};
+	};
+
+	configurations {
+		default = "conf";
+		conf {
+			description = "Rockchip AMP images";
+			rollback-index = <0x0>;
+			loadables = "amp0", "amp1", "amp2", "amp3";
+
+			signature {
+				algo = "sha256,rsa2048";
+				padding = "pss";
+				key-name-hint = "dev";
+				sign-images = "loadables";
+			};
+		};
+	};
+};

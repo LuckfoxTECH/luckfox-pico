@@ -27,6 +27,7 @@
 #include "RkAiqCalibDbTypes.h"
 #include "aynr3/rk_aiq_types_aynr_algo_v3.h"
 #include "ynr_head_v3.h"
+#include "ynr_uapi_head_v3.h"
 
 
 //RKAIQ_BEGIN_DECLARE
@@ -34,8 +35,6 @@
 
 
 #define AYNRV3_RECALCULATE_DELTA_ISO       (10)
-#define YNR_V3_ISO_CURVE_POINT_BIT          4
-#define YNR_V3_ISO_CURVE_POINT_NUM          ((1 << YNR_V3_ISO_CURVE_POINT_BIT)+1)
 #define YNR_V3_SIGMA_BITS                  10
 #define YNR_V3_NOISE_SIGMA_FIX_BIT              3
 #define LOG2(x)                             (log((double)x)                 / log((double)2))
@@ -80,17 +79,9 @@ typedef enum Aynr_ParamMode_V3_e {
     AYNRV3_PARAM_MODE_MAX                                      /**< max */
 } Aynr_ParamMode_V3_t;
 
-typedef struct Aynr_ExpInfo_V3_s {
-    int hdr_mode;
-    float arTime[3];
-    float arAGain[3];
-    float arDGain[3];
-    int   arIso[3];
-    int   snr_mode;
-    int rawWidth;
-    int rawHeight;
-} Aynr_ExpInfo_V3_t;
 
+
+#if 0
 typedef struct RK_YNR_Params_V3_Select_s
 {
     int enable;
@@ -141,16 +132,20 @@ typedef struct RK_YNR_Params_V3_Select_s
     float ynr_adjust_thresh;
     float ynr_adjust_scale;
 } RK_YNR_Params_V3_Select_t;
+#endif
 
-
+typedef struct RK_YNR_Sigma_formula_s {
+    double sigma_curve[5];
+} RK_YNR_Sigma_formula_t;
 
 typedef struct RK_YNR_Params_V3_s
 {
     int enable;
+    bool sigma_use_point;
     char version[64];
     float iso[RK_YNR_V3_MAX_ISO_NUM];
     RK_YNR_Params_V3_Select_t arYnrParamsISO[RK_YNR_V3_MAX_ISO_NUM];
-
+    RK_YNR_Sigma_formula_t arSigmaFormulaISO[RK_YNR_V3_MAX_ISO_NUM];
 } RK_YNR_Params_V3_t;
 
 
@@ -174,13 +169,10 @@ typedef struct Aynr_Auto_Attr_V3_s
 typedef struct Aynr_ProcResult_V3_s {
 
     //for sw simultaion
-    RK_YNR_Params_V3_Select_t stSelect;
+    RK_YNR_Params_V3_Select_t* stSelect;
 
     //for hw register
-    RK_YNR_Fix_V3_t stFix;
-
-    bool isNeedUpdate;
-
+    RK_YNR_Fix_V3_t* stFix;
 } Aynr_ProcResult_V3_t;
 
 
@@ -219,6 +211,7 @@ typedef struct rk_aiq_ynr_strength_v3_s {
     rk_aiq_uapi_sync_t sync;
 
     float percent;
+    bool strength_enable;
 } rk_aiq_ynr_strength_v3_t;
 
 

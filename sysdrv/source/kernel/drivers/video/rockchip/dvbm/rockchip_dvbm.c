@@ -252,8 +252,8 @@ static int rk_dvbm_setup_iobuf(struct dvbm_ctx *ctx)
 	ctx->isp_frm_info.line_cnt = 0;
 	ctx->isp_frm_info.max_line_cnt = ALIGN(ctx->isp_max_lcnt, 32);
 	ctx->isp_frm_info.wrap_line = ctx->wrap_line;
-	dvbm_debug("dma_addr 0x%08x y_lstd %d y_fstd %d\n",
-		   cfg->dma_addr, cfg->ybuf_lstd, cfg->ybuf_fstd);
+	dvbm_debug("chan_id %d dma_addr %pad y_lstd %d y_fstd %d\n",
+		   cfg->chan_id, &cfg->dma_addr, cfg->ybuf_lstd, cfg->ybuf_fstd);
 	dvbm_debug("ybot 0x%x top 0x%x cbuf bot 0x%x top 0x%x\n",
 		   addr_base->ybuf_bot, addr_base->ybuf_top,
 		   addr_base->cbuf_bot, addr_base->cbuf_top);
@@ -463,11 +463,27 @@ int rk_dvbm_ctrl(struct dvbm_port *port, enum dvbm_cmd cmd, void *arg)
 	switch (cmd) {
 	case DVBM_ISP_SET_CFG: {
 		struct dvbm_isp_cfg_t *cfg = (struct dvbm_isp_cfg_t *)arg;
+		struct dvbm_addr_cfg *dvbm_adr;
+		u32 chan_id = cfg->chan_id;
+
+		if (chan_id >= DVBM_CHANNEL_NUM) {
+			dvbm_err("%s cmd %d chan id %d is invalid\n", __func__, cmd, chan_id);
+			return -EINVAL;
+		}
 
 		memcpy(&ctx->isp_cfg, cfg, sizeof(struct dvbm_isp_cfg_t));
 		rk_dvbm_setup_iobuf(ctx);
 		init_isp_infos(ctx);
 		rk_dvbm_update_next_adr(ctx);
+
+		dvbm_adr = &ctx->dvbm_addr[chan_id];
+		dvbm_adr->chan_id   = chan_id;
+		dvbm_adr->ybuf_bot  = cfg->dma_addr + cfg->ybuf_bot;
+		dvbm_adr->ybuf_top  = cfg->dma_addr + cfg->ybuf_top;
+		dvbm_adr->ybuf_sadr = cfg->dma_addr + cfg->ybuf_bot;
+		dvbm_adr->cbuf_bot  = cfg->dma_addr + cfg->cbuf_bot;
+		dvbm_adr->cbuf_top  = cfg->dma_addr + cfg->cbuf_top;
+		dvbm_adr->cbuf_sadr = cfg->dma_addr + cfg->cbuf_bot;
 	} break;
 	case DVBM_ISP_FRM_START: {
 		rk_dvbm_update_isp_frm_info(ctx, 0);
@@ -504,17 +520,14 @@ int rk_dvbm_ctrl(struct dvbm_port *port, enum dvbm_cmd cmd, void *arg)
 	} break;
 	case DVBM_VEPU_GET_ADR: {
 		struct dvbm_addr_cfg *dvbm_adr = (struct dvbm_addr_cfg *)arg;
-		struct rk_dvbm_base *addr_base = &reg->addr_base;
+		u32 chan_id = dvbm_adr->chan_id;
 
-		dvbm_adr->ybuf_top = addr_base->ybuf_top;
-		dvbm_adr->ybuf_bot = addr_base->ybuf_bot;
-		dvbm_adr->cbuf_top = addr_base->cbuf_top;
-		dvbm_adr->cbuf_bot = addr_base->cbuf_bot;
-		dvbm_adr->cbuf_sadr = ctx->vepu_cfg.cbuf_sadr;
-		dvbm_adr->ybuf_sadr = ctx->vepu_cfg.ybuf_sadr;
-		dvbm_adr->overflow = ctx->isp_frm_info.line_cnt >= ctx->wrap_line;
-		dvbm_adr->frame_id = ctx->isp_frm_info.frame_cnt;
-		dvbm_adr->line_cnt = ctx->isp_frm_info.line_cnt;
+		if (chan_id >= DVBM_CHANNEL_NUM) {
+			dvbm_err("%s cmd %d chan id %d is invalid\n", __func__, cmd, chan_id);
+			return -EINVAL;
+		}
+
+		*dvbm_adr = ctx->dvbm_addr[chan_id];
 	} break;
 	case DVBM_VEPU_GET_FRAME_INFO: {
 		memcpy(arg, &ctx->isp_frm_info, sizeof(struct dvbm_isp_frm_info));

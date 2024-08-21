@@ -39,9 +39,8 @@
 #define DOWNLOAD_DTCM_SIZE		(48*1024)
 
 
-//#define DOWNLOAD_BLOCK_SIZE		(128)
+#define DOWNLOAD_BLOCK_SIZE		(128)
 
-#define DOWNLOAD_BLOCK_SIZE		(508)
 
 
 

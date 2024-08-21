@@ -23,10 +23,10 @@
 #define BOOT_UMS		(REBOOT_FLAG + 12)
 /* enter dfu download mode */
 #define BOOT_DFU                (REBOOT_FLAG + 13)
+/* reboot system quiescent */
+#define BOOT_QUIESCENT		(REBOOT_FLAG + 14)
 /* enter bootrom download mode */
 #define BOOT_BROM_DOWNLOAD	0xEF08A53C
-
-#define BOOT_TO_UBOOT (REBOOT_FLAG + 14)
 
 #ifndef __ASSEMBLY__
 int setup_boot_mode(void);

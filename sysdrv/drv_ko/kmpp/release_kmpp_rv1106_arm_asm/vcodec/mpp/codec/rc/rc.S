@@ -109,7 +109,7 @@ rc_init:
 .L9:
 	mov	r3, #-1
 	strd	r5, r6, [r4]
-	str	r3, [r4, #284]
+	str	r3, [r4, #308]
 	cmp	r8, #0
 	beq	.L18
 	ldr	r5, [r8]
@@ -128,7 +128,7 @@ rc_init:
 	ldr	r1, [r6, #8]
 	ldr	r0, .L38+24
 	bl	mpp_osal_calloc
-	mov	r1, #296
+	mov	r1, #320
 	mov	r5, r0
 	ldr	r0, .L38+24
 	bl	mpp_osal_calloc
@@ -270,9 +270,9 @@ rc_update_usr_cfg:
 	add	r8, r6, #8
 	mov	r1, r4
 	adds	r4, r4, #12
-	movs	r2, #252
+	mov	r2, #276
 	mov	r0, r8
-	add	r5, r6, #260
+	add	r5, r6, #284
 	bl	memcpy
 	ldmia	r4!, {r0, r1, r2, r3}
 	stmia	r5!, {r0, r1, r2, r3}
@@ -348,12 +348,12 @@ rc_frm_check_drop:
 	pop	{r4, r5, r6, r7, r8, r9, lr}
 	bx	r3
 .L86:
-	ldr	r3, [r4, #264]
-	ldr	r6, [r4, #280]
-	ldr	r2, [r4, #268]
-	ldr	r5, [r4, #284]
+	ldr	r3, [r4, #288]
+	ldr	r6, [r4, #304]
+	ldr	r2, [r4, #292]
+	ldr	r5, [r4, #308]
 	muls	r6, r3, r6
-	ldr	r3, [r4, #276]
+	ldr	r3, [r4, #300]
 	cmp	r2, #0
 	mul	r7, r3, r2
 	bgt	.L87
@@ -364,7 +364,7 @@ rc_frm_check_drop:
 	ldr	r0, .L111+20
 	bl	printk
 .L87:
-	ldr	r3, [r4, #280]
+	ldr	r3, [r4, #304]
 	cmp	r3, #0
 	bgt	.L88
 	movs	r1, #184
@@ -390,7 +390,7 @@ rc_frm_check_drop:
 	cmp	r6, r5
 	it	le
 	suble	r5, r5, r6
-	str	r5, [r4, #284]
+	str	r5, [r4, #308]
 	ldrb	r3, [r9, #156]	@ zero_extendqisi2
 	ite	le
 	movle	r2, #0
@@ -584,33 +584,33 @@ rc_proc_show:
 	.size	default_rc_api, 8
 default_rc_api:
 	.ascii	"default\000"
-	.type	__func__.18845, %object
-	.size	__func__.18845, 8
-__func__.18845:
+	.type	__func__.18911, %object
+	.size	__func__.18911, 8
+__func__.18911:
 	.ascii	"rc_init\000"
-	.type	__FUNCTION__.18849, %object
-	.size	__FUNCTION__.18849, 8
-__FUNCTION__.18849:
+	.type	__FUNCTION__.18915, %object
+	.size	__FUNCTION__.18915, 8
+__FUNCTION__.18915:
 	.ascii	"rc_init\000"
-	.type	__func__.18859, %object
-	.size	__func__.18859, 10
-__func__.18859:
+	.type	__func__.18925, %object
+	.size	__func__.18925, 10
+__func__.18925:
 	.ascii	"rc_deinit\000"
-	.type	__FUNCTION__.18860, %object
-	.size	__FUNCTION__.18860, 10
-__FUNCTION__.18860:
+	.type	__FUNCTION__.18926, %object
+	.size	__FUNCTION__.18926, 10
+__FUNCTION__.18926:
 	.ascii	"rc_deinit\000"
-	.type	__func__.18868, %object
-	.size	__func__.18868, 18
-__func__.18868:
+	.type	__func__.18934, %object
+	.size	__func__.18934, 18
+__func__.18934:
 	.ascii	"rc_update_usr_cfg\000"
-	.type	__func__.18876, %object
-	.size	__func__.18876, 18
-__func__.18876:
+	.type	__func__.18942, %object
+	.size	__func__.18942, 18
+__func__.18942:
 	.ascii	"rc_frm_check_drop\000"
-	.type	__FUNCTION__.18882, %object
-	.size	__FUNCTION__.18882, 18
-__FUNCTION__.18882:
+	.type	__FUNCTION__.18948, %object
+	.size	__FUNCTION__.18948, 18
+__FUNCTION__.18948:
 	.ascii	"rc_frm_check_drop\000"
 	.type	__param_str_rc_debug, %object
 	.size	__param_str_rc_debug, 20

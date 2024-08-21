@@ -83,7 +83,7 @@ void StreamURLApiHandler::handler(const HttpRequest &Req, HttpResponse &Resp) {
     for (int i = 0; i < stream_url_config.size(); i++) {
       std::string url;
       std::string stream_type;
-      char *stream_protocol = new char[20];
+      char *stream_protocol = new char[32];
 
       if (i == 0)
         stream_type = "mainstream";

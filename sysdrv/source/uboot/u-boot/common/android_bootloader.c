@@ -18,6 +18,7 @@
 #include <dt_table.h>
 #include <image-android-dt.h>
 #include <malloc.h>
+#include <mp_boot.h>
 #include <fdt_support.h>
 #include <fs.h>
 #include <boot_rkimg.h>
@@ -497,12 +498,15 @@ bail:
 	return size;
 }
 
+static struct AvbOpsData preload_user_data;
+
 static int avb_image_distribute_prepare(AvbSlotVerifyData *slot_data,
 					AvbOps *ops, char *slot_suffix)
 {
 	struct AvbOpsData *data = (struct AvbOpsData *)(ops->user_data);
 	size_t vendor_boot_size;
 	size_t init_boot_size;
+	size_t resource_size;
 	size_t boot_size;
 	void *image_buf;
 
@@ -512,14 +516,17 @@ static int avb_image_distribute_prepare(AvbSlotVerifyData *slot_data,
 				ANDROID_PARTITION_INIT_BOOT, slot_suffix);
 	vendor_boot_size = get_partition_size(ops,
 				ANDROID_PARTITION_VENDOR_BOOT, slot_suffix);
+	resource_size = get_partition_size(ops,
+				ANDROID_PARTITION_RESOURCE, slot_suffix);
 	image_buf = sysmem_alloc(MEM_AVB_ANDROID,
-				 boot_size + init_boot_size + vendor_boot_size);
+				 boot_size + init_boot_size +
+				 vendor_boot_size + resource_size);
 	if (!image_buf) {
 		printf("avb: sysmem alloc failed\n");
-		return -1;
+		return -ENOMEM;
 	}
 
-	data = (struct AvbOpsData *)(ops->user_data);
+	/* layout: | boot/recovery | vendor_boot | init_boot | resource | */
 	data->slot_suffix = slot_suffix;
 	data->boot.addr = image_buf;
 	data->boot.size = 0;
@@ -527,6 +534,8 @@ static int avb_image_distribute_prepare(AvbSlotVerifyData *slot_data,
 	data->vendor_boot.size = 0;
 	data->init_boot.addr = data->vendor_boot.addr + vendor_boot_size;
 	data->init_boot.size = 0;
+	data->resource.addr = data->init_boot.addr + init_boot_size;
+	data->resource.size = 0;
 
 	return 0;
 }
@@ -572,13 +581,13 @@ static int avb_image_distribute_finish(AvbSlotVerifyData *slot_data,
 	    !(flags & AVB_SLOT_VERIFY_FLAGS_ALLOW_VERIFICATION_ERROR)) {
 		hdr = malloc(sizeof(struct andr_img_hdr));
 		if (!hdr)
-			return -1;
+			return -ENOMEM;
 
 		ret = populate_boot_info(boot_hdr, vendor_boot_hdr,
 					 init_boot_hdr, hdr, true);
 		if (ret < 0) {
 			printf("avb: populate boot info failed, ret=%d\n", ret);
-			return -1;
+			return ret;
 		}
 		memcpy(boot_hdr, hdr, sizeof(*hdr));
 	}
@@ -591,6 +600,117 @@ static int avb_image_distribute_finish(AvbSlotVerifyData *slot_data,
 	}
 
 	*load_address = load_addr;
+
+	return 0;
+}
+
+int android_image_verify_resource(const char *boot_part, ulong *resc_buf)
+{
+	const char *requested_partitions[] = {
+		NULL,
+		NULL,
+	};
+	struct AvbOpsData *data;
+	uint8_t unlocked = true;
+	AvbOps *ops;
+	AvbSlotVerifyFlags flags;
+	AvbSlotVerifyData *slot_data = {NULL};
+	AvbSlotVerifyResult verify_result;
+	char slot_suffix[3] = {0};
+	char *part_name;
+	void *image_buf = NULL;
+	int retry_no_vbmeta_partition = 1;
+	int i, ret;
+
+	ops = avb_ops_user_new();
+	if (ops == NULL) {
+		printf("avb_ops_user_new() failed!\n");
+		return -AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
+	}
+
+	if (ops->read_is_device_unlocked(ops, (bool *)&unlocked) != AVB_IO_RESULT_OK)
+		printf("Error determining whether device is unlocked.\n");
+
+	printf("Device is: %s\n", (unlocked & LOCK_MASK)? "UNLOCKED" : "LOCKED");
+
+	if (unlocked & LOCK_MASK) {
+		*resc_buf = 0;
+		return 0;
+	}
+
+	flags = AVB_SLOT_VERIFY_FLAGS_NONE;
+	if (strcmp(boot_part, ANDROID_PARTITION_RECOVERY) == 0)
+		flags |= AVB_SLOT_VERIFY_FLAGS_NO_VBMETA_PARTITION;
+
+#ifdef CONFIG_ANDROID_AB
+	part_name = strdup(boot_part);
+	*(part_name + strlen(boot_part) - 2) = '\0';
+	requested_partitions[0] = part_name;
+
+	ret = rk_avb_get_current_slot(slot_suffix);
+	if (ret) {
+		printf("Failed to get slot suffix, ret=%d\n", ret);
+		return ret;
+	}
+#else
+	requested_partitions[0] = boot_part;
+#endif
+	data = (struct AvbOpsData *)(ops->user_data);
+	ret = avb_image_distribute_prepare(slot_data, ops, slot_suffix);
+	if (ret) {
+		printf("avb image distribute prepare failed %d\n", ret);
+		return ret;
+	}
+
+retry_verify:
+	verify_result =
+	avb_slot_verify(ops,
+			requested_partitions,
+			slot_suffix,
+			flags,
+			AVB_HASHTREE_ERROR_MODE_RESTART,
+			&slot_data);
+	if (verify_result != AVB_SLOT_VERIFY_RESULT_OK &&
+	    verify_result != AVB_SLOT_VERIFY_RESULT_ERROR_PUBLIC_KEY_REJECTED) {
+		if (retry_no_vbmeta_partition && strcmp(boot_part, ANDROID_PARTITION_RECOVERY) == 0) {
+			printf("Verify recovery with vbmeta.\n");
+			flags &= ~AVB_SLOT_VERIFY_FLAGS_NO_VBMETA_PARTITION;
+			retry_no_vbmeta_partition = 0;
+			goto retry_verify;
+		}
+	}
+
+	if (verify_result != AVB_SLOT_VERIFY_RESULT_OK || !slot_data) {
+		sysmem_free((ulong)data->boot.addr);
+		return verify_result;
+	}
+
+	for (i = 0; i < slot_data->num_loaded_partitions; i++) {
+		part_name = slot_data->loaded_partitions[i].partition_name;
+		if (!strncmp(ANDROID_PARTITION_RESOURCE, part_name, 8)) {
+			image_buf = slot_data->loaded_partitions[i].data;
+			break;
+		} else if (!strncmp(ANDROID_PARTITION_BOOT, part_name, 4) ||
+			   !strncmp(ANDROID_PARTITION_RECOVERY, part_name, 8)) {
+			struct andr_img_hdr *hdr;
+
+			hdr = (void *)slot_data->loaded_partitions[i].data;
+			if (android_image_check_header(hdr))
+				continue;
+
+			if (hdr->header_version <= 2) {
+				image_buf = (void *)hdr + hdr->page_size +
+					ALIGN(hdr->kernel_size, hdr->page_size) +
+					ALIGN(hdr->ramdisk_size, hdr->page_size);
+				break;
+			}
+		}
+	}
+
+	if (image_buf) {
+		memcpy((char *)&preload_user_data, (char *)data, sizeof(*data));
+		*resc_buf = (ulong)image_buf;
+	}
 
 	return 0;
 }
@@ -634,6 +754,7 @@ static AvbSlotVerifyResult android_slot_verify(char *boot_partname,
 		NULL,
 		NULL,
 	};
+	struct AvbOpsData *data;
 	struct blk_desc *dev_desc;
 	struct andr_img_hdr *hdr;
 	disk_partition_t part_info;
@@ -662,7 +783,7 @@ static AvbSlotVerifyResult android_slot_verify(char *boot_partname,
 	hdr = populate_andr_img_hdr(dev_desc, &part_info);
 	if (!hdr) {
 		printf("No valid android hdr\n");
-		return -1;
+		return AVB_IO_RESULT_ERROR_NO_SUCH_VALUE;
 	}
 
 	if (hdr->header_version >= 4) {
@@ -702,11 +823,33 @@ static AvbSlotVerifyResult android_slot_verify(char *boot_partname,
 	if (strcmp(boot_partname, ANDROID_PARTITION_RECOVERY) == 0)
 		flags |= AVB_SLOT_VERIFY_FLAGS_NO_VBMETA_PARTITION;
 
-	/* prepare image buffer */
-	ret = avb_image_distribute_prepare(slot_data, ops, slot_suffix);
-	if (ret < 0) {
-		printf("avb image distribute prepare failed %d\n", ret);
-		return -1;
+#ifdef CONFIG_MP_BOOT
+	preload_user_data.boot.addr = (void *)mpb_post(1);
+	preload_user_data.boot.size = (size_t)mpb_post(2);
+#endif
+
+	/*
+	 * Handle the case: "avb lock + (vbus = 0) + recovery key pressed".
+	 * Check whether required boot_partname is same as preload boot_partition.
+	 */
+	if (preload_user_data.boot_partition && strcmp(preload_user_data.boot_partition, boot_partname))
+		preload_user_data.boot.addr = NULL;
+
+	/* use preload one if available */
+	if (preload_user_data.boot.addr) {
+		data = (struct AvbOpsData *)(ops->user_data);
+
+		data->slot_suffix = slot_suffix;
+		data->boot = preload_user_data.boot;
+		data->vendor_boot = preload_user_data.vendor_boot;
+		data->init_boot = preload_user_data.init_boot;
+		data->resource = preload_user_data.resource;
+	} else {
+		ret = avb_image_distribute_prepare(slot_data, ops, slot_suffix);
+		if (ret < 0) {
+			printf("avb image distribute prepare failed %d\n", ret);
+			return AVB_SLOT_VERIFY_RESULT_ERROR_OOM;
+		}
 	}
 
 retry_verify:
@@ -796,9 +939,9 @@ retry_verify:
 
 		/* if need, distribute full image to where they should be */
 		ret = avb_image_distribute_finish(slot_data, flags, &load_address);
-		if (ret < 0) {
+		if (ret) {
 			printf("avb image distribute finish failed %d\n", ret);
-			return -1;
+			return ret;
 		}
 		*android_load_address = load_address;
 	} else {

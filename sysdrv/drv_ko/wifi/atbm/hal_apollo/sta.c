@@ -416,7 +416,10 @@ void atbm_remove_interface(struct ieee80211_hw *dev,
 	switch (priv->join_status) {
 	case ATBM_APOLLO_JOIN_STATUS_IBSS:
 		wsm_reset(hw_priv, &reset, priv->if_id);
-    	fallthrough;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 10, 60))
+	
+		fallthrough;
+#endif
 	case ATBM_APOLLO_JOIN_STATUS_STA:
 		wsm_lock_tx(hw_priv);
 		//if (atbm_hw_priv_queue_work(hw_priv, &priv->unjoin_work) <= 0)
@@ -1154,8 +1157,11 @@ int atbm_set_pm(struct atbm_vif *priv, const struct wsm_set_pm *arg)
 	struct wsm_set_pm pm = *arg;
 	struct atbm_vif *other_priv=NULL;
 
-	BUG_ON(priv->if_id>=2);
 	
+	if(priv->if_id>=2){
+		atbm_printk_err("%s %d ,ERROR !!! priv->if_id = %d >=2\n",__func__,__LINE__,priv->if_id);
+		return -1;
+	}
 	other_priv = __ABwifi_hwpriv_to_vifpriv(priv->hw_priv,1-priv->if_id);
 	/*
 	*there is only one interface ,so we send ps mode to firmware directly.
@@ -1340,8 +1346,12 @@ int atbm_set_key(struct ieee80211_hw *dev, enum set_key_cmd cmd,
 			int pairwise = (key->flags & IEEE80211_KEY_FLAG_PAIRWISE) ?
 			1 : 0;
 			key->flags |= IEEE80211_KEY_FLAG_ALLOC_IV;
-			BUG_ON(pairwise && !sta);
-
+		//	BUG_ON(pairwise && !sta);
+			if(pairwise && !sta){
+				atbm_printk_err("%s %d ,ERROR !!! pairwise ,sta is NULL\n",__func__,__LINE__);
+				ret = -EINVAL;
+				goto finally;
+			}
 			if (sta)
 			peer_addr = sta->addr;
 			sta_printk(KERN_ERR "SET_KEY:idx(%d),if_id(%d)\n",idx,priv->if_id);
@@ -1486,7 +1496,8 @@ int atbm_set_key(struct ieee80211_hw *dev, enum set_key_cmd cmd,
 			ret = wsm_remove_key(hw_priv, wsm_key, priv->if_id);
 			atbm_free_key(hw_priv,idx);
 		}else {
-			BUG_ON("Unsupported command");
+			//BUG_ON("Unsupported command");
+			atbm_printk_err("%s %d ,ERROR !!! Unsupported command(%x)\n",__func__,__LINE__,cmd);
 		}
 	}
 finally:
@@ -1506,16 +1517,28 @@ void atbm_wep_key_work(struct atbm_work_struct *work)
 	
 	if(atbm_bh_is_term(hw_priv)){
 		#ifdef CONFIG_ATBM_APOLLO_TESTMODE
-		BUG_ON(atbm_queue_remove(hw_priv, queue,
-				hw_priv->pending_frame_id));
+		
+		if(atbm_queue_remove(hw_priv, queue,hw_priv->pending_frame_id)){
+			atbm_printk_err("%s %d ,ERROR !!! atbm_queue_remove error\n",__func__,__LINE__);
+			//return;
+		}
 		#else
-		BUG_ON(atbm_queue_remove(queue, hw_priv->pending_frame_id));
+
+		if(atbm_queue_remove(queue, hw_priv->pending_frame_id)){
+			atbm_printk_err("%s %d ,ERROR !!! atbm_queue_remove error\n",__func__,__LINE__);
+			//return;
+		}
+
 		#endif
 		wsm_unlock_tx(hw_priv);
 		return;
 	}
-	BUG_ON(queueId >= 4);
 
+	if(queueId >= 4){
+		atbm_printk_err("%s %d ,ERROR !!! queueId >= 4\n",__func__,__LINE__);
+		wsm_unlock_tx(hw_priv);
+		return;
+	}	
 	sta_printk("[STA] Setting default WEP key: %d\n",
 		priv->wep_default_key_id);
 	wsm_flush_tx(hw_priv);
@@ -1747,8 +1770,17 @@ int atbm_remain_on_channel(struct ieee80211_hw *hw,
 	}
 
 	if (!ret) {
+		
+		if(duration>hw->wiphy->max_remain_on_channel_duration){
+			atbm_printk_err("%s %d ,ERROR !!! duration=%d > max_remain_on_channel_duration = %d\n",
+				__func__,__LINE__,duration,hw->wiphy->max_remain_on_channel_duration);
+			
+			mutex_unlock(&hw_priv->conf_mutex);
+			up(&hw_priv->scan.lock);
+			return -1;
+		}
+		
 		atomic_set(&hw_priv->remain_on_channel, 1);
-		BUG_ON(duration>hw->wiphy->max_remain_on_channel_duration);
 		atbm_hw_priv_queue_delayed_work(hw_priv,
 				   &hw_priv->rem_chan_timeout,
 				   (duration+100) * HZ / 1000);
@@ -2360,9 +2392,15 @@ void atbm_offchannel_work(struct atbm_work_struct *work)
 		wsm_unlock_tx(hw_priv);
 		return;
 	}
-	BUG_ON(queueId >= 4);
-	BUG_ON(!hw_priv->channel);
 
+	if((queueId >= 4) || (!hw_priv->channel)){
+		atbm_printk_err("%s %d ,ERROR !!! %s , %s\n",__func__,__LINE__,
+				queueId >= 4?"queueId >= 4":" ",hw_priv->channel?"hw_priv->channel is NULL":" ");
+		wsm_unlock_tx(hw_priv);
+		return;
+	}
+
+	
 	if (unlikely(down_trylock(&hw_priv->scan.lock))) {
 		int ret;
 		sta_printk(KERN_ERR "atbm_offchannel_work***** drop frame\n");
@@ -2622,7 +2660,11 @@ void atbm_join_work(struct atbm_work_struct *work)
 		.disableMoreFlagUsage = true,
 	};
 
-	BUG_ON(queueId >= 4);
+	if(queueId >= 4){
+		atbm_printk_err("%s %d ,ERROR !!! queueId=%d >= 4\n",__func__,__LINE__,queueId);
+		wsm_unlock_tx(hw_priv);
+		return;
+	}
 	if (atbm_queue_get_skb(queue,	hw_priv->pending_frame_id,
 			&skb, &txpriv)) {
 		wsm_unlock_tx(hw_priv);
@@ -2642,8 +2684,12 @@ void atbm_join_work(struct atbm_work_struct *work)
 	frame = (struct ieee80211_hdr *)&skb->data[txpriv->offset];
 	bssid = &frame->addr1[0]; /* AP SSID in a 802.11 frame */
 
-	BUG_ON(!wsm);
-	BUG_ON(!hw_priv->channel);
+	if((!wsm) || (!hw_priv->channel)){
+		atbm_printk_err("%s %d ,ERROR !!! %s , %s\n",__func__,__LINE__,
+			wsm?" ":"wsm is NULL",hw_priv->channel?" ":"hw_priv->channel is NULL");
+		wsm_unlock_tx(hw_priv);
+		return;
+	}	
 
 	if (unlikely(priv->join_status)) {
 		wsm_lock_tx(hw_priv);
@@ -2934,8 +2980,12 @@ void atbm_unjoin_work(struct atbm_work_struct *work)
 
 	if (priv->join_status &&
 			priv->join_status > ATBM_APOLLO_JOIN_STATUS_STA) {
-		atbm_printk_warn("Unexpected: join status: %d\n",priv->join_status);
-		BUG_ON(1);
+		atbm_printk_err("Unexpected: join status: %d\n",priv->join_status);
+
+	//	BUG_ON(1);
+		mutex_unlock(&hw_priv->conf_mutex);
+		wsm_unlock_tx(hw_priv);
+		return;
 	}
 	if (priv->join_status) {
 		atbm_printk_sta("%s:join_status(%d),if_id(%d)\n",__func__,

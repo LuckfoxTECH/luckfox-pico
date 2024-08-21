@@ -4,11 +4,23 @@
 
 
 #define USB_BLOCK_SIZE (512)
+//#define RX_BUFFER_SIZE 12*1024
+
+#if 0
+#ifdef SSTAR_FUNCTION
+#define RX_BUFFER_SIZE 12*1024
+#else
 #ifdef CONFIG_USB_AGGR_URB_TX
 #define RX_BUFFER_SIZE 12*1024
 #else
 #define RX_BUFFER_SIZE 4000//(1024*4-100)
 #endif
+#endif
+#else
+#define RX_BUFFER_SIZE 12*1024	
+#endif
+
+
 #define RX_LONG_BUFFER_SIZE 4000
 
 #define TX_LONG_BUFFER_SIZE (1024*4)

@@ -17,8 +17,8 @@
 #ifndef SRC_TESTS_RT_MPI_COMMON_TEST_COMM_VDEC_H_
 #define SRC_TESTS_RT_MPI_COMMON_TEST_COMM_VDEC_H_
 
-#include "rk_comm_vdec.h"
 #include "rk_common.h"
+#include "rk_comm_vdec.h"
 #include "rk_mpi_vdec.h"
 
 #ifdef __cplusplus
@@ -27,9 +27,10 @@ extern "C" {
 #endif
 #endif /* End of #ifdef __cplusplus */
 
-RK_S32 TEST_VDEC_Start(VDEC_CHN VdecChn, VDEC_CHN_ATTR_S *pstVdecAttr,
-                       VDEC_CHN_PARAM_S *pstVdecParam,
-                       VIDEO_DISPLAY_MODE_E enDispMode);
+RK_S32 TEST_VDEC_Start(VDEC_CHN VdecChn,
+                        VDEC_CHN_ATTR_S *pstVdecAttr,
+                        VDEC_CHN_PARAM_S *pstVdecParam,
+                        VIDEO_DISPLAY_MODE_E enDispMode);
 RK_S32 TEST_VDEC_Stop(VDEC_CHN VdecChn);
 
 #ifdef __cplusplus
@@ -38,4 +39,4 @@ RK_S32 TEST_VDEC_Stop(VDEC_CHN VdecChn);
 #endif
 #endif /* End of #ifdef __cplusplus */
 
-#endif // SRC_TESTS_RT_MPI_COMMON_TEST_COMM_VDEC_H_
+#endif  // SRC_TESTS_RT_MPI_COMMON_TEST_COMM_VDEC_H_

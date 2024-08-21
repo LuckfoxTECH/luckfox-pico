@@ -20,15 +20,15 @@
 #ifndef INCLUDE_RT_BASE_RT_HEADER_H_
 #define INCLUDE_RT_BASE_RT_HEADER_H_
 
-#include "rt_check.h"  // NOLINT
-#include "rt_common.h" // NOLINT
-#include "rt_debug.h"  // NOLINT
-#include "rt_env.h"    // NOLINT
 #include "rt_error.h"  // NOLINT
+#include "rt_type.h"   // NOLINT
+#include "rt_debug.h"  // NOLINT
+#include "rt_common.h" // NOLINT
 #include "rt_log.h"    // NOLINT
+#include "rt_time.h"   // NOLINT
 #include "rt_mem.h"    // NOLINT
 #include "rt_mutex.h"  // NOLINT
-#include "rt_time.h"   // NOLINT
-#include "rt_type.h"   // NOLINT
+#include "rt_check.h"  // NOLINT
+#include "rt_env.h"    // NOLINT
 
-#endif // INCLUDE_RT_BASE_RT_HEADER_H_
+#endif  // INCLUDE_RT_BASE_RT_HEADER_H_

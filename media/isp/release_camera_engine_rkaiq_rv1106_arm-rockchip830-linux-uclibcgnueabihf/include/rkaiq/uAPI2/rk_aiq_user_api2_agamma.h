@@ -18,11 +18,20 @@
 #ifndef _RK_AIQ_USER_API2_AGAMMA_H_
 #define _RK_AIQ_USER_API2_AGAMMA_H_
 
+#include "agamma_uapi_compact.h"
 #include "algos/agamma/rk_aiq_types_agamma_algo_int.h"
 
+#ifndef RK_AIQ_SYS_CTX_T
+#define RK_AIQ_SYS_CTX_T
 typedef struct rk_aiq_sys_ctx_s rk_aiq_sys_ctx_t;
+#endif
 
 RKAIQ_BEGIN_DECLARE
+
+XCamReturn rk_aiq_user_api2_agamma_SetAttrib(const rk_aiq_sys_ctx_t* sys_ctx,
+                                             rk_aiq_gamma_attrib_V2_t attr);
+XCamReturn rk_aiq_user_api2_agamma_GetAttrib(const rk_aiq_sys_ctx_t* sys_ctx,
+                                             rk_aiq_gamma_attrib_V2_t* attr);
 
 XCamReturn rk_aiq_user_api2_agamma_v10_SetAttrib(const rk_aiq_sys_ctx_t* sys_ctx,
                                                  const rk_aiq_gamma_v10_attr_t* attr);

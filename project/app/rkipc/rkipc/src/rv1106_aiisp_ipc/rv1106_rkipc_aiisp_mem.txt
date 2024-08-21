@@ -1,0 +1,449 @@
+module: valloc
+version: vmpi:2e694a896b0f4173060b5307e8a9784049590db1-v1.4.62
+build: -2023-10-10-15:29:13
+*******************************************mpi buf list***************************************
+buf_id-pool_id-refcnt-dmacnt-size------handle-----create-----------user-------------------------
+158    -1      1      1      12288     0xb15b3400 mcu              
+173    172     1      4      5529600   0xb228dc00 vvi              rkisp-vir0_171(0) 
+174    172     1      6      5529600   0xb23a6000 vvi              aiisp_177(1) 
+180    179     0      -1     0         0xb23a7000 aiisp            
+181    179     0      -1     0         0xb23a7400 aiisp            
+188    187     0      3      1382400   0xb23a7800 vrga             
+193    192     1      3      608256    0xb23c2000 vrga             
+199    198     0      -1     0         0xb23c2400 aiisp            
+200    198     0      -1     0         0xb23c2800 aiisp            
+204    203     0      1      460800    0xb23c2c00 vrga             
+206    -1      1      1      6459392   0xb23e8400 venc             
+207    -1      1      1      237568    0xb23e8800 venc             
+208    -1      1      1      8192      0xb23e8c00 venc             
+209    -1      1      1      237568    0xb23e9000 venc             
+210    -1      1      1      8192      0xb23e9400 venc             
+211    -1      1      5      1843200   0xb23e9800 venc             
+215    -1      1      1      1863680   0xb23eb000 venc             
+216    -1      1      1      65536     0xb23eb400 venc             
+217    -1      1      1      4096      0xb23eb800 venc             
+218    -1      1      1      65536     0xb23ebc00 venc             
+219    -1      1      1      4096      0xb23fc000 venc             
+220    -1      1      5      462848    0xb23fc400 venc             
+224    -1      1      1      692224    0xb2c20800 venc             
+225    -1      1      1      24576     0xb2c20c00 venc             
+226    -1      1      1      4096      0xb2c21000 venc             
+227    -1      1      1      24576     0xb2c21400 venc             
+228    -1      1      1      4096      0xb2c21800 venc             
+229    -1      1      5      155648    0xb2c21c00 venc             
+233    -1      1      1      1048576   0xb2c25400 venc             
+236    -1      1      1      8192      0xb2c25c00 venc             
+237    -1      1      1      8192      0xb2c26000 venc             
+238    -1      1      1      8192      0xb2c26400 venc             
+239    -1      1      1      8192      0xb2c26800 venc             
+240    -1      1      1      8192      0xb2c26c00 venc             
+241    -1      1      1      28672     0xb2c27000 venc             
+242    -1      1      1      4096      0xb2c27400 venc             
+246    248     1      3      65536     0xb2c70c00 osd_time_server  
+247    248     1      3      65536     0xb2c71000 osd_time_server  
+249    -1      2      3      5529600   0xb2c71c00 postisp:Schedul  vrga_186(5) vrga_190(6) 
+250    -1      1      3      20480     0xb17e4400 postisp:Schedul  
+251    -1      1      3      3686400   0xb2ca6000 postisp:Schedul  
+252    -1      1      3      921600    0xb2ca6800 postisp:Schedul  
+253    -1      1      3      921600    0xb2ca7000 postisp:Schedul  
+254    -1      1      5      921600    0xb2ca7800 postisp:Schedul  
+total:38942720        
+*************************************mpi pool list***********************************
+poid-total-free-min-size-------------create-----------user---------------------------
+172  2     0    0   5529600          vvi              rkisp-vir0_171
+179  2     2    1   0                aiisp            aiisp_177
+187  1     1    0   1382400          vrga             vrga_186
+192  1     0    0   608256           vrga             vrga_190
+198  2     2    2   0                aiisp            aiisp_196
+203  1     1    0   460800           vrga             vrga_202
+248  2     0    0   65536            osd_time_server  
+
+cat: can't open 'cat': No such file or directory
+Total: 77824 KiB
+ Used: 66284 KiB
+
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF 07FFFFFF 00000000 00000000
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 606
+	Alloc by (vmpi                )	[0x074b6000-0x074bafff]	0x00005000 (20 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 63
+	Alloc by (vmpi                )	[0x073d5000-0x074b5fff]	0x000e1000 (900 KiB)
+		Attached Devices:
+		ff980000.rga
+Total 1 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 62
+	Alloc by (vmpi                )	[0x072f4000-0x073d4fff]	0x000e1000 (900 KiB)
+		Attached Devices:
+		ff980000.rga
+Total 1 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 61
+	Alloc by (vmpi                )	[0x07213000-0x072f3fff]	0x000e1000 (900 KiB)
+		Attached Devices:
+		ff980000.rga
+Total 1 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 60
+	Alloc by (vmpi                )	[0x06e8f000-0x07212fff]	0x00384000 (3600 KiB)
+		Attached Devices:
+		ff980000.rga
+Total 1 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 59
+	Alloc by (vmpi                )	[0x06e8a000-0x06e8efff]	0x00005000 (20 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 58
+	Alloc by (vmpi                )	[0x06944000-0x06e89fff]	0x00546000 (5400 KiB)
+		Attached Devices:
+		ff980000.rga
+Total 1 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 57
+	Alloc by (ff660000.npu        )	[0x06782000-0x06943fff]	0x001c2000 (1800 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 56
+	Alloc by (ff660000.npu        )	[0x065c0000-0x06781fff]	0x001c2000 (1800 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 55
+	Alloc by (ff660000.npu        )	[0x063fe000-0x065bffff]	0x001c2000 (1800 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 54
+	Alloc by (ff660000.npu        )	[0x0623c000-0x063fdfff]	0x001c2000 (1800 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 53
+	Alloc by (ff660000.npu        )	[0x05bf4000-0x0623bfff]	0x00648000 (6432 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 52
+	Alloc by (vmpi                )	[0x05be4000-0x05bf3fff]	0x00010000 (64 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 51
+	Alloc by (vmpi                )	[0x05bd4000-0x05be3fff]	0x00010000 (64 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 50
+	Alloc by (vmpi                )	[0x05bd3000-0x05bd3fff]	0x00001000 (4 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 49
+	Alloc by (vmpi                )	[0x05bcc000-0x05bd2fff]	0x00007000 (28 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 48
+	Alloc by (vmpi                )	[0x05bca000-0x05bcbfff]	0x00002000 (8 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 47
+	Alloc by (vmpi                )	[0x05bc8000-0x05bc9fff]	0x00002000 (8 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 46
+	Alloc by (vmpi                )	[0x05bc6000-0x05bc7fff]	0x00002000 (8 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 45
+	Alloc by (vmpi                )	[0x05bc4000-0x05bc5fff]	0x00002000 (8 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 44
+	Alloc by (vmpi                )	[0x05bc2000-0x05bc3fff]	0x00002000 (8 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 43
+	Alloc by (vmpi                )	[0x05ac2000-0x05bc1fff]	0x00100000 (1024 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 42
+	Alloc by (vmpi                )	[0x05a9c000-0x05ac1fff]	0x00026000 (152 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 41
+	Alloc by (vmpi                )	[0x05a9b000-0x05a9bfff]	0x00001000 (4 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 40
+	Alloc by (vmpi                )	[0x05a95000-0x05a9afff]	0x00006000 (24 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 39
+	Alloc by (vmpi                )	[0x05a94000-0x05a94fff]	0x00001000 (4 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 38
+	Alloc by (vmpi                )	[0x05a8e000-0x05a93fff]	0x00006000 (24 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 37
+	Alloc by (vmpi                )	[0x059e5000-0x05a8dfff]	0x000a9000 (676 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 36
+	Alloc by (vmpi                )	[0x05974000-0x059e4fff]	0x00071000 (452 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 35
+	Alloc by (vmpi                )	[0x05973000-0x05973fff]	0x00001000 (4 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 34
+	Alloc by (vmpi                )	[0x05963000-0x05972fff]	0x00010000 (64 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 33
+	Alloc by (vmpi                )	[0x05962000-0x05962fff]	0x00001000 (4 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 32
+	Alloc by (vmpi                )	[0x05952000-0x05961fff]	0x00010000 (64 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 31
+	Alloc by (vmpi                )	[0x0578b000-0x05951fff]	0x001c7000 (1820 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 30
+	Alloc by (vmpi                )	[0x055c9000-0x0578afff]	0x001c2000 (1800 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 29
+	Alloc by (vmpi                )	[0x055c7000-0x055c8fff]	0x00002000 (8 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 28
+	Alloc by (vmpi                )	[0x0558d000-0x055c6fff]	0x0003a000 (232 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 27
+	Alloc by (vmpi                )	[0x0558b000-0x0558cfff]	0x00002000 (8 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 26
+	Alloc by (vmpi                )	[0x05551000-0x0558afff]	0x0003a000 (232 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 25
+	Alloc by (vmpi                )	[0x04f28000-0x05550fff]	0x00629000 (6308 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 24
+	Alloc by (vmpi                )	[0x04eb7000-0x04f27fff]	0x00071000 (452 KiB)
+		Attached Devices:
+		ff980000.rga
+Total 1 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 23
+	Alloc by (vmpi                )	[0x04e22000-0x04eb6fff]	0x00095000 (596 KiB)
+		Attached Devices:
+		ff980000.rga
+Total 1 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 22
+	Alloc by (vmpi                )	[0x04cd0000-0x04e21fff]	0x00152000 (1352 KiB)
+		Attached Devices:
+		ff980000.rga
+Total 1 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 21
+	Alloc by (vmpi                )	[0x04786000-0x04ccbfff]	0x00546000 (5400 KiB)
+		Attached Devices:
+		ff980000.rga
+		ffa00000.rkisp
+Total 2 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 20
+	Alloc by (vmpi                )	[0x04240000-0x04785fff]	0x00546000 (5400 KiB)
+		Attached Devices:
+		ff980000.rga
+		ffa00000.rkisp
+Total 2 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 10
+	Alloc by ((null)              )	[0x03b84000-0x03bf4fff]	0x00071000 (452 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 9
+	Alloc by (ff660000.npu        )	[0x03a34000-0x03b83fff]	0x00150000 (1344 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 8
+	Alloc by (ff660000.npu        )	[0x03a2d000-0x03a33fff]	0x00007000 (28 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 7
+	Alloc by (ff660000.npu        )	[0x03a26000-0x03a2cfff]	0x00007000 (28 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 6
+	Alloc by (ff660000.npu        )	[0x03a1f000-0x03a25fff]	0x00007000 (28 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 5
+	Alloc by (ff660000.npu        )	[0x03a03000-0x03a1efff]	0x0001c000 (112 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 4
+	Alloc by (ff660000.npu        )	[0x039e7000-0x03a02fff]	0x0001c000 (112 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 3
+	Alloc by (ff660000.npu        )	[0x039cb000-0x039e6fff]	0x0001c000 (112 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 2
+	Alloc by (ff660000.npu        )	[0x03403000-0x039cafff]	0x005c8000 (5920 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -dmabuf	i_ino = 1
+	Alloc by (vmpi                )	[0x03400000-0x03402fff]	0x00003000 (12 KiB)
+		Attached Devices:
+Total 0 devices attached
+
+dma-heap:<rk-dma-heap-cma> -non dmabuf
+	Alloc by (ffa00000.rkisp      )	[0x03bf5000-0x03c05fff]	0x00011000 (68 KiB)
+dma-heap:<rk-dma-heap-cma> -non dmabuf
+	Alloc by (ffa00000.rkisp      )	[0x03c06000-0x03c06fff]	0x00001000 (4 KiB)
+dma-heap:<rk-dma-heap-cma> -non dmabuf
+	Alloc by (ffa00000.rkisp      )	[0x03c07000-0x03c07fff]	0x00001000 (4 KiB)
+dma-heap:<rk-dma-heap-cma> -non dmabuf
+	Alloc by (ffa00000.rkisp      )	[0x03c08000-0x041befff]	0x005b7000 (5852 KiB)
+dma-heap:<rk-dma-heap-cma> -non dmabuf
+	Alloc by (ffa00000.rkisp      )	[0x041bf000-0x0422ffff]	0x00071000 (452 KiB)
+dma-heap:<rk-dma-heap-cma> -non dmabuf
+	Alloc by (rkisp-vir0          )	[0x04230000-0x04233fff]	0x00004000 (16 KiB)
+dma-heap:<rk-dma-heap-cma> -non dmabuf
+	Alloc by (rkisp-vir0          )	[0x04234000-0x04237fff]	0x00004000 (16 KiB)
+dma-heap:<rk-dma-heap-cma> -non dmabuf
+	Alloc by (rkisp-vir0          )	[0x04238000-0x0423bfff]	0x00004000 (16 KiB)
+dma-heap:<rk-dma-heap-cma> -non dmabuf
+	Alloc by (rkisp-vir0          )	[0x0423c000-0x0423ffff]	0x00004000 (16 KiB)
+dma-heap:<rk-dma-heap-cma> -non dmabuf
+	Alloc by (ffa00000.rkisp      )	[0x04ccc000-0x04ccffff]	0x00004000 (16 KiB)
+
+Total : 0x40bb000 (66284 KiB)

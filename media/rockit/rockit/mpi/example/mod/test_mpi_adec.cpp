@@ -41,12 +41,23 @@ typedef struct _rkMpiADECCtx {
     RK_S32      s32ChnIndex;
     RK_S32      s32QueryStat;
     RK_S32      s32ClrChnBuf;
+    RK_U32      u32Bitrate;
     ADEC_CHN_ATTR_S *pstChnAttr;
     RK_S32 s32ExtCodecHandle;
 } TEST_ADEC_CTX_S;
 
 extern RK_S32 register_ext_adec(TEST_ADEC_CTX_S *params);
 extern RK_S32 unregister_ext_adec(TEST_ADEC_CTX_S *params);
+
+static RK_BOOL adec_check_g726_bitrate(ADEC_ATTR_CODEC_S *codec_attr) {
+    RK_U32 support[]  = {G726_BPS_16K, G726_BPS_24K, G726_BPS_32K, G726_BPS_40K};
+    for (RK_S32 i = 0; i < 4; i++) {
+        if (support[i] == codec_attr->u32Bitrate)
+            return RK_TRUE;
+    }
+
+    return RK_FALSE;
+}
 
 void query_adec_flow_graph_stat(ADEC_CHN AdChn) {
     RK_S32 ret = 0;
@@ -93,14 +104,24 @@ static void adec_destroy_chn_attr(ADEC_CHN_ATTR_S **ppstChnAttr) {
 }
 static RK_S32 adec_fill_codec_attr(ADEC_CHN_ATTR_S *pstChnAttr,
             RK_CODEC_ID_E  enCodecId, RK_U32 samplerate, RK_U32 channels,
-            RK_U32 bitPerSample, void *extradata, RK_U32 extraSize) {
+            RK_U32 bitrate, RK_U32 bitPerSample, void *extradata, RK_U32 extraSize) {
     if (pstChnAttr == RK_NULL)
         return RK_FAILURE;
 
     ADEC_ATTR_CODEC_S *pstCodecAttr    = &pstChnAttr->stCodecAttr;
     pstCodecAttr->u32Channels          = channels;
     pstCodecAttr->u32SampleRate        = samplerate;
-    pstCodecAttr->u32BitPerCodedSample = bitPerSample;
+    pstCodecAttr->u32Bitrate           = bitrate;
+
+    if (enCodecId == RK_AUDIO_ID_ADPCM_G726 ||
+             enCodecId == RK_AUDIO_ID_ADPCM_G726LE) {
+        if (!adec_check_g726_bitrate(pstCodecAttr)) {
+            RK_LOGD("G726:WARNNING input bitrate = %d not support, force bitrate = %d",
+                pstCodecAttr->u32Bitrate, G726_BPS_32K);
+            pstCodecAttr->u32Bitrate = G726_BPS_32K;
+        }
+    }
+
     pstCodecAttr->u32ExtraDataSize     = extraSize;
     if (pstCodecAttr->u32ExtraDataSize > 0 && extradata != RK_NULL) {
         pstCodecAttr->pExtraData = malloc(pstCodecAttr->u32ExtraDataSize);
@@ -128,6 +149,8 @@ static RK_U32 test_find_audio_codec_id(TEST_ADEC_CTX_S *params) {
     char *format = params->chCodecId;
     if (strstr(format, "mp2")) {
         return RK_AUDIO_ID_MP2;
+    } else if (strstr(format, "g726le")) {
+        return RK_AUDIO_ID_ADPCM_G726LE;
     } else if (strstr(format, "g726")) {
         return RK_AUDIO_ID_ADPCM_G726;
     } else if (strstr(format, "g711a")) {
@@ -149,6 +172,8 @@ RK_S32 test_init_mpi_adec(TEST_ADEC_CTX_S *params) {
     RK_S32 i = 0;
     RK_S32 s32ret = 0;
     RK_U32 codecId = 0;
+    RK_U32 bitrate = params->u32Bitrate;
+
     ADEC_CHN AdChn = (ADEC_CHN)(params->s32ChnIndex);
     ADEC_CHN_ATTR_S *pstChnAttr = RK_NULL;
     ADEC_ATTR_CODEC_S *pstCodecAttr = RK_NULL;
@@ -158,7 +183,7 @@ RK_S32 test_init_mpi_adec(TEST_ADEC_CTX_S *params) {
     if (pstCodecAttr->u32Channels == 0) {
         pstCodecAttr->u32Channels = params->s32Channel;
         pstCodecAttr->u32SampleRate = params->s32SampleRate;
-        pstCodecAttr->u32BitPerCodedSample = 4;
+        pstCodecAttr->u32Bitrate = bitrate;
     }
 
     codecId = test_find_audio_codec_id(params);
@@ -440,6 +465,7 @@ static void mpi_adec_test_show_options(const TEST_ADEC_CTX_S *ctx) {
     RK_PRINT("input decode mode      : %d\n", ctx->s32DecMode);
     RK_PRINT("query stat             : %d\n", ctx->s32QueryStat);
     RK_PRINT("clear buf              : %d\n", ctx->s32ClrChnBuf);
+    RK_PRINT("bit rate               : %d\n", ctx->u32Bitrate);
 }
 
 int main(int argc, const char **argv) {
@@ -457,6 +483,7 @@ int main(int argc, const char **argv) {
     ctx->s32DecMode      = 0;
     ctx->chCodecId       = RK_NULL;
     ctx->pstChnAttr      = RK_NULL;
+    ctx->u32Bitrate      = 0;
     ctx->s32ExtCodecHandle = -1;
 
     struct argparse_option options[] = {
@@ -482,6 +509,8 @@ int main(int argc, const char **argv) {
                     "query adec statistics info, range(0: query, 1: not query), default(0)", NULL, 0, 0),
         OPT_INTEGER('\0', "clr_buf", &(ctx->s32ClrChnBuf),
                     "clear buffer of channel, range(0, 1), default(0)", NULL, 0, 0),
+        OPT_INTEGER('\0', "bitrate", &(ctx->u32Bitrate),
+                    "bitrate of audio, default(0)", NULL, 0, 0),
         OPT_END(),
     };
 

@@ -20,13 +20,14 @@
 #ifndef SRC_RT_TASK_APP_GRAPH_RTUACGRAPH_H_
 #define SRC_RT_TASK_APP_GRAPH_RTUACGRAPH_H_
 
-#include "RTTaskGraph.h"
 #include "rt_header.h"
+#include "RTTaskGraph.h"
 
 class RTUACGraph : public RTTaskGraph {
-public:
-  explicit RTUACGraph(const char *tagName);
-  virtual ~RTUACGraph();
+ public:
+    explicit RTUACGraph(const char* tagName);
+    virtual ~RTUACGraph();
 };
 
-#endif // SRC_RT_TASK_APP_GRAPH_RTUACGRAPH_H_
+#endif  // SRC_RT_TASK_APP_GRAPH_RTUACGRAPH_H_
+

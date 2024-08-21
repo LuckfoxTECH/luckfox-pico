@@ -24,6 +24,5 @@ obj-$(CONFIG_PINCTRL_STI)	+= pinctrl-sti.o
 obj-$(CONFIG_PINCTRL_STM32)	+= pinctrl_stm32.o
 ifndef CONFIG_SPL_BUILD
 obj-$(CONFIG_PINCTRL_MAX96745)  += pinctrl-max96745.o
-obj-$(CONFIG_PINCTRL_MAX96752F) += pinctrl-max96752f.o
 obj-$(CONFIG_PINCTRL_MAX96755F) += pinctrl-max96755f.o
 endif

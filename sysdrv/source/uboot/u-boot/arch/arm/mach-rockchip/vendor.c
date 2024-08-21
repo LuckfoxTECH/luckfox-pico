@@ -10,6 +10,8 @@
 #include <boot_rkimg.h>
 #include <nand.h>
 #include <part.h>
+#include <fdt_support.h>
+#include <usbplug.h>
 
 /* tag for vendor check */
 #define VENDOR_TAG		0x524B5644
@@ -20,6 +22,9 @@
 /* align to 64 bytes */
 #define VENDOR_BTYE_ALIGN	0x3F
 #define VENDOR_BLOCK_SIZE	512
+
+#define PAGE_ALGIN_SIZE		(4096uL)
+#define PAGE_ALGIN_MASK		(~(PAGE_ALGIN_SIZE - 1))
 
 /* --- Emmc define --- */
 /* Starting address of the Vendor in memory. */
@@ -318,7 +323,7 @@ static int vendor_ops(u8 *buffer, u32 addr, u32 n_sec, int write)
 		return -ENODEV;
 	}
 
-	if (dev_desc->if_type == IF_TYPE_NVME || dev_desc->if_type == IF_TYPE_SCSI) {
+	if (dev_desc->if_type == IF_TYPE_NVME || (dev_desc->if_type == IF_TYPE_SCSI && dev_desc->rawblksz == 512)) {
 		dev_desc = blk_get_devnum_by_type(IF_TYPE_MTD, BLK_MTD_SPI_NOR);
 		if (!dev_desc) {
 			printf("%s: dev_desc is NULL!\n", __func__);
@@ -329,6 +334,7 @@ static int vendor_ops(u8 *buffer, u32 addr, u32 n_sec, int write)
 	/* Get the offset address according to the device type */
 	switch (dev_desc->if_type) {
 	case IF_TYPE_MMC:
+	case IF_TYPE_SCSI:
 		/*
 		 * The location of VendorStorage in Flash is shown in the
 		 * following figure. The starting address of the VendorStorage
@@ -436,7 +442,7 @@ int vendor_storage_init(void)
 		return -ENODEV;
 	}
 
-	if (dev_desc->if_type == IF_TYPE_NVME || dev_desc->if_type == IF_TYPE_SCSI) {
+	if (dev_desc->if_type == IF_TYPE_NVME || (dev_desc->if_type == IF_TYPE_SCSI && dev_desc->rawblksz == 512)) {
 		dev_desc = blk_get_devnum_by_type(IF_TYPE_MTD, BLK_MTD_SPI_NOR);
 		if (!dev_desc) {
 			printf("%s: dev_desc is NULL!\n", __func__);
@@ -446,6 +452,7 @@ int vendor_storage_init(void)
 
 	switch (dev_desc->if_type) {
 	case IF_TYPE_MMC:
+	case IF_TYPE_SCSI:
 		size = EMMC_VENDOR_INFO_SIZE;
 		part_size = EMMC_VENDOR_PART_BLKS;
 		data_offset = EMMC_VENDOR_DATA_OFFSET;
@@ -493,13 +500,14 @@ int vendor_storage_init(void)
 	/* Initialize */
 	bootdev_type = dev_desc->if_type;
 
-	/* Always use, no need to release */
-	buffer = (u8 *)malloc(size);
+	/* Always use, no need to release, align to page size for kerenl reserved memory */
+	buffer = (u8 *)memalign(PAGE_ALGIN_SIZE, size);
 	if (!buffer) {
 		printf("[Vendor ERROR]:Malloc failed!\n");
 		ret = -ENOMEM;
 		goto out;
 	}
+
 	/* Pointer initialization */
 	vendor_info.hdr = (struct vendor_hdr *)buffer;
 	vendor_info.item = (struct vendor_item *)(buffer + sizeof(struct vendor_hdr));
@@ -566,6 +574,29 @@ out:
 	return ret;
 }
 
+void vendor_storage_fixup(void *blob)
+{
+	unsigned long size;
+	unsigned long start;
+	int offset;
+
+	/* init vendor storage */
+	if (!bootdev_type) {
+		if (vendor_storage_init() < 0)
+			return;
+	}
+
+	offset = fdt_node_offset_by_compatible(blob, 0, "rockchip,vendor-storage-rm");
+	if (offset >= 0) {
+		start = (unsigned long)vendor_info.hdr;
+		size = (unsigned long)((void *)vendor_info.version2 - (void *)vendor_info.hdr);
+		size += 4;
+		fdt_update_reserved_memory(blob, "rockchip,vendor-storage-rm",
+					   (u64)start,
+					   (u64)size);
+	}
+}
+
 /*
  * @id: item id, first 4 id is occupied:
  *	VENDOR_SN_ID
@@ -621,10 +652,10 @@ int vendor_storage_read(u16 id, void *pbuf, u16 size)
  */
 int vendor_storage_write(u16 id, void *pbuf, u16 size)
 {
-	int cnt, ret = 0;
-	u32 i, next_index, align_size;
-	struct vendor_item *item;
+	u32 i, j, next_index, align_size, alloc_size, next_size;
 	u16 part_size, max_item_num, offset, part_num;
+	struct vendor_item *item;
+	int cnt, ret = 0;
 
 	/* init vendor storage */
 	if (!bootdev_type) {
@@ -635,6 +666,7 @@ int vendor_storage_write(u16 id, void *pbuf, u16 size)
 
 	switch (bootdev_type) {
 	case IF_TYPE_MMC:
+	case IF_TYPE_SCSI:
 		part_size = EMMC_VENDOR_PART_BLKS;
 		max_item_num = EMMC_VENDOR_ITEM_NUM;
 		part_num = VENDOR_PART_NUM;
@@ -675,10 +707,35 @@ int vendor_storage_write(u16 id, void *pbuf, u16 size)
 	/* If item already exist, update the item data */
 	for (i = 0; i < vendor_info.hdr->item_num; i++) {
 		if ((item + i)->id == id) {
-			debug("[Vendor INFO]:Find the matching item, id=%d\n", id);
-			offset = (item + i)->offset;
-			memcpy((vendor_info.data + offset), pbuf, size);
-			(item + i)->size = size;
+			alloc_size = ((item + i)->size + VENDOR_BTYE_ALIGN) & (~VENDOR_BTYE_ALIGN);
+			if (size > alloc_size) {
+				if (vendor_info.hdr->free_size < align_size)
+					return -EINVAL;
+				debug("[Vendor INFO]:Find the matching item, id=%d and resize\n", id);
+				offset = (item + i)->offset;
+				for (j = i; j < vendor_info.hdr->item_num - 1; j++) {
+					(item + j)->id = (item + j + 1)->id;
+					(item + j)->size = (item + j + 1)->size;
+					(item + j)->offset = offset;
+
+					next_size = ((item + j + 1)->size + VENDOR_BTYE_ALIGN) & (~VENDOR_BTYE_ALIGN);
+					memcpy((vendor_info.data + offset),
+					       (vendor_info.data + (item + j + 1)->offset),
+					       next_size);
+					offset += next_size;
+				}
+				(item + j)->id = id;
+				(item + j)->offset = offset;
+				(item + j)->size = size;
+				memcpy((vendor_info.data + offset), pbuf, size);
+				vendor_info.hdr->free_offset = offset + align_size;
+				vendor_info.hdr->free_size -= align_size - alloc_size;
+			} else {
+				debug("[Vendor INFO]:Find the matching item, id=%d\n", id);
+				offset = (item + i)->offset;
+				memcpy((vendor_info.data + offset), pbuf, size);
+				(item + i)->size = size;
+			}
 			vendor_info.hdr->version++;
 			*(vendor_info.version2) = vendor_info.hdr->version;
 			vendor_info.hdr->next_index++;
@@ -729,6 +786,7 @@ static void vendor_test_reset(void)
 
 	switch (bootdev_type) {
 	case IF_TYPE_MMC:
+	case IF_TYPE_SCSI:
 		size = EMMC_VENDOR_INFO_SIZE;
 		part_size = EMMC_VENDOR_PART_BLKS;
 		part_num = VENDOR_PART_NUM;
@@ -794,6 +852,7 @@ int vendor_storage_test(void)
 	 */
 	switch (bootdev_type) {
 	case IF_TYPE_MMC:
+	case IF_TYPE_SCSI:
 		item_num = EMMC_VENDOR_ITEM_NUM;
 		total_size = (unsigned long)vendor_info.hash -
 			     (unsigned long)vendor_info.data;

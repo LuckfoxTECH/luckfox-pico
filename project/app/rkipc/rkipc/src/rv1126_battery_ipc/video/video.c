@@ -5,7 +5,7 @@
 #include "common.h"
 #include "isp.h"
 #include "rkbar_scan_api.h"
-#include "rtsp_demo.h"
+#include "rtsp.h"
 #include "tuya_ipc.h"
 
 #include <fcntl.h>
@@ -49,9 +49,6 @@ static int g_video_run_ = 1;
 static int pipe_id_ = 0;
 static int dev_id_ = 0;
 static int g_rtmp_start = 0;
-static rtsp_demo_handle g_rtsplive = NULL;
-static rtsp_session_handle g_rtsp_session_0;
-static rtsp_session_handle g_rtsp_session_1;
 static const char *g_output_data_type;
 static const char *g_rc_mode;
 static const char *g_h264_profile;
@@ -74,7 +71,7 @@ static void *rkipc_get_venc_0(void *arg) {
 
 	while (g_video_run_) {
 		// 5.get the frame
-		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_0, &stFrame, -1);
+		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_0, &stFrame, 2500);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
 			// fwrite(data, 1, stFrame.pstPack->u32Len, fp);
@@ -84,11 +81,7 @@ static void *rkipc_get_venc_0(void *arg) {
 			// stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS,
 			// stFrame.pstPack->DataType.enH264EType);
 
-			if (g_rtsplive && g_rtsp_session_0) {
-				rtsp_tx_video(g_rtsp_session_0, data, stFrame.pstPack->u32Len,
-				              stFrame.pstPack->u64PTS);
-				rtsp_do_event(g_rtsplive);
-			}
+			rkipc_rtsp_write_video_frame(0, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
 			if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_IDRSLICE) ||
 			    (stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
 			    (stFrame.pstPack->DataType.enH265EType == H265E_NALU_IDRSLICE) ||
@@ -112,33 +105,6 @@ static void *rkipc_get_venc_0(void *arg) {
 		free(stFrame.pstPack);
 	// if (fp)
 	//  fclose(fp);
-
-	return 0;
-}
-
-int rkipc_rtsp_init() {
-	LOG_INFO("start\n");
-	g_rtsplive = create_rtsp_demo(554);
-	g_rtsp_session_0 = rtsp_new_session(g_rtsplive, RTSP_URL_0);
-	if (!strcmp(g_output_data_type, "H.264")) {
-		rtsp_set_video(g_rtsp_session_0, RTSP_CODEC_ID_VIDEO_H264, NULL, 0);
-	} else if (!strcmp(g_output_data_type, "H.265")) {
-		rtsp_set_video(g_rtsp_session_0, RTSP_CODEC_ID_VIDEO_H265, NULL, 0);
-	} else {
-		LOG_ERROR("g_output_data_type is %s, not support\n", g_output_data_type);
-		return -1;
-	}
-	rtsp_sync_video_ts(g_rtsp_session_0, rtsp_get_reltime(), rtsp_get_ntptime());
-	LOG_INFO("end\n");
-
-	return 0;
-}
-
-int rkipc_rtsp_deinit() {
-	LOG_INFO("%s\n", __func__);
-	if (g_rtsplive)
-		rtsp_del_demo(g_rtsplive);
-	LOG_INFO("%s over\n", __func__);
 
 	return 0;
 }
@@ -725,7 +691,7 @@ int rk_video_init() {
 	ret |= rkipc_vi_dev_init();
 	ret |= rkipc_pipe_0_init(); // for vi-venc-rtsp
 	ret |= rkipc_pipe_1_init(); // for vi-vo
-	ret |= rkipc_rtsp_init();
+	ret |= rkipc_rtsp_init(RTSP_URL_0, NULL, NULL);
 #if 1
 	pthread_t key_id;
 	pthread_t get_vi_id;

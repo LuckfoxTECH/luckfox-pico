@@ -19,7 +19,10 @@
 #define _RK_AIQ_USER_API2_ACCM_H_
 #include "accm/rk_aiq_uapi_accm_int.h"
 
+#ifndef RK_AIQ_SYS_CTX_T
+#define RK_AIQ_SYS_CTX_T
 typedef struct rk_aiq_sys_ctx_s rk_aiq_sys_ctx_t;
+#endif
 
 RKAIQ_BEGIN_DECLARE
 
@@ -27,12 +30,24 @@ XCamReturn rk_aiq_user_api2_accm_SetAttrib(const rk_aiq_sys_ctx_t* sys_ctx,
                                            const rk_aiq_ccm_attrib_t* attr);
 XCamReturn rk_aiq_user_api2_accm_GetAttrib(const rk_aiq_sys_ctx_t* sys_ctx,
                                            rk_aiq_ccm_attrib_t* attr);
+XCamReturn rk_aiq_user_api2_accm_SetIqParam(const rk_aiq_sys_ctx_t* sys_ctx,
+                                           const rk_aiq_ccm_calib_attrib_t* attr);
+XCamReturn rk_aiq_user_api2_accm_GetIqParam(const rk_aiq_sys_ctx_t* sys_ctx,
+                                           rk_aiq_ccm_calib_attrib_t* attr);
 XCamReturn rk_aiq_user_api2_accm_v2_SetAttrib(const rk_aiq_sys_ctx_t* sys_ctx,
                                            const rk_aiq_ccm_v2_attrib_t* attr);
 XCamReturn rk_aiq_user_api2_accm_v2_GetAttrib(const rk_aiq_sys_ctx_t* sys_ctx,
                                            rk_aiq_ccm_v2_attrib_t* attr);
+XCamReturn rk_aiq_user_api2_accm_v2_SetIqParam(const rk_aiq_sys_ctx_t* sys_ctx,
+                                           const rk_aiq_ccm_v2_calib_attrib_t* attr);
+XCamReturn rk_aiq_user_api2_accm_v2_GetIqParam(const rk_aiq_sys_ctx_t* sys_ctx,
+                                           rk_aiq_ccm_v2_calib_attrib_t* attr);
 XCamReturn rk_aiq_user_api2_accm_QueryCcmInfo(const rk_aiq_sys_ctx_t* sys_ctx,
                                               rk_aiq_ccm_querry_info_t* ccm_querry_info);
+XCamReturn rk_aiq_user_api2_GetAcolorSwInfo(const rk_aiq_sys_ctx_t* sys_ctx,
+                                              rk_aiq_color_info_t* aColor_sw_info);
+XCamReturn rk_aiq_user_api2_accm_SetAcolorSwInfo(const rk_aiq_sys_ctx_t* sys_ctx,
+                                              rk_aiq_color_info_t aColor_sw_info);
 
 RKAIQ_END_DECLARE
 

@@ -42,7 +42,8 @@ static struct gpio_bank gpio_banks[GPIO_BANK_NUM] = {
 #endif
 };
 
-static const char *gpio_alias[GPIO_BANK_NUM];
+static const char *aliases_gpios[GPIO_BANK_NUM];
+static const char *order_gpios[GPIO_BANK_NUM];
 
 static int gpio_is_valid(u32 gpio)
 {
@@ -80,14 +81,92 @@ static int __hard_gpio_to_irq(u32 gpio)
 	return -EINVAL;
 }
 
+static int init_order_gpios(void)
+{
+	const void *fdt = gd->fdt_blob;
+	static int initialized;
+	int node, offset;
+	int i = 0;
+
+	if (initialized)
+		return 0;
+
+	node = fdt_path_offset(fdt, "/pinctrl");
+	if (node < 0)
+		return -EINVAL;
+
+	for (offset = fdt_first_subnode(fdt, node);
+	     offset >= 0 && i < GPIO_BANK_NUM;
+	     offset = fdt_next_subnode(fdt, offset)) {
+		if (i >= GPIO_BANK_NUM)
+			break;
+
+		order_gpios[i++] = fdt_get_name(fdt, offset, NULL);
+		IRQ_D("order gpio: %s\n", order_gpios[i - 1]);
+	}
+
+	initialized = 1;
+
+	return 0;
+}
+
+static int init_aliases_gpios(void)
+{
+	static int initialized;
+	char alias_name[6];
+	int i;
+
+	if (initialized)
+		return 0;
+
+	for (i = 0; i < GPIO_BANK_NUM; i++) {
+		snprintf(alias_name, 6, "gpio%d", i);
+		aliases_gpios[i] = fdt_get_alias(gd->fdt_blob, alias_name);
+		if (!aliases_gpios[i])
+			return -EINVAL;
+
+		IRQ_D("aliases gpio: %s\n", aliases_gpios[i]);
+	}
+
+	initialized = 1;
+
+	return 0;
+}
+
+static int lookup_gpio_bank(const char *name)
+{
+	int bank, ret;
+
+	for (bank = 0; bank < GPIO_BANK_NUM; bank++) {
+		if (strstr(name, gpio_banks[bank].name))
+			return bank;
+	}
+
+	ret = init_aliases_gpios();
+	for (bank = 0; !ret && bank < GPIO_BANK_NUM; bank++) {
+		/*
+		 * @name pattern can be:
+		 *	/pinctrl/gpio@fd8a0000 or gpio@fd8a0000
+		 */
+		if (strstr(aliases_gpios[bank], name))
+			return bank;
+	}
+
+	ret = init_order_gpios();
+	for (bank = 0; !ret && bank < GPIO_BANK_NUM; bank++) {
+		if (!strcmp(name, order_gpios[bank]))
+			return bank;
+	}
+
+	return -ENOENT;
+}
+
 static int __phandle_gpio_to_irq(u32 gpio_phandle, u32 offset)
 {
 	const void *blob = gd->fdt_blob;
 	const char *gpio_name;
-	char alias_name[6];
 	int irq, node;
-	int i, bank;
-	bool found = false;
+	int bank;
 
 	node = fdt_node_offset_by_phandle(blob, gpio_phandle);
 	if (node < 0) {
@@ -99,36 +178,8 @@ static int __phandle_gpio_to_irq(u32 gpio_phandle, u32 offset)
 	if (!gpio_name)
 		return EINVAL_GPIO;
 
-	for (bank = 0; bank < GPIO_BANK_NUM; bank++) {
-		if (strstr(gpio_name, gpio_banks[bank].name)) {
-			found = true;
-			break;
-		}
-	}
-
-	if (!found) {
-		/* initial getting all gpio alias */
-		if (!gpio_alias[0]) {
-			for (i = 0; i < GPIO_BANK_NUM; i++) {
-				snprintf(alias_name, 6, "gpio%d", i);
-				gpio_alias[i] = fdt_get_alias(blob, alias_name);
-				if (!gpio_alias[i]) {
-					IRQ_D("No gpio alias %s\n", alias_name);
-					return EINVAL_GPIO;
-				}
-			}
-		}
-
-		/* match alias ? */
-		for (bank = 0; bank < ARRAY_SIZE(gpio_banks); bank++) {
-			if (strstr(gpio_alias[bank], gpio_name)) {
-				found = true;
-				break;
-			}
-		}
-	}
-
-	if (!found) {
+	bank = lookup_gpio_bank(gpio_name);
+	if (bank < 0) {
 		IRQ_E("IRQ Framework can't find: %s\n", gpio_name);
 		return EINVAL_GPIO;
 	}

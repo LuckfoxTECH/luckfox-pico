@@ -14,6 +14,11 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
         -lpthread
 		${RT_TEST_COMM_STATIC}
     )
+    set(ROCKIT_DEP_COMMON_LIBS_FULL
+        ${ROCKIT_DEP_COMMON_LIBS_FULL}
+        -lpthread
+        ${RT_TEST_COMM_STATIC}
+    )
     message(STATUS "Build WITH linker libs for Linux")
 endif()
 

@@ -519,7 +519,10 @@ static int ieee80211_do_open(struct net_device *dev, bool coming_up)
 		netif_carrier_on(dev);
 		local->only_monitors++;
 		local->monitor_sdata=sdata;
-    	fallthrough;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 10, 60))
+		
+			fallthrough;
+#endif
 	default:
 	
 		if (coming_up) {
@@ -580,13 +583,13 @@ static int ieee80211_do_open(struct net_device *dev, bool coming_up)
 	mutex_lock(&local->mtx);	
 	hw_reconf_flags |= __ieee80211_recalc_idle(local);
 	mutex_unlock(&local->mtx);
-	
+
 	if (coming_up)
 		local->open_count++;
 #ifdef CONFIG_MAC80211_BRIDGE
 	br0_netdev_open(dev);
 #endif	// CONFIG_MAC80211_BRIDGE
-	
+
 	if (hw_reconf_flags) {
 		ieee80211_hw_config(local, hw_reconf_flags);
 		/*
@@ -596,7 +599,6 @@ static int ieee80211_do_open(struct net_device *dev, bool coming_up)
 		 */
 		ieee80211_set_wmm_default(sdata);
 	}
-	
 
 	ieee80211_recalc_ps(local, -1);
 
@@ -618,7 +620,6 @@ static int ieee80211_do_open(struct net_device *dev, bool coming_up)
 
 static int ieee80211_open(struct net_device *dev)
 {
-	int ret = 0;
 	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
 	int err;
 
@@ -631,9 +632,7 @@ static int ieee80211_open(struct net_device *dev)
 	if (err)
 		return err;
 
-	ret = ieee80211_do_open(dev, true);
-
-	return ret;
+	return ieee80211_do_open(dev, true);
 }
 
 static void ieee80211_do_stop(struct ieee80211_sub_if_data *sdata,
@@ -806,7 +805,10 @@ static void ieee80211_do_stop(struct ieee80211_sub_if_data *sdata,
 		rcu_assign_pointer(sdata->local->internal_monitor.req.monitor_rx,NULL);
 		rcu_assign_pointer(sdata->local->internal_monitor.req.priv,NULL);
 		synchronize_rcu();
-    	fallthrough;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 10, 60))
+		
+			fallthrough;
+#endif
     // break;
 	default:
 		atbm_flush_work(&sdata->work);
@@ -988,7 +990,7 @@ static u16 ieee80211_netdev_select_queue(struct net_device *dev,
                                         struct sk_buff *skb,
 										struct net_device *sb_dev)
 										
-#elif (LINUX_VERSION_CODE >=  KERNEL_VERSION(4,9,84))
+#elif (LINUX_VERSION_CODE >=  KERNEL_VERSION(4,9,37))
 
 static u16 ieee80211_netdev_select_queue(struct net_device *dev,
 										struct sk_buff *skb,
@@ -1617,7 +1619,7 @@ int ieee80211_netdev_ioctrl(struct net_device *dev, struct ifreq *rq, int cmd)
 		cmd_value = list_data[0].cmd;
 		do{
 			if(cmd_value == cmd){
-				atbm_printk_debug( "ioctl:cmd[%s][0x%x] not support\n",list_data[i].cmd_str,cmd);
+				atbm_printk_err( "ioctl:cmd[%s][0x%x] not support\n",list_data[i].cmd_str,cmd);
 				break;
 			}
 			i++;
@@ -1688,7 +1690,7 @@ static u16 ieee80211_monitor_select_queue(struct net_device *dev,
 										struct sk_buff *skb,	
 										struct net_device *sb_dev)
 
-#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 84))
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 37))
 static u16 ieee80211_monitor_select_queue(struct net_device *dev,
 										struct sk_buff *skb,
 										void *accel_priv,
@@ -2074,7 +2076,10 @@ static void ieee80211_setup_sdata(struct ieee80211_sub_if_data *sdata,
 		type = NL80211_IFTYPE_AP;
 		sdata->vif.type = type;
 		sdata->vif.p2p = true;
-    	fallthrough;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 10, 60))
+		
+			fallthrough;
+#endif
 		/* fall through */
 #endif
 	case NL80211_IFTYPE_AP:
@@ -2087,7 +2092,10 @@ static void ieee80211_setup_sdata(struct ieee80211_sub_if_data *sdata,
 		type = NL80211_IFTYPE_STATION;
 		sdata->vif.type = type;
 		sdata->vif.p2p = true;
-   		fallthrough;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 10, 60))
+		
+			fallthrough;
+#endif
 		/* fall through */
 #endif
 	case NL80211_IFTYPE_STATION:
@@ -2641,7 +2649,7 @@ void ieee80211_if_remove(struct ieee80211_sub_if_data *sdata)
 	if (ieee80211_vif_is_mesh(&sdata->vif))
 		mesh_path_flush_by_iface(sdata);
 #endif
-//	synchronize_rcu();
+	synchronize_rcu();
 	unregister_netdevice(sdata->dev);
 }
 

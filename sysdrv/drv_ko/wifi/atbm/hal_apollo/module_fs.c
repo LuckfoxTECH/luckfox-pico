@@ -199,7 +199,6 @@ static struct atbm_printk_mask_table_s printk_mask_table[] = {
 	LOG_TABLE_INIT("LOG_BH",  "output bh level log",ATBM_PRINTK_MASK_BH),
 	LOG_TABLE_INIT("LOG_CFG80211","output cfg80211 level log",ATBM_PRINTK_MASK_CFG80211),
 	LOG_TABLE_INIT("LOG_DEBUG","output cfg80211 level log",ATBM_PRINTK_MASK_DEBUG),
-	LOG_TABLE_INIT("LOG_WSM","output wsm level log",ATBM_PRINTK_MASK_WSM),
 };
 /*
 *
@@ -615,8 +614,11 @@ static bool atbm_string_parase(struct atbm_store_cmd_code *cmd_store,struct atbm
 	for(index = 0;index<table_size;index++){
 		unsigned int hash_index = atbm_hash_index(string_table[index].string,
 								  strlen(string_table[index].string),ATBM_STRING_HASHBITS);
-		BUG_ON(strlen(string_table[index].string) > ATBM_STRING_MAX_LEN);
-		
+		if(strlen(string_table[index].string) > ATBM_STRING_MAX_LEN){
+			atbm_printk_err("%s %d ,ERROR !!! strlen(string_table[index].string) = %d > 16\n",
+				__func__,__LINE__,strlen(string_table[index].string));
+			return false;
+		}
 		hhead = &atbm_string_hash_head[hash_index];
 		
 		hlist_for_each(node,hhead){
@@ -2214,16 +2216,20 @@ static bool atbm_module_attr_send_probe_request(struct atbm_common *hw_priv,
 	rtnl_lock();
 
 	list_for_each_entry(sdata_tmp, &local->interfaces, list){
-		
+#ifndef AP_MODE_SEND_PROBE_REQ
 		if ((sdata_tmp->vif.type != NL80211_IFTYPE_MONITOR)&&(sdata_tmp->vif.type != NL80211_IFTYPE_STATION)){
 			atbm_printk_err("%s:monitor already exit\n",__func__);
 			continue;
 		}
-
+#endif
 		if(!ieee80211_sdata_running(sdata_tmp)){
 			continue;
 		}
-
+#ifdef AP_MODE_SEND_PROBE_REQ		
+		if(sdata_tmp->vif.type == NL80211_IFTYPE_AP){
+			goto ap_mode;
+		}
+#endif		
 		if(sdata_tmp->vif.type == NL80211_IFTYPE_STATION){
 			struct atbm_vif *priv = (struct atbm_vif *)sdata_tmp->vif.drv_priv;
 
@@ -2232,6 +2238,9 @@ static bool atbm_module_attr_send_probe_request(struct atbm_common *hw_priv,
 			if(priv->join_status != ATBM_APOLLO_JOIN_STATUS_STA_LISTEN)
 				continue;
 		}
+#ifdef AP_MODE_SEND_PROBE_REQ
+ap_mode:		
+#endif
 		sdata = sdata_tmp;
 		break;
 	}
@@ -3270,8 +3279,11 @@ static ssize_t atbm_module_decode_common_store(const char *buf, size_t n)
 		atbm_printk_always("%s:can not find cmd\n",__func__);
 		return -EINVAL;
 	}
-	BUG_ON(store_code->code_cmd == NULL);
-	
+
+	if(store_code->code_cmd == NULL){
+		atbm_printk_err("%s %d ,ERROR !!! store_code->code_cmd is NULL\n",__func__,__LINE__);
+		return -EINVAL;
+	}	
 	p = atbm_skip_space(code_end,left_len);
 	if(p == NULL){
 		left_len = 0;
@@ -3394,7 +3406,12 @@ static void atbm_module_cmd_init(void)
 	for(index = 0;index<ARRAY_SIZE(cmd_code_buff);index++){
 		unsigned int hash_index = atbm_hash_index(cmd_code_buff[index].label,
 								  strlen(cmd_code_buff[index].label),ATBM_CMD_HASHBITS);
-		BUG_ON(strlen(cmd_code_buff[index].label) > ATBM_CMD_MAX_STRING_LEN);
+	
+		if(strlen(cmd_code_buff[index].label) > ATBM_CMD_MAX_STRING_LEN){
+			atbm_printk_err("%s %d ,ERROR !!! strlen(%s)=%d > 32\n",
+				__func__,__LINE__,cmd_code_buff[index].label,strlen(cmd_code_buff[index].label));
+			return;
+		}
 		hlist_add_head(&cmd_code_buff[index].hnode,&atbm_cmd_hash_head[hash_index]);
 		cmd_code_buff[index].echo_ready = false;
 		atbm_store_cmd_deinit_show(&cmd_code_buff[index].echo);
@@ -3456,7 +3473,7 @@ static void atbm_module_firmware_caps_show(struct atbm_module_show *show_buff,st
 	atbm_module_show_put(show_buff,"TX_CFO_PPM_CORRECTION [%d]\n" ,WSM_CAP(CAPABILITIES_TX_CFO_PPM_CORRECTION));
 	atbm_module_show_put(show_buff,"NOISE_SET_DCXO        [%d]\n" ,WSM_CAP(CAPABILITIES_NOISE_SET_DCXO));
 }
-
+extern char * get_chip_type(void);
 static void atbm_module_driver_caps_show(struct atbm_module_show *show_buff,struct atbm_common *hw_priv)
 {
 	atbm_module_show_put(show_buff,LIGHT"Driver Cap:"NORMAL ENTER);
@@ -3479,7 +3496,7 @@ static void atbm_module_driver_caps_show(struct atbm_module_show *show_buff,stru
 #else
 	atbm_module_show_put(show_buff,"BAND_SUPPORT[%s]\n","only 2G");
 #endif
-	
+	atbm_module_show_put(show_buff,"CHIP NAME	[%s]\n",get_chip_type());
 }
 static ssize_t atbm_module_show_system_info(struct kobject *kobj,
 			     struct kobj_attribute *attr, char *buf)
@@ -3650,7 +3667,7 @@ static ssize_t atbm_module_show_backup_info(struct kobject *kobj,
 		goto exit;
 	 }
 	 hw_priv = atbm_hw_priv_dereference();
-#ifdef CONFIG_TXPOWER_DCXO_VALUE || CONFIG_RATE_TXPOWER
+#if defined(CONFIG_TXPOWER_DCXO_VALUE) || defined(CONFIG_RATE_TXPOWER)
 	 if ((ret = wsm_get_cfg_txpower(hw_priv, (void *)&configured_txpower, sizeof(configured_txpower))) == 0){	 
 		 for(i=0;i<sizeof(configured_txpower.set_txpwr_delta_gain);i++)
 			 atbm_module_show_put(&sys_show,"delta_gain%d:%d\n",i+1,configured_txpower.set_txpwr_delta_gain[i]);
@@ -3852,46 +3869,6 @@ static bool atbm_module_printk_mask_parase(const char *mask_str,ssize_t msg_len)
 	}
 	return pos == mask_str ? false: true;
 }
-//#include <stdlib.h>
-
-static ssize_t atbm_module_set_printk_level_store(struct kobject *kobj, struct kobj_attribute *attr,
-			   const char *buf, size_t n)
-{
-//	int printk_level;
-	atbm_printk_always("[%s]:%s\n",__func__,buf);
-//	printk_level = atoi(buf);
-	atbm_printk_always("printk_level = %d \n",buf[0]);
-	switch(buf[0]){
-		case 0x30:{
-			atbm_printk_mask = ATBM_PRINTK_CLEAR;
-			atbm_printk_always("ATBM_PRINTK_CLEAR\n");
-			}break;
-		case 0x31:{
-			atbm_printk_mask = ATBM_PRINTK_LEVEL1;
-			atbm_printk_always("ATBM_PRINTK_LEVEL==>1\n");
-			}break;
-		case 0x32:{
-			atbm_printk_mask = ATBM_PRINTK_LEVEL2;
-			atbm_printk_always("ATBM_PRINTK_LEVEL==>2\n");
-			}break;
-		case 0x33:{
-			atbm_printk_mask = ATBM_PRINTK_LEVEL3;
-			atbm_printk_always("ATBM_PRINTK_LEVEL==>3\n");
-			}break;
-		case 0x34:
-		case 0x35:{
-			atbm_printk_mask = ATBM_PRINTK_ALL;
-			atbm_printk_always("ATBM_PRINTK_ALL\n");
-			}break;
-		default:{
-			atbm_printk_always("ATBM_PRINTK_NO_CHANGE\n");	
-		}break;
-	}
-	return -EINVAL;
-}
-
-
-
 static ssize_t atbm_module_printk_mask_store(struct kobject *kobj, struct kobj_attribute *attr,
 			   const char *buf, size_t n)
 {
@@ -3992,7 +3969,12 @@ static void atbm_module_printk_init(void)
 	for(index = 0;index<ARRAY_SIZE(printk_mask_table);index++){
 		unsigned int hash_index = atbm_hash_index(printk_mask_table[index].mask_string,
 								  strlen(printk_mask_table[index].mask_string),ATBM_PRINTK_HASHBITS);
-		BUG_ON(strlen(printk_mask_table[index].mask_string) > ATBM_PRINTK_MAX_STRING_LEN);
+	
+		if(strlen(printk_mask_table[index].mask_string) > ATBM_PRINTK_MAX_STRING_LEN){
+			atbm_printk_err("%s %d ,ERROR !!! strlen(%s)=%d > 32\n",
+					__func__,__LINE__,printk_mask_table[index].mask_string,strlen(printk_mask_table[index].mask_string));
+			return;
+		}
 		atbm_printk_debug("%s:[%s]->[%d]\n",__func__,printk_mask_table[index].mask_string,hash_index);
 		hlist_add_head(&printk_mask_table[index].string_hnode,&atbm_printk_hash_head[hash_index]);
 	}
@@ -4007,7 +3989,6 @@ static struct kobj_attribute atbm_module_getefuse_attr = __ATTR(atbm_efuse,  044
 static struct kobj_attribute atbm_module_getfirsyefuse_attr = __ATTR(atbm_first_efuse,  0444,atbm_module_show_first_efuse, NULL);
 static struct kobj_attribute atbm_module_remainefuse_attr = __ATTR(atbm_remainEfuseSpace,  0444,atbm_module_show_remain_efuse, NULL);
 static struct kobj_attribute atbm_module_get_rate_power = __ATTR(atbm_get_cfg_power,  0444,atbm_module_show_cfg_power, NULL);
-static struct kobj_attribute atbm_module_set_print_level = __ATTR(atbm_set_print_level,  0644 ,NULL, atbm_module_set_printk_level_store);
 
 static struct kobj_attribute atbm_module_printk_mask = __ATTR(atbm_printk_mask,  0644,atbm_module_printk_mask_show, atbm_module_printk_mask_store);
 
@@ -4020,7 +4001,6 @@ static struct attribute *atbm_module_attribute_group[]= {
 	&atbm_module_getfirsyefuse_attr.attr,
 	&atbm_module_remainefuse_attr.attr,
 	&atbm_module_get_rate_power.attr,
-	&atbm_module_set_print_level.attr,
 	NULL,
 };
 static struct attribute_group atbm_module_attr_group = {

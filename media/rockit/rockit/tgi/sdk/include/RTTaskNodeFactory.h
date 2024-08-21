@@ -24,64 +24,63 @@
 
 #include <list>
 
-#include "RTTaskNodeDef.h"
 #include "rt_header.h"
+#include "RTTaskNodeDef.h"
 
 class RTTaskNode;
 class RTTaskNodeToken;
 class RTTaskNodeFactory;
-typedef RTTaskNode *(*RTNodeCreate)();
+typedef RTTaskNode* (*RTNodeCreate)();
 typedef struct _RTNodeStub {
-  const INT32 mUid;
-  const char *mName;
-  const char *mVersion;
-  RTNodeCreate mCreateObj;
-  RTPadCaps mCapsSrc;
-  RTPadCaps mCapsSink;
+    const INT32  mUid;
+    const char  *mName;
+    const char  *mVersion;
+    RTNodeCreate mCreateObj;
+    RTPadCaps    mCapsSrc;
+    RTPadCaps    mCapsSink;
 } RTNodeStub;
 
 #define REGISTRY_STATIC_VAR_INNER(var_name, line) var_name##_##line##__
-#define REGISTRY_STATIC_VAR(var_name, line)                                    \
-  REGISTRY_STATIC_VAR_INNER(var_name, line)
+#define REGISTRY_STATIC_VAR(var_name, line) \
+    REGISTRY_STATIC_VAR_INNER(var_name, line)
 
-#define RT_NODE_FACTORY_CREATE_NODE(idName)                                    \
-  RTTaskNodeFactory::instance()->createNode(idName)
+#define RT_NODE_FACTORY_CREATE_NODE(idName) \
+    RTTaskNodeFactory::instance()->createNode(idName)
 
-#define RT_NODE_FACTORY_GET_UID_BY_NAME(name)                                  \
-  RTTaskNodeFactory::instance()->getUidByName(name)
+#define RT_NODE_FACTORY_GET_UID_BY_NAME(name) \
+    RTTaskNodeFactory::instance()->getUidByName(name)
 
-#define RT_NODE_FACTORY_GET_STUB_BY_UID(uid)                                   \
-  RTTaskNodeFactory::instance()->getStubByUid(uid)
+#define RT_NODE_FACTORY_GET_STUB_BY_UID(uid) \
+    RTTaskNodeFactory::instance()->getStubByUid(uid)
 
-#define RT_NODE_FACTORY_REGISTER_STUB(stub)                                    \
-  auto REGISTRY_STATIC_VAR(stub, __LINE__) = RTTaskNodeToken(stub);
+#define RT_NODE_FACTORY_REGISTER_STUB(stub) \
+    auto REGISTRY_STATIC_VAR(stub, __LINE__) = RTTaskNodeToken(stub);
 
 class RTTaskNodeFactory {
-public:
-  RTTaskNodeFactory();
-  virtual ~RTTaskNodeFactory();
-  static RTTaskNodeFactory *instance();
+ public:
+    RTTaskNodeFactory();
+    virtual ~RTTaskNodeFactory();
+    static RTTaskNodeFactory* instance();
 
-public:
-  RT_RET registerStub(RTNodeStub *stub);
-  RTTaskNode *createNode(const char *name);
-  RTTaskNode *createNode(RTStubUid stubKey);
-  RTTaskNode *createNode(RTPadCaps *caps);
-  RTTaskNode *createNode(RTNodeStub *stub);
-  RTStubUid getUidByName(const char *name);
-  RTNodeStub *getStubByUid(RTStubUid stubKey);
+ public:
+    RT_RET      registerStub(RTNodeStub* stub);
+    RTTaskNode* createNode(const char* name);
+    RTTaskNode* createNode(RTStubUid stubKey);
+    RTTaskNode* createNode(RTPadCaps* caps);
+    RTTaskNode* createNode(RTNodeStub* stub);
+    RTStubUid   getUidByName(const char* name);
+    RTNodeStub* getStubByUid(RTStubUid stubKey);
 
-private:
-  std::list<RTNodeStub *> mStubs;
+ private:
+    std::list<RTNodeStub*>    mStubs;
 };
 
 class RTTaskNodeToken {
-public:
-  explicit RTTaskNodeToken(const RTNodeStub &stub);
-  virtual ~RTTaskNodeToken() {}
-
-private:
-  RTNodeStub *mNodeStub;
+ public:
+    explicit RTTaskNodeToken(const RTNodeStub &stub);
+    virtual ~RTTaskNodeToken() {}
+ private:
+    RTNodeStub *mNodeStub;
 };
 
-#endif // SRC_RT_TASK_TASK_NODE_RTTASKNODEFACTORY_H_
+#endif  // SRC_RT_TASK_TASK_NODE_RTTASKNODEFACTORY_H_

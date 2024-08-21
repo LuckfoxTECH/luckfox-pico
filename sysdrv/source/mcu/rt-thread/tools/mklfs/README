@@ -1,0 +1,4 @@
+mkdir data
+cp /path_to_you_resource_dir ./data/
+cd data
+../mklfs -c ./ -b 4096 -r 256 -p 256 -s 4194304 -i ../data_lfs.img

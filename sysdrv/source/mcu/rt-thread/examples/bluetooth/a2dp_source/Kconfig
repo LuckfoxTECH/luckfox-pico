@@ -1,0 +1,10 @@
+menu "Example 'A2DP SOURCE' Config "
+
+    config A2DP_SOURCE_EXAMPLE
+        bool "Demo of a2dp audio source role
+    default n
+        help
+            This example is able to run on any commonly available Koala development board.
+            And is supposed to connect to A2DP sink example in RT-thread.
+
+endmenu

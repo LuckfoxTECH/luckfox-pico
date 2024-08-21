@@ -27,6 +27,8 @@
 #define RKMODULE_PDAF_DCCMAP_LEN	256
 #define RKMODULE_AF_OTP_MAX_LEN		3
 
+#define RKMODULE_MAX_SENSOR_NUM		8
+
 #define RKMODULE_CAMERA_MODULE_INDEX	"rockchip,camera-module-index"
 #define RKMODULE_CAMERA_MODULE_FACING	"rockchip,camera-module-facing"
 #define RKMODULE_CAMERA_MODULE_NAME	"rockchip,camera-module-name"
@@ -159,6 +161,15 @@
 
 #define RKMODULE_GET_CSI_DSI_INFO       \
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 33, __u32)
+
+#define RKMODULE_GET_HDMI_MODE       \
+	_IOR('V', BASE_VIDIOC_PRIVATE + 34, __u32)
+
+#define RKMODULE_SET_SENSOR_INFOS       \
+	_IOWR('V', BASE_VIDIOC_PRIVATE + 35, struct rkmodule_sensor_infos)
+
+#define RKMODULE_GET_READOUT_LINE_CNT_PER_LINE  \
+	_IOR('V', BASE_VIDIOC_PRIVATE + 36, __u32)
 
 struct rkmodule_i2cdev_info {
 	u8 slave_addr;
@@ -303,6 +314,7 @@ struct rkmodule_pdaf_inf {
 	__u32 dccmap_height;
 	__u32 dcc_mode;
 	__u32 dcc_dir;
+	__u32 pd_offset;
 	__u16 gainmap[RKMODULE_PADF_GAINMAP_LEN];
 	__u16 dccmap[RKMODULE_PDAF_DCCMAP_LEN];
 } __attribute__ ((packed));
@@ -598,6 +610,13 @@ enum rkmodule_start_stream_seq {
 };
 
 /*
+ * HDMI to MIPI-CSI MODE IOCTL
+ */
+enum rkmodule_hdmiin_mode_seq {
+	RKMODULE_HDMIIN_DEFAULT = 0,
+	RKMODULE_HDMIIN_MODE,
+};
+/*
  * the causation to do cif reset work
  */
 enum rkmodule_reset_src {
@@ -731,6 +750,16 @@ struct rkmodule_csi_dphy_param {
 	u32 clk_hs_term_sel;
 	u32 data_hs_term_sel[DPHY_MAX_LANE];
 	u32 reserved[32];
+};
+
+struct rkmodule_sensor_fmt {
+	__u32 sensor_index;
+	__u32 sensor_width;
+	__u32 sensor_height;
+};
+
+struct rkmodule_sensor_infos {
+	struct rkmodule_sensor_fmt sensor_fmt[RKMODULE_MAX_SENSOR_NUM];
 };
 
 #endif /* _UAPI_RKMODULE_CAMERA_H */

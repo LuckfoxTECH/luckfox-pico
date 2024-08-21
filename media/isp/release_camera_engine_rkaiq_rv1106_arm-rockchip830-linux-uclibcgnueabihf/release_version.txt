@@ -1,8 +1,8 @@
-commit e38eb3c578a1b545be539c80753438188dbc7247
-Author: Dexiong Zhang <dexiong.zhang@rock-chips.com>
-Date:   Mon Feb 27 17:31:30 2023 +0800
+commit cd321b8121fda6ed1bedb60d20fef84a1659815a
+Author: hjl <jialong.huang@rock-chips.com>
+Date:   Tue Apr 30 15:20:39 2024 +0800
 
-    smart ir: rename get_env_value function to avoid conflict
+    iqfiles: fix enhance_curve bug in ainr sc4336_CMK-OT01_40IRC_F16.json
     
-    Signed-off-by: Dexiong Zhang <dexiong.zhang@rock-chips.com>
-    Change-Id: I8c6bd0d587b3729d8c6a35291c1111c355b11284
+    Signed-off-by: hjl <jialong.huang@rock-chips.com>
+    Change-Id: I1c25325da8e43d2b4af5780749faae34a49c124e

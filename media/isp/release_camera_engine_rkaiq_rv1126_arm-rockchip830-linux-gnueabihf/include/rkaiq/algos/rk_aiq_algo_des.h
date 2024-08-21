@@ -54,6 +54,8 @@ RKAIQ_BEGIN_DECLARE
 
 typedef struct _RkAiqAlgoContext RkAiqAlgoContext;
 
+typedef struct CamCalibDbContext_s CamCalibDbContext_t;
+
 typedef enum RkAiqAlgoType_e {
     RK_AIQ_ALGO_TYPE_NONE = -1,
     RK_AIQ_ALGO_TYPE_AE,
@@ -82,12 +84,16 @@ typedef enum RkAiqAlgoType_e {
     RK_AIQ_ALGO_TYPE_ASD,
     RK_AIQ_ALGO_TYPE_ADEGAMMA,
     RK_AIQ_ALGO_TYPE_AFD,
+    RK_AIQ_ALGO_TYPE_AEIS,
     RK_AIQ_ALGO_TYPE_MAX
 } RkAiqAlgoType_t;
 
 typedef struct _AlgoCtxInstanceCfg {
     uint32_t isp_hw_version;
     uint32_t module_hw_version;
+    CamCalibDbContext_t* calib;
+    bool isGroupMode;
+
 } AlgoCtxInstanceCfg;
 
 typedef struct _RkAiqAlgoDesComm {
@@ -122,6 +128,7 @@ typedef struct _RkAiqAlgoCom {
             int sns_op_height;
             int conf_type;
             int ae_algo_id;
+            const CamCalibDbContext_t* calib;
         } prepare; //for prepare function
 
         struct {
@@ -142,6 +149,8 @@ typedef struct _RkAiqAlgoDescription {
     XCamReturn (*processing)(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outparams);
     XCamReturn (*post_process)(const RkAiqAlgoCom* inparams, RkAiqAlgoResCom* outparams);
 } RkAiqAlgoDescription;
+
+typedef int32_t (*AlgosResultCallback)(RkAiqAlgoType_t type, RkAiqAlgoResCom* outparams) ;
 
 RKAIQ_END_DECLARE
 

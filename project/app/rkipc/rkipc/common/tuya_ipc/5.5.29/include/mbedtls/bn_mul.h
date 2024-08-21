@@ -765,8 +765,8 @@
 #define MULADDC_INIT __asm mov esi, s __asm mov edi, d __asm mov ecx, c __asm mov ebx, b
 
 #define MULADDC_CORE                                                                               \
-	__asm lodsd __asm mul ebx __asm add eax, ecx __asm adc edx,                                    \
-	    0 __asm add eax, [edi] __asm adc edx, 0 __asm mov ecx, edx __asm stosd
+	__asm lodsd __asm mul ebx __asm add eax, ecx __asm adc edx, 0 __asm add eax,                   \
+	    [edi] __asm adc edx, 0 __asm mov ecx, edx __asm stosd
 
 #if defined(MBEDTLS_HAVE_SSE2)
 

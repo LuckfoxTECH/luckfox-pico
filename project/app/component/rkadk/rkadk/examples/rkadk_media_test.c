@@ -14,16 +14,16 @@
  *  limitations under the License.
  */
 
-#include "isp/sample_isp.h"
 #include "rkadk_common.h"
-#include "rkadk_log.h"
 #include "rkadk_media_comm.h"
+#include "rkadk_log.h"
 #include "rkadk_param.h"
+#include "rkadk_record.h"
 #include "rkadk_photo.h"
 #include "rkadk_player.h"
-#include "rkadk_record.h"
-#include "rkadk_rtsp.h"
 #include "rkadk_stream.h"
+#include "rkadk_rtsp.h"
+#include "isp/sample_isp.h"
 #include <getopt.h>
 #include <signal.h>
 #include <stdbool.h>
@@ -34,18 +34,26 @@
 
 //#define ENABLE_PALYER
 //#define ENABLE_RTSP
-//#define ENABLE_STREAM
+//#define ENABLE_STREAM_AUDIO
+//#define ENABLE_STREAM_VIDEO
+#define ENABLE_PHOTO
+//#define ENABLE_RESET
 
 extern int optind;
 extern char *optarg;
 
-static RKADK_CHAR optstr[] = "a:I:p:P";
+static RKADK_CHAR optstr[] = "a:I:p:P:m:";
 
-#ifdef ENABLE_STREAM
+#ifdef ENABLE_STREAM_AUDIO
 static FILE *g_aenc_file = NULL;
 static FILE *g_pcm_file = NULL;
 static char *g_aenc_path = "/mnt/sdcard/aenc.bin";
 static char *g_pcm_path = "/mnt/sdcard/ai.pcm";
+#endif
+
+#ifdef ENABLE_STREAM_VIDEO
+static FILE *g_output_file = NULL;
+static char *g_venc_path = "/mnt/sdcard/venc.bin";
 #endif
 
 static bool is_quit = false;
@@ -60,6 +68,7 @@ static void print_usage(const RKADK_CHAR *name) {
   printf("\t-I: Camera id, Default:0\n");
   printf("\t-p: param ini directory path, Default:/data/rkadk\n");
   printf("\t-P: player audio path, Default:/mnt/sdcard/photo.wav\n");
+  printf("\t-m: record/photo multiple sensors, Default:0, options: 1(all isp sensors), 2(isp+ahd sensors)\n");
 }
 
 static RKADK_S32
@@ -69,7 +78,7 @@ GetRecordFileName(RKADK_MW_PTR pRecorder, RKADK_U32 u32FileCnt,
 
   RKADK_LOGD("u32FileCnt:%d, pRecorder:%p", u32FileCnt, pRecorder);
 
-  if (u32FileIdx >= 10)
+  if (u32FileIdx >= 100)
     u32FileIdx = 0;
 
   for (RKADK_U32 i = 0; i < u32FileCnt; i++) {
@@ -153,8 +162,8 @@ static RKADK_VOID PlayerEventFnTest(RKADK_MW_PTR pPlayer,
   case RKADK_PLAYER_EVENT_PREPARED:
     printf("+++++ RKADK_PLAYER_EVENT_PREPARED +++++\n");
     break;
-  case RKADK_PLAYER_EVENT_STARTED:
-    printf("+++++ RKADK_PLAYER_EVENT_STARTED +++++\n");
+  case RKADK_PLAYER_EVENT_PLAY:
+    printf("+++++ RKADK_PLAYER_EVENT_PLAY +++++\n");
     break;
   case RKADK_PLAYER_EVENT_PAUSED:
     printf("+++++ RKADK_PLAYER_EVENT_PAUSED +++++\n");
@@ -169,6 +178,7 @@ static RKADK_VOID PlayerEventFnTest(RKADK_MW_PTR pPlayer,
 }
 #endif
 
+#ifdef RKAIQ
 static int IspProcess(RKADK_S32 u32CamId) {
   int ret;
   bool mirror = false, flip = false;
@@ -199,8 +209,9 @@ static int IspProcess(RKADK_S32 u32CamId) {
 
   return 0;
 }
+#endif
 
-#ifdef ENABLE_STREAM
+#ifdef ENABLE_STREAM_AUDIO
 static RKADK_S32 AencDataCb(RKADK_AUDIO_STREAM_S *pAStreamData) {
   if (!g_aenc_file) {
     g_aenc_file = fopen(g_aenc_path, "w");
@@ -231,6 +242,22 @@ static RKADK_S32 PcmDataCb(RKADK_AUDIO_STREAM_S *pAStreamData) {
 }
 #endif
 
+#ifdef ENABLE_STREAM_VIDEO
+static RKADK_S32 VencDataCb(RKADK_VIDEO_STREAM_S *pVStreamData) {
+  if (!g_output_file) {
+    g_output_file = fopen(g_venc_path, "w");
+    if (!g_output_file) {
+      RKADK_LOGE("open %s file failed, exit", g_venc_path);
+      return -1;
+    }
+  }
+
+  fwrite(pVStreamData->astPack.apu8Addr, 1, pVStreamData->astPack.au32Len, g_output_file);
+  return 0;
+}
+#endif
+
+#ifdef ENABLE_PHOTO
 static void PhotoDataRecv(RKADK_PHOTO_RECV_DATA_S *pstData) {
   static RKADK_U32 photoId = 0;
   char jpegPath[128];
@@ -242,7 +269,7 @@ static void PhotoDataRecv(RKADK_PHOTO_RECV_DATA_S *pstData) {
   }
 
   memset(jpegPath, 0, 128);
-  sprintf(jpegPath, "/tmp/PhotoTest_%d.jpeg", photoId);
+  sprintf(jpegPath, "/mnt/sdcard/PhotoTest_%d.jpeg", photoId);
   file = fopen(jpegPath, "w");
   if (!file) {
     RKADK_LOGE("Create jpeg file(%s) failed", jpegPath);
@@ -255,9 +282,10 @@ static void PhotoDataRecv(RKADK_PHOTO_RECV_DATA_S *pstData) {
   fclose(file);
 
   photoId++;
-  if (photoId > 10)
+  if (photoId > 100)
     photoId = 0;
 }
+#endif
 
 static void sigterm_handler(int sig) {
   fprintf(stderr, "signal %d\n", sig);
@@ -265,49 +293,112 @@ static void sigterm_handler(int sig) {
 }
 
 int main(int argc, char *argv[]) {
-  int c, ret, fps, change;
-  RK_BOOL fec_enable = RK_FALSE;
+  int c, ret, inCmd = 0;
+  RKADK_BOOL bMultiCam = RKADK_FALSE;
+  RKADK_BOOL bMultiSensor = RK_FALSE;
   const char *iniPath = NULL;
   char *file = "/mnt/sdcard/photo.wav";
+  char path[RKADK_PATH_LEN];
+  char sensorPath[RKADK_MAX_SENSOR_CNT][RKADK_PATH_LEN];
+  RKADK_U32 u32CamId = 0;
+  //record
+  RKADK_RECORD_ATTR_S stRecAttr;
+  RKADK_MW_PTR pRecordHandle = NULL, pRecordHandle1 = NULL;
+
+#ifdef RKAIQ
+  RKADK_PARAM_FPS_S stFps;
+  const char *tmp_optarg = optarg;
+  SAMPLE_ISP_PARAM stIspParam;
+
+  memset(&stIspParam, 0, sizeof(SAMPLE_ISP_PARAM));
+  stIspParam.iqFileDir = IQ_FILE_PATH;
+#endif
+
+#ifdef ENABLE_RESET
+  int change;
   RKADK_PARAM_RES_E stResType;
   RKADK_PARAM_CODEC_CFG_S stCodecType;
   RKADK_PARAM_REC_TIME_S stRecTime;
   RKADK_REC_TYPE_E stRecType;
-  char path[RKADK_PATH_LEN];
-  char sensorPath[RKADK_MAX_SENSOR_CNT][RKADK_PATH_LEN];
-  rk_aiq_working_mode_t hdr_mode = RK_AIQ_WORKING_MODE_NORMAL;
-  RKADK_U32 u32CamId = 0;
-  // record
-  RKADK_RECORD_ATTR_S stRecAttr;
-  RKADK_CHAR *pIqfilesPath = IQ_FILE_PATH;
   RKADK_REC_MANUAL_SPLIT_ATTR_S stSplitAttr;
-  RKADK_MW_PTR pRecordHandle = NULL;
-  // photo
+#endif
+
+#ifdef ENABLE_PHOTO
+  //photo
   RKADK_PHOTO_ATTR_S stPhotoAttr;
   RKADK_TAKE_PHOTO_ATTR_S stTakePhotoAttr;
-  RKADK_MW_PTR pPhotoHandle = NULL;
+  RKADK_MW_PTR pPhotoHandle = NULL, pPhotoHandle1 = NULL;
+#endif
 
-#ifdef ENABLE_STREAM
-  // stream
+#ifdef ENABLE_STREAM_AUDIO
+  //stream
   RKADK_STREAM_AUDIO_ATTR_S stAudioAttr;
   RKADK_MW_PTR pAudioHandle = NULL;
 #endif
 
+#ifdef ENABLE_STREAM_VIDEO
+RKADK_MW_PTR pVideoHandle = NULL;
+RKADK_STREAM_VIDEO_ATTR_S stVideoAttr;
+#endif
+
 #ifdef ENABLE_RTSP
-  // rtsp
+  //rtsp
   RKADK_MW_PTR pRtsHandle = NULL;
 #endif
 
 #ifdef ENABLE_PLAYER
-  // player
+  //player
   RKADK_PLAYER_CFG_S stPlayCfg;
   RKADK_MW_PTR pPlayerHandle = NULL;
 #endif
+
+  while ((c = getopt(argc, argv, optstr)) != -1) {
+    switch (c) {
+#ifdef RKAIQ
+    case 'a':
+      if (!optarg && NULL != argv[optind] && '-' != argv[optind][0]) {
+        tmp_optarg = argv[optind++];
+      }
+
+      if (tmp_optarg)
+        stIspParam.iqFileDir = (char *)tmp_optarg;
+      break;
+#endif
+    case 'I':
+      u32CamId = atoi(optarg);
+      break;
+    case 'p':
+      iniPath = optarg;
+      RKADK_LOGD("iniPath: %s", iniPath);
+    case 'P':
+      file = optarg;
+      RKADK_LOGD("player audio file: %s", file);
+      break;
+    case 'm':
+      inCmd = atoi(optarg);
+      if (inCmd == 1) {
+        bMultiCam = RKADK_TRUE;
+        bMultiSensor = RKADK_TRUE;
+      } else if (inCmd == 2)
+        bMultiSensor = RKADK_TRUE;
+      RKADK_LOGD("enable bMultiCam: %d, bMultiSensor: %d", bMultiCam, bMultiSensor);
+      break;
+    default:
+      print_usage(argv[0]);
+      optind = 0;
+      return -1;
+    }
+  }
+  optind = 0;
+
+  if (bMultiSensor)
+    u32CamId = 0;
 
   stRecAttr.s32CamID = u32CamId;
   stRecAttr.pfnRequestFileNames = GetRecordFileName;
   stRecAttr.pfnEventCallback = RecordEventCallback;
 
+#ifdef ENABLE_PHOTO
   memset(&stTakePhotoAttr, 0, sizeof(RKADK_TAKE_PHOTO_ATTR_S));
   stTakePhotoAttr.enPhotoType = RKADK_PHOTO_TYPE_SINGLE;
 
@@ -319,8 +410,9 @@ int main(int argc, char *argv[]) {
   stPhotoAttr.stThumbAttr.stMPFAttr.sCfg.u8LargeThumbNum = 1;
   stPhotoAttr.stThumbAttr.stMPFAttr.sCfg.astLargeThumbSize[0].u32Width = 320;
   stPhotoAttr.stThumbAttr.stMPFAttr.sCfg.astLargeThumbSize[0].u32Height = 180;
+#endif
 
-#ifdef ENABLE_STREAM
+#ifdef ENABLE_STREAM_AUDIO
   memset(&stAudioAttr, 0, sizeof(RKADK_STREAM_AUDIO_ATTR_S));
   stAudioAttr.u32CamId = u32CamId;
   stAudioAttr.enCodecType = RKADK_CODEC_TYPE_PCM;
@@ -328,40 +420,17 @@ int main(int argc, char *argv[]) {
   stAudioAttr.pfnAencDataCB = AencDataCb;
 #endif
 
+#ifdef ENABLE_STREAM_VIDEO
+  memset(&stVideoAttr, 0, sizeof(RKADK_STREAM_VIDEO_ATTR_S));
+  stVideoAttr.pfnDataCB = VencDataCb;
+  stVideoAttr.u32CamId = u32CamId;
+#endif
+
 #if ENABLE_PALYER
   memset(&stPlayCfg, 0, sizeof(RKADK_PLAYER_CFG_S));
   stPlayCfg.bEnableAudio = true;
   stPlayCfg.pfnPlayerCallback = PlayerEventFnTest;
 #endif
-
-  while ((c = getopt(argc, argv, optstr)) != -1) {
-    const char *tmp_optarg = optarg;
-    switch (c) {
-    case 'a':
-      if (!optarg && NULL != argv[optind] && '-' != argv[optind][0]) {
-        tmp_optarg = argv[optind++];
-      }
-
-      if (tmp_optarg)
-        pIqfilesPath = (char *)tmp_optarg;
-      break;
-    case 'I':
-      stRecAttr.s32CamID = atoi(optarg);
-      break;
-    case 'p':
-      iniPath = optarg;
-      RKADK_LOGD("iniPath: %s", iniPath);
-    case 'P':
-      file = optarg;
-      RKADK_LOGD("player audio file: %s", file);
-      break;
-    default:
-      print_usage(argv[0]);
-      optind = 0;
-      return -1;
-    }
-  }
-  optind = 0;
 
   RKADK_MPI_SYS_Init();
 
@@ -385,32 +454,65 @@ int main(int argc, char *argv[]) {
   }
 
 #ifdef RKAIQ
-  ret = RKADK_PARAM_GetCamParam(stRecAttr.s32CamID, RKADK_PARAM_TYPE_FPS, &fps);
+  stFps.enStreamType = RKADK_STREAM_TYPE_SENSOR;
+  ret = RKADK_PARAM_GetCamParam(u32CamId, RKADK_PARAM_TYPE_FPS, &stFps);
   if (ret) {
-    RKADK_LOGE("RKADK_PARAM_GetCamParam fps failed");
+    RKADK_LOGE("RKADK_PARAM_GetCamParam u32CamId[%d] fps failed", u32CamId);
     return -1;
   }
 
-  SAMPLE_ISP_Start(stRecAttr.s32CamID, hdr_mode, fec_enable, pIqfilesPath, fps);
+  stIspParam.WDRMode = RK_AIQ_WORKING_MODE_NORMAL;
+  stIspParam.bMultiCam = bMultiCam;
+  stIspParam.fps = stFps.u32Framerate;
+  SAMPLE_ISP_Start(u32CamId, stIspParam);
+  //IspProcess(u32CamId);
 
-  IspProcess(stRecAttr.s32CamID);
+  if (bMultiCam) {
+    ret = RKADK_PARAM_GetCamParam(1, RKADK_PARAM_TYPE_FPS, &stFps);
+    if (ret) {
+      RKADK_LOGE("RKADK_PARAM_GetCamParam u32CamId[1] fps failed");
+      SAMPLE_ISP_Stop(u32CamId);
+      return -1;
+    }
+
+    SAMPLE_ISP_Start(1, stIspParam);
+  }
 #endif
 
   ret = RKADK_RECORD_Create(&stRecAttr, &pRecordHandle);
   if (ret) {
-    RKADK_LOGE("Create recorder failed");
+    RKADK_LOGE("Create recorder u32CamId[%d] failed", u32CamId);
     goto _FAILURE;
   }
-
   RKADK_RECORD_Start(pRecordHandle);
 
+  if (bMultiSensor) {
+    stRecAttr.s32CamID = 1;
+    if (RKADK_RECORD_Create(&stRecAttr, &pRecordHandle1)) {
+      RKADK_LOGE("Create recorder u32CamId[1] failed");
+      goto _FAILURE;
+    }
+    RKADK_RECORD_Start(pRecordHandle1);
+  }
+
+#ifdef ENABLE_PHOTO
   ret = RKADK_PHOTO_Init(&stPhotoAttr, &pPhotoHandle);
   if (ret) {
-    RKADK_LOGE("Create photo failed");
+    RKADK_LOGE("Create u32CamId[%d] photo failed", u32CamId);
     goto _FAILURE;
   }
 
-#ifdef ENABLE_STREAM
+  if (bMultiSensor) {
+    stPhotoAttr.u32CamId = 1;
+    ret = RKADK_PHOTO_Init(&stPhotoAttr, &pPhotoHandle1);
+    if (ret) {
+      RKADK_LOGE("Create u32CamId[1] photo failed");
+      goto _FAILURE;
+    }
+  }
+#endif
+
+#ifdef ENABLE_STREAM_AUDIO
   ret = RKADK_STREAM_AudioInit(&stAudioAttr, &pAudioHandle);
   if (ret) {
     RKADK_LOGE("RKADK_STREAM_AudioInit failed = %d", ret);
@@ -420,6 +522,20 @@ int main(int argc, char *argv[]) {
   ret = RKADK_STREAM_AencStart(pAudioHandle);
   if (ret) {
     RKADK_LOGE("RKADK_STREAM_AencStart failed");
+    goto _FAILURE;
+  }
+#endif
+
+#ifdef ENABLE_STREAM_VIDEO
+  ret = RKADK_STREAM_VideoInit(&stVideoAttr, &pVideoHandle);
+  if (ret) {
+    RKADK_LOGE("RKADK_STREAM_VideoInit failed = %d", ret);
+    goto _FAILURE;
+  }
+
+  ret = RKADK_STREAM_VencStart(pVideoHandle, -1);
+  if (ret) {
+    RKADK_LOGE("RKADK_STREAM_VencStart failed");
     goto _FAILURE;
   }
 #endif
@@ -442,21 +558,23 @@ int main(int argc, char *argv[]) {
 #endif
 
   signal(SIGINT, sigterm_handler);
-
   while (!is_quit) {
+#ifdef ENABLE_RESET
     change = rand() % 4;
     if (change == 0) {
-      RKADK_LOGI("===================Rand type [%d] switch resolution enter",
-                 change);
+      RKADK_LOGI("===================Rand type [%d] switch resolution enter", change);
       stResType++;
       if (stResType >= RKADK_RES_1944P)
         stResType = RKADK_RES_1080P;
 
-      RKADK_PARAM_SetCamParam(0, RKADK_PARAM_TYPE_RES, &stResType);
-      RKADK_PARAM_SetCamParam(0, RKADK_PARAM_TYPE_PHOTO_RES, &stResType);
+      RKADK_PARAM_SetCamParam(u32CamId, RKADK_PARAM_TYPE_RES, &stResType);
+      RKADK_PARAM_SetCamParam(u32CamId, RKADK_PARAM_TYPE_PHOTO_RES, &stResType);
       RKADK_RECORD_Reset(&pRecordHandle);
+
+#ifdef ENABLE_PHOTO
       RKADK_PHOTO_Reset(&pPhotoHandle);
       RKADK_PHOTO_TakePhoto(pPhotoHandle, &stTakePhotoAttr);
+#endif
 
 #if ENABLE_PALYER
       RKADK_PLAYER_SetDataSource(pPlayerHandle, file);
@@ -467,16 +585,19 @@ int main(int argc, char *argv[]) {
 #endif
       RKADK_LOGI("===================Reset resolution = %d", stResType);
     } else if (change == 1) {
-      RKADK_LOGI("===================Rand type [%d] switch encode types enter",
-                 change);
+      RKADK_LOGI("===================Rand type [%d] switch encode types enter", change);
       stCodecType.enCodecType++;
       if (stCodecType.enCodecType >= RKADK_CODEC_TYPE_MJPEG)
         stCodecType.enCodecType = RKADK_CODEC_TYPE_H264;
 
       stCodecType.enStreamType = RKADK_STREAM_TYPE_VIDEO_MAIN;
-      RKADK_PARAM_SetCamParam(0, RKADK_PARAM_TYPE_CODEC_TYPE, &stCodecType);
+      RKADK_PARAM_SetCamParam(u32CamId, RKADK_PARAM_TYPE_CODEC_TYPE, &stCodecType);
       RKADK_RECORD_Reset(&pRecordHandle);
+
+#ifdef ENABLE_PHOTO
       RKADK_PHOTO_TakePhoto(pPhotoHandle, &stTakePhotoAttr);
+#endif
+
 #if ENABLE_PALYER
       RKADK_PLAYER_SetDataSource(pPlayerHandle, file);
       RKADK_PLAYER_Prepare(pPlayerHandle);
@@ -484,16 +605,19 @@ int main(int argc, char *argv[]) {
       usleep(50000);
       RKADK_PLAYER_Stop(pPlayerHandle);
 #endif
-      RKADK_LOGI("===================Reset encode type = %d",
-                 stCodecType.enCodecType);
+      RKADK_LOGI("===================Reset encode type = %d", stCodecType.enCodecType);
     } else if (change == 2) {
       RKADK_LOGI("Rand type [%d] switch recrd types enter", change);
       stRecType++;
       if (stRecType >= RKADK_REC_TYPE_BUTT)
         stRecType = RKADK_REC_TYPE_NORMAL;
-      RKADK_PARAM_SetCamParam(0, RKADK_PARAM_TYPE_RECORD_TYPE, &stRecType);
+      RKADK_PARAM_SetCamParam(u32CamId, RKADK_PARAM_TYPE_RECORD_TYPE, &stRecType);
       RKADK_RECORD_Reset(&pRecordHandle);
+
+#ifdef ENABLE_PHOTO
       RKADK_PHOTO_TakePhoto(pPhotoHandle, &stTakePhotoAttr);
+#endif
+
 #if ENABLE_PALYER
       RKADK_PLAYER_SetDataSource(pPlayerHandle, file);
       RKADK_PLAYER_Prepare(pPlayerHandle);
@@ -503,18 +627,21 @@ int main(int argc, char *argv[]) {
 #endif
       RKADK_LOGI("===================Reset record type = %d", stRecType);
     } else {
-      RKADK_LOGI("===================Rand type [%d] switch manual types enter",
-                 change);
+      RKADK_LOGI("===================Rand type [%d] switch manual types enter", change);
       stRecTime.enStreamType++;
       if (stRecTime.enStreamType >= RKADK_STREAM_TYPE_SNAP)
         stRecTime.enStreamType = RKADK_STREAM_TYPE_VIDEO_MAIN;
-      stRecTime.time = 20; // default time
+      stRecTime.time = 20; //default time
 
-      RKADK_PARAM_GetCamParam(0, RKADK_PARAM_TYPE_SPLITTIME, &stRecTime);
+      RKADK_PARAM_GetCamParam(u32CamId, RKADK_PARAM_TYPE_SPLITTIME, &stRecTime);
       stSplitAttr.enManualType = MUXER_PRE_MANUAL_SPLIT;
       stSplitAttr.u32DurationSec = stRecTime.time;
       RKADK_RECORD_ManualSplit(pRecordHandle, &stSplitAttr);
+
+#ifdef ENABLE_PHOTO
       RKADK_PHOTO_TakePhoto(pPhotoHandle, &stTakePhotoAttr);
+#endif
+
 #if ENABLE_PALYER
       RKADK_PLAYER_SetDataSource(pPlayerHandle, file);
       RKADK_PLAYER_Prepare(pPlayerHandle);
@@ -522,10 +649,15 @@ int main(int argc, char *argv[]) {
       usleep(50000);
       RKADK_PLAYER_Stop(pPlayerHandle);
 #endif
-      RKADK_LOGI("===================Manual record stream = %d",
-                 stRecTime.enStreamType);
+      RKADK_LOGI("===================Manual record stream = %d", stRecTime.enStreamType);
     }
-
+#else
+    RKADK_PHOTO_TakePhoto(pPhotoHandle, &stTakePhotoAttr);
+    if (bMultiSensor) {
+      if (RKADK_PHOTO_TakePhoto(pPhotoHandle1, &stTakePhotoAttr))
+        RKADK_LOGE("RKADK_PHOTO_TakePhoto u32CamId[1] failed");
+    }
+#endif
     usleep(5000000);
   }
 
@@ -540,9 +672,18 @@ _FAILURE:
   RKADK_RECORD_Stop(pRecordHandle);
   RKADK_RECORD_Destroy(pRecordHandle);
 
-  RKADK_PHOTO_DeInit(pPhotoHandle);
+  if (bMultiSensor) {
+    RKADK_RECORD_Stop(pRecordHandle1);
+    RKADK_RECORD_Destroy(pRecordHandle1);
+  }
 
-#ifdef ENABLE_STREAM
+#ifdef ENABLE_PHOTO
+  RKADK_PHOTO_DeInit(pPhotoHandle);
+  if (bMultiSensor)
+    RKADK_PHOTO_DeInit(pPhotoHandle1);
+#endif
+
+#ifdef ENABLE_STREAM_AUDIO
   RKADK_STREAM_AencStop(pAudioHandle);
   RKADK_STREAM_AudioDeInit(pAudioHandle);
   if (g_aenc_file)
@@ -552,6 +693,15 @@ _FAILURE:
     fclose(g_pcm_file);
 #endif
 
+#ifdef ENABLE_STREAM_VIDEO
+  RKADK_STREAM_VencStop(pVideoHandle);
+  RKADK_STREAM_VideoDeInit(pVideoHandle);
+  if (g_output_file) {
+    fclose(g_output_file);
+    g_output_file = NULL;
+  }
+#endif
+
 #if ENABLE_PALYER
   RKADK_PLAYER_Stop(pPlayerHandle);
   RKADK_PLAYER_Destroy(pPlayerHandle);
@@ -559,6 +709,9 @@ _FAILURE:
 
 #ifdef RKAIQ
   SAMPLE_ISP_Stop(stRecAttr.s32CamID);
+
+  if (bMultiCam)
+    SAMPLE_ISP_Stop(1);
 #endif
   RKADK_MPI_SYS_Exit();
   return 0;

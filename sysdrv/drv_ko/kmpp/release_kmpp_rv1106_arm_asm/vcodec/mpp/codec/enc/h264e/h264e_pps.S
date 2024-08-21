@@ -31,7 +31,7 @@ h264e_pps_update:
 	movs	r3, #0
 	strd	r3, r3, [r0]
 	mov	r5, r1
-	ldr	r2, [r1, #604]
+	ldr	r2, [r1, #628]
 	movs	r1, #26
 	str	r3, [r0, #32]
 	mov	r4, r0
@@ -40,14 +40,14 @@ h264e_pps_update:
 	movs	r2, #1
 	strd	r2, r2, [r0, #16]
 	strd	r2, r2, [r0, #24]
-	ldr	r1, [r5, #624]
+	ldr	r1, [r5, #648]
 	str	r1, [r0, #44]
 	strd	r1, r2, [r0, #52]
-	ldr	r2, [r5, #616]
+	ldr	r2, [r5, #640]
 	strd	r2, r3, [r0, #60]
-	ldr	r3, [r5, #612]
+	ldr	r3, [r5, #636]
 	str	r3, [r0, #68]
-	ldr	r3, [r5, #620]
+	ldr	r3, [r5, #644]
 	cmp	r3, #1
 	bls	.L2
 	movs	r1, #76
@@ -57,7 +57,7 @@ h264e_pps_update:
 	ldr	r0, .L16+8
 	bl	printk
 .L2:
-	ldr	r3, [r5, #620]
+	ldr	r3, [r5, #644]
 	str	r3, [r4, #72]
 	cbz	r3, .L3
 	movs	r3, #1
@@ -66,7 +66,7 @@ h264e_pps_update:
 	strd	r3, r3, [r4, #92]
 	strd	r3, r3, [r4, #100]
 .L3:
-	ldr	r3, [r5, #596]
+	ldr	r3, [r5, #620]
 	cmp	r3, #99
 	bgt	.L4
 	ldr	r2, [r4, #68]
@@ -75,12 +75,12 @@ h264e_pps_update:
 	cbz	r2, .L5
 	str	r3, [r4, #68]
 	movs	r2, #95
-	ldr	r3, [r5, #596]
+	ldr	r3, [r5, #620]
 	ldr	r1, .L16+12
 	ldr	r0, .L16+16
 	bl	printk
 .L5:
-	ldr	r3, [r5, #596]
+	ldr	r3, [r5, #620]
 	cmp	r3, #66
 	bne	.L6
 	ldr	r3, [r4, #8]
@@ -99,7 +99,7 @@ h264e_pps_update:
 .L4:
 	movs	r3, #1
 	str	r3, [r4, #48]
-	ldr	r3, [r5, #628]
+	ldr	r3, [r5, #652]
 	str	r3, [r4, #52]
 	b	.L5
 .L17:
@@ -388,13 +388,13 @@ h264e_pps_dump:
 	.size	h264e_pps_dump, .-h264e_pps_dump
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__FUNCTION__.8864, %object
-	.size	__FUNCTION__.8864, 17
-__FUNCTION__.8864:
+	.type	__FUNCTION__.8934, %object
+	.size	__FUNCTION__.8934, 17
+__FUNCTION__.8934:
 	.ascii	"h264e_pps_update\000"
-	.type	__func__.8867, %object
-	.size	__func__.8867, 17
-__func__.8867:
+	.type	__func__.8937, %object
+	.size	__func__.8937, 17
+__func__.8937:
 	.ascii	"h264e_pps_update\000"
 	.type	zigzag, %object
 	.size	zigzag, 64

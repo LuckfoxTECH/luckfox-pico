@@ -32,8 +32,7 @@ FT_BEGIN_HEADER
 
 /* gcc-3.1 and later can warn about functions tagged as deprecated */
 #ifndef FT_DEPRECATED_ATTRIBUTE
-#if defined(__GNUC__) &&                                                       \
-    ((__GNUC__ >= 4) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 1)))
+#if defined(__GNUC__) && ((__GNUC__ >= 4) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 1)))
 #define FT_DEPRECATED_ATTRIBUTE __attribute__((deprecated))
 #else
 #define FT_DEPRECATED_ATTRIBUTE
@@ -176,8 +175,7 @@ FT_GetFile_From_Mac_ATS_Name(const char *fontName, FSSpec *pathSpec,
  *   FreeType error code.  0~means success.
  */
 FT_EXPORT(FT_Error)
-FT_GetFilePath_From_Mac_ATS_Name(const char *fontName, UInt8 *path,
-                                 UInt32 maxPathSize,
+FT_GetFilePath_From_Mac_ATS_Name(const char *fontName, UInt8 *path, UInt32 maxPathSize,
                                  FT_Long *face_index) FT_DEPRECATED_ATTRIBUTE;
 
 /**************************************************************************
@@ -212,8 +210,7 @@ FT_GetFilePath_From_Mac_ATS_Name(const char *fontName, UInt8 *path,
  *   accepts an FSSpec instead of a path.
  */
 FT_EXPORT(FT_Error)
-FT_New_Face_From_FSSpec(FT_Library library, const FSSpec *spec,
-                        FT_Long face_index,
+FT_New_Face_From_FSSpec(FT_Library library, const FSSpec *spec, FT_Long face_index,
                         FT_Face *aface) FT_DEPRECATED_ATTRIBUTE;
 
 /**************************************************************************

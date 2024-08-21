@@ -14,6 +14,21 @@ config DM_VIDEO
 	  option compiles in the video uclass and routes all LCD/video access
 	  through this.
 
+config SPL_DM_VIDEO
+	bool "Enable driver model support for LCD/video in SPL"
+	depends on DM_VIDEO && SPL
+	help
+	  This enables driver model for LCD and video devices in SPL. These support
+	  a bitmap display of various sizes and depths which can be drawn on
+	  to display a command-line console or splash screen. Enabling this
+	  option compiles in the video uclass and routes all LCD/video access
+	  through this.
+
+config SPL_VIDEO_BUF
+	hex "SPL video memory buffer for any use"
+	depends on SPL_DM_VIDEO
+	default 0xa200000
+
 config BACKLIGHT_PWM
 	bool "Generic PWM based Backlight Driver"
 	depends on DM_VIDEO && DM_PWM
@@ -389,6 +404,12 @@ config I2C_EDID
 	default n
 	help
 	   This enables library for accessing EDID data from an LCD panel.
+
+config SPL_I2C_EDID
+	bool "Enable EDID library in SPL"
+	depends on DM_I2C && SPL_DM_VIDEO
+	help
+	  This enables library in SPL for accessing EDID data from an LCD panel.
 
 config DISPLAY
 	bool "Enable Display support"

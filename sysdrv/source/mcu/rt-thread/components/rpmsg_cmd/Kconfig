@@ -1,0 +1,4 @@
+menuconfig RT_USING_RPMSG_CMD
+    bool "Enable RPMsg command for rt-thread"
+    depends on RT_USING_RPMSG_LITE
+    default n

@@ -337,6 +337,39 @@ int atbm_wifi_ota(char *fw)
 	return ret;
 }
 
+int atbm_wifi_get_batlevel()
+{
+	int ret = fw_at("AT+BAT_STATE");
+
+	if (ret < 0)
+		ret = false;
+	else
+		ret = true;
+
+	return ret;
+}
+
+int atbm_wifi_pir_set(int enable)
+{
+	int ret;
+	if (enable == 1)
+		ret = fw_at("AT+PIR_ENABLE");
+	else
+		ret = fw_at("AT+PIR_DISABLE");
+
+	if (ret < 0)
+		ret = false;
+	else
+		ret = true;
+
+	return ret;
+}
+
+int atbm_get_utc(unsigned long long *ret)
+{
+	return wifi_get_utctime(ret);
+}
+
 struct Rk_wifi_driver_ops atbm_driver_ops = {
 	.name = "atbm iot",
 	.wifi_enable = atbm_wifi_enable,
@@ -354,4 +387,7 @@ struct Rk_wifi_driver_ops atbm_driver_ops = {
 	.wifi_stop_keepalive = atbm_wifi_stop_keepalive,
 	.wifi_set_BeaconListenInterval = atbm_wifi_set_BeaconListenInterval,
 	.wifi_ota = atbm_wifi_ota,
+	.wifi_get_batlevel = atbm_wifi_get_batlevel,
+	.wifi_set_pir = atbm_wifi_pir_set,
+	.wifi_get_utc = atbm_get_utc,
 };

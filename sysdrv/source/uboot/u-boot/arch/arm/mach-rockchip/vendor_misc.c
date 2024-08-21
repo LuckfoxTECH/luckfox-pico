@@ -19,6 +19,7 @@ struct hdcpdata {
 	unsigned char data[0];
 };
 
+#ifndef CONFIG_SUPPORT_USBPLUG
 int vendor_handle_hdcp(struct vendor_item *vhead)
 {
 	struct arm_smccc_res res;
@@ -61,4 +62,4 @@ int vendor_handle_hdcp(struct vendor_item *vhead)
 
 	return 0;
 }
-
+#endif

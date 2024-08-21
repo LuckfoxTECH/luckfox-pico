@@ -45,10 +45,12 @@ static int fixed_regulator_ofdata_to_platdata(struct udevice *dev)
 	gpio = &dev_pdata->gpio;
 	ret = gpio_request_by_name(dev, "gpio", 0, gpio, flags);
 	if (ret) {
-		debug("Fixed regulator optional enable GPIO - not found! Error: %d\n",
-		      ret);
-		if (ret != -ENOENT)
-			return ret;
+		ret = gpio_request_by_name(dev, "gpios", 0, gpio, flags);
+		if (ret) {
+			debug("Fixed regulator optional enable GPIO - not found! Error: %d\n", ret);
+			if (ret != -ENOENT)
+				return ret;
+		}
 	}
 
 	/* Get optional ramp up delay */

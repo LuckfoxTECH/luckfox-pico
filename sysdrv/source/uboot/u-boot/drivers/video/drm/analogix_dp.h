@@ -613,6 +613,7 @@ enum analogix_dp_sub_devtype {
 	RK3368_EDP,
 	RK3399_EDP,
 	RK3568_EDP,
+	RK3576_EDP,
 	RK3588_EDP
 };
 

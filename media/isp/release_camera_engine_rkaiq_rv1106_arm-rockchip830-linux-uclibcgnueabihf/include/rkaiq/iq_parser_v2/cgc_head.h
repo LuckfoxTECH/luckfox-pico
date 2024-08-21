@@ -27,9 +27,9 @@ RKAIQ_BEGIN_DECLARE
 typedef struct __cgc_param {
     // M4_ENUM_DESC("op_mode", "RKAiqOPMode_t", "RK_AIQ_OP_MODE_AUTO")
     RKAiqOPMode_t op_mode;
-    // M4_BOOL_DESC("cgc_ratio_en", "0")
+    // M4_BOOL_DESC("ratio_en", "0")
     bool cgc_ratio_en;
-    // M4_BOOL_DESC("cgc_yuv_limit", "0")
+    // M4_BOOL_DESC("yuv_limit", "0")
     bool cgc_yuv_limit;
 } Cgc_Param_t;
 

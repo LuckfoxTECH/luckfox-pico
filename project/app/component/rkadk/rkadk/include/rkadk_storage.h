@@ -23,8 +23,8 @@ extern "C" {
 
 #include "rkadk_common.h"
 
-#define RKADK_MAX_FORMAT_ID_LEN 8
-#define RKADK_MAX_VOLUME_LEN 11
+#define RKADK_MAX_FORMAT_ID_LEN    8
+#define RKADK_MAX_VOLUME_LEN    11
 
 typedef enum {
   DISK_UNMOUNTED = 0,
@@ -32,12 +32,15 @@ typedef enum {
   DISK_FORMAT_ERR,
   DISK_SCANNING,
   DISK_MOUNTED,
+  DISK_NOT_EXIST,
   DISK_MOUNT_BUTT,
 } RKADK_MOUNT_STATUS;
 
 /* mount event callback function */
-typedef RKADK_VOID (*RKADK_MOUNT_STATUS_CALLBACK_FN)(RKADK_MW_PTR pHandle,
-                                                     RKADK_MOUNT_STATUS status);
+typedef RKADK_VOID (*RKADK_MOUNT_STATUS_CALLBACK_FN)(
+    RKADK_MW_PTR pHandle, RKADK_MOUNT_STATUS status);
+
+typedef bool (*RKADK_FILE_FILTER_CALLBACK_FN)(const char *fileName);
 
 typedef enum {
   LIST_ASCENDING = 0,
@@ -100,7 +103,8 @@ RKADK_STR_DEV_ATTR RKADK_STORAGE_GetDevAttr(RKADK_MW_PTR pHandle);
 RKADK_MOUNT_STATUS RKADK_STORAGE_GetMountStatus(RKADK_MW_PTR pHandle);
 
 RKADK_S32 RKADK_STORAGE_GetCapacity(RKADK_MW_PTR *ppHandle,
-                                    RKADK_S32 *totalSize, RKADK_S32 *freeSize);
+                                      RKADK_S32 *totalSize,
+                                      RKADK_S32 *freeSize);
 
 RKADK_S32 RKADK_STORAGE_GetFileList(RKADK_FILE_LIST *list, RKADK_MW_PTR pHandle,
                                     RKADK_SORT_TYPE sort);
@@ -112,7 +116,12 @@ RKADK_S32 RKADK_STORAGE_GetFileNum(RKADK_CHAR *fileListPath,
 
 RKADK_CHAR *RKADK_STORAGE_GetDevPath(RKADK_MW_PTR pHandle);
 
-RKADK_S32 RKADK_STORAGE_Format(RKADK_MW_PTR pHandle, RKADK_CHAR *cFormat);
+RKADK_S32 RKADK_STORAGE_Format(RKADK_MW_PTR pHandle, RKADK_CHAR* cFormat);
+
+RKADK_S32 RKADK_STORAGE_RegisterFileFilterCB(RKADK_MW_PTR pHandle,
+                                      RKADK_FILE_FILTER_CALLBACK_FN pfnFileFilterCB);
+
+RKADK_S32 RKADK_STORAGE_UnRegisterFileFilterCB(RKADK_MW_PTR pHandle);
 
 #ifdef __cplusplus
 }

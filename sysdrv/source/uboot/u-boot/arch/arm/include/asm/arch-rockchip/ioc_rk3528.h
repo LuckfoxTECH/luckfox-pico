@@ -3,8 +3,8 @@
  *
  * SPDX-License-Identifier:     GPL-2.0+
  */
-#ifndef _ASM_ARCH_IOC_RK3588_H
-#define _ASM_ARCH_IOC_RK3588_H
+#ifndef _ASM_ARCH_IOC_RK3528_H
+#define _ASM_ARCH_IOC_RK3528_H
 
 #include <common.h>
 

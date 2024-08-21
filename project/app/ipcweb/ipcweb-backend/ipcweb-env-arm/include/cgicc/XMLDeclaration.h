@@ -4,7 +4,7 @@
  *
  *  Copyright (C) 1996 - 2004 Stephen F. Booth <sbooth@gnu.org>
  *                       2007 David Roberts
-                     2007 Sebastien DIAZ <sebastien.diaz@gmail.com>
+		     2007 Sebastien DIAZ <sebastien.diaz@gmail.com>
  *  Part of the GNU cgicc library, http://www.gnu.org/software/cgicc
  *
  *  This library is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA 
  */
 #ifndef XMLDECLARATION_H
 #define XMLDECLARATION_H
@@ -33,36 +33,35 @@
 
 #include <string>
 
-namespace cgicc {
-/*! \class XMLDeclaration XMLDeclaration.h cgicc/XMLDeclaration.h
- * \brief Class that abstracts a XMLDeclaration
- *
- * This class add the XMLDeclaration feature
- */
+namespace cgicc{
+/*! \class XMLDeclaration XMLDeclaration.h cgicc/XMLDeclaration.h 
+   * \brief Class that abstracts a XMLDeclaration
+   *
+   * This class add the XMLDeclaration feature
+   */
 class XMLDeclaration : public XMLPI {
-public:
-  // ============================================================
-
-  /*! \name Constructor and Destructor */
-  //@{
-
-  /*!
-   * \brief Constructor
-   *
-   * Create a new XMLDeclaration.h object
-   * \param input The Xml version (generally 1.0 or 1.1)
-   */
-  XMLDeclaration(std::string version = "1.0") : XMLPI("xml") {
-    set("version", version);
-  }
-  /*!
-   * \brief Destructor
-   *
-   * Delete this XMLDeclaration object
-   */
-  virtual ~XMLDeclaration(){};
-  //@}
+	public:
+		// ============================================================
+    
+    /*! \name Constructor and Destructor */
+    //@{
+    
+    /*! 
+     * \brief Constructor
+     *
+     * Create a new XMLDeclaration.h object
+     * \param input The Xml version (generally 1.0 or 1.1)
+     */
+	XMLDeclaration(std::string version = "1.0") : XMLPI("xml") { set("version", version); }
+	/*!
+     * \brief Destructor 
+     *
+     * Delete this XMLDeclaration object
+     */
+	 virtual ~XMLDeclaration(){};
+	//@}
 };
-} // namespace cgicc
+}// namespace cgicc
 
 #endif
+

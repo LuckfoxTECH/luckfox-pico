@@ -19,7 +19,11 @@
 #define _RK_AIQ_USER_API2_A3DLUT_H_
 #include "a3dlut/rk_aiq_uapi_a3dlut_int.h"
 
+#ifndef RK_AIQ_SYS_CTX_T
+#define RK_AIQ_SYS_CTX_T
 typedef struct rk_aiq_sys_ctx_s rk_aiq_sys_ctx_t;
+#endif
+
 
 RKAIQ_BEGIN_DECLARE
 
@@ -29,6 +33,8 @@ XCamReturn
 rk_aiq_user_api2_a3dlut_GetAttrib(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_lut3d_attrib_t *attr);
 XCamReturn
 rk_aiq_user_api2_a3dlut_Query3dlutInfo(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_lut3d_querry_info_t *lut3d_querry_info );
+XCamReturn rk_aiq_user_api2_a3dlut_SetAcolorSwInfo(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_color_info_t aColor_sw_info);
+
 
 RKAIQ_END_DECLARE
 

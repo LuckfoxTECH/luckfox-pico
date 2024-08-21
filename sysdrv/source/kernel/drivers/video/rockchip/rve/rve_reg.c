@@ -177,7 +177,7 @@ int rve_set_reg(struct rve_job *job, struct rve_scheduler_t *scheduler)
 
 	//TODO: ddr config
 	rve_write(0x30000, RVE_SWCFG5_CTRL, scheduler);
-	rve_write(0xf4240, RVE_SWCFG6_TIMEOUT_THRESH, scheduler);
+	rve_write(0xcb7355, RVE_SWCFG6_TIMEOUT_THRESH, scheduler);
 	rve_write(0x1f0001, RVE_SWCFG7_DDR_CTRL, scheduler);
 
 	/* reset RVE_SWREG6_IVE_WORK_STA */

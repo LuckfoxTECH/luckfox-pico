@@ -8,6 +8,8 @@
 #include <linux/clk.h>
 #include <linux/reset.h>
 
+#define DVBM_CHANNEL_NUM	2
+
 struct rk_dvbm_base {
 	/* 0x2c */
 	u32 ybuf_bot;
@@ -195,6 +197,8 @@ struct dvbm_ctx {
 	struct dvbm_port port_isp;
 	struct dvbm_cb	isp_cb;
 	struct dvbm_isp_cfg_t isp_cfg;
+	struct dvbm_addr_cfg dvbm_addr[DVBM_CHANNEL_NUM];
+	u32 chan_id;
 	struct dvbm_isp_frm_info isp_frm_info;
 	atomic_t isp_link;
 	atomic_t isp_ref;

@@ -1,0 +1,8 @@
+tag_generator
+tag_generator_*
+!tag_generator_t40.c
+!tag_generator_t40_2sensor.c
+get_fwinfo
+get_fwinfo_*
+*.o
+*.bin

@@ -4,4 +4,3 @@ zImage
 xipImage
 bootpImage
 uImage
-!bootp/bootp.lds

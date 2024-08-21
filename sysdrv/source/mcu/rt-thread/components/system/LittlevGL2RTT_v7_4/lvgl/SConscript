@@ -1,0 +1,43 @@
+from building import * 
+import rtconfig
+
+# get current dir path
+cwd = GetCurrentDir()
+
+# init src and inc vars
+src = []
+inc = []
+
+# add LittlevGL common include
+inc = inc + [cwd]
+inc = inc + [cwd + "/src"]
+inc = inc + [cwd + "/src/lv_core"]
+inc = inc + [cwd + "/src/lv_draw"]
+inc = inc + [cwd + "/src/lv_font"]
+inc = inc + [cwd + "/src/lv_gpu"]
+inc = inc + [cwd + "/src/lv_hal"]
+inc = inc + [cwd + "/src/lv_misc"]
+inc = inc + [cwd + "/src/lv_themes"]
+inc = inc + [cwd + "/src/lv_widgets"]
+
+# add LittlevGL basic code
+src = src + Glob('./src/lv_core/*.c')
+src = src + Glob('./src/lv_draw/*.c')
+src = src + Glob('./src/lv_font/*.c')
+src = src + Glob('./src/lv_gpu/*.c')
+src = src + Glob('./src/lv_hal/*.c')
+src = src + Glob('./src/lv_misc/*.c')
+src = src + Glob('./src/lv_themes/*.c')
+src = src + Glob('./src/lv_widgets/*.c')
+
+
+LOCAL_CCFLAGS = ''
+
+if rtconfig.CROSS_TOOL == 'gcc':
+    LOCAL_CCFLAGS += ' -std=c99'
+elif rtconfig.CROSS_TOOL == 'keil':
+    LOCAL_CCFLAGS += ' --c99 --gnu -g -W'
+
+group = DefineGroup('LittlevGL2RTT', src, depend = ['RT_USING_LITTLEVGL2RTT'], CPPPATH = inc, LOCAL_CCFLAGS = LOCAL_CCFLAGS)
+
+Return('group')

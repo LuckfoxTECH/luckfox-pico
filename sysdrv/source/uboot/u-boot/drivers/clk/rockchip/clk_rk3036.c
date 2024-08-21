@@ -256,7 +256,15 @@ static ulong rockchip_mmc_get_clk(struct rk3036_cru *cru, uint clk_general_rate,
 	case HCLK_SDIO:
 	case SCLK_SDIO:
 		con = readl(&cru->cru_clksel_con[12]);
+		mux = (con & SDIO_PLL_MASK) >> SDIO_PLL_SHIFT;
+		con = readl(&cru->cru_clksel_con[11]);
+		div = (con & SDIO_DIV_MASK) >> SDIO_DIV_SHIFT;
+		break;
+	case HCLK_SDMMC:
+	case SCLK_SDMMC:
+		con = readl(&cru->cru_clksel_con[12]);
 		mux = (con & MMC0_PLL_MASK) >> MMC0_PLL_SHIFT;
+		con = readl(&cru->cru_clksel_con[11]);
 		div = (con & MMC0_DIV_MASK) >> MMC0_DIV_SHIFT;
 		break;
 	default:
@@ -296,10 +304,27 @@ static ulong rockchip_mmc_set_clk(struct rk3036_cru *cru, uint clk_general_rate,
 		break;
 	case HCLK_SDIO:
 	case SCLK_SDIO:
+		rk_clrsetreg(&cru->cru_clksel_con[12],
+			     SDIO_PLL_MASK,
+			     SDIO_SEL_24M << SDIO_PLL_SHIFT);
 		rk_clrsetreg(&cru->cru_clksel_con[11],
-			     MMC0_PLL_MASK | MMC0_DIV_MASK,
-			     mux << MMC0_PLL_SHIFT |
+			     SDIO_DIV_MASK,
+			     (src_clk_div - 1) << SDIO_DIV_SHIFT);
+		rk_clrsetreg(&cru->cru_clksel_con[12],
+			     SDIO_PLL_MASK,
+			     mux << SDIO_PLL_SHIFT);
+		break;
+	case HCLK_SDMMC:
+	case SCLK_SDMMC:
+		rk_clrsetreg(&cru->cru_clksel_con[12],
+			     MMC0_PLL_MASK,
+			     MMC0_SEL_24M << MMC0_PLL_SHIFT);
+		rk_clrsetreg(&cru->cru_clksel_con[11],
+			     MMC0_DIV_MASK,
 			     (src_clk_div - 1) << MMC0_DIV_SHIFT);
+		rk_clrsetreg(&cru->cru_clksel_con[12],
+			     MMC0_PLL_MASK,
+			     mux << MMC0_PLL_SHIFT);
 		break;
 	default:
 		return -EINVAL;
@@ -464,6 +489,14 @@ static ulong rk3036_clk_get_rate(struct clk *clk)
 	switch (clk->id) {
 	case 0 ... 63:
 		return rkclk_pll_get_rate(priv->cru, clk->id);
+	case SCLK_EMMC:
+	case SCLK_SDMMC:
+	case SCLK_SDIO:
+	case HCLK_EMMC:
+	case HCLK_SDMMC:
+	case HCLK_SDIO:
+		return rockchip_mmc_get_clk(priv->cru, gclk_rate,
+					    clk->id);
 	case SCLK_LCDC:
 		return rockchip_dclk_lcdc_get_clk(priv->cru, gclk_rate);
 	case ACLK_LCDC:
@@ -487,7 +520,11 @@ static ulong rk3036_clk_set_rate(struct clk *clk, ulong rate)
 	case 0 ... 63:
 		return 0;
 	case HCLK_EMMC:
+	case HCLK_SDMMC:
+	case HCLK_SDIO:
 	case SCLK_EMMC:
+	case SCLK_SDMMC:
+	case SCLK_SDIO:
 		new_rate = rockchip_mmc_set_clk(priv->cru, gclk_rate,
 						clk->id, rate);
 		break;

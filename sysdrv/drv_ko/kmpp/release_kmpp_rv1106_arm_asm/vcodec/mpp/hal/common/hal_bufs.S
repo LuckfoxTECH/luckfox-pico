@@ -318,7 +318,7 @@ hal_bufs_get_buf:
 	@ frame_needed = 0, uses_anonymous_args = 0
 	push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
 	.save {r4, r5, r6, r7, r8, r9, r10, fp, lr}
-	mov	r4, r0
+	mov	r5, r0
 	.pad #20
 	sub	sp, sp, #20
 	cbz	r0, .L55
@@ -329,116 +329,131 @@ hal_bufs_get_buf:
 	bgt	.L56
 .L55:
 	str	r1, [sp]
-	mov	r3, r4
-	movs	r2, #222
-	ldr	r1, .L70
-	ldr	r0, .L70+4
+	mov	r3, r5
+	movs	r2, #223
+	ldr	r1, .L76
+	ldr	r0, .L76+4
 	bl	printk
-.L69:
-	movs	r6, #0
+.L75:
+	movs	r7, #0
+	b	.L54
+.L56:
+	mov	r8, #1
+	ldr	r6, [r0, #20]
+	ldr	r7, [r0, #16]
+	lsl	r8, r8, r1
+	ldr	r3, [r0, #56]
+	ands	r6, r8, r6
+	mla	r7, r7, r1, r3
+	bne	.L54
+	ldr	r10, .L76+12
+	add	r9, r0, #24
+.L58:
+	ldr	r3, [r5, #8]
+	cmp	r3, r6
+	bgt	.L63
+	ldr	r1, [r5, #20]
+	orr	r1, r1, r8
+	str	r1, [r5, #20]
 .L54:
-	mov	r0, r6
+	mov	r0, r7
 	add	sp, sp, #20
 	@ sp needed
 	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
-.L56:
-	movs	r7, #1
-	ldr	r5, [r0, #20]
-	ldr	r6, [r0, #16]
-	lsls	r7, r7, r1
-	ldr	r3, [r0, #56]
-	ands	r5, r7, r5
-	mla	r6, r6, r1, r3
-	bne	.L54
-	ldr	r10, .L70+20
-	add	r9, r0, #24
-.L58:
-	ldr	r3, [r4, #8]
-	cmp	r3, r5
-	bgt	.L62
-	ldr	r1, [r4, #20]
-	orrs	r1, r1, r7
-	str	r1, [r4, #20]
-	b	.L54
-.L62:
-	ldr	r3, [r6, #4]
-	lsl	fp, r5, #2
+.L63:
+	ldr	r3, [r7, #4]
+	lsl	fp, r6, #2
 	ldr	r2, [r9], #4
-	ldr	r8, [r3, r5, lsl #2]
-	str	r8, [sp, #12]
+	ldr	r4, [r3, r6, lsl #2]
+	str	r4, [sp, #12]
 	cbz	r2, .L59
-	cmp	r8, #0
-	bne	.L59
+	cbnz	r4, .L59
 	str	r10, [sp]
 	add	r1, sp, #12
-	ldr	r3, .L70+8
-	mov	r0, r8
+	ldr	r3, .L76+8
+	mov	r0, r4
 	bl	mpp_buffer_get_with_tag
-	cmp	r0, #0
-	bne	.L69
+	cbz	r0, .L60
+	ldr	r6, .L76+12
+	mov	r8, r4
+.L61:
+	ldr	r3, [r5, #8]
+	cmp	r3, r4
+	ble	.L75
+	ldr	r3, [r7, #4]
+	ldr	r0, [r3, r4, lsl #2]
+	cbz	r0, .L64
+	mov	r1, r6
+	bl	mpp_buffer_put_with_caller
+	ldr	r3, [r7, #4]
+	str	r8, [r3, r4, lsl #2]
+.L64:
+	adds	r4, r4, #1
+	b	.L61
+.L60:
 	ldr	r3, [sp, #12]
-	cbnz	r3, .L61
-	movs	r1, #243
+	cbnz	r3, .L62
+	movs	r1, #241
 	mov	r3, r10
 	str	r1, [sp]
-	ldr	r2, .L70+12
-	ldr	r0, .L70+16
+	ldr	r2, .L76+16
+	ldr	r0, .L76+20
 	bl	printk
-.L61:
-	ldr	r3, [r6, #4]
+.L62:
+	ldr	r3, [r7, #4]
 	ldr	r2, [sp, #12]
 	str	r2, [r3, fp]
 .L59:
-	adds	r5, r5, #1
+	adds	r6, r6, #1
 	b	.L58
-.L71:
+.L77:
 	.align	2
-.L70:
+.L76:
 	.word	.LANCHOR0+105
 	.word	.LC7
 	.word	.LC8
+	.word	.LANCHOR0+122
 	.word	.LC9
 	.word	.LC1
-	.word	.LANCHOR0+122
 	.fnend
 	.size	hal_bufs_get_buf, .-hal_bufs_get_buf
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__FUNCTION__.7709, %object
-	.size	__FUNCTION__.7709, 15
-__FUNCTION__.7709:
-	.ascii	"hal_bufs_clear\000"
-	.type	__func__.7723, %object
-	.size	__func__.7723, 14
-__func__.7723:
-	.ascii	"hal_bufs_init\000"
 	.type	__FUNCTION__.7724, %object
-	.size	__FUNCTION__.7724, 14
+	.size	__FUNCTION__.7724, 15
 __FUNCTION__.7724:
+	.ascii	"hal_bufs_clear\000"
+	.type	__func__.7738, %object
+	.size	__func__.7738, 14
+__func__.7738:
 	.ascii	"hal_bufs_init\000"
-	.type	__func__.7730, %object
-	.size	__func__.7730, 16
-__func__.7730:
+	.type	__FUNCTION__.7739, %object
+	.size	__FUNCTION__.7739, 14
+__FUNCTION__.7739:
+	.ascii	"hal_bufs_init\000"
+	.type	__func__.7745, %object
+	.size	__func__.7745, 16
+__func__.7745:
 	.ascii	"hal_bufs_deinit\000"
-	.type	__FUNCTION__.7731, %object
-	.size	__FUNCTION__.7731, 16
-__FUNCTION__.7731:
+	.type	__FUNCTION__.7746, %object
+	.size	__FUNCTION__.7746, 16
+__FUNCTION__.7746:
 	.ascii	"hal_bufs_deinit\000"
-	.type	__func__.7742, %object
-	.size	__func__.7742, 15
-__func__.7742:
+	.type	__func__.7757, %object
+	.size	__func__.7757, 15
+__func__.7757:
 	.ascii	"hal_bufs_setup\000"
-	.type	__FUNCTION__.7743, %object
-	.size	__FUNCTION__.7743, 15
-__FUNCTION__.7743:
+	.type	__FUNCTION__.7758, %object
+	.size	__FUNCTION__.7758, 15
+__FUNCTION__.7758:
 	.ascii	"hal_bufs_setup\000"
-	.type	__func__.7761, %object
-	.size	__func__.7761, 17
-__func__.7761:
+	.type	__func__.7777, %object
+	.size	__func__.7777, 17
+__func__.7777:
 	.ascii	"hal_bufs_get_buf\000"
-	.type	__FUNCTION__.7765, %object
-	.size	__FUNCTION__.7765, 17
-__FUNCTION__.7765:
+	.type	__FUNCTION__.7780, %object
+	.size	__FUNCTION__.7780, 17
+__FUNCTION__.7780:
 	.ascii	"hal_bufs_get_buf\000"
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:

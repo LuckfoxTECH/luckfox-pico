@@ -143,6 +143,15 @@ config PMIC_S2MPS11
 	This driver provides access to I/O interface only.
 	Binding info: doc/device-tree-bindings/pmic/s2mps11.txt
 
+config PMIC_SY7636A
+	bool "Enable support for PMIC Silergy SY7636A"
+	depends on DM_PMIC
+	---help---
+	The PMIC SY7636A integrates two high
+	efficiency DC/DC Boost converters that are boosted to
+	25V and –20V by two charge pumps to provide the
+	gate driver supply for panels.
+
 config DM_PMIC_SANDBOX
 	bool "Enable Driver Model for emulated Sandbox PMIC "
 	depends on DM_PMIC

@@ -1,0 +1,11 @@
+Import('RTT_ROOT')
+Import('rtconfig')
+from building import *
+
+cwd = GetCurrentDir()
+src = Glob('*.c') + Glob('resource/*.c')
+LOCAL_CPPPATH = [cwd] + [cwd + '/resource']
+
+group = DefineGroup('Applications', src, depend = ['RT_USING_PCBA_TEST'], LOCAL_CPPPATH = LOCAL_CPPPATH)
+
+Return('group')

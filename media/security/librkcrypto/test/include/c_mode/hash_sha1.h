@@ -7,7 +7,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *    notice, this list of conditions and the following disclaimer. 
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -52,14 +52,16 @@
 #ifndef __HASH_SHA1_H__
 #define __HASH_SHA1_H__
 
-#ifdef __cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
 
-int rk_hash_sha1(const unsigned char *in, unsigned int in_len,
-                 unsigned char *out, unsigned int *out_len);
+int rk_hash_sha1(const unsigned char *in, unsigned int in_len, 
+							unsigned char *out, unsigned int *out_len);
 
-#ifdef __cplusplus
+
+
+#ifdef  __cplusplus
 }
 #endif
 

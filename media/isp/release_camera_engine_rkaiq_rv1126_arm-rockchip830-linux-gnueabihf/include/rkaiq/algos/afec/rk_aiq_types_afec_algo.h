@@ -1,6 +1,8 @@
 #ifndef __RK_AIQ_TYPES_AFEC_ALGO_H__
 #define __RK_AIQ_TYPES_AFEC_ALGO_H__
 
+#include <stdint.h>
+
 #define FEC_MESH_XY_NUM_ALGO 524288
 
 typedef struct {
@@ -12,6 +14,7 @@ typedef struct {
     unsigned char mesh_density;
     unsigned int mesh_size;
     unsigned int mesh_buf_fd;
+    uint32_t frame_id;
     //unsigned short meshxi[FEC_MESH_XY_NUM_ALGO];
     //unsigned char meshxf[FEC_MESH_XY_NUM_ALGO];
     //unsigned short meshyi[FEC_MESH_XY_NUM_ALGO];

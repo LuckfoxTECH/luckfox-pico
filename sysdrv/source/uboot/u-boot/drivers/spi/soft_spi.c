@@ -201,10 +201,8 @@ static const struct dm_spi_ops soft_spi_ops = {
 static int soft_spi_ofdata_to_platdata(struct udevice *dev)
 {
 	struct soft_spi_platdata *plat = dev->platdata;
-	const void *blob = gd->fdt_blob;
-	int node = dev_of_offset(dev);
 
-	plat->spi_delay_us = fdtdec_get_int(blob, node, "spi-delay-us", 0);
+	plat->spi_delay_us = dev_read_u32_default(dev, "spi-delay-us", 0);
 
 	return 0;
 }
@@ -216,24 +214,34 @@ static int soft_spi_probe(struct udevice *dev)
 	int cs_flags, clk_flags;
 	int ret;
 
-	cs_flags = (slave->mode & SPI_CS_HIGH) ? 0 : GPIOD_ACTIVE_LOW;
-	clk_flags = (slave->mode & SPI_CPOL) ? GPIOD_ACTIVE_LOW : 0;
+	if (slave) {
+		cs_flags = (slave->mode & SPI_CS_HIGH) ? 0 : GPIOD_ACTIVE_LOW;
+		clk_flags = (slave->mode & SPI_CPOL) ? GPIOD_ACTIVE_LOW : 0;
+	} else {
+		cs_flags = GPIOD_ACTIVE_LOW;
+		clk_flags = 0;
+	}
 
-	if (gpio_request_by_name(dev, "cs-gpios", 0, &plat->cs,
-				 GPIOD_IS_OUT | cs_flags) ||
-	    gpio_request_by_name(dev, "gpio-sck", 0, &plat->sclk,
-				 GPIOD_IS_OUT | clk_flags))
+	if (gpio_request_by_name(dev, "cs-gpios", 0, &plat->cs, GPIOD_IS_OUT | cs_flags) ||
+	    (gpio_request_by_name(dev, "gpio-sck", 0, &plat->sclk, GPIOD_IS_OUT | clk_flags) &&
+	     gpio_request_by_name(dev, "sck-gpios", 0, &plat->sclk, GPIOD_IS_OUT | clk_flags)))
 		return -EINVAL;
 
 	ret = gpio_request_by_name(dev, "gpio-mosi", 0, &plat->mosi,
 				   GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE);
-	if (ret)
-		plat->flags |= SPI_MASTER_NO_TX;
+	if (ret) {
+		if (gpio_request_by_name(dev, "mosi-gpios", 0, &plat->mosi,
+		    GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE))
+			plat->flags |= SPI_MASTER_NO_TX;
+	}
 
 	ret = gpio_request_by_name(dev, "gpio-miso", 0, &plat->miso,
 				   GPIOD_IS_IN);
-	if (ret)
-		plat->flags |= SPI_MASTER_NO_RX;
+	if (ret) {
+		if (gpio_request_by_name(dev, "miso-gpios", 0, &plat->miso,
+		    GPIOD_IS_IN))
+			plat->flags |= SPI_MASTER_NO_RX;
+	}
 
 	if ((plat->flags & (SPI_MASTER_NO_RX | SPI_MASTER_NO_TX)) ==
 	    (SPI_MASTER_NO_RX | SPI_MASTER_NO_TX))

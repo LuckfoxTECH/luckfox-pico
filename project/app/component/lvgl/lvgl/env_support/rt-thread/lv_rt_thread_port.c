@@ -11,29 +11,33 @@
 #ifdef __RTTHREAD__
 
 #include <rtthread.h>
-#define DBG_TAG "LVGL"
-#define DBG_LVL DBG_INFO
+#define DBG_TAG    "LVGL"
+#define DBG_LVL    DBG_INFO
 #include <rtdbg.h>
 
+#include <lvgl.h>
 #include <lv_port_disp.h>
 #include <lv_port_indev.h>
-#include <lvgl.h>
 
 #if LV_USE_LOG
-static void lv_rt_log(const char *buf) { LOG_I(buf); }
+static void lv_rt_log(const char *buf)
+{
+    LOG_I(buf);
+}
 #endif
 
-static int lv_port_init(void) {
+static int lv_port_init(void)
+{
 #if LV_USE_LOG
-  lv_log_register_print_cb(lv_rt_log);
+    lv_log_register_print_cb(lv_rt_log);
 #endif
 
-  lv_init();
+    lv_init();
 
-  lv_port_disp_init();
-  lv_port_indev_init();
+    lv_port_disp_init();
+    lv_port_indev_init();
 
-  return 0;
+    return 0;
 }
 INIT_COMPONENT_EXPORT(lv_port_init);
 

@@ -73,6 +73,7 @@ struct rockchip_saradc {
 	const struct rockchip_saradc_data *data;
 	u16			last_val;
 	const struct iio_chan_spec *last_chan;
+	struct notifier_block nb;
 	bool			suspended;
 #ifdef CONFIG_ROCKCHIP_SARADC_TEST_CHN
 	bool			test;
@@ -327,6 +328,25 @@ static const struct rockchip_saradc_data rk3528_saradc_data = {
 	.read = rockchip_saradc_read_v2,
 };
 
+static const struct iio_chan_spec rockchip_rk3562_saradc_iio_channels[] = {
+	SARADC_CHANNEL(0, "adc0", 10),
+	SARADC_CHANNEL(1, "adc1", 10),
+	SARADC_CHANNEL(2, "adc2", 10),
+	SARADC_CHANNEL(3, "adc3", 10),
+	SARADC_CHANNEL(4, "adc4", 10),
+	SARADC_CHANNEL(5, "adc5", 10),
+	SARADC_CHANNEL(6, "adc6", 10),
+	SARADC_CHANNEL(7, "adc7", 10),
+};
+
+static const struct rockchip_saradc_data rk3562_saradc_data = {
+	.channels = rockchip_rk3562_saradc_iio_channels,
+	.num_channels = ARRAY_SIZE(rockchip_rk3562_saradc_iio_channels),
+	.clk_rate = 1000000,
+	.start = rockchip_saradc_start_v2,
+	.read = rockchip_saradc_read_v2,
+};
+
 static const struct iio_chan_spec rockchip_rk3568_saradc_iio_channels[] = {
 	SARADC_CHANNEL(0, "adc0", 10),
 	SARADC_CHANNEL(1, "adc1", 10),
@@ -392,6 +412,9 @@ static const struct of_device_id rockchip_saradc_match[] = {
 	}, {
 		.compatible = "rockchip,rk3528-saradc",
 		.data = &rk3528_saradc_data,
+	}, {
+		.compatible = "rockchip,rk3562-saradc",
+		.data = &rk3562_saradc_data,
 	}, {
 		.compatible = "rockchip,rk3568-saradc",
 		.data = &rk3568_saradc_data,
@@ -475,6 +498,26 @@ out:
 	iio_trigger_notify_done(i_dev->trig);
 
 	return IRQ_HANDLED;
+}
+
+static int rockchip_saradc_volt_notify(struct notifier_block *nb,
+						   unsigned long event,
+						   void *data)
+{
+	struct rockchip_saradc *info =
+			container_of(nb, struct rockchip_saradc, nb);
+
+	if (event & REGULATOR_EVENT_VOLTAGE_CHANGE)
+		info->uv_vref = (unsigned long)data;
+
+	return NOTIFY_OK;
+}
+
+static void rockchip_saradc_regulator_unreg_notifier(void *data)
+{
+	struct rockchip_saradc *info = data;
+
+	regulator_unregister_notifier(info->vref, &info->nb);
 }
 
 #ifdef CONFIG_ROCKCHIP_SARADC_TEST_CHN
@@ -658,12 +701,13 @@ static int rockchip_saradc_probe(struct platform_device *pdev)
 		return ret;
 	}
 
-	info->uv_vref = regulator_get_voltage(info->vref);
-	if (info->uv_vref < 0) {
+	ret = regulator_get_voltage(info->vref);
+	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to get voltage\n");
-		ret = info->uv_vref;
 		return ret;
 	}
+
+	info->uv_vref = ret;
 
 	ret = clk_prepare_enable(info->pclk);
 	if (ret < 0) {
@@ -702,6 +746,17 @@ static int rockchip_saradc_probe(struct platform_device *pdev)
 	ret = devm_iio_triggered_buffer_setup(&indio_dev->dev, indio_dev, NULL,
 					      rockchip_saradc_trigger_handler,
 					      NULL);
+	if (ret)
+		return ret;
+
+	info->nb.notifier_call = rockchip_saradc_volt_notify;
+	ret = regulator_register_notifier(info->vref, &info->nb);
+	if (ret)
+		return ret;
+
+	ret = devm_add_action_or_reset(&pdev->dev,
+				       rockchip_saradc_regulator_unreg_notifier,
+				       info);
 	if (ret)
 		return ret;
 

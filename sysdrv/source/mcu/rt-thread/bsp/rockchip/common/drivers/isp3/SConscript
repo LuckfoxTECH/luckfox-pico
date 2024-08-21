@@ -1,0 +1,14 @@
+Import('RTT_ROOT')
+Import('rtconfig')
+from building import *
+
+cwd = GetCurrentDir()
+
+# add the general drvers.
+src = Glob("*.c")
+
+CPPPATH = [cwd]
+
+group = DefineGroup('isp3', src, depend = ['RT_USING_ISP3'], CPPPATH = CPPPATH)
+
+Return('group')

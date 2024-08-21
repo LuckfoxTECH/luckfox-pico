@@ -104,16 +104,19 @@ static  int ieee80211_scan_send_probe_req(struct ieee80211_local *local,
 	return 0;
 }
 #ifndef  CONFIG_ATBM_5G_PRETEND_2G
+#ifndef CONFIG_CFG80211_INTERNAL_REGDB
 struct country_chan{
 	  	char *country;
 	  	u8 chan;
  };
- struct country_chan country_t[4]={
+struct country_chan country_t[]={
 	  {"CN",13},
 	  {"JP",14},
 	  {"US",11},
+	  {"EU",13},
 	  {NULL,0}
 };
+#endif
 #endif
 /*
 	return 
@@ -130,8 +133,11 @@ static int ieee80211_check_country_limit_scan_2_4G_chan(struct ieee80211_local *
  
   	int i = 0,j = 0,k = 0;
 	void *pptr[32];
+#ifdef CONFIG_CFG80211_INTERNAL_REGDB
+	country_chan = local->country_support_chan;
+#else
 	/*
-		?D??¨º?????1¨²?¨°
+		?D??¨º?????1¨²?¨°W
 	*/
   	do{
 	  	if(memcmp(local->country_code,country_t[i].country,2) == 0){
@@ -140,7 +146,9 @@ static int ieee80211_check_country_limit_scan_2_4G_chan(struct ieee80211_local *
 	  	}
 	  	i++;
   	}while(country_t[i].country);
-
+#endif
+	
+	
 	if((country_chan > 0) && (req != NULL)){
 		atbm_printk_err("%s : scan_n_channals = %d ++++++++ \n",__func__,req->n_channels);
 	/*
@@ -193,6 +201,9 @@ static int ieee80211_check_country_limit_scan_2_4G_chan(struct ieee80211_local *
 			req->n_channels = scan_n_chans;	
 		}
 		atbm_printk_err("%s : scan_n_channals = %d --------- \n",__func__,req->n_channels);
+	}else{
+		atbm_printk_err("%s : current country = %c%c , support chan=%d \n",__func__,
+			local->country_code[0],local->country_code[1],local->country_support_chan);
 	}
 
   	return country_chan;  
@@ -206,7 +217,7 @@ static int ieee80211_2_4G_scan_results_limit(struct ieee80211_local *local,
 #ifdef  CONFIG_ATBM_5G_PRETEND_2G
 	return 0;
 #else
-	int freq,curr_chan,i=0,country_chan = 0,fc;
+	int freq,curr_chan,country_chan = 0,fc;
 	struct atbm_ieee80211_mgmt *mgmt;
 	bool presp, beacon = false;
 	size_t baselen;
@@ -214,7 +225,7 @@ static int ieee80211_2_4G_scan_results_limit(struct ieee80211_local *local,
 	struct ieee802_atbm_11_elems elems;
 	struct ieee80211_rx_status *rx_status = NULL;//IEEE80211_SKB_RXCB(skb);
 
-	  
+#if 0	  
 	  do{
 	  	if(memcmp(local->country_code,country_t[i].country,2) == 0){
 		  	country_chan = country_t[i].chan;
@@ -222,6 +233,9 @@ static int ieee80211_2_4G_scan_results_limit(struct ieee80211_local *local,
 	  	}
 	  	i++;
   	}while(country_t[i].country);
+#endif
+
+	country_chan = local->country_support_chan;
 	
 	if((country_chan > 0) && (skb != NULL)){
 		rx_status = IEEE80211_SKB_RXCB(skb);
@@ -267,7 +281,8 @@ static int ieee80211_2_4G_scan_results_limit(struct ieee80211_local *local,
 		}
 
 	}else{
-		atbm_printk_debug("ieee80211_2_4G_scan_results_limit:%d :country_chan = %d \n",__LINE__,country_chan);
+		atbm_printk_err("%s : current country = %c%c , support chan=%d \n",__func__,
+			local->country_code[0],local->country_code[1],local->country_support_chan);
 	}
 	return 0;
 #endif
@@ -518,12 +533,12 @@ bool  ieee80211_scan_internal_req_results(struct ieee80211_local *local,struct a
 			}
 			
 			memcpy(&sta,&sta_node->sta,sizeof(struct ieee80211_internal_scan_sta));
-			spin_unlock_bh(&local->internal_scan_list_lock);
+		//	spin_unlock_bh(&local->internal_scan_list_lock);
 			if(ret == true){
 				if(req->result_handle)
 					ret = req->result_handle(&local->hw,req,&sta);
 			}
-			spin_lock_bh(&local->internal_scan_list_lock);
+		//	spin_lock_bh(&local->internal_scan_list_lock);
 			
 			if(req->flush == true){
 				if(sta_node->sta.ie){
@@ -669,7 +684,11 @@ static void ieee80211_scan_rx_internal_update(struct ieee80211_local *local,
 	/*
 	*update sta infor
 	*/
-	BUG_ON(sta_node_target == NULL);
+	if(sta_node_target == NULL){
+		atbm_printk_err("%s %d ,ERROR !!! sta_node_target is NULL\n",__func__,__LINE__);
+		spin_unlock_bh(&local->internal_scan_list_lock);
+		return;
+	}
 	memcpy(&sta_node_target->sta,&result->sta,sizeof(struct ieee80211_internal_scan_sta));
 	sta_node_target->sta.ssid_len = result->sta.ssid_len;
 	if(result->sta.ssid_len)
@@ -908,7 +927,7 @@ ieee80211_scan_rx_internal_sta_info(struct ieee80211_sub_if_data *sdata, struct 
 	size_t baselen;
 	int freq;
 	__le16 fc;
-	bool presp, beacon = false;
+	bool presp = false, beacon = false;
 	struct ieee802_atbm_11_elems elems;
 	bool (*func)(struct ieee80211_sub_if_data *sdata,void *fs_data,struct ieee80211_internal_scan_result *result,bool finish);
 	void *scan_data;
@@ -985,14 +1004,20 @@ ieee80211_scan_rx_internal_sta_info(struct ieee80211_sub_if_data *sdata, struct 
 			goto err;
 		}
 	}
+
+	
+	memset(&elems,0,sizeof(struct ieee802_atbm_11_elems));
 	ieee802_11_parse_elems(elements, skb->len - baselen, &elems);
+	
 
 	if (elems.ds_params && elems.ds_params_len == 1)
 		freq = ieee80211_channel_to_frequency(elems.ds_params[0],
 						      rx_status->band);
 	else
 		freq = rx_status->freq;
+	
 	scan_info.sta.beacon = beacon;
+	
 	if(elems.rsn && elems.rsn_len && elems.wpa && elems.wpa_len){
 		scan_info.sta.enc_type = IEEE80211_ENC_WPA_WPA2;
 		/*get WPA2 encryption algorithm */
@@ -1167,6 +1192,10 @@ ieee80211_scan_rx(struct ieee80211_sub_if_data *sdata, struct sk_buff *skb)
 	__le16 fc;
 	bool presp, beacon = false;
 	struct ieee802_atbm_11_elems elems;
+#ifdef CONFIG_ATBM_SLOW_DOWN_SIGNAL
+	struct cfg80211_bss *tmp_cbss;
+	const u8 *ssidie;
+#endif
 	if (skb->len < 2)
 		return RX_DROP_UNUSABLE;
 
@@ -1214,6 +1243,20 @@ ieee80211_scan_rx(struct ieee80211_sub_if_data *sdata, struct sk_buff *skb)
 
 	if (!channel || channel->flags & IEEE80211_CHAN_DISABLED)
 		return RX_DROP_MONITOR;
+
+#ifdef CONFIG_ATBM_SLOW_DOWN_SIGNAL
+	ssidie = cfg80211_find_ie(WLAN_EID_SSID,elements,baselen);
+	tmp_cbss = ieee80211_atbm_get_bss(sdata->local->hw.wiphy,channel,mgmt->bssid,ssidie+2,ssidie[1],0,0);
+	if(tmp_cbss)
+	{
+		//atbm_printk_always("mgmt->bssid =%pM,ori = %d,before = %d \n",mgmt->bssid,tmp_cbss->signal/100,rx_status->signal);
+		if((tmp_cbss->signal/100 - rx_status->signal)> 10){
+			rx_status->signal = tmp_cbss->signal/100 - (tmp_cbss->signal/100 - rx_status->signal)/4;
+			//atbm_printk_always("mgmt->bssid =%pM,after = %d \n",mgmt->bssid,rx_status->signal);
+		}
+		ieee80211_atbm_put_bss(sdata->local->hw.wiphy,tmp_cbss);
+	}
+#endif
 
 	bss = ieee80211_bss_info_update(sdata->local, rx_status,
 					mgmt, skb->len, &elems,
@@ -1311,7 +1354,20 @@ static bool ieee80211_prep_hw_scan(struct ieee80211_local *local)
 		
 		if (use_req == false)
 			break;
-		
+#ifdef CONFIG_JUAN_MISC
+		band = local->hw_scan_band;
+		n_chans = 0;
+		for (i = 0; i < req->n_channels; i++) {
+			if (req->channels[i]->band == band) {
+				local->hw_scan_req->channels[n_chans] =
+							req->channels[i];
+				n_chans++;
+			}
+		}
+
+		local->hw_scan_band++;
+	} while (!n_chans);
+#else
 		ieee80211_scan_try_split(local);		
 		oper_channel = ieee80211_scan_oper_channel(local);
 		band = local->hw_scan_band;
@@ -1338,7 +1394,10 @@ static bool ieee80211_prep_hw_scan(struct ieee80211_local *local)
 			if(oper_channel == channel_hw_value(req->channels[i])){
 				atbm_printk_debug("%s:only send probe\n",__func__);
 				local->scan_req_wrap.flags |= IEEE80211_SCAN_REQ_ONLY_PROB;
-				BUG_ON(n_chans != 1);
+				if(n_chans != 1){
+					atbm_printk_err("%s %d ,ERROR !!! n_chans=%d,not = 1\n",__func__,__LINE__,n_chans);
+					return false;
+				}
 				goto start_scan;
 			}
 			
@@ -1352,7 +1411,7 @@ static bool ieee80211_prep_hw_scan(struct ieee80211_local *local)
 	} while (!n_chans);
 	
 start_scan:
-	
+#endif	
 	local->hw_scan_req->n_channels = n_chans;
 	atbm_printk_debug("%s:n_chans(%d),space(%d),index(%d),scaned(%d)\n",__func__,n_chans,
 		local->scan_channel_space,local->scan_channel_idx,local->scan_n_channels);
@@ -1661,9 +1720,15 @@ static int __ieee80211_start_scan(struct ieee80211_sub_if_data *sdata,
 			sdata->last_scan_ie_len = local->hw_scan_req->ie_len;
 		}
 		local->scan_req_wrap.req = local->hw_scan_req;
+
+
+		
 		rc = ieee80211_drv_hw_scan(local, sdata, &local->scan_req_wrap);
-	} else
-		BUG_ON(1);
+	} else{
+	//	BUG_ON(1);
+		atbm_printk_err("%s %d ,ERROR !!! local->ops->hw_scan is NULL\n",__func__,__LINE__);
+		return -EBUSY;
+	}
 	
 	if (rc) {
 		atbm_kfree(local->hw_scan_req);
@@ -1765,7 +1830,7 @@ bool ieee80211_internal_scan_triger(struct ieee80211_sub_if_data *sdata,struct c
 		atbm_printk_err("%s:hw.conf.flags(%x)\n",__func__,local->hw.conf.flags);
 		if(!!(local->hw.conf.flags & IEEE80211_CONF_IDLE) == 0){
 			atbm_printk_err("now running sta or ap,not idle, maybe have some queue! \n");
-			return false;
+//			return false;
 		}
 	}else {
 		if((!!(local->hw.conf.flags & IEEE80211_CONF_IDLE) == 0) && req->n_channels > 2){

@@ -10,5 +10,5 @@
 # app/wifi_app/
 # cfg/
 image/
-make_meta
+#make_meta
 out/

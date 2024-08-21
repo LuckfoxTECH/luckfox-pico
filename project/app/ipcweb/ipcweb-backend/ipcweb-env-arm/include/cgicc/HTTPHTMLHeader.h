@@ -18,51 +18,53 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA 
  */
 
 #ifndef _HTTPHTMLHEADER_H_
 #define _HTTPHTMLHEADER_H_ 1
 
 #ifdef __GNUG__
-#pragma interface
+#  pragma interface
 #endif
 
 /*! \file HTTPHTMLHeader.h
  * \brief Shortcut to HTTPContentHeader for \c text/html
- *
+ * 
  */
 
 #include "HTTPContentHeader.h"
 
 namespace cgicc {
 
-// ============================================================
-// Class HTTPHTMLHeader
-// ============================================================
-/*! \class HTTPHTMLHeader HTTPHTMLHeader.h cgicc/HTTPHTMLHeader.h
- * \brief Shortcut to HTTPContentHeader for \c text/html
- *
- */
-class CGICC_API HTTPHTMLHeader : public HTTPContentHeader {
-public:
-  /*! \name Constructor and Destructor */
-  //@{
-
-  /*!
-   * \brief Create a new \c text/html header
+  // ============================================================
+  // Class HTTPHTMLHeader
+  // ============================================================
+  /*! \class HTTPHTMLHeader HTTPHTMLHeader.h cgicc/HTTPHTMLHeader.h
+   * \brief Shortcut to HTTPContentHeader for \c text/html
    *
    */
-  HTTPHTMLHeader();
-
-  /*!
-   * \brief Destructor
-   *
-   */
-  virtual ~HTTPHTMLHeader();
-  //@}
-};
-
+  class CGICC_API HTTPHTMLHeader : public HTTPContentHeader 
+  {
+  public:
+    
+    /*! \name Constructor and Destructor */
+    //@{
+    
+    /*!
+     * \brief Create a new \c text/html header 
+     *
+     */
+    HTTPHTMLHeader();
+    
+    /*!
+     * \brief Destructor 
+     *
+     */
+    virtual ~HTTPHTMLHeader();
+    //@}
+  };
+  
 } // namespace cgicc
 
 #endif /* ! _HTTPHTMLHEADER_H_ */

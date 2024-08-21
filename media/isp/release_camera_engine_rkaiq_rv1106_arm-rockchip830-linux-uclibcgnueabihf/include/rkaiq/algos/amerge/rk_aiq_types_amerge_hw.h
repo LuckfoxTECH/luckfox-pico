@@ -96,7 +96,6 @@ typedef struct MgeProcResV12_s {
 } MgeProcResV12_t;
 
 typedef struct RkAiqAmergeProcResult_s {
-    bool update;
 #if RKAIQ_HAVE_MERGE_V10
     MgeProcResV10_t Merge_v10;
 #endif

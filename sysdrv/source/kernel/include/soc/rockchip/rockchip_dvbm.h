@@ -62,6 +62,7 @@ struct dvbm_port {
 struct dvbm_isp_cfg_t {
 	u32 fmt;
 	u32 timeout;
+	u32 chan_id;
 
 	struct dmabuf *buf;
 	dma_addr_t dma_addr;
@@ -98,6 +99,7 @@ struct dvbm_addr_cfg {
 	u32 frame_id;
 	u32 line_cnt;
 	u32 overflow;
+	u32 chan_id;
 };
 
 struct dvbm_vepu_cfg {

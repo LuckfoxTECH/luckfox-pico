@@ -353,7 +353,12 @@ void atbm_parase_p2p_scan_resp(struct atbm_vif *priv,struct sk_buff *skb)
 }
 bool atbm_check_channel_combination(struct atbm_common *hw_priv,struct atbm_vif *ignore_priv)
 {
-	BUG_ON(!ignore_priv);
+	//BUG_ON(!ignore_priv);
+	
+	if(!ignore_priv){
+		atbm_printk_err("%s %d ,ERROR !!! ignore_priv is NULL\n",__func__,__LINE__);
+		return false;
+	}	
 	return (atomic_read(&hw_priv->combination)?true:false);
 }
 //#define ATBM_PARASE_P2P_CAP

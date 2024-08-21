@@ -34,16 +34,21 @@ typedef enum {
 RKADK_S32 ThumbnailInit(RKADK_U32 u32CamId, RKADK_THUMB_MODULE_E enThumbModule,
                         RKADK_PARAM_THUMB_CFG_S *ptsThumbCfg);
 
-RKADK_S32 ThumbnailDeInit(RKADK_U32 u32CamId,
-                          RKADK_THUMB_MODULE_E enThumbModule,
+RKADK_S32 ThumbnailDeInit(RKADK_U32 u32CamId, RKADK_THUMB_MODULE_E enThumbModule,
                           RKADK_PARAM_THUMB_CFG_S *ptsThumbCfg);
 
 RKADK_S32 ThumbnailPhotoData(RKADK_U8 *pJpegdata, RKADK_U32 JpegLen,
-                             VENC_STREAM_S stThuFrame, RKADK_U8 *pNewPhoto);
+                             VENC_STREAM_S stThuFrame,
+                             RKADK_U8 *pNewPhoto);
 
 RKADK_S32 ThumbnailChnBind(RKADK_U32 u32VencChn, RKADK_U32 u32VencChnTb);
 
 RKADK_S32 ThumbnailRequest(RKADK_U32 u32VencChnTb);
+
+PIXEL_FORMAT_E ThumbToRKPixFmt(RKADK_THUMB_TYPE_E enType);
+
+RKADK_S32 ThumbnailJpgDecode(RKADK_THUMB_ATTR_S *pstSrcThmAttr,
+                             RKADK_THUMB_ATTR_S *pstDstThmAttr, bool *bFree);
 
 #ifdef __cplusplus
 }

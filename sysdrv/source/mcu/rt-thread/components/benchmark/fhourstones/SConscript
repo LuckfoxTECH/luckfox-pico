@@ -1,0 +1,8 @@
+from building import *
+  
+cwd     = GetCurrentDir()
+src     = ['SearchGame.c']
+CPPPATH = [cwd]
+group   = DefineGroup('Fhourstone', src, depend = ['RT_USING_FHOURSTONE'], CPPPATH = CPPPATH)
+
+Return('group')

@@ -1,0 +1,61 @@
+import rtconfig
+Import('RTT_ROOT')
+Import('PROJECT')
+from building import *
+
+# get current directory
+cwd = GetCurrentDir()
+hal_lib = cwd + '/hal/lib'
+
+if PROJECT == 'CA':
+
+    Import('SOC')
+
+    # The set of source files associated with this SConscript file.
+    src = Glob(hal_lib + '/CMSIS/Device/' + SOC + '/Source/Templates/*.c')
+    src += Glob(hal_lib + '/hal/src/*.c')
+    src += Glob(hal_lib + '/hal/src/*/*.c')
+    src += Glob(hal_lib + '/bsp/' + SOC + '/*.c')
+
+    #add include path
+    path = [hal_lib + '/hal/inc',
+        hal_lib + '/bsp/' + SOC,
+        hal_lib + '/CMSIS/Device/' + SOC + '/Include']
+
+else:
+
+    # The set of source files associated with this SConscript file.
+    src = Glob(hal_lib + '/CMSIS/Device/' + PROJECT + '/Source/Templates/*.c')
+    src += Glob(hal_lib + '/hal/src/*.c')
+    src += Glob(hal_lib + '/hal/src/*/*.c')
+    src += Glob(hal_lib + '/bsp/' + PROJECT + '/*.c')
+
+    #add for startup script
+    if rtconfig.CROSS_TOOL == 'gcc':
+        src += Glob(hal_lib + '/CMSIS/Device/' + PROJECT + '/Source/Templates/GCC/*.S')
+    elif rtconfig.CROSS_TOOL == 'keil':
+        src += Glob(hal_lib + '/CMSIS/Device/' + PROJECT + '/Source/Templates/ARM/*.s')
+    elif rtconfig.CROSS_TOOL == 'iar':
+        src += Glob(hal_lib + '/CMSIS/Device/' + PROJECT + '/Source/Templates/IAR/*.s')
+    src = src + [hal_lib + '/hal/src/pm/hal_cpu_sleep.S']
+
+    #add include path
+    path = [hal_lib + '/hal/inc',
+        hal_lib + '/bsp/' + PROJECT,
+        hal_lib + '/CMSIS/Device',
+        hal_lib + '/CMSIS/Device/' + PROJECT + '/Include']
+
+if rtconfig.ARCH == 'arm':
+    if PROJECT == 'CA':
+        path.append(hal_lib + '/CMSIS/Core_A/Include')
+    else:
+        path.append(hal_lib + '/CMSIS/Core/Include')
+elif rtconfig.ARCH == 'risc-v':
+    path.append(hal_lib + '/CMSIS/RISCV/Include')
+else:
+    print('you must defined ARCH!!!')
+
+
+group = DefineGroup(PROJECT + '_StdPeriph', src, depend = [''], CPPPATH = path)
+
+Return('group')

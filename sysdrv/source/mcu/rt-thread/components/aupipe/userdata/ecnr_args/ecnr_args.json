@@ -1,0 +1,96 @@
+{
+    "skv_configs": {
+        "aec": {
+            "status" : "disable",
+            "pos" : 1,
+            "drop_ref_channel" : 0,
+            "aec_mode_en" : 1,
+            "delay_len" : 0,
+            "look_ahead" : 0,
+            "mic_chn_map" : "4 chn;map:0,1,2,3"
+        },
+        "bf": {
+            "status" : "enable",
+            "targ"  : 4,
+            "ref_pos": 1,
+            "num_ref_channel": 0,
+            "drop_ref_channel" : 0
+        },
+        "fast_aec": {
+            "status" : "disable"
+        },
+        "wakeup": {
+            "status" : "disable"
+        },
+        "aes": {
+            "status" : "disable",
+            "beta_up": 0.002,
+            "beta_down": 0.001
+        },
+        "gsc": {
+            "status" : "disable",
+            "method" : 0
+        },
+        "agc": {
+            "status" : "enable",
+            "attack_time"  : 200.0,
+            "release_time" : 200.0,
+            "attenuate_time" : 1000,
+            "max_gain"  : 20.0,
+            "max_peak" : -1.0,
+            "fRth0": -85,
+            "fRth1" : -80,
+            "fRth2" : -25,
+            "fRk0" : 2.0,
+            "fRk1" : 0.8,
+            "fRk2" : 0.4,
+            "fLineGainDb" : -25.0,
+            "swSmL0" : 40,
+            "swSmL1" : 80,
+            "swSmL2" : 80
+        },
+        "anr": {
+            "status" : "disable",
+            "noiseFactor"  : 0.88,
+            "swU" : 10,
+            "psiMin"  : 0.01,
+            "psiMax"  : 0.516,
+            "fGmin" : 0.05
+        },
+        "nlp": {
+            "status" : "disable",
+            "band_pass_thd"  : "10,10,10,5,5,5,0,0",
+            "super_est_factor" : "6,10,10,10,10,10,6,6"
+        },
+        "dereverb": {
+            "status" : "disable",
+            "rlsLg"  : 4,
+            "curveLg" : 10,
+            "delay"  : 2,
+            "forgetting"  : 0.98,
+            "t60" : 0.5,
+            "coCoeff" : 1.0
+        },
+        "cng": {
+            "status" : "disable",
+            "fGain"  : 10.0,
+            "fMpy" : 10,
+            "fSmoothAlpha"  : 0.99,
+            "fSpeechGain"  : 0.0
+        },
+        "dtd": {
+            "status" : "disable",
+            "ksiThd_high" : 0.6,
+            "ksiThd_low" : 0.3
+        },
+        "eq": {
+            "status" : "disable",
+            "shwParaLen" : 65,
+            "pfCoeff_0" : "-1,-1,-1,-1,-2,-1,-1,-1,-1,-1,-1,-2,-3",
+            "pfCoeff_1" : "-1,-1,-1,-1,-2,-2,-3,-5,-3,-2,-1,-1,-2",
+            "pfCoeff_2" : "-2,-5,-9,-4,-2,-2,-1,-5,-5,-11,-20,-11,-5",
+            "pfCoeff_3" : "-5,-1,-7,-7,-19,-40,-20,-9,-10,-1,-20,-24,-60",
+            "pfCoeff_4" : "-128,-76,-40,-44,-1,-82,-111,-383,-1161,-1040,-989,-3811,32764"
+        }
+    }
+}

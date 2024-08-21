@@ -4,6 +4,7 @@
 #include "common.h"
 #include "isp.h"
 #include "log.h"
+#include "network.h"
 #include "osd.h"
 #include "param.h"
 #include "rockiva.h"
@@ -85,6 +86,7 @@ void rkipc_get_opt(int argc, char *argv[]) {
 
 int main(int argc, char **argv) {
 	LOG_INFO("main begin\n");
+	rkipc_version_dump();
 	signal(SIGINT, sig_proc);
 	signal(SIGTERM, sig_proc);
 

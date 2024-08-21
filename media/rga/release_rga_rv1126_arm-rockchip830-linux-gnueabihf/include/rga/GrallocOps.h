@@ -22,36 +22,38 @@
 #ifdef ANDROID
 
 #include <stdint.h>
-#include <sys/types.h>
 #include <vector>
+#include <sys/types.h>
 
 #include <system/graphics.h>
 
 #include <utils/Thread.h>
 
-#include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include <time.h>
 #include <unistd.h>
 
-#include <linux/stddef.h>
 #include <sys/mman.h>
+#include <linux/stddef.h>
 
-#include <android/log.h>
-#include <log/log_main.h>
 #include <utils/Atomic.h>
 #include <utils/Errors.h>
+#include <android/log.h>
 #include <utils/Log.h>
+#include <log/log_main.h>
 
 #include "drmrga.h"
 #include "rga.h"
 
 // -------------------------------------------------------------------------------
-int RkRgaGetHandleFd(buffer_handle_t handle, int *fd);
-int RkRgaGetHandleAttributes(buffer_handle_t handle, std::vector<int> *attrs);
-int RkRgaGetHandleMapAddress(buffer_handle_t handle, void **buf);
-#endif // Android
+int         RkRgaGetHandleFd(buffer_handle_t handle, int *fd);
+int         RkRgaGetHandleAttributes(buffer_handle_t handle,
+                                     std::vector<int> *attrs);
+int         RkRgaGetHandleMapAddress(buffer_handle_t handle,
+                                     void **buf);
+#endif  //Android
 
-#endif //_rk_graphic_buffer_h_
+#endif  //_rk_graphic_buffer_h_

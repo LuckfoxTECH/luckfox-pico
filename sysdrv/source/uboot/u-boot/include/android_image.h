@@ -16,6 +16,7 @@
 #define ANDROID_PARTITION_INIT_BOOT "init_boot"
 #define ANDROID_PARTITION_MISC "misc"
 #define ANDROID_PARTITION_OEM  "oem"
+#define ANDROID_PARTITION_RESOURCE  "resource"
 #define ANDROID_PARTITION_RECOVERY  "recovery"
 #define ANDROID_PARTITION_SYSTEM "system"
 #define ANDROID_PARTITION_VBMETA "vbmeta"

@@ -1,0 +1,41 @@
+
+menuconfig RT_USING_CYPRESS
+    bool "support cyress modules"
+    default n
+
+if RT_USING_CYPRESS
+    config RT_CYPRESS_WIFI
+    bool "enable cyress wifi"
+        default y
+    if RT_CYPRESS_WIFI
+        config RT_CYPRESS_WIFI_SDIO
+            depends on RT_CYPRESS_WIFI
+            select RT_USING_WIFI
+            select RT_USING_SDIO
+            select RT_USING_SDIO0
+            select RT_USING_LWIP
+            select RT_WLAN_PROT_LWIP_PBUF_FORCE
+            bool "Enable cypress wifi for sdio interface"
+            default n
+
+        config RT_CYPRESS_WIFI_SPI
+            depends on RT_CYPRESS_WIFI
+            select RT_USING_WIFI
+            select RT_USING_SPI
+            select RT_USING_SPI2
+            select RT_USING_LWIP
+            select RT_USING_LWIP141
+            select RT_WLAN_PROT_LWIP_PBUF_FORCE
+            bool "Enable cypress wifi for spi interface"
+            default n
+	endif
+
+    config RT_CYPRESS_BT
+        select RT_USING_POSIX_TERMIOS
+        bool "Enable cypress bt"
+        default n
+    if RT_CYPRESS_BT
+        source "$RTT_DIR/third_party/cypress/bsp/bt/Kconfig"
+    endif
+endif
+

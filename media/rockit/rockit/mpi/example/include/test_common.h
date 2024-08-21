@@ -18,23 +18,11 @@
 #define SRC_TESTS_RT_MPI_COMMON_TEST_COMMON_H_
 
 #ifndef RK_SAFE_FREE
-#define RK_SAFE_FREE(p)                                                        \
-  {                                                                            \
-    if (p) {                                                                   \
-      free(p);                                                                 \
-      (p) = RK_NULL;                                                           \
-    }                                                                          \
-  }
+#define RK_SAFE_FREE(p)    { if (p) {free(p); (p)=RK_NULL;} }
 #endif
 
 #ifndef RK_SAFE_DELETE
-#define RK_SAFE_DELETE(p)                                                      \
-  {                                                                            \
-    if (p) {                                                                   \
-      delete (p);                                                              \
-      (p) = NULL;                                                              \
-    }                                                                          \
-  }
+#define RK_SAFE_DELETE(p)  { if (p) {delete(p); (p)=NULL;} }
 #endif
 
-#endif // SRC_TESTS_RT_MPI_COMMON_TEST_COMMON_H_
+#endif  // SRC_TESTS_RT_MPI_COMMON_TEST_COMMON_H_

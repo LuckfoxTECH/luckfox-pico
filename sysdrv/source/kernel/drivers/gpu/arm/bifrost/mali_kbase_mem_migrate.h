@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
 /*
  *
- * (C) COPYRIGHT 2022 ARM Limited. All rights reserved.
+ * (C) COPYRIGHT 2022-2023 ARM Limited. All rights reserved.
  *
  * This program is free software and is provided to you under the terms of the
  * GNU General Public License version 2 as published by the Free Software
@@ -23,13 +23,22 @@
  * DOC: Base kernel page migration implementation.
  */
 
-#define PAGE_STATUS_MASK ((u8)0x7F)
+#define PAGE_STATUS_MASK ((u8)0x3F)
 #define PAGE_STATUS_GET(status) (status & PAGE_STATUS_MASK)
 #define PAGE_STATUS_SET(status, value) ((status & ~PAGE_STATUS_MASK) | (value & PAGE_STATUS_MASK))
+
 #define PAGE_ISOLATE_SHIFT (7)
+#define PAGE_ISOLATE_MASK ((u8)1 << PAGE_ISOLATE_SHIFT)
 #define PAGE_ISOLATE_SET(status, value)                                                            \
-	((status & PAGE_STATUS_MASK) | (value << PAGE_ISOLATE_SHIFT))
-#define IS_PAGE_ISOLATED(status) ((bool)(status & ~PAGE_STATUS_MASK))
+	((status & ~PAGE_ISOLATE_MASK) | (value << PAGE_ISOLATE_SHIFT))
+#define IS_PAGE_ISOLATED(status) ((bool)(status & PAGE_ISOLATE_MASK))
+
+#define PAGE_MOVABLE_SHIFT (6)
+#define PAGE_MOVABLE_MASK ((u8)1 << PAGE_MOVABLE_SHIFT)
+#define PAGE_MOVABLE_CLEAR(status) ((status) & ~PAGE_MOVABLE_MASK)
+#define PAGE_MOVABLE_SET(status) (status | PAGE_MOVABLE_MASK)
+
+#define IS_PAGE_MOVABLE(status) ((bool)(status & PAGE_MOVABLE_MASK))
 
 /* Global integer used to determine if module parameter value has been
  * provided and if page migration feature is enabled.
@@ -41,6 +50,8 @@ extern int kbase_page_migration_enabled;
  * @kbdev:    Pointer to kbase device.
  * @p:        Page to assign metadata to.
  * @dma_addr: DMA address mapped to paged.
+ * @group_id: Memory group ID associated with the entity that is
+ *            allocating the page metadata.
  *
  * This will allocate memory for the page's metadata, initialize it and
  * assign a reference to the page's private field. Importantly, once
@@ -49,7 +60,8 @@ extern int kbase_page_migration_enabled;
  *
  * Return: true if successful or false otherwise.
  */
-bool kbase_alloc_page_metadata(struct kbase_device *kbdev, struct page *p, dma_addr_t dma_addr);
+bool kbase_alloc_page_metadata(struct kbase_device *kbdev, struct page *p, dma_addr_t dma_addr,
+			       u8 group_id);
 
 /**
  * kbase_free_page_later - Defer freeing of given page.
@@ -61,6 +73,7 @@ bool kbase_alloc_page_metadata(struct kbase_device *kbdev, struct page *p, dma_a
  */
 void kbase_free_page_later(struct kbase_device *kbdev, struct page *p);
 
+#if (KERNEL_VERSION(6, 0, 0) > LINUX_VERSION_CODE)
 /*
  * kbase_mem_migrate_set_address_space_ops - Set address space operations
  *
@@ -72,6 +85,7 @@ void kbase_free_page_later(struct kbase_device *kbdev, struct page *p);
  * add a reference to @kbdev.
  */
 void kbase_mem_migrate_set_address_space_ops(struct kbase_device *kbdev, struct file *const filp);
+#endif
 
 /*
  * kbase_mem_migrate_init - Initialise kbase page migration

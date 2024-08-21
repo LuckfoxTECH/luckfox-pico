@@ -1,0 +1,23 @@
+config PCBA_CAPTURE_SOUND_CARD
+    string "Recording sound card"
+    default "pdmc"
+    help
+        Set recording sound card name
+
+config PCBA_PLAYBACK_SOUND_CARD
+    string "Playback sound card"
+    default "es8388p"
+    help
+        Set playback sound card name
+
+config PCBA_RECORD_FILE_DIR
+    string "Recording file path"
+    default "/pcba_test"
+    help
+        Set where to save recording file
+
+config PCBA_RECORD_FILE_TYPE
+    string "Recordind file type"
+    default "wav"
+    help
+        Set which type of recording encorder

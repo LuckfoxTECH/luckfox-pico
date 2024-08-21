@@ -280,7 +280,7 @@ static struct rockchip_clk_branch rk3528_clk_branches[] __initdata = {
 	COMPOSITE_NOMUX_HALFDIV(CLK_MATRIX_339M_SRC, "clk_339m_src", "gpll", CLK_IS_CRITICAL,
 	                RK3528_CLKSEL_CON(2), 5, 5, DFLAGS,
 	                RK3528_CLKGATE_CON(0), 7, GFLAGS),
-	COMPOSITE_NOMUX(CLK_MATRIX_400M_SRC, "clk_400m_src", "gpll", CLK_IS_CRITICAL,
+	COMPOSITE_NOMUX(CLK_MATRIX_400M_SRC, "clk_400m_src", "gpll", CLK_IGNORE_UNUSED,
 	                RK3528_CLKSEL_CON(2), 10, 5, DFLAGS,
 	                RK3528_CLKGATE_CON(0), 8, GFLAGS),
 	COMPOSITE_NOMUX(CLK_MATRIX_600M_SRC, "clk_600m_src", "gpll", CLK_IS_CRITICAL,
@@ -420,8 +420,6 @@ static struct rockchip_clk_branch rk3528_clk_branches[] __initdata = {
 	GATE(ACLK_GIC, "aclk_gic", "aclk_bus_m_root", CLK_IS_CRITICAL,
 	     RK3528_CLKGATE_CON(9), 1, GFLAGS),
 
-	GATE(ACLK_CRYPTO, "aclk_crypto", "aclk_bus_m_root", 0,
-	     RK3528_CLKGATE_CON(10), 11, GFLAGS),
 	COMPOSITE_NODIV(ACLK_BUS_ROOT, "aclk_bus_root", mux_200m_100m_24m_p, CLK_IS_CRITICAL,
 	                RK3528_CLKSEL_CON(43), 6, 2, MFLAGS,
 	                RK3528_CLKGATE_CON(8), 4, GFLAGS),
@@ -443,11 +441,6 @@ static struct rockchip_clk_branch rk3528_clk_branches[] __initdata = {
 	COMPOSITE_NODIV(HCLK_BUS_ROOT, "hclk_bus_root", mux_200m_100m_50m_24m_p, CLK_IS_CRITICAL,
 	                RK3528_CLKSEL_CON(43), 8, 2, MFLAGS,
 	                RK3528_CLKGATE_CON(8), 5, GFLAGS),
-	GATE(HCLK_TRNG_NS, "hclk_trng_ns", "hclk_bus_root", 0,
-	     RK3528_CLKGATE_CON(10), 3, GFLAGS),
-
-	GATE(HCLK_CRYPTO, "hclk_crypto", "hclk_bus_root", 0,
-	     RK3528_CLKGATE_CON(10), 12, GFLAGS),
 
 	COMPOSITE_NODIV(PCLK_BUS_ROOT, "pclk_bus_root", mux_100m_50m_24m_p, CLK_IS_CRITICAL,
 	                RK3528_CLKSEL_CON(43), 10, 2, MFLAGS,
@@ -475,12 +468,6 @@ static struct rockchip_clk_branch rk3528_clk_branches[] __initdata = {
 	GATE(PCLK_INTMUX, "pclk_intmux", "pclk_bus_root", CLK_IGNORE_UNUSED,
 	     RK3528_CLKGATE_CON(11), 12, GFLAGS),
 
-	COMPOSITE_NODIV(CLK_PKA_CRYPTO, "clk_pka_crypto", mux_300m_200m_100m_24m_p, 0,
-	                RK3528_CLKSEL_CON(44), 0, 2, MFLAGS,
-	                RK3528_CLKGATE_CON(10), 10, GFLAGS),
-	COMPOSITE_NODIV(CLK_CORE_CRYPTO, "clk_core_crypto", mux_300m_200m_100m_24m_p, 0,
-	                RK3528_CLKSEL_CON(43), 14, 2, MFLAGS,
-	                RK3528_CLKGATE_CON(10), 9, GFLAGS),
 	COMPOSITE_NODIV(CLK_PWM0, "clk_pwm0", mux_100m_50m_24m_p, 0,
 	                RK3528_CLKSEL_CON(44), 6, 2, MFLAGS,
 	                RK3528_CLKGATE_CON(11), 5, GFLAGS),
