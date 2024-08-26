@@ -69,6 +69,7 @@ all: expat
 			--disable-werror  --enable-static  --without-mpfr  --disable-tui  --without-python  \
 			--without-lzma \
 			--with-expat \
+			--disable-source-highlight \
 			--with-libexpat-prefix=$(CURRENT_DIR)/$(PKG_NAME_EXPAT)/$(PKG_BIN) \
 			--with-zlib ;\
 		make -j$(SYSDRV_JOBS) >/dev/null || exit -1; \
@@ -105,6 +106,7 @@ expat:
 			--enable-ipv6 \
 			--disable-nls \
 			--enable-static \
+			--disable-source-highlight \
 			--disable-shared; \
 		make -j$(SYSDRV_JOBS) >/dev/null || exit -1; \
 		make install > /dev/null; \
