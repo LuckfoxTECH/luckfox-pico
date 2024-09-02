@@ -1501,7 +1501,11 @@ function parse_partition_file() {
 			esac
 		fi
 
-		echo "ln -sf /dev/${storage_dev_prefix}${part_num} ${part_name}" >>$RK_PROJECT_FILE_ROOTFS_SCRIPT
+		if [[ $part_name == "swap" && $storage_dev_prefix == "mtd" ]]; then
+			echo "ln -sf /dev/${storage_dev_prefix}block${part_num} ${part_name}" >>$RK_PROJECT_FILE_ROOTFS_SCRIPT
+		else
+			echo "ln -sf /dev/${storage_dev_prefix}${part_num} ${part_name}" >>$RK_PROJECT_FILE_ROOTFS_SCRIPT
+		fi
 		part_num=$((part_num + 1))
 	done
 	case $RK_BOOT_MEDIUM in
@@ -1774,6 +1778,10 @@ function __GET_TARGET_PARTITION_FS_TYPE() {
 			export OUTPUT_SYSDRV_RAMDISK_DIR=$RK_PROJECT_PATH_RAMDISK
 			[[ $part_name =~ "boot" ]] && GLOBAL_INITRAMFS_BOOT_NAME=$part_name
 			;;
+		swap)
+			__MAKE_MOUNT_SCRIPT "swapon /dev/block/by-name/$part_name ;"
+			continue
+			;;
 		*)
 			msg_error "Invalid Parameter,Check $(realpath $BOARD_CONFIG):RK_PARTITION_FS_TYPE_CFG !!!"
 			exit 1
@@ -1891,7 +1899,7 @@ function build_mkimg() {
 		return
 	fi
 
-	if [ -z "$2" -o ! -d "$2" ]; then
+	if [ "$part_name" != "swap" ] && [ -z "$2" -o ! -d "$2" ]; then
 		msg_error "Not exist source dir: $2"
 		exit 1
 	fi
@@ -2001,6 +2009,10 @@ function build_mkimg() {
 			$RK_PROJECT_TOOLS_MKFS_INITRAMFS $src $dst
 		fi
 		;;
+	swap)
+		dd if=/dev/zero of=$dst bs=1M count=$((part_size / 1024 / 1024))
+		mkswap $dst
+		;;
 	*)
 		msg_error "Not support fs type: $fs_type"
 		;;
@@ -2084,6 +2096,8 @@ function build_firmware() {
 	# package a empty userdata parition image
 	mkdir -p $RK_PROJECT_PACKAGE_USERDATA_DIR
 	build_mkimg userdata $RK_PROJECT_PACKAGE_USERDATA_DIR
+
+	build_mkimg swap
 
 	build_tftp_sd_update
 
