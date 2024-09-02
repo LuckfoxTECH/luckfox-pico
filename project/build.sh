@@ -2204,11 +2204,11 @@ function build_allsave() {
 
 function buildroot_config() {
 	if [ "${LF_TARGET_ROOTFS}" == "buildroot" ]; then
-		if [ -d "$BUILDROOT_PATH" ]; then
-			msg_info "Buildroot has been created"
-		else
-			make buildroot_create -C ${SDK_SYSDRV_DIR}
-		fi
+		# if [ -d "$BUILDROOT_PATH" ]; then
+		# 	msg_info "Buildroot has been created"
+		# else
+		# 	make buildroot_create -C ${SDK_SYSDRV_DIR}
+		# fi
 
 		if [ -f $BUILDROOT_CONFIG_FILE ]; then
 			BUILDROOT_CONFIG_FILE_MD5=$(md5sum "$BUILDROOT_CONFIG_FILE")

@@ -6,7 +6,7 @@ kmod-29
 out
 # source
 source/busybox
-source/buildroot
+# source/buildroot
 # source/kernel
 # source/uboot
 tools/board/android-tools/android-tools/
