@@ -680,12 +680,17 @@ drv: prepare
 	@echo -e "$(C_GREEN) ==sysdrv== build drv $(C_NORMAL)"
 	@-rm -rf $(SYSDRV_KERNEL_MOD_PATH) $(KERNEL_DIR_DRV_KO)
 	@-mkdir -p $(SYSDRV_KERNEL_MOD_PATH)
+	@mkdir -p $(SYSDRV_DIR_OUT_ROOTFS)/lib/modules/5.10.110/extra
+	@mkdir -p $(SYSDRV_DIR_OUT_ROOTFS)/lib/firmware
 	$(MAKE) -C $(KERNEL_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -j$(SYSDRV_JOBS) \
 		modules_install INSTALL_MOD_STRIP=1 \
-		INSTALL_MOD_PATH=$(KERNEL_DIR_DRV_KO)
-	$(AT)find $(KERNEL_DIR_DRV_KO)/lib/modules/*/kernel \
-		-name "*.ko" -type f -exec cp -fav {} $(SYSDRV_KERNEL_MOD_PATH) \;
+		INSTALL_MOD_PATH=$(SYSDRV_DIR_OUT_ROOTFS)
+	# $(AT)find $(KERNEL_DIR_DRV_KO)/lib/modules/*/kernel \
+	# 	-name "*.ko" -type f -exec cp -fav {} $(SYSDRV_KERNEL_MOD_PATH) \;
 	@test ! -d drv_ko || ($(MAKE) -C $(SYSDRV_DIR)/drv_ko KERNEL_DRV_KO_INSTALL_PATH=$(SYSDRV_KERNEL_MOD_PATH))
+	@cp $(SYSDRV_KERNEL_MOD_PATH)/*.ko $(SYSDRV_DIR_OUT_ROOTFS)/lib/modules/5.10.110/extra/
+	@cp $(SYSDRV_KERNEL_MOD_PATH)/*.bin $(SYSDRV_DIR_OUT_ROOTFS)/lib/firmware/
+	@rm $(SYSDRV_DIR_OUT_ROOTFS)/lib/modules/5.10.110/{source,build}
 	$(call MAROC_COPY_PKG_TO_SYSDRV_OUTPUT, $(OUTPUT_ROOTFS_SOURCE_DIR), $(SYSDRV_KERNEL_MOD_PATH), SELF)
 
 drv_clean:
