@@ -1196,12 +1196,12 @@ function __MAKE_MOUNT_SCRIPT() {
 function __PACKAGE_OEM() {
 	mkdir -p $RK_PROJECT_PACKAGE_OEM_DIR
 	__PACKAGE_RESOURCES $RK_PROJECT_PACKAGE_OEM_DIR
-	if [ -d "$RK_PROJECT_PACKAGE_OEM_DIR/usr/share/iqfiles" ]; then
-		(
-			cd $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc
-			ln -sf ../oem/usr/share/iqfiles ./
-		)
-	fi
+	# if [ -d "$RK_PROJECT_PACKAGE_OEM_DIR/usr/share/iqfiles" ]; then
+	# 	(
+	# 		cd $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc
+	# 		ln -sf ../oem/usr/share/iqfiles ./
+	# 	)
+	# fi
 
 	mkdir -p $(dirname $RK_PROJECT_FILE_OEM_SCRIPT)
 	cat >$RK_PROJECT_FILE_OEM_SCRIPT <<EOF
@@ -1220,7 +1220,7 @@ case \$1 in
 esac
 EOF
 	chmod a+x $RK_PROJECT_FILE_OEM_SCRIPT
-	cp -f $RK_PROJECT_FILE_OEM_SCRIPT $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc/init.d
+	# cp -f $RK_PROJECT_FILE_OEM_SCRIPT $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc/init.d
 }
 
 function __PACKAGE_ROOTFS() {
@@ -2066,7 +2066,7 @@ function build_firmware() {
 	__PACKAGE_ROOTFS
 	__PACKAGE_OEM
 
-	__BUILD_ENABLE_COREDUMP_SCRIPT
+	# __BUILD_ENABLE_COREDUMP_SCRIPT
 
 	__RUN_PRE_BUILD_OEM_SCRIPT
 
@@ -2075,8 +2075,8 @@ function build_firmware() {
 		mkdir -p $RK_PROJECT_PACKAGE_ROOTFS_DIR/oem
 		build_mkimg $GLOBAL_OEM_NAME $RK_PROJECT_PACKAGE_OEM_DIR
 	else
-		mkdir -p $RK_PROJECT_PACKAGE_ROOTFS_DIR/oem
-		__COPY_FILES $RK_PROJECT_PACKAGE_OEM_DIR $RK_PROJECT_PACKAGE_ROOTFS_DIR/oem
+		# mkdir -p $RK_PROJECT_PACKAGE_ROOTFS_DIR/oem
+		# __COPY_FILES $RK_PROJECT_PACKAGE_OEM_DIR $RK_PROJECT_PACKAGE_ROOTFS_DIR/oem
 		rm -rf $RK_PROJECT_PACKAGE_OEM_DIR
 	fi
 

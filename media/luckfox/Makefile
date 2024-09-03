@@ -4,7 +4,7 @@ ifeq ($(MEDIA_PARAM), )
     include $(MEDIA_PARAM)
 endif
 
-export CONFIG_LUCKFOX_TEST=y
+export CONFIG_LUCKFOX_TEST=n
 export LC_ALL=C
 SHELL:=/bin/bash
 

@@ -27,7 +27,7 @@ export RK_BOOT_MEDIUM=spi_nand
 export RK_UBOOT_DEFCONFIG_FRAGMENT=rk-sfc.config
 
 # specify post.sh for delete/overlay files
-# export RK_PRE_BUILD_OEM_SCRIPT=rv1103-spi_nor-post.sh
+export RK_PRE_BUILD_OEM_SCRIPT=rv1103-spi_nor-post.sh
 
 # config partition in environment
 # RK_PARTITION_CMD_IN_ENV format:
@@ -87,7 +87,7 @@ export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_defconfig
 # RK_CAMERA_SENSOR_IQFILES format:
 #     "iqfile1 iqfile2 iqfile3 ..."
 # ./build.sh media and copy <SDK root dir>/output/out/media_out/isp_iqfiles/$RK_CAMERA_SENSOR_IQFILES
-# export RK_CAMERA_SENSOR_IQFILES="sc4336_OT01_40IRC_F16.json sc3336_CMK-OT2119-PC1_30IRC-F16.json"
+export RK_CAMERA_SENSOR_IQFILES="sc3336_CMK-OT2119-PC1_30IRC-F16.json"
 #export RK_CAMERA_SENSOR_IQFILES="sc4336_OT01_40IRC_F16.json sc3336_CMK-OT2119-PC1_30IRC-F16.json sc530ai_CMK-OT2115-PC1_30IRC-F16.json"
 
 # Config sensor lens CAC calibrattion bin files

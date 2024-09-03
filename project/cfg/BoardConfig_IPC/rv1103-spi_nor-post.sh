@@ -3,12 +3,17 @@
 cd $RK_PROJECT_PACKAGE_OEM_DIR/usr/lib/
 rm face_mask_classify.data
 rm face_quality_v2.data
+rm libsmartIr.so
 rm object_detection_ipc_cls7.data
 rm object_detection_ipc_cls7_v.data
 rm object_detection_pfp_896x512.data
 cd -
 
+cp -rf $RK_PROJECT_PACKAGE_OEM_DIR/usr/lib/* $RK_PROJECT_PACKAGE_ROOTFS_DIR/usr/lib/
+cp -rf $RK_PROJECT_PACKAGE_OEM_DIR/usr/share/* $RK_PROJECT_PACKAGE_ROOTFS_DIR/usr/share/
+rm $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc/profile.d/RkEnv.sh
 rm $RK_PROJECT_PACKAGE_ROOTFS_DIR/lib/libstdc++.so.6.0.25-gdb.py
+rm -rf $RK_PROJECT_PACKAGE_ROOTFS_DIR/oem
 
 # delete nouse ko
 rm -f $RK_PROJECT_PACKAGE_OEM_DIR/usr/ko/gcm.ko

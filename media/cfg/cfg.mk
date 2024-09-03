@@ -6,7 +6,7 @@ export CONFIG_RK_MEDIA_CROSS=arm-rockchip830-linux-uclibcgnueabihf
 
 #------------------------------------------------
 # Enable libdrm
-export CONFIG_LIBDRM=y
+export CONFIG_LIBDRM=n
 
 #------------------------------------------------
 # Rockchip's MPP(Multimedia Processing Platform)
@@ -40,25 +40,25 @@ export CONFIG_RK_RGA2_USE_LIBDRM=n
 # Rockchip's common algorithm
 #
 # Enable common_algorithm Build
-export CONFIG_RK_COMMON_ALGORITHM=y
+export CONFIG_RK_COMMON_ALGORITHM=n
 
 #------------------------------------------------
 # Rockchip's rockit
 #
 # Enable Rockit Build
-export CONFIG_RK_ROCKIT=y
+export CONFIG_RK_ROCKIT=n
 
 #------------------------------------------------
 # Rockchip's iva
 #
 # Enable iva Build
-export CONFIG_RK_IVA=y
+export CONFIG_RK_IVA=n
 
 #------------------------------------------------
 # Rockchip's ive
 #
 # Enable ive Build
-export CONFIG_RK_IVE=y
+export CONFIG_RK_IVE=n
 
 #------------------------------------------------
 # Rockchip's hardware crypto
@@ -75,4 +75,4 @@ export CONFIG_RK_CRYPTO=n
 # liblvgl
 export CONFIG_LVGL=n
 
-export CONFIG_RK_AVS=y
+export CONFIG_RK_AVS=n
