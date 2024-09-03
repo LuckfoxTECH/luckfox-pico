@@ -8,7 +8,7 @@
 export RK_CHIP=rv1106
 
 # app config
-export RK_APP_TYPE=RKIPC_RV1103
+# export RK_APP_TYPE=RKIPC_RV1103
 
 # Config CMA size in environment
 export RK_BOOTARGS_CMA_SIZE="12M"
@@ -35,7 +35,7 @@ export RK_UBOOT_DEFCONFIG_FRAGMENT=rk-sfc.config
 #       <partdef> := <size>[@<offset>](part-name)
 # Note:
 #   If the first partition offset is not 0x0, it must be added. Otherwise, it needn't adding.
-export RK_PARTITION_CMD_IN_ENV="256K(env),256K@256K(idblock),512K(uboot),4M(boot),30M(oem),10M(userdata),80M(rootfs)"
+export RK_PARTITION_CMD_IN_ENV="256K(env),256K@256K(idblock),512K(uboot),4M(boot),30M(swap),10M(userdata),80M(rootfs)"
 
 # config partition's filesystem type (squashfs is readonly)
 # emmc:    squashfs/ext4
@@ -46,7 +46,7 @@ export RK_PARTITION_CMD_IN_ENV="256K(env),256K@256K(idblock),512K(uboot),4M(boot
 #         AAAA ----------> partition name
 #         /BBBB/CCCC ----> partition mount point
 #         ext4 ----------> partition filesystem type
-export RK_PARTITION_FS_TYPE_CFG=rootfs@IGNORE@ubifs,oem@/oem@ubifs,userdata@/userdata@ubifs
+export RK_PARTITION_FS_TYPE_CFG=rootfs@IGNORE@ubifs,swap@IGNORE@swap,userdata@/userdata@ubifs
 
 # config filesystem compress (Just for squashfs or ubifs)
 # squashfs: lz4/lzo/lzma/xz/gzip, default xz
@@ -98,7 +98,7 @@ export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_defconfig
 # export RK_APP_IPCWEB_BACKEND=y
 
 # enable install app to oem partition
-export RK_BUILD_APP_TO_OEM_PARTITION=y
+# export RK_BUILD_APP_TO_OEM_PARTITION=y
 
 # enable rockchip test
 # export RK_ENABLE_ROCKCHIP_TEST=y
