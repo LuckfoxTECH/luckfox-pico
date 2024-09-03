@@ -610,6 +610,7 @@ else
 	# cp $(SYSDRV_DIR)/tools/board/luckfox_config/luckfox-config  $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/
 	# cp $(SYSDRV_DIR)/tools/board/luckfox_config/luckfox_switch_rgb_resolution $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/
 	cp $(SYSDRV_DIR)/tools/board/android-tools/S99usb0config $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
+	cp $(SYSDRV_DIR)/tools/board/buildroot/S99loadmodules $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
 endif
 
 buildroot_clean:

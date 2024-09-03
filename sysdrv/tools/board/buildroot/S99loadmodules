@@ -1,0 +1,25 @@
+#!/bin/sh
+
+load_modules() {
+	depmod
+	modprobe rk_dvbm
+	modprobe video_rkcif
+	modprobe video_rkisp
+	modprobe phy-rockchip-csi2-dphy-hw
+	modprobe phy-rockchip-csi2-dphy
+	modprobe sc3336
+	echo 1 > /sys/module/video_rkcif/parameters/clr_unready_dev
+	echo 1 > /sys/module/video_rkisp/parameters/clr_unready_dev
+	modprobe rga3
+	modprobe mpp_vcodec
+	modprobe rockit mcu_fw_path=/lib/firmware/hpmcu_wrap.bin mcu_fw_addr=0xff6ff000 isp_max_h=1296
+}
+
+case $1 in
+start)
+	load_modules
+	;;
+*)
+	exit 1
+	;;
+esac
