@@ -46,13 +46,13 @@ int luckfox_spi_init(char *dev, uint32_t mode, uint8_t bits, uint32_t speed)
    }
 
    // Set SPI mode
-   ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
+   ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
    if (ret == -1)
    {
       printf("SPI_IOC_RD_MODE error......\n ");
       goto fd_close;
    }
-   ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
+   ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
    if (ret == -1)
    {
       printf("SPI_IOC_WR_MODE error......\n ");
@@ -60,13 +60,13 @@ int luckfox_spi_init(char *dev, uint32_t mode, uint8_t bits, uint32_t speed)
    }
 
    // Set the length of SPI communication
-   ret = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits);
+   ret = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits);
    if (ret == -1)
    {
       printf("SPI_IOC_RD_BITS_PER_WORD error......\n ");
       goto fd_close;
    }
-   ret = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits);
+   ret = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits);
    if (ret == -1)
    {
       printf("SPI_IOC_WR_BITS_PER_WORD error......\n ");
