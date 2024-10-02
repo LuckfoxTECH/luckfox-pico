@@ -12,6 +12,20 @@
 / {
 	model = "Luckfox Pico Mini B";
 	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1103";
+
+	adc-keys {
+		compatible = "adc-keys";
+		io-channels = <&saradc 0>;
+		io-channel-names = "buttons";
+		poll-interval = <100>;
+		keyup-threshold-microvolt = <1800000>;
+
+		recovery {
+			label = "Volum_up";
+			linux,code = <KEY_VOLUMEUP>;
+			press-threshold-microvolt = <0>;
+		};
+	};
 };
 
 /**********SFC**********/
