@@ -147,7 +147,7 @@ pp_service_cmd_send:
 	cmp	r2, #15
 	bls	.L25
 	str	r3, [sp]
-	movs	r2, #120
+	movs	r2, #112
 	mov	r3, r0
 	ldr	r1, .L32
 	ldr	r0, .L32+4
@@ -312,9 +312,9 @@ pp_service_cmd_poll:
 	.section	.rodata
 	.align	2
 	.set	.LANCHOR0,. + 0
-	.type	__func__.7417, %object
-	.size	__func__.7417, 20
-__func__.7417:
+	.type	__func__.7676, %object
+	.size	__func__.7676, 20
+__func__.7676:
 	.ascii	"pp_service_cmd_send\000"
 	.type	pp_srv_api, %object
 	.size	pp_srv_api, 40

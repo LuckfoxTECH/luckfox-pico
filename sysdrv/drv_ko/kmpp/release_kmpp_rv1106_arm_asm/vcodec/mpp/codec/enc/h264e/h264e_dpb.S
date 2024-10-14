@@ -425,7 +425,7 @@ h264e_dpb_setup:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
-	movw	r3, #4700
+	movw	r3, #4728
 	push	{r0, r1, r4, r5, r6, r7, r8, r9, r10, lr}
 	.save {r4, r5, r6, r7, r8, r9, r10, lr}
 	.pad #8
@@ -2025,61 +2025,61 @@ h264e_dpb_check:
 	.size	h264e_dpb_check, .-h264e_dpb_check
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__func__.9646, %object
-	.size	__func__.9646, 21
-__func__.9646:
+	.type	__func__.9726, %object
+	.size	__func__.9726, 21
+__func__.9726:
 	.ascii	"h264e_dpb_dump_listX\000"
-	.type	__func__.9633, %object
-	.size	__func__.9633, 19
-__func__.9633:
+	.type	__func__.9713, %object
+	.size	__func__.9713, 19
+__func__.9713:
 	.ascii	"h264e_dpb_dump_frm\000"
-	.type	__func__.9653, %object
-	.size	__func__.9653, 20
-__func__.9653:
+	.type	__func__.9733, %object
+	.size	__func__.9733, 20
+__func__.9733:
 	.ascii	"h264e_dpb_dump_list\000"
-	.type	__func__.9660, %object
-	.size	__func__.9660, 15
-__func__.9660:
+	.type	__func__.9740, %object
+	.size	__func__.9740, 15
+__func__.9740:
 	.ascii	"h264e_dpb_init\000"
-	.type	__func__.9674, %object
-	.size	__func__.9674, 16
-__func__.9674:
+	.type	__func__.9754, %object
+	.size	__func__.9754, 16
+__func__.9754:
 	.ascii	"h264e_dpb_setup\000"
-	.type	__func__.9682, %object
-	.size	__func__.9682, 15
-__func__.9682:
+	.type	__func__.9762, %object
+	.size	__func__.9762, 15
+__func__.9762:
 	.ascii	"find_cpb_frame\000"
-	.type	__FUNCTION__.9684, %object
-	.size	__FUNCTION__.9684, 15
-__FUNCTION__.9684:
+	.type	__FUNCTION__.9764, %object
+	.size	__FUNCTION__.9764, 15
+__FUNCTION__.9764:
 	.ascii	"find_cpb_frame\000"
-	.type	__func__.9716, %object
-	.size	__func__.9716, 21
-__func__.9716:
+	.type	__func__.9796, %object
+	.size	__func__.9796, 21
+__func__.9796:
 	.ascii	"h264e_dpb_build_list\000"
-	.type	__FUNCTION__.9720, %object
-	.size	__FUNCTION__.9720, 21
-__FUNCTION__.9720:
+	.type	__FUNCTION__.9800, %object
+	.size	__FUNCTION__.9800, 21
+__FUNCTION__.9800:
 	.ascii	"h264e_dpb_build_list\000"
-	.type	__func__.9748, %object
-	.size	__func__.9748, 24
-__func__.9748:
+	.type	__func__.9828, %object
+	.size	__func__.9828, 24
+__func__.9828:
 	.ascii	"h264e_dpb_build_marking\000"
-	.type	__func__.9765, %object
-	.size	__func__.9765, 15
-__func__.9765:
+	.type	__func__.9845, %object
+	.size	__func__.9845, 15
+__func__.9845:
 	.ascii	"h264e_dpb_proc\000"
-	.type	__FUNCTION__.9769, %object
-	.size	__FUNCTION__.9769, 15
-__FUNCTION__.9769:
+	.type	__FUNCTION__.9849, %object
+	.size	__FUNCTION__.9849, 15
+__FUNCTION__.9849:
 	.ascii	"h264e_dpb_proc\000"
-	.type	__func__.9803, %object
-	.size	__func__.9803, 16
-__func__.9803:
+	.type	__func__.9883, %object
+	.size	__func__.9883, 16
+__func__.9883:
 	.ascii	"h264e_dpb_check\000"
-	.type	__FUNCTION__.9809, %object
-	.size	__FUNCTION__.9809, 16
-__FUNCTION__.9809:
+	.type	__FUNCTION__.9889, %object
+	.size	__FUNCTION__.9889, 16
+__FUNCTION__.9889:
 	.ascii	"h264e_dpb_check\000"
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:

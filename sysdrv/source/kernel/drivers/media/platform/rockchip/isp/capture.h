@@ -57,6 +57,14 @@
 #define DMATX2_VDEV_NAME DRIVER_NAME	"_rawwr2"
 #define DMATX3_VDEV_NAME DRIVER_NAME	"_rawwr3"
 
+#define STREAM_MAX_MP_RSZ_OUTPUT_WIDTH		4416
+#define STREAM_MAX_MP_RSZ_OUTPUT_HEIGHT		3312
+#define STREAM_MAX_SP_RSZ_OUTPUT_WIDTH		1920
+#define STREAM_MAX_SP_RSZ_OUTPUT_HEIGHT		1080
+#define STREAM_MIN_RSZ_OUTPUT_WIDTH		32
+#define STREAM_MIN_RSZ_OUTPUT_HEIGHT		32
+#define STREAM_OUTPUT_STEP_WISE			8
+
 struct rkisp_stream;
 
 enum {
@@ -219,7 +227,7 @@ struct streams_ops {
 	void (*set_data_path)(struct rkisp_stream *stream);
 	bool (*is_stream_stopped)(struct rkisp_stream *stream);
 	void (*update_mi)(struct rkisp_stream *stream);
-	int (*frame_end)(struct rkisp_stream *stream);
+	int (*frame_end)(struct rkisp_stream *stream, u32 state);
 	int (*frame_start)(struct rkisp_stream *stream, u32 mis);
 	int (*set_wrap)(struct rkisp_stream *stream, int line);
 };
@@ -280,13 +288,14 @@ struct rkisp_stream {
 	bool is_pause;
 	bool is_crop_upd;
 	bool is_using_resmem;
-	bool is_tb_s_info;
+	bool frame_early;
 	wait_queue_head_t done;
 	unsigned int burst;
 	atomic_t sequence;
 	struct frame_debug_info dbg;
-	u8 conn_id;
+	int conn_id;
 	u32 memory;
+	u32 skip_frame;
 	union {
 		struct rkisp_stream_sp sp;
 		struct rkisp_stream_mp mp;
@@ -322,6 +331,7 @@ extern struct stream_config rkisp_mp_stream_config;
 extern struct stream_config rkisp_sp_stream_config;
 extern struct rockit_isp_ops rockit_isp_ops;
 
+void rkisp_stream_buf_done_early(struct rkisp_device *dev);
 void rkisp_stream_buf_done(struct rkisp_stream *stream,
 			   struct rkisp_buffer *buf);
 void rkisp_unregister_stream_vdev(struct rkisp_stream *stream);
@@ -340,4 +350,5 @@ int rkisp_fop_release(struct file *file);
 int rkisp_get_tb_stream_info(struct rkisp_stream *stream,
 			     struct rkisp_tb_stream_info *info);
 int rkisp_free_tb_stream_buf(struct rkisp_stream *stream);
+int rkisp_stream_buf_cnt(struct rkisp_stream *stream);
 #endif /* _RKISP_PATH_VIDEO_H */

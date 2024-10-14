@@ -90,7 +90,7 @@ strof_pixel_fmt:
 	subls	r0, r0, #65536
 	ldrls	r3, .L14
 	addls	r0, r3, r0, lsl #2
-	ldrls	r0, [r0, #152]
+	ldrls	r0, [r0, #148]
 	it	hi
 	movhi	r0, #0
 	bx	lr
@@ -112,11 +112,11 @@ strof_rc_mode:
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
 	@ link register save eliminated.
-	cmp	r0, #3
+	cmp	r0, #4
 	ittte	ls
 	ldrls	r3, .L19
 	addls	r3, r3, r0, lsl #2
-	ldrls	r0, [r3, #208]
+	ldrls	r0, [r3, #204]
 	movhi	r0, #0
 	bx	lr
 .L20:
@@ -314,16 +314,15 @@ strof_suprmode:
 	.section	.rodata
 	.align	2
 	.set	.LANCHOR0,. + 0
-	.type	ctx_type_str.5715, %object
-	.size	ctx_type_str.5715, 12
-ctx_type_str.5715:
-	.word	.LC69
+	.type	ctx_type_str.5762, %object
+	.size	ctx_type_str.5762, 12
+ctx_type_str.5762:
 	.word	.LC70
 	.word	.LC71
-	.type	coding_type_str0.5719, %object
-	.size	coding_type_str0.5719, 44
-coding_type_str0.5719:
-	.word	.LC58
+	.word	.LC72
+	.type	coding_type_str0.5766, %object
+	.size	coding_type_str0.5766, 44
+coding_type_str0.5766:
 	.word	.LC59
 	.word	.LC60
 	.word	.LC61
@@ -334,20 +333,20 @@ coding_type_str0.5719:
 	.word	.LC66
 	.word	.LC67
 	.word	.LC68
-	.type	coding_type_str1.5720, %object
-	.size	coding_type_str1.5720, 28
-coding_type_str1.5720:
-	.word	.LC51
+	.word	.LC69
+	.type	coding_type_str1.5767, %object
+	.size	coding_type_str1.5767, 28
+coding_type_str1.5767:
 	.word	.LC52
 	.word	.LC53
 	.word	.LC54
 	.word	.LC55
 	.word	.LC56
 	.word	.LC57
-	.type	yuv_fmt_str.5724, %object
-	.size	yuv_fmt_str.5724, 68
-yuv_fmt_str.5724:
-	.word	.LC35
+	.word	.LC58
+	.type	yuv_fmt_str.5771, %object
+	.size	yuv_fmt_str.5771, 64
+yuv_fmt_str.5771:
 	.word	.LC36
 	.word	.LC37
 	.word	.LC38
@@ -360,14 +359,13 @@ yuv_fmt_str.5724:
 	.word	.LC45
 	.word	.LC46
 	.word	.LC47
-	.word	.LC41
 	.word	.LC48
 	.word	.LC49
 	.word	.LC50
-	.type	rgb_fmt_str.5725, %object
-	.size	rgb_fmt_str.5725, 56
-rgb_fmt_str.5725:
-	.word	.LC21
+	.word	.LC51
+	.type	rgb_fmt_str.5772, %object
+	.size	rgb_fmt_str.5772, 56
+rgb_fmt_str.5772:
 	.word	.LC22
 	.word	.LC23
 	.word	.LC24
@@ -381,28 +379,30 @@ rgb_fmt_str.5725:
 	.word	.LC32
 	.word	.LC33
 	.word	.LC34
-	.type	rc_mode_str.5729, %object
-	.size	rc_mode_str.5729, 16
-rc_mode_str.5729:
+	.word	.LC35
+	.type	rc_mode_str.5776, %object
+	.size	rc_mode_str.5776, 20
+rc_mode_str.5776:
 	.word	.LC17
 	.word	.LC18
 	.word	.LC19
 	.word	.LC20
-	.type	gop_mode_str.5733, %object
-	.size	gop_mode_str.5733, 8
-gop_mode_str.5733:
+	.word	.LC21
+	.type	gop_mode_str.5780, %object
+	.size	gop_mode_str.5780, 8
+gop_mode_str.5780:
 	.word	.LC15
 	.word	.LC16
-	.type	rotation_str.5737, %object
-	.size	rotation_str.5737, 16
-rotation_str.5737:
+	.type	rotation_str.5784, %object
+	.size	rotation_str.5784, 16
+rotation_str.5784:
 	.word	.LC11
 	.word	.LC12
 	.word	.LC13
 	.word	.LC14
-	.type	mode_str.5760, %object
-	.size	mode_str.5760, 12
-mode_str.5760:
+	.type	mode_str.5807, %object
+	.size	mode_str.5807, 12
+mode_str.5807:
 	.word	.LC7
 	.word	.LC9
 	.word	.LC10
@@ -450,106 +450,108 @@ mode_str.5760:
 .LC20:
 	.ascii	"avbr\000"
 .LC21:
-	.ascii	"RGB565\000"
+	.ascii	"smtrc\000"
 .LC22:
-	.ascii	"BGR565\000"
+	.ascii	"RGB565\000"
 .LC23:
-	.ascii	"RGB555\000"
+	.ascii	"BGR565\000"
 .LC24:
-	.ascii	"BGR555\000"
+	.ascii	"RGB555\000"
 .LC25:
-	.ascii	"RGB444\000"
+	.ascii	"BGR555\000"
 .LC26:
-	.ascii	"BGR444\000"
+	.ascii	"RGB444\000"
 .LC27:
-	.ascii	"RGB888\000"
+	.ascii	"BGR444\000"
 .LC28:
-	.ascii	"BGR888\000"
+	.ascii	"RGB888\000"
 .LC29:
-	.ascii	"RGB101010\000"
+	.ascii	"BGR888\000"
 .LC30:
-	.ascii	"BGR101010\000"
+	.ascii	"RGB101010\000"
 .LC31:
-	.ascii	"ARGB8888\000"
+	.ascii	"BGR101010\000"
 .LC32:
-	.ascii	"ABGR8888\000"
+	.ascii	"ARGB8888\000"
 .LC33:
-	.ascii	"BGRA8888\000"
+	.ascii	"ABGR8888\000"
 .LC34:
-	.ascii	"RGBA8888\000"
+	.ascii	"BGRA8888\000"
 .LC35:
-	.ascii	"YUV420SP\000"
+	.ascii	"RGBA8888\000"
 .LC36:
-	.ascii	"YUV420SP10\000"
+	.ascii	"YUV420SP\000"
 .LC37:
-	.ascii	"YUV422SP\000"
+	.ascii	"YUV420SP10\000"
 .LC38:
-	.ascii	"YUV422SP10\000"
+	.ascii	"YUV422SP\000"
 .LC39:
-	.ascii	"YUV420P\000"
+	.ascii	"YUV422SP10\000"
 .LC40:
-	.ascii	"YUV420SPVU\000"
+	.ascii	"YUV420P\000"
 .LC41:
-	.ascii	"YUV422P\000"
+	.ascii	"YUV420SPVU\000"
 .LC42:
-	.ascii	"YUV422SP_VU\000"
+	.ascii	"YUV422P\000"
 .LC43:
-	.ascii	"422_YUYV\000"
+	.ascii	"YUV422SP_VU\000"
 .LC44:
-	.ascii	"422_YVYU\000"
+	.ascii	"422_YUYV\000"
 .LC45:
-	.ascii	"422_UYVY\000"
+	.ascii	"422_YVYU\000"
 .LC46:
-	.ascii	"422_VYUY\000"
+	.ascii	"422_UYVY\000"
 .LC47:
-	.ascii	"YUV400\000"
+	.ascii	"422_VYUY\000"
 .LC48:
-	.ascii	"YUV440SP\000"
+	.ascii	"YUV400\000"
 .LC49:
-	.ascii	"YUV411SP\000"
+	.ascii	"YUV440SP\000"
 .LC50:
-	.ascii	"YUV444SP\000"
+	.ascii	"YUV411SP\000"
 .LC51:
-	.ascii	"vc1\000"
+	.ascii	"YUV444SP\000"
 .LC52:
-	.ascii	"flv1\000"
+	.ascii	"vc1\000"
 .LC53:
-	.ascii	"divx3\000"
+	.ascii	"flv1\000"
 .LC54:
-	.ascii	"vp6\000"
+	.ascii	"divx3\000"
 .LC55:
-	.ascii	"h265\000"
+	.ascii	"vp6\000"
 .LC56:
-	.ascii	"avs+\000"
+	.ascii	"h265\000"
 .LC57:
-	.ascii	"avs\000"
+	.ascii	"avs+\000"
 .LC58:
-	.ascii	"unused\000"
+	.ascii	"avs\000"
 .LC59:
-	.ascii	"autodetect\000"
+	.ascii	"unused\000"
 .LC60:
-	.ascii	"mpeg2\000"
+	.ascii	"autodetect\000"
 .LC61:
-	.ascii	"h263\000"
+	.ascii	"mpeg2\000"
 .LC62:
-	.ascii	"mpeg4\000"
+	.ascii	"h263\000"
 .LC63:
-	.ascii	"wmv\000"
+	.ascii	"mpeg4\000"
 .LC64:
-	.ascii	"rv\000"
+	.ascii	"wmv\000"
 .LC65:
-	.ascii	"h264\000"
+	.ascii	"rv\000"
 .LC66:
-	.ascii	"mjpeg\000"
+	.ascii	"h264\000"
 .LC67:
-	.ascii	"vp8\000"
+	.ascii	"mjpeg\000"
 .LC68:
-	.ascii	"vp9\000"
+	.ascii	"vp8\000"
 .LC69:
-	.ascii	"dec\000"
+	.ascii	"vp9\000"
 .LC70:
-	.ascii	"enc\000"
+	.ascii	"dec\000"
 .LC71:
+	.ascii	"enc\000"
+.LC72:
 	.ascii	"isp\000"
 	.ident	"GCC: (crosstool-NG 1.24.0) 8.3.0"
 	.section	.note.GNU-stack,"",%progbits

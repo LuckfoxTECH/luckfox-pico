@@ -12,8 +12,8 @@
 #include <asm/arch/resource_img.h>
 #include <asm/arch/uimage.h>
 
-static int uimage_load_one(struct blk_desc *dev_desc, disk_partition_t *part,
-			   int pos_off, int size, void *dst)
+int uimage_load_one(struct blk_desc *dev_desc, disk_partition_t *part,
+		    int pos_off, int size, void *dst)
 {
 	u32 blknum, blkoff;
 	u32 unused;
@@ -183,31 +183,23 @@ int uimage_sysmem_free_each(image_header_t *img, u32 ramdisk_sz)
 	return 0;
 }
 
-int uimage_init_resource(void)
-{
-	struct blk_desc *dev_desc;
-	disk_partition_t part;
-	image_header_t *hdr;
-	char *part_name;
-	ulong data, offset;
-	ulong size;
 #ifdef CONFIG_ROCKCHIP_RESOURCE_IMAGE
-	ulong dst;
-	int idx = 3;
-#endif
-	int ret;
+int uimage_init_resource(struct blk_desc *dev_desc)
+{
+	disk_partition_t part;
+	ulong data, offset, size;
+	image_header_t *hdr;
+	char *part_name = PART_BOOT;
+	int ret, idx = 3;
+	void *buf;
 
-	dev_desc = rockchip_get_bootdev();
-	if (!dev_desc) {
-		printf("No dev_desc!\n");
-		return ENODEV;
-	}
+	if (!dev_desc)
+		return -ENODEV;
 
+#ifndef CONFIG_ANDROID_AB
 	if (rockchip_get_boot_mode() == BOOT_MODE_RECOVERY)
 		part_name = PART_RECOVERY;
-	else
-		part_name = PART_BOOT;
-
+#endif
 	if (part_get_info_by_name(dev_desc, part_name, &part) < 0) {
 		UIMG_I("No %s partition\n", part_name);
 		return -ENODEV;
@@ -215,35 +207,28 @@ int uimage_init_resource(void)
 
 	hdr = uimage_get_hdr(dev_desc, &part);
 	if (!hdr)
-		return -ENODEV;
+		return -EAGAIN;
 
 	image_multi_getimg(hdr, idx, &data, &size);
 	offset = data - (ulong)hdr;
 	free(hdr);
 
-#ifdef CONFIG_ROCKCHIP_RESOURCE_IMAGE
-	ulong fdt_addr;
-
-	/* reserve enough space before fdt */
-	fdt_addr = env_get_ulong("fdt_addr_r", 16, 0);
-	dst = (ulong)fdt_addr -
-		   ALIGN(size, dev_desc->blksz) - CONFIG_SYS_FDT_PAD;
-	ret = uimage_load_one(dev_desc, &part, offset, size, (void *)dst);
-	if (ret) {
-		UIMG_I("Failed to load resource file, ret=%d\n", ret);
-		return ret;
-	}
-
-	if (!sysmem_alloc_base(MEM_RESOURCE, (phys_addr_t)dst,
-			       ALIGN(size, RK_BLK_SIZE)))
+	buf = memalign(ARCH_DMA_MINALIGN, ALIGN(size, dev_desc->blksz));
+	if (!buf)
 		return -ENOMEM;
 
-	ret = resource_create_ram_list(dev_desc, (void *)dst);
+	printf("RESC: '%s', blk@0x%08lx\n", part.name,
+	       part.start + (offset / dev_desc->blksz));
+	ret = uimage_load_one(dev_desc, &part, offset, size, buf);
+	if (ret)
+		return ret;
+
+	ret = resource_setup_ram_list(dev_desc, buf);
 	if (ret) {
-		UIMG_I("Failed to create resource list, ret=%d\n", ret);
+		UIMG_I("Failed to setup resource ram list, ret=%d\n", ret);
 		return ret;
 	}
-#endif
 
 	return 0;
 }
+#endif

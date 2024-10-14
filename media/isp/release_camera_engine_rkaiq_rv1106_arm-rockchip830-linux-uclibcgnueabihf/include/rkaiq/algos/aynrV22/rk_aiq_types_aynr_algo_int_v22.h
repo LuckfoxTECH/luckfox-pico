@@ -171,12 +171,12 @@ typedef struct Aynr_Auto_Attr_V22_s
 typedef struct Aynr_ProcResult_V22_s {
 
     //for sw simultaion
-    RK_YNR_Params_V22_Select_t stSelect;
+    RK_YNR_Params_V22_Select_t* stSelect;
 
     //for hw register
-    RK_YNR_Fix_V22_t stFix;
+    RK_YNR_Fix_V22_t* stFix;
 
-    bool isNeedUpdate;
+    //bool isNeedUpdate;
 
 } Aynr_ProcResult_V22_t;
 

@@ -5,19 +5,15 @@
 * 专为Luckfox Pico系列开发板提供客制化的SDK
 * 旨在为开发者提供更好的编程体验
 ## SDK 更新日志
-* 当前版本 V1.3
-1. 添加Luckfox-pico-Ultra和Luckfox-pico-Ultra-W支持
-2. 优化了板级支持文件的选择操作
-3. 优化了buildroot的软件包下载速度，会根据下载环境选择速度较快的源服务器
-4. 优化了buildroot的包管理操作，`build.sh` 命令添加了 `buildrootconfig` 选项可以直接进入buildroot的menuconfig
-5. 优化了rootfs的clean操作，可以保留buildroot已经下载的软件包
-6. 优化了kernel的配置操作，`build.sh` 命令添加了 `kernelconfig` 选项可以进入kernel的menuconfig
-7. 添加了 `config` 配置文件夹，可以快速配置设备树、内核和Buildroot
-8. 优化了系统的根文件系统打包流程，可以在 `<Luckfox-pico SDK PATH>/output/out/rootfs_uclibc_rv1106`文件夹下对根文件进行客制化修改
-9. 修改了默认设备树的配置，可以在板端系统使用`luckfox-config`命令配置引脚和接口功能
-10. 部分bug修复
++ 当前版本 V1.4
+1. 更新uboot，提供rv1106使用spi_nand和emmc快速启动的支持
+2. 优化了uboot对SD卡的兼容性，减少识别SD卡失败的概率
+3. 更新内核版本为5.10.160，提高rv1106g3的npu频率
+4. 更新buildroot的镜像源，使软件包下载更加稳定
+5. 添加了自定义文件系统的支持
+6. 部分bug修复
 ## SDK 使用说明
-* 推荐使用系统为Ubuntu 22.04
+* 推荐SDK使用系统环境为Ubuntu 22.04
 ### 安装依赖
 ```shell
 sudo apt-get install repo git ssh make gcc gcc-multilib g++-multilib module-assistant expect g++ gawk texinfo libssl-dev bison flex fakeroot cmake unzip gperf autoconf device-tree-compiler libncurses5-dev pkg-config

@@ -147,12 +147,24 @@ typedef struct RK_Bayertnr_Params_V23_s
     RK_Bayertnr_Params_V23_Select_t bayertnrParamISO[RK_BAYERNR_V23_MAX_ISO_NUM];
 } RK_Bayertnr_Params_V23_t;
 
+typedef struct RK_Bayertnr_Params_V23L_s {
+    bool enable;
+    float iso[RK_BAYERNR_V23_MAX_ISO_NUM];
+    RK_Bayertnr_Param_V23L_Select_t bayertnrParamISO[RK_BAYERNR_V23_MAX_ISO_NUM];
+} RK_Bayertnr_Params_V23L_t;
+
 typedef struct Abayertnr_Manual_Attr_V23_s
 {
     RK_Bayertnr_Params_V23_Select_t st3DSelect;
 
     RK_Bayertnr_Fix_V23_t st3DFix;
 } Abayertnr_Manual_Attr_V23_t;
+
+typedef struct Abayertnr_Manual_Attr_V23L_s {
+    RK_Bayertnr_Param_V23L_Select_t st3DSelect;
+
+    RK_Bayertnr_Fix_V23_t st3DFix;
+} Abayertnr_Manual_Attr_V23L_t;
 
 typedef struct Abayertnr_Auto_Attr_V23_s
 {
@@ -161,16 +173,23 @@ typedef struct Abayertnr_Auto_Attr_V23_s
 
 } Abayertnr_Auto_Attr_V23_t;
 
+typedef struct Abayertnr_Auto_Attr_V23L_s {
+    RK_Bayertnr_Params_V23L_t st3DParams;
+    RK_Bayertnr_Param_V23L_Select_t st3DSelect;
+} Abayertnr_Auto_Attr_V23L_t;
+
 typedef struct Abayertnr_ProcResult_V23_s {
     int bayernr3DEn;
 
     //for sw simultaion
-    RK_Bayertnr_Params_V23_Select_t st3DSelect;
+#if (RKAIQ_HAVE_BAYERTNR_V23)
+    //RK_Bayertnr_Params_V23_Select_t st3DSelect;
+#else
+    //RK_Bayertnr_Param_V23L_Select_t st3DSelect;
+#endif
 
     //for hw register
-    RK_Bayertnr_Fix_V23_t st3DFix;
-
-    bool isNeedUpdate;
+    RK_Bayertnr_Fix_V23_t* st3DFix;
 
 } Abayertnr_ProcResult_V23_t;
 
@@ -187,6 +206,13 @@ typedef struct rk_aiq_bayertnr_attrib_v23_s {
     Abayertnr_Auto_Attr_V23_t stAuto;
     Abayertnr_Manual_Attr_V23_t stManual;
 } rk_aiq_bayertnr_attrib_v23_t;
+
+typedef struct rk_aiq_bayertnr_attrib_v23L_s {
+    rk_aiq_uapi_sync_t sync;
+    Abayertnr_OPMode_V23_t eMode;
+    Abayertnr_Auto_Attr_V23L_t stAuto;
+    Abayertnr_Manual_Attr_V23L_t stManual;
+} rk_aiq_bayertnr_attrib_v23L_t;
 
 typedef struct rk_aiq_bayertnr_strength_v23_s {
     rk_aiq_uapi_sync_t sync;

@@ -1,0 +1,61 @@
+language: c
+
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+      script:
+        - make
+
+    - os: linux
+      compiler: arm-linux-gnueabihf-gcc
+      addons:
+        apt:
+          packages:
+            - gcc-arm-linux-gnueabihf
+            - libc6-dev-armhf-cross
+            - qemu-user
+      script:
+        - CFLAGS="-O2 -mfpu=neon -g -static -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" make
+        - qemu-arm ./tinymembench
+
+    - os: linux
+      dist: trusty
+      compiler: aarch64-linux-gnu-gcc
+      addons:
+        apt:
+          packages:
+            - gcc-aarch64-linux-gnu
+            - libc6-dev-arm64-cross
+            - qemu-user
+      script:
+        - CFLAGS="-O2 -g -static -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" make
+        - qemu-aarch64 ./tinymembench
+
+    - os: linux
+      compiler: i586-mingw32msvc-gcc
+      addons:
+        apt:
+          packages:
+            - mingw32
+            - mingw32-binutils
+            - mingw32-runtime
+      script:
+        - CFLAGS="-O2 -g -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" make
+        - i586-mingw32msvc-objdump -d ./tinymembench
+        # Fails because of https://sourceware.org/bugzilla/show_bug.cgi?id=12687
+        # - wine ./tinymembench
+
+    - os: linux
+      compiler: x86_64-w64-mingw32-gcc
+      addons:
+        apt:
+          packages:
+            - gcc-mingw-w64-base
+            - binutils-mingw-w64-i686
+            - gcc-mingw-w64-i686
+            - gcc-mingw-w64
+            - wine
+      script:
+        - CFLAGS="-O2 -g -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" make
+        - wine ./tinymembench

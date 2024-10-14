@@ -408,6 +408,34 @@ config TPL_MAX_SIZE
 
 endif
 
+config ROCKCHIP_RK3562
+	bool "Support Rockchip RK3562"
+	select GICV2
+	select ARM64
+	select ARM_SMCCC
+	select SUPPORT_TPL
+	select SUPPORT_SPL
+	select TPL_TINY_FRAMEWORK if TPL
+	select DEBUG_UART_BOARD_INIT
+	imply TPL
+	imply SPL
+	imply TPL_SERIAL_SUPPORT
+	help
+	  The Rockchip RK3562 is a ARM-based SoC with a quad-core Cortex-A53.
+
+if ROCKCHIP_RK3562
+
+config TPL_LDSCRIPT
+	default "arch/arm/mach-rockchip/u-boot-tpl-v8.lds"
+
+config TPL_TEXT_BASE
+	default 0xfe481000
+
+config TPL_MAX_SIZE
+	default 61440
+
+endif
+
 config ROCKCHIP_RK3568
 	bool "Support Rockchip RK3568"
 	select ARM64 if !ARM64_BOOT_AARCH32
@@ -430,6 +458,37 @@ config TPL_LDSCRIPT
 
 config TPL_TEXT_BASE
 	default 0xfdcc1000
+
+config TPL_MAX_SIZE
+	default 61440
+
+endif
+
+config ROCKCHIP_RK3576
+	bool "Support Rockchip RK3576"
+	select ARM64
+	select GICV2
+	select ARM_SMCCC
+	select DEBUG_UART_BOARD_INIT
+	select ROCKCHIP_BROM_HELPER
+	select SUPPORT_SPL
+	select SUPPORT_TPL
+	select TPL_TINY_FRAMEWORK if TPL
+	imply TPL
+	imply SPL
+	imply TPL_SERIAL_SUPPORT
+
+	help
+	  The Rockchip RK3576 is a ARM-based SoC with a quad-core Cortex-A53
+	  and a quad-core Cortex-A72.
+
+if ROCKCHIP_RK3576
+
+config TPL_LDSCRIPT
+	default "arch/arm/mach-rockchip/u-boot-tpl-v8.lds"
+
+config TPL_TEXT_BASE
+	default 0x3ff81000
 
 config TPL_MAX_SIZE
 	default 61440
@@ -459,7 +518,7 @@ config TPL_LDSCRIPT
 	default "arch/arm/mach-rockchip/u-boot-tpl-v8.lds"
 
 config TPL_TEXT_BASE
-	default 0xfdcc1000
+	default 0xff001000
 
 config TPL_MAX_SIZE
 	default 61440
@@ -625,7 +684,9 @@ config ROCKCHIP_BOOT_MODE_REG
 	default 0xff738200 if ROCKCHIP_RK3368
 	default 0xff320300 if ROCKCHIP_RK3399
 	default 0xff370200 if ROCKCHIP_RK3528
+	default 0xff010220 if ROCKCHIP_RK3562
 	default 0xfdc20200 if ROCKCHIP_RK3568
+	default 0x26024040 if ROCKCHIP_RK3576
 	default 0xfd588080 if ROCKCHIP_RK3588
 	default 0xfe020200 if ROCKCHIP_RK1808
 	default 0xff020200 if ROCKCHIP_RV1106
@@ -651,7 +712,9 @@ config ROCKCHIP_STIMER_BASE
 	default 0xff830020 if ROCKCHIP_RK3368
 	default 0xff8680a0 if ROCKCHIP_RK3399
 	default 0xff620000 if ROCKCHIP_RK3528
+	default 0xffa90020 if ROCKCHIP_RK3562
 	default 0xfdd1c020 if ROCKCHIP_RK3568
+	default 0x27400000 if ROCKCHIP_RK3576
 	default 0xfd8c8000 if ROCKCHIP_RK3588
 	default 0xff590020 if ROCKCHIP_RV1106
 	default 0x10350020 if ROCKCHIP_RV1108
@@ -674,7 +737,9 @@ config ROCKCHIP_IRAM_START_ADDR
 	default 0xff8c0000 if ROCKCHIP_RK3368
 	default 0xff8c0000 if ROCKCHIP_RK3399
 	default 0xfe480000 if ROCKCHIP_RK3528
+	default 0xfe480000 if ROCKCHIP_RK3562
 	default 0xfdcc0000 if ROCKCHIP_RK3568
+	default 0x3ff80000 if ROCKCHIP_RK3576
 	default 0xff000000 if ROCKCHIP_RK3588
 	default 0xff6c0000 if ROCKCHIP_RV1106
 	default 0x10080000 if ROCKCHIP_RV1108
@@ -815,7 +880,7 @@ config ROCKCHIP_HWID_DTB
 
 config ROCKCHIP_VENDOR_PARTITION
 	bool "Rockchip vendor storage partition support"
-	depends on RKIMG_BOOTLOADER
+	depends on (RKIMG_BOOTLOADER || SUPPORT_USBPLUG)
 	help
 	  This enable support to read/write vendor configuration data from/to
 	  this partition.
@@ -843,16 +908,22 @@ config USING_KERNEL_DTB_V2
 	    - U-Boot: only some necessary U-Boot devices(storage, crypto...) in dm tree.
 	    - kernel: all the devices(except the U-Boot only) in dm tree.
 
+config EMBED_KERNEL_DTB
+	bool "Enable embedded dtb support"
+	default n
+	help
+	  Enable embedded dtb support.
+
 config EMBED_KERNEL_DTB_PATH
-	string "Embeded kernel dtb file path"
-	depends on USING_KERNEL_DTB
+	string "Embedded kernel dtb file path"
+	depends on EMBED_KERNEL_DTB && USING_KERNEL_DTB
 	default "dts/kern.dtb"
 	help
 	  This file will auto be appended to the u-boot.bin.
 
 config EMBED_KERNEL_DTB_ALWAYS
-	bool "Always using embed kernel dtb"
-	depends on USING_KERNEL_DTB
+	bool "Always using embedded kernel dtb"
+	depends on EMBED_KERNEL_DTB && USING_KERNEL_DTB
 	default n
 	help
 	  Allow fallback to always use a prepared kernel dtb even USING_KERNEL_DTB
@@ -944,6 +1015,16 @@ config ROCKCHIP_HOTKEY
 	default y
 	help
 	  Define a lot of hotkeys for debug.
+
+config ROCKCHIP_CMD
+	string "Rockchip specific command"
+	default ""
+	help
+	  It defines a command to be run when the key is pressed if assigned.
+	  String format: "cmd key".
+	  @cmd: any U-Boot cmd.
+	  @key: any key map id, '-' standard for ignore.
+	  e.g. "sd_update 115", 115 is KEY_VOLUMEUP.
 
 config GICV2
 	bool "ARM GICv2"
@@ -1043,14 +1124,43 @@ config PERSISTENT_RAM_ADDR
 	default 0x0
 	depends on PSTORE
 	help
-	  This select linux pstore buffer address for uboot.
+	  This select linux pstore buffer address for U-Boot. When value is
+	  0, U-Boot auto gets this address from preloader atags.
 
 config PERSISTENT_RAM_SIZE
 	hex "Linux pstore buffer size"
 	default 0x0
-	depends on PSTORE
+	depends on (PERSISTENT_RAM_ADDR != 0)
 	help
-	  This select linux pstore buffer size for uboot.
+	  This select linux pstore buffer size for U-Boot, the value must be
+	  set if PERSISTENT_RAM_ADDR != 0.
+
+config ROCKCHIP_MINIDUMP
+	bool "Minidump Save Linux Debug Data To Ram Elf"
+	default n
+	help
+	  This enable saving linux debug data to a reserved memory as a elf file.
+
+config ROCKCHIP_MINIDUMP_SMEM_BASE
+	hex "The base of share memory between Uboot and Linux"
+	default 0x1f0000
+	depends on ROCKCHIP_MINIDUMP
+	help
+	  This select the base address of share memory, which is behind PSTORE.
+
+config ROCKCHIP_MINIDUMP_MAX_ELF_SIZE
+	hex "The max size of minidump elf"
+	default 0x2000000
+	depends on ROCKCHIP_MINIDUMP
+	help
+	  This is used to judge the elf program size and section size.
+
+config ROCKCHIP_MINIDUMP_MAX_ENTRIES
+	hex "The max entries of minidump region"
+	default 0x200
+	depends on ROCKCHIP_MINIDUMP
+	help
+	  This sets the max entries of minidump region.
 
 source "arch/arm/mach-rockchip/px30/Kconfig"
 source "arch/arm/mach-rockchip/rk3036/Kconfig"
@@ -1064,7 +1174,9 @@ source "arch/arm/mach-rockchip/rk3328/Kconfig"
 source "arch/arm/mach-rockchip/rk3368/Kconfig"
 source "arch/arm/mach-rockchip/rk3399/Kconfig"
 source "arch/arm/mach-rockchip/rk3528/Kconfig"
+source "arch/arm/mach-rockchip/rk3562/Kconfig"
 source "arch/arm/mach-rockchip/rk3568/Kconfig"
+source "arch/arm/mach-rockchip/rk3576/Kconfig"
 source "arch/arm/mach-rockchip/rk3588/Kconfig"
 source "arch/arm/mach-rockchip/rk1808/Kconfig"
 source "arch/arm/mach-rockchip/rv1106/Kconfig"

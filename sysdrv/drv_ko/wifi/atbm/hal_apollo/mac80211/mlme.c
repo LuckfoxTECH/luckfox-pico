@@ -3009,9 +3009,10 @@ void ieee80211_sta_rx_queued_mgmt(struct ieee80211_sub_if_data *sdata,
 	}
 }
 				  
-#if defined (CONFIG_ATBM_MAC80211_NO_USE) || defined(CONFIG_PM)
-static void ieee80211_sta_connection_lost(struct ieee80211_sub_if_data *sdata,
-					  u8 *bssid, u8 reason)
+//#if defined (CONFIG_ATBM_MAC80211_NO_USE) || defined(CONFIG_PM)
+
+
+static void ieee80211_sta_connection_lost(struct ieee80211_sub_if_data *sdata,u8 *bssid, u8 reason)
 {
 	struct ieee80211_local *local = sdata->local;
 	struct ieee80211_if_managed *ifmgd = &sdata->u.mgd;
@@ -3033,7 +3034,12 @@ static void ieee80211_sta_connection_lost(struct ieee80211_sub_if_data *sdata,
 			NULL, true);
 	mutex_lock(&ifmgd->mtx);
 }
-#endif
+					  
+void atbm_send_deauth_disossicate(struct ieee80211_sub_if_data *sdata,u8 *bssid)
+{
+  ieee80211_sta_connection_lost(sdata,bssid,3);
+}
+//#endif
 #if defined (CONFIG_PM) ||defined (ATBM_SUSPEND_REMOVE_INTERFACE) || defined (ATBM_SUPPORT_WOW)
 void ieee80211_sta_quiesce(struct ieee80211_sub_if_data *sdata)
 {
@@ -3286,23 +3292,27 @@ int ieee80211_mgd_auth(struct ieee80211_sub_if_data *sdata,
 		auth_alg = WLAN_AUTH_LEAP;
 		break;
 #ifdef CONFIG_ATBM_SUPPORT_SAE
+#if  (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 8, 0))
+
 //#if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 0, 0))
 	case NL80211_AUTHTYPE_SAE:
 		auth_alg = WLAN_AUTH_SAE;
 		break;
-//#endif
+#endif
 #endif
 	default:
 		return -EOPNOTSUPP;
 	}
 	ie_len = req->ie_len;
 #ifdef CONFIG_ATBM_SUPPORT_SAE
+#if  (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 8, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0))
+
 //#if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 0, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0))
-#if	(LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0))
+
 
 	ie_len += req->sae_data_len;
 #endif
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0))
         ie_len += req->auth_data_len;
 #endif
 #endif
@@ -3321,7 +3331,7 @@ int ieee80211_mgd_auth(struct ieee80211_sub_if_data *sdata,
 	memcpy(wk->filter_ta, req->bss->bssid, ETH_ALEN);
 #ifdef CONFIG_ATBM_SUPPORT_SAE
 //#if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 0, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0))
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 8, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0))
 
 	if (req->sae_data_len >= 4) {
 		__le16 *pos = (__le16 *) req->sae_data;
@@ -3332,7 +3342,7 @@ int ieee80211_mgd_auth(struct ieee80211_sub_if_data *sdata,
 		wk->ie_len += req->sae_data_len - 4;
 	}
 #endif
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0))
 	if (req->auth_data_len >= 4) {
                 __le16 *pos = (__le16 *) req->auth_data;
                 wk->probe_auth.sae_trans = le16_to_cpu(pos[0]);

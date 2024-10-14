@@ -13,6 +13,10 @@
 #include <mapmem.h>
 #include <mtd.h>
 
+#define DEV_NAME_MAX_LENGTH	0x40
+static char g_devname[DEV_NAME_MAX_LENGTH];
+static struct mtd_info *g_mtd;
+
 static uint mtd_len_to_pages(struct mtd_info *mtd, u64 len)
 {
 	do_div(len, mtd->writesize);
@@ -244,14 +248,20 @@ static int do_mtd(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return CMD_RET_USAGE;
 
 	mtd_name = argv[2];
-	mtd_probe_devices();
-	mtd = get_mtd_device_nm(mtd_name);
-	if (IS_ERR_OR_NULL(mtd)) {
-		printf("MTD device %s not found, ret %ld\n",
-		       mtd_name, PTR_ERR(mtd));
-		return CMD_RET_FAILURE;
+	if (!strncmp(mtd_name, g_devname, strlen(mtd_name)) && g_mtd) {
+		mtd = g_mtd;
+	} else {
+		mtd_probe_devices();
+		mtd = get_mtd_device_nm(mtd_name);
+		if (IS_ERR_OR_NULL(mtd)) {
+			printf("MTD device %s not found, ret %ld\n",
+			       mtd_name, PTR_ERR(mtd));
+			return CMD_RET_FAILURE;
+		}
+		put_mtd_device(mtd);
+		g_mtd = mtd;
+		strncpy(g_devname, mtd_name, strlen(mtd_name));
 	}
-	put_mtd_device(mtd);
 
 	argc -= 3;
 	argv += 3;

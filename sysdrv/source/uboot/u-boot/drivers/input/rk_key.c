@@ -27,9 +27,13 @@ static int rk_key_ofdata_to_platdata(struct udevice *dev)
 
 	if (dev_read_bool(dev, "rockchip,adc_value")) {
 		uc_key->type = ADC_KEY;
+		uc_key->in_volt = 0;
 		uc_key->channel = chn[1];
-		uc_key->adcval =
-			dev_read_u32_default(dev, "rockchip,adc_value", 0);
+		uc_key->center = dev_read_u32_default(dev, "rockchip,adc_value", 0);
+		uc_key->min = uc_key->center - 30;
+		if (uc_key->min < 0)
+			uc_key->min = 0;
+		uc_key->max = uc_key->center + 30;
 	} else {
 		uc_key->type = GPIO_KEY;
 		if (dev_read_u32_array(dev, "gpios",

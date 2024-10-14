@@ -4,6 +4,7 @@
 #include "base/xcam_common.h"
 #include "rk_aiq_algo_des.h"
 #include "anr/rk_aiq_types_anr_algo_int.h"
+#include "asharp/rk_aiq_types_asharp_algo_int.h"
 
 // need_sync means the implementation should consider
 // the thread synchronization
@@ -76,6 +77,43 @@ XCamReturn
 rk_aiq_uapi_anr_SetMfnrIQPara(RkAiqAlgoContext *ctx,
                               rk_aiq_mfnr_IQPara_t *pPara,
                               bool need_sync);
+
+XCamReturn
+rk_aiq_uapi_anr_SetManualBayernrIQPara(RkAiqAlgoContext *ctx,
+                              rk_aiq_bayernr_manual_IQPara_t *pPara,
+                              bool need_sync);
+
+XCamReturn
+rk_aiq_uapi_anr_GetManualBayernrIQPara(RkAiqAlgoContext *ctx,
+                              rk_aiq_bayernr_manual_IQPara_t *pPara);
+
+XCamReturn
+rk_aiq_uapi_anr_SetManualMfnrIQPara(RkAiqAlgoContext *ctx,
+                              rk_aiq_mfnr_manual_IQPara_t *pPara,
+                              bool need_sync);
+
+XCamReturn
+rk_aiq_uapi_anr_GetManualMfnrIQPara(RkAiqAlgoContext *ctx,
+                              rk_aiq_mfnr_manual_IQPara_t *pPara);
+
+XCamReturn
+rk_aiq_uapi_anr_SetManualYnrIQPara(RkAiqAlgoContext *ctx,
+                              rk_aiq_ynr_manual_IQPara_t *pPara,
+                              bool need_sync);
+
+XCamReturn
+rk_aiq_uapi_anr_GetManualYnrIQPara(RkAiqAlgoContext *ctx,
+                              rk_aiq_ynr_manual_IQPara_t *pPara);
+
+XCamReturn
+rk_aiq_uapi_anr_SetManualUvnrIQPara(RkAiqAlgoContext *ctx,
+                                   rk_aiq_uvnr_manual_IQPara_t *pPara,
+                                   bool need_sync);
+
+XCamReturn
+rk_aiq_uapi_anr_GetManualUvnrIQPara(RkAiqAlgoContext *ctx,
+                                   rk_aiq_uvnr_manual_IQPara_t *pPara);
+
 
 XCamReturn
 rk_aiq_uapi_anr_GetMfnrIQPara(RkAiqAlgoContext *ctx,

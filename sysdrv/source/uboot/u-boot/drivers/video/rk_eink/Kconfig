@@ -18,3 +18,11 @@ config ROCKCHIP_EINK_DISPLAY
            Choose this option to enable support for eink display, which is
            used to display uboot/charging/lowerpower logo, and also used to
            load kernel logo to ram, which can pass to kernel to display.
+
+config ROCKCHIP_EBC_PMIC_SY7636A
+        bool "SY7636A PMIC Suppot"
+        depends on ROCKCHIP_EINK
+        depends on REGULATOR_SY7636A
+        depends on SY7636A_THERMAL
+        help
+          Choose this option to enable support for SY7636A PMIC.

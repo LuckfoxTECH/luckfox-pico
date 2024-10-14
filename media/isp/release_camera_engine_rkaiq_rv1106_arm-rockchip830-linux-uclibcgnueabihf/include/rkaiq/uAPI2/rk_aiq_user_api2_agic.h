@@ -19,7 +19,10 @@
 
 #include "agic/rk_aiq_uapi_agic_int.h"
 
+#ifndef RK_AIQ_SYS_CTX_T
+#define RK_AIQ_SYS_CTX_T
 typedef struct rk_aiq_sys_ctx_s rk_aiq_sys_ctx_t;
+#endif
 
 RKAIQ_BEGIN_DECLARE
 

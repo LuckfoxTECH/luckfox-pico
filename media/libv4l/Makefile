@@ -65,6 +65,7 @@ libv4l-build: $(pkg-build)
 		PKG_CONFIG="" \
 		ALSA_LIBS="$(RK_MEDIA_OUTPUT)/lib" \
 		ALSA_CFLAGS="$(RK_MEDIA_OUTPUT)/include" \
+		CFLAGS="$(RK_MEDIA_CROSS_CFLAGS)" \
 		./configure --host=$(RK_MEDIA_CROSS) --target=$(RK_MEDIA_CROSS) \
 			--prefix=$(CURRENT_DIR)/$(PKG_NAME)/$(PKG_BIN) \
 			--disable-gtk-doc --disable-gtk-doc-html --disable-doc --disable-docs \
@@ -126,7 +127,7 @@ build-argp:
 	pushd $(CURRENT_DIR)/$(PKG_NAME_ARGP); \
 		cp -af $(CURRENT_DIR)/$(PKG_PATCHES_ARGP)/* ./; \
 		$(SHELL) ./argp.patch.sh; \
-		CFLAGS="$(RK_MEDIA_CROSS_CFLAGS) -Os -fPIC -fgnu89-inline" \
+		CFLAGS="$(RK_MEDIA_CROSS_CFLAGS) -fPIC -fgnu89-inline" \
 		./configure --target=$(RK_MEDIA_CROSS) \
 					--host=$(RK_MEDIA_CROSS) \
 					--exec-prefix=/usr \

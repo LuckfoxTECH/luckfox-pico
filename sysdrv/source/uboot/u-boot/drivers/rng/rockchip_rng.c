@@ -2,13 +2,14 @@
 /*
  * Copyright (c) 2020 Fuzhou Rockchip Electronics Co., Ltd
  */
+#include <common.h>
+#include <clk-uclass.h>
+#include <dm.h>
+#include <rng.h>
 #include <asm/arch-rockchip/hardware.h>
 #include <asm/io.h>
-#include <common.h>
-#include <dm.h>
 #include <linux/iopoll.h>
 #include <linux/string.h>
-#include <rng.h>
 
 #define RK_HW_RNG_MAX 32
 
@@ -104,7 +105,36 @@ struct rk_rng_soc_data {
 struct rk_rng_platdata {
 	fdt_addr_t base;
 	struct rk_rng_soc_data *soc_data;
+	struct clk hclk;
 };
+
+static int rk_rng_do_enable_clk(struct udevice *dev, int enable)
+{
+	struct rk_rng_platdata *pdata = dev_get_priv(dev);
+	int ret;
+
+	if (!pdata->hclk.dev)
+		return 0;
+
+	ret = enable ? clk_enable(&pdata->hclk) : clk_disable(&pdata->hclk);
+	if (ret == -ENOSYS || !ret)
+		return 0;
+
+	printf("rk rng: failed to %s clk, ret=%d\n",
+	       enable ? "enable" : "disable", ret);
+
+	return ret;
+}
+
+static int rk_rng_enable_clk(struct udevice *dev)
+{
+	return rk_rng_do_enable_clk(dev, 1);
+}
+
+static int rk_rng_disable_clk(struct udevice *dev)
+{
+	return rk_rng_do_enable_clk(dev, 0);
+}
 
 static int rk_rng_read_regs(fdt_addr_t addr, void *buf, size_t size)
 {
@@ -271,6 +301,8 @@ static int rkrng_rng_read(struct udevice *dev, void *data, size_t len)
 	if (len > RK_HW_RNG_MAX)
 		return -EINVAL;
 
+	rk_rng_enable_clk(dev);
+
 	reg = RKRNG_CTRL_SW_DRNG_REQ;
 
 	rk_clrsetreg(pdata->base + RKRNG_CTRL, 0xffff, reg);
@@ -288,6 +320,8 @@ static int rkrng_rng_read(struct udevice *dev, void *data, size_t len)
 exit:
 	/* close TRNG */
 	rk_clrreg(pdata->base + RKRNG_CTRL, 0xffff);
+
+	rk_rng_disable_clk(dev);
 
 	return retval;
 }
@@ -329,6 +363,8 @@ static int rockchip_rng_ofdata_to_platdata(struct udevice *dev)
 	pdata->base = (fdt_addr_t)dev_read_addr_ptr(dev);
 	if (!pdata->base)
 		return -ENOMEM;
+
+	clk_get_by_index(dev, 0, &pdata->hclk);
 
 	return 0;
 }

@@ -20,9 +20,7 @@
 #define BOOT_CHARGING		(REBOOT_FLAG + 11)
 /* enter usb mass storage mode */
 #define BOOT_UMS		(REBOOT_FLAG + 12)
-/* enter reboot to uboot */
-#define BOOT_TO_UBOOT (REBOOT_FLAG + 14)
-
-
+/* reboot system quiescent */
+#define BOOT_QUIESCENT		(REBOOT_FLAG + 14)
 
 #endif

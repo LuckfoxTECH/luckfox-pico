@@ -452,7 +452,8 @@ u32 nandc_flash_init(void __iomem *nandc_addr)
 			    id_byte[0][1] != 0xAA &&
 			    id_byte[0][1] != 0xAC &&
 			    id_byte[0][1] != 0x6A &&
-			    id_byte[0][1] != 0xD7) {
+			    id_byte[0][1] != 0xD7 &&
+			    id_byte[0][1] != 0x63) {
 				pr_err("The device not support yet!\n");
 
 				return FTL_UNSUPPORTED_FLASH;
@@ -511,6 +512,11 @@ u32 nandc_flash_init(void __iomem *nandc_addr)
 		nand_para.sec_per_page = 16;
 		nand_para.page_per_blk = 128;
 		nand_para.plane_per_die = 2;
+	} else if (id_byte[0][1] == 0x63 && id_byte[0][3] == 0x19) { /* IS34ML08G088 */
+		nand_para.sec_per_page = 8;
+		nand_para.page_per_blk = 64;
+		nand_para.plane_per_die = 2;
+		nand_para.blk_per_plane = 2048;
 	}
 	flash_die_info_init();
 	flash_bch_sel(nand_para.ecc_bits);

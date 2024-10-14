@@ -117,6 +117,7 @@ fiq_glue_end:
 
 ENTRY(fiq_glue_setup) /* func, data, sp, smc call number */
 		stmfd		sp!, {r4}
+	THUMB(	stmfd		sp!, {r6}					)
 		mrs		r4, cpsr
 	THUMB(	mov		r6, #(FIQ_MODE | PSR_I_BIT | PSR_F_BIT)		)
 	THUMB(	msr		cpsr_c, r6					)
@@ -128,6 +129,7 @@ ENTRY(fiq_glue_setup) /* func, data, sp, smc call number */
 		moveq		r10, #0
 		movne		r10, #1
 		msr		cpsr_c, r4
+	THUMB(	ldmfd		sp!, {r6}					)
 		ldmfd		sp!, {r4}
 		bx		lr
 

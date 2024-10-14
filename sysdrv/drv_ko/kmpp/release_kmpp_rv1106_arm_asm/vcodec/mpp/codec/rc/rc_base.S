@@ -462,29 +462,29 @@ mpp_data_sum_with_ratio_v2:
 	.size	mpp_data_sum_with_ratio_v2, .-mpp_data_sum_with_ratio_v2
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__FUNCTION__.8621, %object
-	.size	__FUNCTION__.8621, 19
-__FUNCTION__.8621:
-	.ascii	"mpp_data_deinit_v2\000"
-	.type	__func__.8616, %object
-	.size	__func__.8616, 17
-__func__.8616:
-	.ascii	"mpp_data_init_v2\000"
-	.type	__FUNCTION__.8617, %object
-	.size	__FUNCTION__.8617, 17
-__FUNCTION__.8617:
-	.ascii	"mpp_data_init_v2\000"
-	.type	__FUNCTION__.8635, %object
-	.size	__FUNCTION__.8635, 19
-__FUNCTION__.8635:
-	.ascii	"mpp_data_update_v2\000"
-	.type	__FUNCTION__.8645, %object
-	.size	__FUNCTION__.8645, 24
-__FUNCTION__.8645:
-	.ascii	"mpp_data_get_pre_val_v2\000"
 	.type	__FUNCTION__.8671, %object
-	.size	__FUNCTION__.8671, 27
+	.size	__FUNCTION__.8671, 19
 __FUNCTION__.8671:
+	.ascii	"mpp_data_deinit_v2\000"
+	.type	__func__.8666, %object
+	.size	__func__.8666, 17
+__func__.8666:
+	.ascii	"mpp_data_init_v2\000"
+	.type	__FUNCTION__.8667, %object
+	.size	__FUNCTION__.8667, 17
+__FUNCTION__.8667:
+	.ascii	"mpp_data_init_v2\000"
+	.type	__FUNCTION__.8685, %object
+	.size	__FUNCTION__.8685, 19
+__FUNCTION__.8685:
+	.ascii	"mpp_data_update_v2\000"
+	.type	__FUNCTION__.8695, %object
+	.size	__FUNCTION__.8695, 24
+__FUNCTION__.8695:
+	.ascii	"mpp_data_get_pre_val_v2\000"
+	.type	__FUNCTION__.8721, %object
+	.size	__FUNCTION__.8721, 27
+__FUNCTION__.8721:
 	.ascii	"mpp_data_sum_with_ratio_v2\000"
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:

@@ -1,0 +1,27 @@
+# for module compiling
+import os
+Import('RTT_ROOT')
+from building import *
+
+PROJECT = 'RV1106'
+Export('PROJECT')
+cwd = str(Dir('#'))
+src = Glob('*.c')
+objs = []
+list = os.listdir(cwd)
+
+objs = SConscript(os.path.join(cwd, '../common/HalSConscript'), variant_dir = 'common/hal', duplicate=0)
+
+for d in list:
+    path = os.path.join(cwd, d)
+    if os.path.isfile(os.path.join(path, 'SConscript')):
+        objs = objs + SConscript(os.path.join(d, 'SConscript'))
+
+group = DefineGroup('', src, depend = [''], CPPPATH = [])
+#objs += group
+
+objs = objs + SConscript(os.path.join(RTT_ROOT, 'bsp/rockchip/common/drivers/SConscript'), variant_dir = 'common/drivers', duplicate=0)
+objs = objs + SConscript(os.path.join(RTT_ROOT, 'bsp/rockchip/common/tests/SConscript'), variant_dir = 'common/tests', duplicate=0)
+objs = objs + SConscript(os.path.join(RTT_ROOT, 'applications/SConscript'), variant_dir = 'applications', duplicate=0)
+
+Return('objs')

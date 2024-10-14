@@ -503,23 +503,40 @@ int uclass_get_device_by_phandle(enum uclass_id id, struct udevice *parent,
 }
 #endif
 
-int uclass_first_device(enum uclass_id id, struct udevice **devp)
+/*
+ * Starting from the given device @dev, return pointer to the first device in
+ * the uclass that probes successfully in @devp.
+ */
+static void _uclass_next_device(struct udevice *dev, struct udevice **devp)
+{
+	for (; dev; uclass_find_next_device(&dev)) {
+		if (!device_probe(dev))
+			break;
+	}
+	*devp = dev;
+}
+
+void uclass_first_device(enum uclass_id id, struct udevice **devp)
 {
 	struct udevice *dev;
-	int ret;
 
-	*devp = NULL;
-	ret = uclass_find_first_device(id, &dev);
-	if (!dev)
-		return 0;
-	return uclass_get_device_tail(dev, ret, devp);
+	uclass_find_first_device(id, &dev);
+	_uclass_next_device(dev, devp);
+}
+
+void uclass_next_device(struct udevice **devp)
+{
+	struct udevice *dev = *devp;
+
+	uclass_find_next_device(&dev);
+	_uclass_next_device(dev, devp);
 }
 
 int uclass_first_device_err(enum uclass_id id, struct udevice **devp)
 {
 	int ret;
 
-	ret = uclass_first_device(id, devp);
+	ret = uclass_first_device_check(id, devp);
 	if (ret)
 		return ret;
 	else if (!*devp)
@@ -528,16 +545,17 @@ int uclass_first_device_err(enum uclass_id id, struct udevice **devp)
 	return 0;
 }
 
-int uclass_next_device(struct udevice **devp)
+int uclass_next_device_err(struct udevice **devp)
 {
-	struct udevice *dev = *devp;
 	int ret;
 
-	*devp = NULL;
-	ret = uclass_find_next_device(&dev);
-	if (!dev)
-		return 0;
-	return uclass_get_device_tail(dev, ret, devp);
+	ret = uclass_next_device_check(devp);
+	if (ret)
+		return ret;
+	else if (!*devp)
+		return -ENODEV;
+
+	return 0;
 }
 
 int uclass_first_device_check(enum uclass_id id, struct udevice **devp)
@@ -565,6 +583,23 @@ int uclass_next_device_check(struct udevice **devp)
 		return 0;
 
 	return device_probe(*devp);
+}
+
+int uclass_first_device_drvdata(enum uclass_id id, ulong driver_data,
+				struct udevice **devp)
+{
+	struct udevice *dev;
+	struct uclass *uc;
+
+	uclass_id_foreach_dev(id, dev, uc) {
+		if (dev_get_driver_data(dev) == driver_data) {
+			*devp = dev;
+
+			return device_probe(dev);
+		}
+	}
+
+	return -ENODEV;
 }
 
 int uclass_bind_device(struct udevice *dev, bool after_u_boot_dev)

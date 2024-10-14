@@ -18,7 +18,7 @@ namespace cgi {
 nlohmann::json osd_overlays_get() {
   int value;
   char *str;
-  char *tmp = new char[64];
+  char *tmp = new char[256];
   nlohmann::json osd_overlays;
   nlohmann::json normalized_screen_size;
 
@@ -101,7 +101,7 @@ nlohmann::json osd_overlays_get() {
 nlohmann::json osd_image_get() {
   int value;
   char *str;
-  char *tmp = new char[64];
+  char *tmp = new char[256];
   nlohmann::json osd_image;
 
   nlohmann::json normalized_screen_size;
@@ -143,7 +143,7 @@ nlohmann::json osd_image_get() {
 nlohmann::json osd_privacy_mask_get() {
   int value;
   char *str;
-  char *tmp = new char[64];
+  char *tmp = new char[256];
   nlohmann::json osd_privacy_mask;
   nlohmann::json all_privacy_mask;
 
@@ -296,7 +296,7 @@ void osd_overlays_set(nlohmann::json osd_overlays) {
 void osd_image_set(nlohmann::json osd_image_config) {
   // get bmp picture width and height
   int value_int;
-  char *tmp = new char[64];
+  char *tmp = new char[256];
   // rk_osd_get_image_path(OSD_IMAGE_ID, &tmp);
   // FILE *picture_file = fopen(BMP_FILE_PATH, "rb");
   // int32_t bmp_width;
@@ -428,6 +428,7 @@ void OSDApiHandler::handler(const HttpRequest &Req, HttpResponse &Resp) {
       /* Get new info */
       content = osd_overlays_get();
       // osd_set_mediaserver(osd_config);
+      // minilog_debug("content is %s\n", content.dump().c_str());
       Resp.setHeader(HttpStatus::kOk, "OK");
       Resp.setApiData(content);
     } else if (!path_specific_resource.compare("image")) {
@@ -473,7 +474,7 @@ void OSDApiHandler::handler(const HttpRequest &Req, HttpResponse &Resp) {
                                   "Picture is too big!");
           } else {
             int end_position = 0;
-            char *tmp = new char[64];
+            char *tmp = new char[256];
             rk_osd_get_image_path(OSD_IMAGE_ID, &tmp);
             std::ofstream picture_file(tmp, std::ofstream::out);
             delete[] tmp;

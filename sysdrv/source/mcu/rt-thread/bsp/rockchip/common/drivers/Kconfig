@@ -1,0 +1,771 @@
+menu "RT-Thread rockchip common drivers"
+
+config RT_USING_CPU_USAGE
+    bool "Enable CPU usage"
+    depends on RT_USING_HOOK
+    default n
+
+menuconfig HAL_DBG_ON
+    bool "Enable HAL Debug Features"
+    help
+        Select to enable HAL built-in debug features.
+
+if HAL_DBG_ON
+config HAL_ASSERT_ON
+    bool "Enable HAL Assert Features"
+    help
+        Select to enable HAL built-in assert features.
+
+config HAL_DBG_INFO_ON
+    bool "Enable HAL Debug Info Features"
+    help
+        Select to enable HAL log with info level.
+
+config HAL_DBG_WRN_ON
+    bool "Enable HAL Debug Warning Features"
+    help
+        Select to enable HAL log with warning level.
+
+config HAL_DBG_ERR_ON
+    bool "Enable HAL Debug Error Features"
+    help
+        Select to enable HAL log with error level.
+endif
+
+config RT_USING_LOGBUFFER
+    bool "Enable log buffer support"
+    depends on RT_USING_DEVICE_IPC
+
+config RT_USING_SND_GLB_RST
+    bool "Using second global reset"
+    help
+        CRU, Watchdog or TSADC reset SoC use second global reset.
+        Otherwise use first global reset.
+
+config RT_USING_RESET
+    bool "Enable reset support"
+
+config RT_USING_CRU_DUMP
+    bool "Enable CRU_DUMP"
+    depends on RT_USING_CRU
+    default n
+
+config RT_USING_REGULATOR_DUMP
+    bool "Enable REGULATOR_DUMP"
+    default n
+
+if RT_USING_SDIO
+config MMC_FORCE_INTERNAL_BUF
+    bool "Force driver use internal buf to cope with dma"
+    default n
+endif
+
+config RT_USING_PROF_IRQ
+    bool "Enable IRQ summary dump"
+    depends on RT_USING_HOOK
+    default n
+
+config RT_USING_PMIC
+    bool "Enable PMIC"
+    default n
+
+    if RT_USING_PMIC
+    config RT_USING_PMIC_RK817
+        bool "Enable PMIC RK817"
+        default n
+
+    config RT_USING_PMIC_RK816
+        bool "Enable PMIC RK816"
+        default n
+    endif
+
+    if RT_USING_PMIC_RK816
+    config RT_USING_CHARGER_RK816
+        bool "Enable RK816 charger"
+        depends on RT_USING_PM_CHARGER
+        default n
+
+    config RT_USING_FG_RK816
+        bool "Enable RK816 fuel gauge"
+        depends on RT_USING_PM_FG
+        default n
+
+    config RT_USING_RTC_RK816
+        bool "Enable RK816 rtc"
+        depends on RT_USING_RTC
+        default n
+
+    config RT_USING_SENSOR_RK816
+        bool "Enable RK816 battery temperature sensor"
+        depends on RT_USING_SENSOR
+        default n
+    endif
+
+config RT_USING_PWM_REGULATOR
+    bool "Enable Pwm Regulator"
+    depends on RT_USING_PWM
+    default n
+
+config RT_USING_CACHE
+    bool "Enable cache"
+    default y
+
+config RT_USING_UNCACHE_HEAP
+    bool "Enable uncache heap"
+    select RT_USING_MEMHEAP
+    default n
+
+    if RT_USING_UNCACHE_HEAP && ARCH_ARM_CORTEX_M
+    config RT_UNCACHE_HEAP_ORDER
+        hex "For MCU uncache heap size(0x0D=16KB, 0x0E=32KB, 0x0F=64KB)"
+        range 0x0D 0x10
+        depends on RT_USING_UNCACHE_HEAP
+        default 0x0E
+        help
+            set uncache heap size, it in tail of sram
+            Examples:
+                0x0D   =>   16KB
+                0x0E   =>   32KB
+                0x0F   =>   64KB
+                0x10   =>   128KB
+    endif
+
+   if RT_USING_UNCACHE_HEAP && ARCH_ARM_CORTEX_A
+   config RT_UNCACHE_HEAP_SIZE
+       hex "For AP uncache heap size(default 8M, 4K align)"
+       depends on RT_USING_UNCACHE_HEAP
+       default 0x800000
+   endif
+
+config RT_USING_LARGE_HEAP
+    bool "Enable large heap"
+    select RT_USING_MEMHEAP
+    default n
+
+    if RT_USING_LARGE_HEAP
+    config RT_LARGE_MALLOC_THRRESH
+        int "large heap malloc threshold"
+        default 512
+        depends on RT_USING_LARGE_HEAP
+        help
+            the memory will allocate in large heap while the allocated size over this
+
+    config RT_LARGE_HEAP_SIZE
+        int "large heap size"
+        default 524288
+        depends on RT_USING_LARGE_HEAP
+        help
+            the remaining memory must be able to accommodate this heap
+
+    endif
+
+config RT_USING_DTCM_HEAP
+    bool "Enable dtcm heap"
+    select RT_USING_MEMHEAP
+    default n
+
+    if RT_USING_DTCM_HEAP
+    config RT_DTCM_MALLOC_THRRESH
+        int "dtcm heap malloc threshold"
+        default 512
+        depends on RT_USING_DTCM_HEAP
+        help
+            the memory will allocate in dtcm heap while the allocated size over this
+    endif
+
+config RT_USING_PSRAM_HEAP
+    bool "Enable PSRAM heap"
+    select RT_USING_MEMHEAP
+    default n
+
+    if RT_USING_PSRAM_HEAP
+    config RT_PSRAM_MALLOC_THRRESH
+        int "PSRAM heap malloc threshold"
+        default 512
+        help
+            the memory will allocate in PSRAM heap while the allocated size over this
+
+    config RT_PSRAM_END_RESERVE
+        int "The reserve bytes at the end of PSRAM"
+        default 0
+        help
+            Reserve x bytes at the end of PSRAM for special use, cache line aligned is needed.
+    endif
+
+choice
+    prompt "MIPI DSI Panel Type"
+    depends on RT_USING_DSI
+    default RT_USING_PANEL_SS if RKMCU_PISCES
+
+    config RT_USING_PANEL_FPGA_LVDS
+        bool "FPGA LVDS panel, reslution is 800x1280"
+
+    config RT_USING_PANEL_SS
+        bool "SS mipi panel, resolution is 1080x2340"
+
+    config RT_USING_PANEL_S6E3FC2X01
+        bool "S6E3FC2X01 mipi panel, resolution is 1080x2340"
+
+    config RT_USING_PANEL_S6E3HC2_X1
+        bool "S6E3HC2_X1 mipi panel, resolution is 1440x3120"
+
+    config RT_USING_PANEL_S6E3HC2_X4
+        bool "S6E3HC2_X4 mipi panel, resolution is 720x1560"
+
+    config RT_USING_PANEL_ST7703_DS
+        bool "ST7703_DS mipi panel, resolution is 720x1280"
+
+    config RT_USING_PANEL_ST7796H2
+        bool "ST7796H2 mipi panel, resolution is 320x385"
+
+    config RT_USING_PANEL_AM018RT90211
+        bool "AM018RT90211 mipi panel, resolution is 368x448"
+
+    config RT_USING_PANEL_AM014RT90327V0
+        bool "AM014RT90327V0 mipi panel, resolution is 454x454"
+
+    config RT_USING_PANEL_H245QBN02
+        bool "H245QBN02 mipi panel, resolution is 240x432"
+endchoice
+
+choice
+    prompt "MCU Panel Type"
+    depends on RT_USING_VOP_MCU
+
+    config RT_USING_PANEL_GC9306_CTC28
+        bool "CTC 2.8' MCU panel, reslution is 240x320"
+
+    config RT_USING_PANEL_ST7789V_XF20
+        bool "xh2.0TFT-22P' MCU panel, reslution is 240x320"
+endchoice
+
+choice
+    prompt "SPI Panel Type"
+    depends on RT_USING_SPI_SCREEN
+
+    config RT_USING_PANEL_KGM281G44PVAA
+        bool "KGM281G44PVAA SPI panel, resolution is 80x160"
+
+    config RT_USING_PANEL_H20B1301A
+        bool "H20B1301A SPI panel, resolution is 176x220"
+endchoice
+
+config RT_USING_BACKLIGHT
+    depends on RT_USING_DISPLAY
+    bool "Enable Backlight Control"
+
+menu "Enable Fault Dump Hook"
+    config RT_USNING_FAULT_DUMP_HOOK
+        bool "Enable fault dump hook"
+        default n
+        depends on RT_USING_CMBACKTRACE
+
+    if RT_USNING_FAULT_DUMP_HOOK
+        config RT_FAULT_DUMP_BUFFER_SIZE
+        int "Set fault dump buffer size"
+        default 4096
+    endif
+endmenu
+
+menuconfig RT_USING_SNOR
+    bool "Enable ROCKCHIP SPI NOR Flash"
+    select RT_USING_MTD_NOR
+    select RT_USING_FWANALYSIS
+    default n
+
+if RT_USING_SNOR
+
+    config RT_SNOR_SPEED
+        int "Reset the speed of SPI Nor flash in Hz"
+        default 80000000
+        help
+            Reset the speed of SPI Nor flash based on SPI Nor characteristics, usually it range from 80MHz to 133MHz.
+
+    config RT_SNOR_DUAL_IO
+        bool "Set SPI Host DUAL IO Lines"
+        default n
+
+    config RT_ROOT_DEF_PART_OFFSET
+        bool "Enable SPI Nor flash default partition offset"
+        default n
+
+    config RT_ROOT_PART_OFFSET
+        int "Define SPI Nor flash default partition offset"
+        default 25165824
+        depends on RT_ROOT_DEF_PART_OFFSET
+        help
+            The partition offset must be keep same with rootfs offset in parameter.txt
+
+    config RT_ROOT_DEF_PART_SIZE
+        bool "Enable SPI Nor flash default partition size"
+        default n
+
+    config RT_ROOT_PART_SIZE
+        int "Define SPI Nor flash default partition size"
+        default 1048576
+        depends on RT_ROOT_DEF_PART_SIZE
+
+choice
+    prompt "Choose SPI Nor Flash Adapter"
+    default RT_USING_SNOR_FSPI_HOST
+
+    config RT_USING_SNOR_FSPI_HOST
+        bool "Attach FSPI controller to SNOR"
+
+    config RT_USING_SNOR_SFC_HOST
+        bool "Attach SFC controller to SNOR"
+
+    config RT_USING_SNOR_SPI_HOST
+        bool "Attach SPI controller to SNOR"
+
+    if RT_USING_SNOR_SPI_HOST
+    config RT_SNOR_SPI_DEVICE_NAME
+        string "the name of the SPI device which is used as SNOR adapter"
+        default "spi2_0"
+    endif
+endchoice
+
+endif
+
+menu "RT-Thread rockchip jpeg enc driver"
+    config RT_USING_JPEG_ENC
+        bool "Enable jpeg enc"
+        default n
+
+        if RT_USING_JPEG_ENC
+        config RT_USING_JPEG_ENC0
+            bool "Enable jpeg enc 0"
+            depends on RT_USING_JPEG_ENC
+            default n
+
+        config RT_USING_JPEG_ENC1
+            bool "Enable jpeg enc 1"
+            depends on RT_USING_JPEG_ENC
+            default n
+        endif
+endmenu
+
+menu "RT-Thread rockchip pm drivers"
+config RT_USING_PM_DVFS
+    bool "enble dvfs"
+    default n
+
+config RT_USING_PM_REQ_PWR
+    bool "Enable request regulator volt"
+    default n
+
+config RT_USING_PM_REQ_CLK
+    bool "Enable request clk"
+    default n
+
+config RT_USING_DVFS_DBG
+    bool "Enable dvfs debug"
+    default n
+
+config RT_USING_PM_RUNTIME
+    bool "Enable pm runtime"
+    default n
+
+config RT_USING_PM_IDLE_NORMAL
+    bool "Enable pm runtime idle normal mode"
+    depends on RT_USING_PM_RUNTIME
+    default n
+
+config RT_USING_PM_TICK_DELAY
+    bool "Enable tick delay"
+    depends on RT_USING_PM_RUNTIME
+    default n
+    help
+        when system is in the idle thread, no timer is triggered or some timers
+        maybe wait a long time to be triggered. enable this and make the system
+        tick delayed.
+
+config RT_USING_PM_TIMER
+    bool "Enable pm timer"
+    default n
+endmenu
+
+menu "RT-Thread rockchip mipi-dphy driver"
+config RT_USING_MIPI_DPHY
+    bool "Enable MIPI_DPHY"
+    default n
+endmenu
+
+menu "RT-Thread rockchip isp driver"
+
+config RT_USING_ISP
+    bool "Enable ISP1"
+    default n
+    select RT_USING_CAMERA
+    select RT_USING_ULOG
+
+    if RT_USING_ISP
+    config RT_ISP_GREY_ENABLE
+        bool "Enable ISP Grey Out"
+        depends on RT_USING_ISP
+        default n
+
+    config RT_ISP_RGB_RAW_OUTPUT
+        bool "Enable ISP RGB RAW OUTPUT"
+        depends on RT_USING_ISP
+        default n
+    endif
+
+config RT_USING_ISP3
+    bool "Enable ISP3"
+    default n
+        select RT_USING_CAMERA
+
+config RT_USING_ISP_DDR_ADRESS
+    hex "isp ddr phy address"
+    default 0x860000
+    depends on RT_USING_ISP3 || RT_USING_ISP
+
+config RT_USING_ISP_DDR_SIZE
+    hex "isp ddr size"
+    default 0x600000
+    depends on RT_USING_ISP3 || RT_USING_ISP
+
+choice
+    prompt "data channel for isp input"
+    depends on RT_USING_ISP || RT_USING_ISP3
+    default RT_USING_CHANNEL_MIPI
+
+config RT_USING_CHANNEL_MIPI
+    bool "Enable mipi for isp"
+
+config RT_USING_CHANNEL_DVP
+    bool "Enable dvp for isp"
+
+config RT_USING_CHANNEL_LVDS
+    bool "Enable lvds for isp"
+endchoice
+
+endmenu
+
+menu "RT-Thread rockchip vcm driver"
+config RT_USING_VCM
+    bool "Enable VCM"
+    default n
+endmenu
+
+menu "RT-Thread rockchip vicap driver"
+config RT_USING_VICAP
+    bool "Enable VICAP"
+    default n
+
+choice
+    prompt "camera sensor interface work mode"
+    depends on RT_USING_VICAP
+    default RT_USING_VICAP_WORKMODE_BLOCK_PINGPONG
+
+config RT_USING_VICAP_WORKMODE_FRAME_ONEFRAME
+    bool "Enable frame oneframe mode"
+
+config RT_USING_VICAP_WORKMODE_FRAME_PINGPONG
+    bool "Enable frame pingpong mode"
+
+config RT_USING_VICAP_WORKMODE_BLOCK_PINGPONG
+    bool "Enable block pingpong mode"
+endchoice
+endmenu
+
+menu "RT-Thread rockchip camera driver"
+config RT_USING_CAMERA
+    bool "Enable camera framework"
+    default n
+
+menu "supported camera"
+    config RT_USING_GC2145
+        bool "Enable GC2145"
+    config RT_USING_OV8825
+        bool "Enable OV8825"
+    config RT_USING_OV5695
+        bool "Enable OV5695"
+    config RT_USING_GC5035
+        bool "Enable GC5035"
+    config RT_USING_OV02k10
+        bool "Enable OV02k10"
+    config RT_USING_GC2053
+        bool "Enable GC2053"
+    config RT_USING_F37
+        bool "Enable F37"
+    config RT_USING_SC230AI
+        bool "Enable SC230AI"
+    config RT_USING_SC231HAI
+        bool "Enable SC231HAI"
+    config RT_USING_SC501AI
+        bool "Enable SC501AI"
+    config RT_USING_SC530AI
+        bool "Enable SC530AI"
+    config RT_USING_SC223A
+        bool "Enable SC223A"
+    config RT_USING_SC2336
+        bool "Enable SC2336"
+    config RT_USING_SC2336P
+        bool "Enable SC2336P"
+    config RT_USING_SC301IOT
+        bool "Enable SC301IOT"
+    config RT_USING_SC3336
+        bool "Enable SC3336"
+    config RT_USING_SC3336P
+        bool "Enable SC3336P"
+    config RT_USING_SC3338
+        bool "Enable SC3338"
+    config RT_USING_SC4336
+        bool "Enable SC4336"
+    config RT_USING_SC4336P
+        bool "Enable SC4336P"
+    config RT_USING_SC401AI
+        bool "Enable SC401AI"
+    config RT_USING_GC3003
+        bool "Enable GC3003"
+    config RT_USING_SC200AI
+        bool "Enable SC200AI"
+    config RT_USING_GC2093
+        bool "Enable GC2093"
+    config RT_USING_OS02K10
+        bool "Enable OS02K10"
+    config RT_USING_IMX415
+        bool "Enable IMX415"
+    config RT_USING_OS04D10
+        bool "Enable OS04D10"
+    config RT_USING_SC450AI
+        bool "Enable SC450AI"
+    config RT_USING_GC4023
+        bool "Enable GC4023"
+    config RT_USING_SC431HAI
+        bool "Enable SC431HAI"
+    config RT_USING_OS03B10
+        bool "Enable OS03B10"
+endmenu
+endmenu
+
+menu "RT-Thread rockchip ambient light sensor driver"
+config RT_USING_ALS
+    bool "Ambient light sensor driver config"
+    default n
+
+choice
+    prompt "Select ambient light sensor"
+    depends on RT_USING_ALS
+    config RT_USING_ALS_LTR308
+        bool "Enable Lite-On LTR308 ambient light sensor"
+endchoice
+endmenu
+
+menu "RT-Thread rockchip vicap_lite driver"
+config RT_USING_VICAP_LITE
+    bool "Enable VICAP_LITE"
+    default n
+endmenu
+
+menu "RT-Thread rockchip csi2host driver"
+config RT_USING_CSI2HOST
+    bool "Enable CSI2HOST"
+    default n
+endmenu
+
+menu "RT-Thread rockchip buffer_manage driver"
+config RT_USING_BUFFER_MANAGE
+    bool "Enable BUFFER_MANAGE"
+    default n
+endmenu
+
+menuconfig RT_USING_TOUCH_DRIVERS
+    bool "Touch drivers config"
+    depends on RT_USING_TOUCH
+    default n
+
+if RT_USING_TOUCH_DRIVERS
+    choice
+        prompt "Choose touch driver"
+        default RT_USING_TOUCH_GTXX
+
+        config RT_USING_TOUCH_GTXX
+            bool "GT touch driver select"
+
+        config RT_USING_TOUCH_S3706
+            bool "S3706 touch driver select"
+
+        config RT_USING_CSTXX
+            bool "CST touch driver select"
+
+        config RT_USING_CYTTSP5
+            bool "Cyttsp5 touch driver select"
+
+        config RT_USING_IT7259
+            bool "IT7259 touch driver select"
+
+    endchoice
+
+    config RT_TOUCH_X_RANGE
+        int "touch x range"
+        default 720
+
+    config RT_TOUCH_Y_RANGE
+        int "touch y range"
+        default 1280
+endif
+
+config RT_USING_SENSOR_HUB
+    bool "Enable Sensor Hub"
+    choice
+        prompt "Choose a Sensor Hub"
+        depends on  RT_USING_SENSOR_HUB
+
+        config RT_USING_CYW90721
+            bool "cypress cyw920721"
+
+        config RT_USING_TALARIA
+            bool "Innophase Talaria 2"
+
+    endchoice
+
+
+config RT_USING_WDT_DUMP
+    bool "Dump thread info when wdt timeout"
+    depends on RT_USING_WDT && RT_USING_CMBACKTRACE
+    default n
+
+menuconfig RT_USING_QPIPSRAM
+    bool "Enable ROCKCHIP QPI Psram"
+    select RT_USING_PSRAM
+    default n
+
+if RT_USING_QPIPSRAM
+
+    config RT_QPIPSRAM_SPEED
+        int "Reset the speed of QPI Psram in Hz"
+        default 40000000
+        help
+            Reset the speed of QPI Psram based on QPI Psram characteristics and
+            usually it range from 80MHz to 133MHz.
+            At the same time, the max rate of SPI host should be concerned.
+
+choice
+    prompt "Choose QPI Psram Adapter"
+    default RT_USING_QPIPSRAM_SPI_HOST
+
+    config RT_USING_QPIPSRAM_FSPI_HOST
+        bool "Attach FSPI controller to QPI Psram"
+
+    if RT_USING_QPIPSRAM_FSPI_HOST
+    config RT_USING_QPIPSRAM_FSPI_HOST_CS1
+        bool "Extend QPI Psram on FSPI cs1"
+        default 0
+        if RT_USING_QPIPSRAM_FSPI_HOST_CS1
+        config RT_USING_QPIPSRAM_FSPI_HOST_CS1_GPIO
+            bool "Extend QPI Psram on FSPI cs1 with cs-gpio"
+            default 1
+        endif
+    endif
+
+    if RT_USING_QPIPSRAM_FSPI_HOST
+    config RT_USING_QPIPSRAM_FSPI_HOST_CS2
+        bool "Extend QPI Psram on FSPI cs2"
+        default 0
+        if RT_USING_QPIPSRAM_FSPI_HOST_CS2
+        config RT_USING_QPIPSRAM_FSPI_HOST_CS2_GPIO
+            bool "Extend QPI Psram on FSPI cs2 with cs-gpio"
+            default 2
+        endif
+    endif
+
+    if RT_USING_QPIPSRAM_FSPI_HOST
+    config RT_USING_QPIPSRAM_FSPI_HOST_CS3
+        bool "Extend QPI Psram on FSPI cs3"
+        default 0
+        if RT_USING_QPIPSRAM_FSPI_HOST_CS3
+        config RT_USING_QPIPSRAM_FSPI_HOST_CS3_GPIO
+            bool "Extend QPI Psram on FSPI cs3 with cs-gpio"
+            default 3
+        endif
+    endif
+
+    config RT_USING_QPIPSRAM_SPI_HOST
+        bool "Attach SPI controller to QPI Psram"
+
+    if RT_USING_QPIPSRAM_SPI_HOST
+    config RT_QPIPSRAM_SPI_DEVICE_NAME
+        string "the name of the SPI device which is used as QPIPSRAM adapter"
+        default "spi2_0"
+    endif
+endchoice
+
+endif
+
+menu "RT-Thread rockchip coredump driver"
+
+    config RT_USING_COREDUMP
+        bool "Enable coredump"
+        default n
+
+    config RT_USING_COREDUMP_SDCARD
+        bool "Enable coredump by Sdcard"
+        depends on RT_USING_COREDUMP
+        default n
+
+    config RT_USING_COREDUMP_FLASH
+        bool "Enable coredump by flash"
+        depends on RT_USING_COREDUMP && (!PKG_CMBACKTRACE_FAULT_DUMP_TO_FLASH)
+        default n
+endmenu
+
+menuconfig RT_USING_SPINAND
+    bool "Enable ROCKCHIP SPI Nand Flash"
+    select RT_USING_MTD
+    default n
+
+if RT_USING_SPINAND
+
+    config RT_SPINAND_SPEED
+        int "Reset the speed of SPI Nand flash in Hz"
+        default 80000000
+        help
+            Reset the speed of SPI Nand flash based on SPI Nand characteristics, usually it range from 80MHz to 133MHz.
+
+choice
+    prompt "Choose SPI Nand Flash Adapter"
+    default RT_USING_SPINAND_FSPI_HOST
+
+    config RT_USING_SPINAND_FSPI_HOST
+        bool "Attach FSPI controller to SPINAND"
+
+    config RT_USING_SPINAND_SPI_HOST
+        bool "Attach SPI controller to SPINAND"
+
+    if RT_USING_SPINAND_SPI_HOST
+    config RT_SPINAND_SPI_DEVICE_NAME
+        string "the name of the SPI device which is used as SPINAND adapter"
+        default "spi1_0"
+    endif
+
+endchoice
+
+endif
+
+menu "Enable PSTORE"
+    config RT_USING_PSTORE
+        bool "PSTORE"
+        default n
+if RT_USING_PSTORE
+        config PERSISTENT_RAM_ADDR
+            hex "PSTORE ram addr"
+            default 0
+        config PERSISTENT_RAM_SIZE
+            hex "PSTORE ram size"
+            default 0
+endif
+endmenu
+
+menu "RT-Thread rockchip AMP driver"
+
+config RT_USING_RPMSG_LITE
+    bool "Enable RPMSG LITE"
+    depends on BSP_RK3308 || BSP_RK3568
+    default n
+
+endmenu
+
+endmenu

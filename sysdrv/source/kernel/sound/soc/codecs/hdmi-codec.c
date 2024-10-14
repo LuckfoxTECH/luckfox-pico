@@ -275,6 +275,7 @@ struct hdmi_codec_priv {
 	unsigned int chmap_idx;
 	struct mutex lock;
 	bool busy;
+	bool eld_bypass;
 	struct snd_soc_jack *jack;
 	unsigned int jack_status;
 	u8 iec_status[24];
@@ -428,6 +429,31 @@ static int hdmi_codec_iec958_mask_get(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
+static int hdmi_codec_eld_bypass_get(struct snd_kcontrol *kcontrol,
+				     struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *component = snd_kcontrol_chip(kcontrol);
+	struct hdmi_codec_priv *hcp = snd_soc_component_get_drvdata(component);
+
+	ucontrol->value.integer.value[0] = hcp->eld_bypass;
+
+	return 0;
+}
+
+static int hdmi_codec_eld_bypass_put(struct snd_kcontrol *kcontrol,
+				     struct snd_ctl_elem_value *ucontrol)
+{
+	struct snd_soc_component *component = snd_kcontrol_chip(kcontrol);
+	struct hdmi_codec_priv *hcp = snd_soc_component_get_drvdata(component);
+
+	if (hcp->eld_bypass == ucontrol->value.integer.value[0])
+		return 0;
+
+	hcp->eld_bypass = ucontrol->value.integer.value[0];
+
+	return 1;
+}
+
 static int hdmi_codec_startup(struct snd_pcm_substream *substream,
 			      struct snd_soc_dai *dai)
 {
@@ -448,7 +474,7 @@ static int hdmi_codec_startup(struct snd_pcm_substream *substream,
 			goto err;
 	}
 
-	if (tx && hcp->hcd.ops->get_eld) {
+	if (tx && !hcp->eld_bypass && hcp->hcd.ops->get_eld) {
 		ret = hcp->hcd.ops->get_eld(dai->dev->parent, hcp->hcd.data,
 					    hcp->eld, sizeof(hcp->eld));
 		if (ret)
@@ -752,6 +778,8 @@ static struct snd_kcontrol_new hdmi_codec_controls[] = {
 		.info	= hdmi_eld_ctl_info,
 		.get	= hdmi_eld_ctl_get,
 	},
+	SOC_SINGLE_BOOL_EXT("ELD Bypass Switch", 0,
+			    hdmi_codec_eld_bypass_get, hdmi_codec_eld_bypass_put),
 };
 
 static int hdmi_codec_pcm_new(struct snd_soc_pcm_runtime *rtd,
@@ -836,7 +864,7 @@ static void plugged_cb(struct device *dev, bool plugged)
 	struct hdmi_codec_priv *hcp = dev_get_drvdata(dev);
 
 	if (plugged) {
-		if (hcp->hcd.ops->get_eld) {
+		if (!hcp->eld_bypass && hcp->hcd.ops->get_eld) {
 			hcp->hcd.ops->get_eld(dev->parent, hcp->hcd.data,
 					    hcp->eld, sizeof(hcp->eld));
 		}
@@ -845,9 +873,38 @@ static void plugged_cb(struct device *dev, bool plugged)
 		hdmi_codec_jack_report(hcp, 0);
 		memset(hcp->eld, 0, sizeof(hcp->eld));
 	}
+
 	mutex_lock(&hcp->lock);
-	if (hcp->substream && !plugged)
-		snd_pcm_stop(hcp->substream, SNDRV_PCM_STATE_DISCONNECTED);
+	if (hcp->substream) {
+		/*
+		 * Workaround for HDMIIN and HDMIOUT plug-{in,out} when streaming.
+		 *
+		 * Actually, we should do stop stream both for HDMI_{OUT,IN} on
+		 * plug-{out,in} event. but for better experience and depop stream,
+		 * we optimize as follows:
+		 *
+		 * a) Do stop stream for HDMIIN on plug-out when streaming.
+		 * because HDMIIN work as SLAVE mode, CLK lost after HDMI cable
+		 * plugged out which will make stream stuck until ALSA timeout(10s).
+		 * so, for better experience, we should stop stream at the moment.
+		 *
+		 * b) Do stop stream for HDMIOUT on plug-in when streaming.
+		 * because HDMIOUT work as MASTER mode, there is no clk-issue like
+		 * HDMIIN, but, on HDR situation, HDMI will be reconfigured which
+		 * make HDMI audio configure lost, especially for NLPCM/HBR bitstream
+		 * which require IEC937 packet alignment, so, for this situation,
+		 * we stop stream to notify user to re-open and configure sound card
+		 * and then go on streaming.
+		 */
+		int stream = hcp->substream->stream;
+
+		if (stream == SNDRV_PCM_STREAM_PLAYBACK && plugged)
+			snd_pcm_stop(hcp->substream, SNDRV_PCM_STATE_SETUP);
+		else if (stream == SNDRV_PCM_STREAM_CAPTURE && !plugged)
+			snd_pcm_stop(hcp->substream, SNDRV_PCM_STATE_DISCONNECTED);
+
+		dev_dbg(dev, "stream[%d]: %s\n", stream, plugged ? "plug in" : "plug out");
+	}
 	mutex_unlock(&hcp->lock);
 }
 

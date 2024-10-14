@@ -36,6 +36,7 @@ enum {
 	ROCKCHIP_SYSCON_PIPE_PHY2_GRF,
 	ROCKCHIP_SYSCON_VOP_GRF,
 	ROCKCHIP_SYSCON_VO_GRF,
+	ROCKCHIP_SYSCON_IOC,
 };
 
 /* Standard Rockchip clock numbers */

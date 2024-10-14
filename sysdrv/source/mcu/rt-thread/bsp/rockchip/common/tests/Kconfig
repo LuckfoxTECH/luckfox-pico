@@ -1,0 +1,211 @@
+menu "RT-Thread Common Test case"
+
+config RT_USING_TC
+    bool "Enable Kernel TEST"
+    default n
+
+config RT_USING_FILE_TEST
+    bool "Enable File TEST"
+    default n
+
+config RT_USING_COMMON_TEST
+    bool "Enable BSP Common TEST"
+    default n
+
+    if RT_USING_COMMON_TEST
+
+    config RT_USING_AUTO_TEST
+        bool "Enable BSP AUTO TEST"
+        select RT_USING_COMMON_TEST_SNOR
+        default n
+
+    config RT_USING_COMMON_TEST_SUSPEND
+        bool "Enable BSP Common Timer and GPIO Suspend/Resume TEST"
+        default n
+    config RT_USING_COMMON_TEST_AUDIO
+        bool "Enable BSP Common AUDIO TEST"
+        depends on RT_USING_AUDIO && RT_USING_LARGE_HEAP && RT_USING_UNCACHE_HEAP
+        default n
+    config RT_USING_COMMON_TEST_CODEC_ES8388
+        bool "Enable BSP Common CODEC ES8388 TEST"
+        depends on RT_USING_CODEC
+        default n
+
+    config RT_USING_COMMON_TEST_CPU_USAGE
+        bool "Enable BSP Common RK PM CPU Usage TEST"
+        default n
+
+    config RT_USING_COMMON_TEST_DCACHE
+        bool "Enable BSP Common Dcache TEST"
+        default n
+
+    config RT_USING_COMMON_TEST_ICACHE
+        bool "Enable BSP Common Icache TEST"
+        default n
+
+    config RT_USING_COMMON_TEST_DISPLAY
+        bool "Enable BSP Common DISPLAY TEST"
+        depends on RT_USING_VOP
+        default n
+
+    config RT_USING_SPI_SCREEN_TEST
+        bool "Enable BSP Common SPI Screen TEST"
+        depends on RT_USING_SPI_SCREEN
+        default n
+
+    config RT_USING_COMMON_TEST_DSP
+        bool "Enable BSP Common DSP TEST"
+        depends on RT_USING_DSP
+        default n
+
+        if RT_USING_COMMON_TEST_DSP
+        config RT_USING_DSP_WAKEUP
+            bool "Enable Dsp wakeup function"
+            default n
+        endif
+
+    config RT_USING_DSP_OPUS_CODEC_TEST
+        bool "Enable BSP Common DSP opus Codec TEST"
+        depends on RT_USING_DSP
+        default n
+
+    config RT_USING_COMMON_TEST_GPIO
+        bool "Enable BSP Common GPIO TEST"
+        depends on RT_USING_PIN
+        default n
+
+    config RT_USING_COMMON_TEST_I2C
+        bool "Enable BSP Common I2C TEST"
+        depends on RT_USING_I2C
+        default n
+
+    config RT_USING_COMMON_TEST_INTC
+        bool "Enable BSP Common Interrupt Controller TEST"
+        default n
+
+    config RT_USING_COMMON_TEST_KEYCTRL
+        bool "Enable BSP Common KEYCTRL TEST"
+        depends on RT_USING_KEYCTRL
+        default n
+
+    config RT_USING_COMMON_TEST_MBOX
+        bool "Enable BSP Common MBOX TEST"
+        default n
+
+    config RT_USING_COMMON_MEMTESTER
+        bool "Enable BSP Common MEMTESTER"
+        default n
+
+    config RT_USING_COMMON_TEST_MPU
+        bool "Enable BSP Common MPU TEST"
+        default n
+
+    config RT_USING_COMMON_TEST_PM
+        bool "Enable BSP Common PM TEST"
+        select RT_USING_CRU
+        default n
+
+    config RT_USING_COMMON_TEST_SNOR
+        bool "Enable BSP Common SNOR TEST"
+        select RT_USING_SNOR
+        default n
+
+    config RT_USING_COMMON_TEST_SPI
+        bool "Enable BSP Common SPI TEST"
+        depends on RT_USING_SPI
+        default n
+
+    config RT_USING_COMMON_TEST_SPI2APB
+        bool "Enable BSP Common SPI2APB TEST"
+        depends on RT_USING_SPI2APB
+        default n
+
+    config RT_USING_COMMON_STRESS_TEST
+        bool "Enable BSP Common STRESS TEST"
+        select RT_USING_RESET
+        select RT_USING_BENCHMARK
+        select RT_USING_COREMARK
+        select RT_USING_COMMON_MEMTESTER
+        default n
+
+    config RT_USING_COMMON_TEST_UART
+        bool "Enable BSP Common UART TEST"
+        depends on RT_USING_UART && RT_USING_POSIX_TERMIOS && RT_USING_POSIX
+        default n
+
+    config RT_USING_COMMON_TEST_USAGE
+        bool "Enable BSP Common USAGE TEST"
+        depends on RT_USING_CPU_USAGE
+        default n
+
+    config RT_USING_COMMON_TEST_WDT
+        bool "Enable BSP Common WDT TEST"
+        depends on RT_USING_WDT
+        default n
+
+    config RT_USING_COMMON_TEST_PERFORMANCE
+        bool "Enable BSP Common Performance TEST"
+
+    config RT_USING_COMMON_TEST_VICAP
+        bool "Enable BSP Common VICAP TEST"
+        depends on RT_USING_VICAP && RT_USING_CAMERA
+        default n
+        if RT_USING_COMMON_TEST_VICAP
+        config RT_USING_VICAP_TEST_DISPLAY
+             bool "Enable display for vicap"
+             select RT_USING_PANEL_ST7703_DS
+             default n
+        endif
+
+    config RT_USING_COMMON_TEST_SWALLOW_RGB
+        bool "Enable BSP Common SWALLOW RGB TEST"
+        depends on RT_USING_MIPI_DPHY && RT_USING_CAMERA
+        default n
+
+    config RT_USING_COMMON_TEST_FWANALYSIS
+        bool "Enable Firmware Analysis TEST"
+        depends on RT_USING_FWANALYSIS
+        default n
+
+    config RT_USING_COMMON_TEST_OTA
+        bool "Enable ota TEST"
+        depends on RT_USING_OTA
+        default n
+
+    config RT_USING_COMMON_TEST_PSRAM
+        bool "Enable BSP Common Psram TEST"
+        depends on RT_USING_QPIPSRAM
+        default n
+
+    config RT_USING_COMMON_TEST_SPINAND
+        bool "Enable BSP Common SPI Nand TEST"
+        depends on RT_USING_SPINAND
+        default n
+
+    config RT_USING_COMMON_TEST_TIMER
+        bool "Enable BSP Common TIMER TEST"
+        default n
+
+    config RT_USING_COMMON_TEST_LINUX_RPMSG_LITE
+        bool "Enable linux rpmsg lite test"
+        default n
+
+    config RT_USING_COMMON_TEST_RPMSG_LITE
+        bool "Enable rpmsg lite test"
+        depends on RT_USING_RPMSG_LITE
+        default n
+
+    config RT_USING_COMMON_TEST_IPC
+        bool "Enable shmem ipc test"
+        default n
+
+    config RT_USING_COMMON_TEST_AMPMSG
+        bool "Enable shmem ampmsg test"
+        default n
+
+    config RT_USING_COMMON_TEST_PCIE_DMA
+        bool "Enable BSP Common PCIE DMA TEST"
+        default n
+    endif
+
+endmenu

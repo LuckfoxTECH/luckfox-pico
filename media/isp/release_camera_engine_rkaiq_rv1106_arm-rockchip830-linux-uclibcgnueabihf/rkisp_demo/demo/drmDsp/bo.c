@@ -80,7 +80,7 @@ static int import_sp_bo_fd(struct sp_bo* bo) {
     return 0;
 }
 
-static int map_sp_bo(struct sp_bo* bo) {
+static int __attribute__((unused)) map_sp_bo(struct sp_bo* bo) {
   int ret;
   struct drm_mode_map_dumb md;
 

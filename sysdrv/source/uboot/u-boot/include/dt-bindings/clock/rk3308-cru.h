@@ -36,7 +36,7 @@
 #define SCLK_I2C1		23
 #define SCLK_I2C2		24
 #define SCLK_I2C3		25
-#define SCLK_PWM		26
+#define SCLK_PWM0		26
 #define SCLK_SPI0		27
 #define SCLK_SPI1		28
 #define SCLK_SPI2		29
@@ -130,6 +130,8 @@
 #define SCLK_I2S3_8CH_RX_SRC	117
 #define SCLK_I2S0_2CH_SRC	118
 #define SCLK_I2S1_2CH_SRC	119
+#define SCLK_PWM1		120
+#define SCLK_PWM2		121
 
 /* dclk */
 #define DCLK_VOP		125

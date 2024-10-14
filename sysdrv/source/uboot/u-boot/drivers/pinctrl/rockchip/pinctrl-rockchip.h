@@ -235,6 +235,7 @@ enum rockchip_pin_drv_type {
 enum rockchip_pin_pull_type {
 	PULL_TYPE_IO_DEFAULT = 0,
 	PULL_TYPE_IO_1V8_ONLY,
+	PULL_TYPE_IO_1 = 1,
 	PULL_TYPE_MAX
 };
 
@@ -330,6 +331,27 @@ struct rockchip_pin_bank {
 			{ .type = iom2, .offset = offset2 },		\
 			{ .type = iom3, .offset = offset3 },		\
 		},							\
+	}
+
+#define PIN_BANK_IOMUX_FLAGS_OFFSET_PULL_FLAGS(id, pins, label, iom0,	\
+					       iom1, iom2, iom3,	\
+					       offset0, offset1,	\
+					       offset2, offset3, pull0,	\
+					       pull1, pull2, pull3)	\
+	{								\
+		.bank_num	= id,					\
+		.nr_pins	= pins,					\
+		.name		= label,				\
+		.iomux		= {					\
+			{ .type = iom0, .offset = offset0 },		\
+			{ .type = iom1, .offset = offset1 },		\
+			{ .type = iom2, .offset = offset2 },		\
+			{ .type = iom3, .offset = offset3 },		\
+		},							\
+		.pull_type[0] = pull0,					\
+		.pull_type[1] = pull1,					\
+		.pull_type[2] = pull2,					\
+		.pull_type[3] = pull3,					\
 	}
 
 #define PIN_BANK_DRV_FLAGS(id, pins, label, type0, type1, type2, type3) \

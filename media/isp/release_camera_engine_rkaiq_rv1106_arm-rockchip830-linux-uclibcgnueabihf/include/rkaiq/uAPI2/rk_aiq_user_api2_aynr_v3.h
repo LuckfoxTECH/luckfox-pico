@@ -20,7 +20,10 @@
 
 #include "aynr3/rk_aiq_uapi_aynr_int_v3.h"
 
+#ifndef RK_AIQ_SYS_CTX_T
+#define RK_AIQ_SYS_CTX_T
 typedef struct rk_aiq_sys_ctx_s rk_aiq_sys_ctx_t;
+#endif
 
 RKAIQ_BEGIN_DECLARE
 
@@ -36,6 +39,8 @@ rk_aiq_user_api2_aynrV3_SetStrength(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_ynr_
 XCamReturn
 rk_aiq_user_api2_aynrV3_GetStrength(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_ynr_strength_v3_t* pStrength);
 
+XCamReturn
+rk_aiq_user_api2_aynrV3_GetInfo(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_ynr_info_v3_t* pInfo);
 
 RKAIQ_END_DECLARE
 

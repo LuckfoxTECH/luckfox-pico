@@ -1,0 +1,513 @@
+import rtconfig
+from building import *
+
+cwd = GetCurrentDir()
+
+#if GetDepend(['BT_DEV_MODE']):
+#        WICED_SDK_ROOT=r'/mnt/c/data/src/wiced-rtt/Wiced-SDK-6.1/'
+#else:
+#        WICED_SDK_ROOT = cwd + r'/../../../release/'
+
+#if os.getenv('BT_DIR'):
+#        print("use env settings (BT)")
+#        WICED_SDK_ROOT=os.getenv('BT_DIR')
+#else:
+#        WICED_SDK_ROOT=cwd + r'/../../../release/'
+
+WICED_SDK_ROOT=cwd + r'/../../release/BT/'
+
+BLUETOOTH_BTE_DIR=WICED_SDK_ROOT + r'/libraries/drivers/bluetooth/BTE/'
+PROTO_DISP_DIR = BLUETOOTH_BTE_DIR+r'proto_disp/'
+
+def prefix_path(fileList, prefix):
+    for idx in range(len(fileList)):
+        fileList[idx] = prefix+fileList[idx]
+
+BTESOURCES = [
+        r'Components/hcis/hcill_proto.c',
+                        r'Components/hcis/hcilp.c',
+                        r'Components/hcis/hcisu_h4.c',
+                        r'Components/hcis/hciutil.c',
+                        r'Components/stack/brcm/brcm_ble.c',
+                        r'Components/stack/brcm/brcm_prm.c',
+                        r'Components/stack/brcm/brcm_tbfc.c',
+                        r'Components/stack/brcm/bte_brcm.c',
+                        r'Components/stack/btm/btm_acl.c',
+                        r'Components/stack/btm/btm_cfg.c',
+                        r'Components/stack/btm/btm_dev.c',
+                        r'Components/stack/btm/btm_devctl.c',
+                        r'Components/stack/btm/btm_inq.c',
+                        r'Components/stack/btm/btm_main.c',
+                        r'Components/stack/btm/btm_pm.c',
+                        r'Components/stack/btm/btm_sco.c',
+                        r'Components/stack/btm/btm_sec.c',
+                        r'Components/stack/btm/btm_sec_br.c',
+                        r'Components/stack/btm/btm_sec_nvram.c',
+                        r'Components/stack/btu/btu_hcif.c',
+                        r'Components/stack/btu/btu_init.c',
+                        r'Components/stack/btu/btu_task.c',
+                        r'Components/stack/hcic/hcicmds.c',
+                        r'Components/stack/l2cap/l2c_api.c',
+                        r'Components/stack/l2cap/l2c_csm.c',
+                        r'Components/stack/l2cap/l2c_fcr.c',
+                        r'Components/stack/l2cap/l2c_fcr_patch.c',
+                        r'Components/stack/l2cap/l2c_link.c',
+                        r'Components/stack/l2cap/l2c_main.c',
+                        r'Components/stack/l2cap/l2c_utils.c',
+                        r'Components/stack/sdp/sdp_api.c',
+                        r'Components/stack/sdp/sdp_db.c',
+                        r'Components/stack/sdp/sdp_discovery.c',
+                        r'Components/stack/sdp/sdp_main.c',
+                        r'Components/stack/sdp/sdp_server.c',
+                        r'Components/stack/sdp/sdp_utils.c',
+                        r'Components/stack/wbt/wbt_ext.c',
+                        r'Projects/bte/main/bte_hcisu.c',
+                        r'Projects/bte/main/bte_init.c',
+                        r'Projects/bte/main/bte_load.c',
+                        r'Projects/bte/main/bte_version.c'
+]
+
+prefix_path(BTESOURCES, BLUETOOTH_BTE_DIR)
+cybt_src= BTESOURCES
+
+BTE_RFCOMM_SOURCES = [
+          r'Components/stack/rfcomm/port_api.c',
+                        r'Components/stack/rfcomm/port_rfc.c',
+                        r'Components/stack/rfcomm/port_utils.c',
+                        r'Components/stack/rfcomm/rfc_l2cap_if.c',
+                        r'Components/stack/rfcomm/rfc_mx_fsm.c',
+                        r'Components/stack/rfcomm/rfc_port_fsm.c',
+                        r'Components/stack/rfcomm/rfc_port_if.c',
+                        r'Components/stack/rfcomm/rfc_ts_frames.c',
+                        r'Components/stack/rfcomm/rfc_utils.c'
+]
+
+prefix_path(BTE_RFCOMM_SOURCES, BLUETOOTH_BTE_DIR)
+cybt_src = cybt_src + BTE_RFCOMM_SOURCES
+
+BTE_AVRC_SOURCES =[    r'Components/stack/avrc/avrc_api.c',
+                        r'Components/stack/avrc/avrc_sdp.c',
+                        r'Components/stack/avrc/avrc_opt.c',
+                        r'Components/stack/avrc/avrc_bld_ct.c',
+                        r'Components/stack/avrc/avrc_bld_tg.c',
+                        r'Components/stack/avrc/avrc_pars_ct.c',
+                        r'Components/stack/avrc/avrc_pars_tg.c',
+                        r'Components/stack/avrc/avrc_utils.c'
+]
+
+prefix_path(BTE_AVRC_SOURCES, BLUETOOTH_BTE_DIR)
+cybt_src = cybt_src + BTE_AVRC_SOURCES
+
+BTE_AVCT_SOURCES = [     r'Components/stack/avct/avct_api.c',
+                        r'Components/stack/avct/avct_ccb.c',
+                        r'Components/stack/avct/avct_l2c.c',
+                        r'Components/stack/avct/avct_l2c_br.c',
+                        r'Components/stack/avct/avct_lcb.c',
+                        r'Components/stack/avct/avct_bcb_act.c',
+                        r'Components/stack/avct/avct_lcb_act.c'
+]
+
+prefix_path(BTE_AVCT_SOURCES, BLUETOOTH_BTE_DIR)
+cybt_src = cybt_src + BTE_AVCT_SOURCES
+
+BTE_A2DP_SOURCES = [    r'Components/stack/a2dp/a2d_api.c',
+                        r'Components/stack/a2dp/a2d_sbc.c',
+                        r'Components/stack/a2dp/a2d_m12.c',
+                        r'Components/stack/a2dp/a2d_m24.c'
+]
+
+prefix_path(BTE_A2DP_SOURCES, BLUETOOTH_BTE_DIR)
+cybt_src = cybt_src + BTE_A2DP_SOURCES
+
+BTE_AVDT_SOURCES = [     r'Components/stack/avdt/avdt_ad.c',
+                        r'Components/stack/avdt/avdt_api.c',
+                        r'Components/stack/avdt/avdt_ccb.c',
+                        r'Components/stack/avdt/avdt_l2c.c',
+                        r'Components/stack/avdt/avdt_scb.c',
+                        r'Components/stack/avdt/avdt_scb_act.c',
+                        r'Components/stack/avdt/avdt_msg.c',
+                        r'Components/stack/avdt/avdt_ccb_act.c'
+]
+prefix_path(BTE_AVDT_SOURCES, BLUETOOTH_BTE_DIR)
+cybt_src = cybt_src + BTE_AVDT_SOURCES
+
+BTE_GATT_SMP_SOURCES = [
+        r'Components/stack/gatt/att_protocol.c',
+                        r'Components/stack/gatt/gatt_attr.c',
+                        r'Components/stack/gatt/gatt_cl.c',
+                        r'Components/stack/gatt/gatt_sr.c',
+                        r'Components/stack/gatt/gatt_api.c',
+                        r'Components/stack/gatt/gatt_auth.c',
+                        r'Components/stack/gatt/gatt_main.c',
+                        r'Components/stack/gatt/gatt_utils.c',
+                        r'Components/stack/gatt/legattdb/legattdb.c',
+                        r'Components/stack/smp/aes.c',
+                        r'Components/stack/smp/p_256_curvepara.c',
+                        r'Components/stack/smp/p_256_ecc_pp.c',
+                        r'Components/stack/smp/p_256_multprecision.c',
+                        r'Components/stack/smp/smp_act.c',
+                        r'Components/stack/smp/smp_api.c',
+                        r'Components/stack/smp/smp_br_main.c',
+                        r'Components/stack/smp/smp_cmac.c',
+                        r'Components/stack/smp/smp_keys.c',
+                        r'Components/stack/smp/smp_l2c.c',
+                        r'Components/stack/smp/smp_main.c',
+                        r'Components/stack/smp/smp_utils.c',
+                        r'Components/stack/hcic/hciblecmds.c',
+                        r'Components/stack/l2cap/l2c_ble.c',
+                        r'Components/stack/l2cap/l2c_ble_conn.c',
+                        r'Components/stack/l2cap/l2c_ble_utils.c',
+                        r'Components/stack/btm/btm_ble.c',
+                        r'Components/stack/btm/btm_ble_addr.c',
+                        r'Components/stack/btm/btm_ble_bgconn.c',
+                        r'Components/stack/btm/btm_ble_gap.c',
+                        r'Components/stack/btm/btm_ble_privacy.c',
+                        r'Components/stack/gap/gap_api.c',
+                        r'Components/stack/gap/gap_ble.c',
+                        r'Components/stack/gap/gap_conn.c',
+                        r'Components/stack/gap/gap_utils.c',
+                        r'Components/stack/hid/hidd_api.c',
+                        r'Components/stack/hid/hidd_conn.c',
+                        r'Components/stack/hid/hidd_mgmt.c',
+                        r'Components/stack/hid/hidd_pm.c'
+]
+
+prefix_path(BTE_GATT_SMP_SOURCES, BLUETOOTH_BTE_DIR)
+cybt_src = cybt_src + BTE_GATT_SMP_SOURCES
+
+GKI_SOURCES = [
+                  r'Components/gki/common/gki_buffer.c',
+                        r'Components/gki/common/gki_debug.c',
+                        r'Components/gki/common/gki_time.c'
+]
+
+prefix_path(GKI_SOURCES, BLUETOOTH_BTE_DIR)
+cybt_src = cybt_src + GKI_SOURCES
+
+PROTODISP_SOURCES = [
+           r'hcidisp.c',
+                        r'l2cdisp.c',
+                        r'sdpdisp.c',
+                        r'attdisp.c',
+                        r'avdtdisp.c',
+                        r'avctdisp.c',
+                        r'hiddisp.c',
+                        r'protodisp_stub.c',
+                        r'protodisp_proxy.c',
+                        r'btsnoopdisp.c'
+]
+
+prefix_path(PROTODISP_SOURCES, PROTO_DISP_DIR)
+
+PROTODISP_INCLUDES = PROTO_DISP_DIR
+
+# it is moved to rk BSP,
+OSAPI_SRCS = [
+#        r'WICED/RTOS/rt-thread/WICED/wiced_rtos.c'
+]
+
+OSAPI_INCS = [
+#        r'WICED/RTOS/rt-thread/WICED/'
+        cwd + r'/../wiced/'
+]
+
+#prefix_path(OSAPI_SRCS, WICED_SDK_ROOT)
+#prefix_path(OSAPI_INCS, WICED_SDK_ROOT)
+
+BTE_WICED_SOURCES = [
+                        r'WICED/wiced_bt_ble_wrapper.c',
+                        r'WICED/wiced_bt_dev_wrapper.c',
+                        r'WICED/wiced_bt_gatt_wrapper.c',
+                        r'WICED/wiced_bt_l2c_wrapper.c',
+                        r'WICED/wiced_bt_l2c_le_wrapper.c',
+                        r'WICED/wiced_bt_avdt.c',
+                        r'WICED/wiced_bt_gatt.c',
+                        r'WICED/wiced_bt_sdp.c',
+                        r'WICED/gki_wiced.c',
+                        r'WICED/wiced_bt_buffer.c',
+                        r'WICED/upio_wiced.c',
+                        r'WICED/wiced_post_reset.c',
+                        r'WICED/wiced_stubs.c',
+                        r'WICED/wiced_bt_main.c',
+                        r'WICED/wiced_bt_nvram_access.c'
+]
+
+if not GetDepend(['RT_BT_BLE_ONLY']):
+        BTE_WICED_SOURCES += [
+                r'WICED/wiced_bt_avrc_wrapper.c',
+                r'WICED/wiced_bt_a2d_wrapper.c',
+                r'WICED/wiced_bt_avdt_wrapper.c',
+                r'WICED/wiced_bt_sdp_wrapper.c',
+                r'WICED/wiced_bt_rfcomm_wrapper.c',
+                r'WICED/wiced_bt_sco_wrapper.c',
+                r'WICED_profiles/avrcp/wiced_bt_remote_control.c',
+                r'WICED_profiles/a2dp/sink/wiced_bt_a2dp_sink_act.c',
+                r'WICED_profiles/a2dp/sink/wiced_bt_a2dp_sink_api.c',
+                r'WICED_profiles/a2dp/sink/wiced_bt_a2dp_sink_cfg.c',
+                r'WICED_profiles/a2dp/sink/wiced_bt_a2dp_sink_ssm.c',
+                r'WICED_profiles/a2dp/sink/wiced_bt_a2dp_sink_main.c',
+                r'WICED_profiles/a2dp/common/wiced_bt_a2dp_sbc.c',
+                r'WICED_profiles/hfp/hf/wiced_bt_hfp_hf_act.c',
+                r'WICED_profiles/hfp/hf/wiced_bt_hfp_hf_api.c',
+                r'WICED_profiles/hfp/hf/wiced_bt_hfp_hf_at.c',
+                r'WICED_profiles/hfp/hf/wiced_bt_hfp_hf_cmd.c',
+                r'WICED_profiles/hfp/hf/wiced_bt_hfp_hf_main.c',
+                r'WICED_profiles/hfp/hf/wiced_bt_hfp_hf_ssm.c'
+        ]
+
+##########################
+# rk2108 will use posix
+##########################
+
+#if not GetDepend(['RT_USING_BOARD_RK2108B_EVB']):
+if not GetDepend(['RT_CYPRESS_BT']):
+        BTE_WICED_SOURCES += [r'WICED/userial_wiced.c',]
+
+prefix_path(BTE_WICED_SOURCES, BLUETOOTH_BTE_DIR)
+cybt_src = cybt_src + BTE_WICED_SOURCES
+
+BTEINCLUDES = [
+                        r'Components/hcis',
+                        r'Components/hcis/include',
+                        r'Components/stack/include',
+                        r'Components/stack/avrc',
+                        r'Components/stack/avct',
+                        r'Components/stack/avdt',
+                        r'Components/stack/a2dp',
+                        r'Components/stack/rfcomm',
+                        r'Components/stack/btm',
+                        r'Components/stack/brcm',
+                        r'Components/stack/l2cap',
+                        r'Components/stack/sdp',
+                        r'Components/stack/gap',
+                        r'Components/stack/gatt',
+                        r'Components/stack/gatt/legattdb/inc',
+                        r'Components/stack/smp',
+                        r'Components/stack/hid',
+                        r'Components/stack/wbt',
+                        r'Components/stack/wiced',
+                        r'Components/rpc/include',
+                        r'WICED_profiles/a2dp/common',
+                        r'WICED_profiles/hfp/hf',
+                        r'Components/gki/common',
+                        r'Components/udrv/include',
+                        r'Projects/bte/main',
+                        r'Components/stack/include',
+                        r'WICED',
+                        r'bt_logmsg',
+                        r'../include'
+]
+
+prefix_path(BTEINCLUDES, BLUETOOTH_BTE_DIR)
+#BTEINCLUDES = BTEINCLUDES + PROTODISP_INCLUDES
+
+WICED_INC = [
+        WICED_SDK_ROOT + 'libraries/utilities/crc',
+        WICED_SDK_ROOT + 'libraries/utilities/linked_list',
+        WICED_SDK_ROOT + 'libraries/drivers/bluetooth/sbc/decoder/include/',
+        WICED_SDK_ROOT + '../WIFI/include',
+        WICED_SDK_ROOT + '../WIFI/wiced/wwd/include/',
+        WICED_SDK_ROOT + '../WIFI/wiced/rtos/RTthread/WICED/WWD/',
+        WICED_SDK_ROOT + '../WIFI/wiced/platform/include/',
+        WICED_SDK_ROOT + '../WIFI/platforms/BCM943438WCD1/',
+        WICED_SDK_ROOT + '../WIFI/wiced/wwd/internal/chips/43438/',
+        WICED_SDK_ROOT + '../WIFI/wiced/network/Lwip/wwd/',
+        WICED_SDK_ROOT + '/WICED/platform/MCU/',
+]
+
+BTEINCLUDES = [cwd + r'/wiced_rtt_inc' ] + ['.'] + BTEINCLUDES + [ PROTO_DISP_DIR ] + WICED_INC + OSAPI_INCS
+
+# ble proximity demo
+BLE_SENSOR_DIR = WICED_SDK_ROOT + r'apps/snip/bluetooth/ble_hello_sensor/'
+BLE_SENSOR_SRC=[
+        BLE_SENSOR_DIR + r'ble_hello_sensor.c',
+        BLE_SENSOR_DIR + r'wiced_bt_cfg.c'
+]
+
+# ble client demo
+BLE_CLIENT_DIR = WICED_SDK_ROOT + r'apps/snip/bluetooth/ble_hello_client/'
+BLE_CLIENT_SRC=[
+        BLE_CLIENT_DIR + r'ble_hello_client.c',
+        BLE_CLIENT_DIR + r'wiced_bt_cfg.c'
+]
+
+# ble client server demo
+BLE_CLIENT_SERVER_DIR = WICED_SDK_ROOT + r'apps/snip/bluetooth/ble_client_server/'
+BLE_CLIENT_SERVER_SRC=[
+        BLE_CLIENT_SERVER_DIR + r'ble_hello_client.c',
+        BLE_CLIENT_SERVER_DIR + r'wiced_bt_cfg.c'
+]
+
+# this demo is from wiced demo
+# demo for dual_hf_a2dp
+
+DUAL_HF_A2DP_SRC=[
+        r'dual_a2dp_hfp_audio.c',
+        r'bluetooth_dm.c',
+        r'bluetooth_nv.c',
+        r'app_dct.c',
+        r'bluetooth_a2dp.c',
+        r'bluetooth_hfp.c',
+        r'bluetooth_audio.c',
+        r'bluetooth_audio_common.c',
+        r'hashtable.c',
+        r'bluetooth_audio_decoder.c',
+        r'bluetooth_audio_player.c',
+        r'bluetooth_audio_recorder.c',
+        r'ble_hello_sensor.c'
+]
+
+DEMO_HF_A2DP_DIR = WICED_SDK_ROOT + r'apps/demo/dual_hf_a2dp/'
+DEMO_HF_A2DP_INC = [
+        DEMO_HF_A2DP_DIR,
+        DEMO_HF_A2DP_DIR + r'mem_pool',
+        WICED_SDK_ROOT + r'WICED/platform/MCU'
+]
+
+prefix_path(DUAL_HF_A2DP_SRC, DEMO_HF_A2DP_DIR)
+
+##########################################
+# dual mode, BLE proximity + SSP
+# Wiced-SDK-6.1\apps\snip\bluetooth\bt_dualmode_server
+#######################################
+DUAL_MODE_SRC=[
+        r'bt_dualmode_server.c',
+        r'ble_proximity_reporter.c',
+        r'wiced_bt_gatt_db.c',
+        r'wiced_bt_cfg_dual_mode.c',
+        r'bt_rfcomm_server.c',
+        r'wiced_bt_sdp_db.c'
+]
+
+DUAL_DEMO_DIR = WICED_SDK_ROOT + r'apps/snip/bluetooth/bt_dualmode_server/'
+prefix_path(DUAL_MODE_SRC, DUAL_DEMO_DIR)
+
+###############################
+# A2DP SINK & AVRCP
+# apps.snip.bluetooth_audio
+###################################
+
+AVK_SRC=[
+        r'bluetooth_audio.c',
+        r'bluetooth_audio_nv.c',
+        r'bluetooth_audio_player.c',
+        r'bluetooth_audio_decoder.c',
+        r'mem_pool/mem_pool.c',
+]
+
+AVK_SRC_DIR = WICED_SDK_ROOT + r'apps/snip/bluetooth_audio/'
+prefix_path(AVK_SRC, AVK_SRC_DIR)
+AVK_SRC_INC = [r'mem_pool']
+prefix_path(AVK_SRC_INC, AVK_SRC_DIR)
+
+## end of #
+
+STUB_SRC=[
+        r'platform_i2s.c',
+        r'wiced_audio.c',
+        r'audio_stub.c',
+        r'brcm_dac.c',
+        r'tone_player/wiced_tone.c'
+]
+
+prefix_path(STUB_SRC, r'src/')
+
+SBC_CODEC_SRC = [
+         r'sbc_decoder_init.c',
+         r'sbc_decoder.c',
+         r'sbc_basicop.c',
+         r'sbc_dec_bit_alloc_mono.c',
+         r'sbc_dec_bit_alloc_ste.c',
+         r'sbc_dec_coeffs.c',
+         r'sbc_syn_dct_coeffs.c',
+         r'sbc_synthesis.c',
+         r'sbc_unpacking.c'
+]
+
+prefix_path(SBC_CODEC_SRC, WICED_SDK_ROOT + 'libraries/drivers/bluetooth/sbc/decoder/srce/')
+SBC_CODEC_SRC += [
+        WICED_SDK_ROOT + 'libraries/audio/codec/sbc_if/sbc_if.c'
+]
+
+STUB_SRC += SBC_CODEC_SRC
+PATCH_FILE=['4343A1_Generic_UART_26MHz_wlbga_eLG_litePDS_BT42.c']
+#PATCH_FILE=['BCM4345C0_Generic_UART_37_4MHz_wlbga_ref_iLNA_iTR_eLG_bt42_blespped.c']
+prefix_path(PATCH_FILE, r'src/patch/')
+
+################################
+# RK2108
+################################
+
+#if GetDepend(['RT_USING_BOARD_RK2108B_EVB']):
+if GetDepend(['RT_CYPRESS_BT']):
+        STUB_SRC += [
+                cwd + r'/rk2108/btctrl.c',
+                cwd + r'/rk2108/uart_api.c',
+                cwd + r'/rk2108/userial_rk.c',
+                cwd + r'/rk2108/upio_rk.c'
+        ]
+        BTEINCLUDES += [ cwd + r'/rk2108/']
+
+############################################
+# debug purpose
+# print all the include path.
+#
+if GetDepend(['BT_BUILD_VERBOSE']):
+        print(BTEINCLUDES)
+TRACE_DEFINES = ['BT_USE_TRACES=1', 'BT_TRACE_APPL=1', 'BT_TRACE_PROTOCOL=1']
+#TRACE_DEFINES = ['BT_USE_TRACES=1', 'BT_TRACE_APPL=1']
+BTEDEFINES=['BUILDCFG', 'WICED_BTE_LIB', 'WICED_BLUETOOTH_PLATFORM', 'WICED_BLUETOOTH_PLATFORM__', 'WICED_BLUETOOTH_PROFILES', 'RTT']
+#BTEDEFINES += TRACE_DEFINES
+osapi = DefineGroup('osapi', OSAPI_SRCS, depend = ['RT_CYPRESS_BT'], CPPPATH = BTEINCLUDES, CPPDEFINES = BTEDEFINES)
+
+patch_grp = DefineGroup('patch', PATCH_FILE, depend = ['RT_CYPRESS_BT'])
+
+grps = osapi + patch_grp
+
+###################################################
+# if it is cypress internal use, use source code
+#
+###################################################
+if GetDepend(['BT_DEV_MODE']):
+        bt = DefineGroup('bt', cybt_src, depend = ['RT_CYPRESS_BT'], CPPPATH = (OSAPI_INCS + BTEINCLUDES), CPPDEFINES = BTEDEFINES)
+        btlog = DefineGroup('btlog', PROTODISP_SOURCES, depend = ['RT_CYPRESS_BT'], CPPPATH = BTEINCLUDES, CPPDEFINES = BTEDEFINES)
+        stub_grp = DefineGroup('stub', STUB_SRC, depend = ['RT_CYPRESS_BT'], CPPPATH = DEMO_HF_A2DP_INC + BTEINCLUDES, CPPDEFINES = BTEDEFINES)
+        grps = bt + btlog + grps
+else:
+        print('release build')
+        stub_grp = DefineGroup('stub', STUB_SRC, depend = ['RT_CYPRESS_BT'], LOCAL_CPPPATH = DEMO_HF_A2DP_INC + BTEINCLUDES, CPPDEFINES = BTEDEFINES)
+
+grps += stub_grp
+
+#############################################
+# choose Demo application
+#########
+if GetDepend(['DEMO_BLE_SENSOR']):
+        print("DEMO_BLE_SENSOR is defined")
+        demo_ble_reporter = DefineGroup('demo_ble_reporter', BLE_SENSOR_SRC, depend = ['RT_CYPRESS_BT'], LOCAL_CPPPATH = BTEINCLUDES, CPPDEFINES = BTEDEFINES)
+        grps += demo_ble_reporter
+
+if GetDepend(['DEMO_BLE_CLIENT']):
+        print("DEMO_BLE_CLIENT is defined")
+        demo_ble_client = DefineGroup('demo_ble_client', BLE_CLIENT_SRC, depend = ['RT_CYPRESS_BT'], LOCAL_CPPPATH = BTEINCLUDES, CPPDEFINES = BTEDEFINES)
+        grps += demo_ble_client
+
+if GetDepend(['DEMO_BLE_CLIENT_SERVER']):
+        print("DEMO_BLE_CLIENT_SERVER is defined")
+        demo_ble_client_server = DefineGroup('demo_ble_client_server', BLE_CLIENT_SERVER_SRC, depend = ['RT_CYPRESS_BT'], LOCAL_CPPPATH = BTEINCLUDES, CPPDEFINES = BTEDEFINES)
+        grps += demo_ble_client_server
+
+if GetDepend(['DEMO_HF_A2DP']):
+        print("DEMO_HF_A2DP is defined")
+        demo_hf_a2dp = DefineGroup('demo_hf_a2dp', DUAL_HF_A2DP_SRC, depend = ['RT_CYPRESS_BT'], LOCAL_CPPPATH = DEMO_HF_A2DP_INC + BTEINCLUDES, CPPDEFINES = BTEDEFINES)
+        grps += demo_hf_a2dp
+
+if GetDepend(['DEMO_SPP_BLE']):
+        demo_dual_mode = DefineGroup('demo_dual_mode', DUAL_MODE_SRC, depend = ['RT_CYPRESS_BT'], LOCAL_CPPPATH = BTEINCLUDES, CPPDEFINES = BTEDEFINES)
+        grps += demo_dual_mode
+
+if GetDepend(['DEMO_AVK']):
+        demo_avk = DefineGroup('demo_avk', AVK_SRC, depend = ['RT_CYPRESS_BT'], LOCAL_CPPPATH = BTEINCLUDES + AVK_SRC_INC, CPPDEFINES = BTEDEFINES)
+        grps += demo_avk
+
+Return('grps')

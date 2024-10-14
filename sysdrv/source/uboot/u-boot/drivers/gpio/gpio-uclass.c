@@ -34,11 +34,10 @@ static int gpio_to_device(unsigned int gpio, struct gpio_desc *desc)
 {
 	struct gpio_dev_priv *uc_priv;
 	struct udevice *dev;
-	int ret;
 
-	for (ret = uclass_first_device(UCLASS_GPIO, &dev);
+	for (uclass_first_device(UCLASS_GPIO, &dev);
 	     dev;
-	     ret = uclass_next_device(&dev)) {
+	     uclass_next_device(&dev)) {
 		uc_priv = dev_get_uclass_priv(dev);
 		if (gpio >= uc_priv->gpio_base &&
 		    gpio < uc_priv->gpio_base + uc_priv->gpio_count) {
@@ -50,7 +49,7 @@ static int gpio_to_device(unsigned int gpio, struct gpio_desc *desc)
 	}
 
 	/* No such GPIO */
-	return ret ? ret : -ENOENT;
+	return -ENOENT;
 }
 
 int dm_gpio_lookup_name(const char *name, struct gpio_desc *desc)
@@ -59,12 +58,11 @@ int dm_gpio_lookup_name(const char *name, struct gpio_desc *desc)
 	struct udevice *dev;
 	ulong offset;
 	int numeric;
-	int ret;
 
 	numeric = isdigit(*name) ? simple_strtoul(name, NULL, 10) : -1;
-	for (ret = uclass_first_device(UCLASS_GPIO, &dev);
+	for (uclass_first_device(UCLASS_GPIO, &dev);
 	     dev;
-	     ret = uclass_next_device(&dev)) {
+	     uclass_next_device(&dev)) {
 		int len;
 
 		uc_priv = dev_get_uclass_priv(dev);
@@ -84,7 +82,7 @@ int dm_gpio_lookup_name(const char *name, struct gpio_desc *desc)
 	}
 
 	if (!dev)
-		return ret ? ret : -EINVAL;
+		return -EINVAL;
 
 	desc->dev = dev;
 	desc->offset = offset;
@@ -1058,7 +1056,9 @@ static int gpio_post_bind(struct udevice *dev)
 UCLASS_DRIVER(gpio) = {
 	.id		= UCLASS_GPIO,
 	.name		= "gpio",
+#ifndef CONFIG_GPIO_NO_UC_FLAG_SEQ_ALIAS
 	.flags		= DM_UC_FLAG_SEQ_ALIAS,
+#endif
 	.post_probe	= gpio_post_probe,
 	.post_bind	= gpio_post_bind,
 	.pre_remove	= gpio_pre_remove,

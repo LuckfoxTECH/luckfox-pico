@@ -87,7 +87,7 @@ atomic_cmpxchg_relaxed:
 	.save {r4, lr}
 .L3:
 	.syntax unified
-@ 114 "./arch/arm/include/asm/atomic.h" 1
+@ 114 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_cmpxchg
 ldrex	r0, [r3]
 mov	r4, #0
@@ -286,7 +286,7 @@ mpi_queue_do_try_pop_obj:
 	str	r7, [r5, #4]
 	pld	[r3]
 	.syntax unified
-@ 224 "./arch/arm/include/asm/atomic.h" 1
+@ 224 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_sub
 1:	ldrex	r2, [r3]
 	sub	r2, r2, #1
@@ -419,7 +419,7 @@ mpi_queue_push_obj:
 	add	r3, r4, #56
 	pld	[r3]
 	.syntax unified
-@ 223 "./arch/arm/include/asm/atomic.h" 1
+@ 223 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_add_return
 1:	ldrex	r2, [r3]
 	add	r2, r2, #1
@@ -552,7 +552,7 @@ mpi_queue_flush:
 	ldr	r4, [r5, #24]
 	pld	[r4]
 	.syntax unified
-@ 223 "./arch/arm/include/asm/atomic.h" 1
+@ 223 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_add
 1:	ldrex	r3, [r4]
 	add	r3, r3, #1
@@ -565,7 +565,7 @@ mpi_queue_flush:
 	adds	r6, r4, #4
 	pld	[r6]
 	.syntax unified
-@ 223 "./arch/arm/include/asm/atomic.h" 1
+@ 223 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_add
 1:	ldrex	r3, [r6]
 	add	r3, r3, #1
@@ -591,7 +591,7 @@ mpi_queue_flush:
 .L99:
 	pld	[r6]
 	.syntax unified
-@ 224 "./arch/arm/include/asm/atomic.h" 1
+@ 224 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_sub
 1:	ldrex	r3, [r6]
 	sub	r3, r3, #1
@@ -603,7 +603,7 @@ mpi_queue_flush:
 	.syntax unified
 	pld	[r4]
 	.syntax unified
-@ 224 "./arch/arm/include/asm/atomic.h" 1
+@ 224 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_sub_return
 1:	ldrex	r3, [r4]
 	sub	r3, r3, #1
@@ -749,7 +749,7 @@ mpi_queue_create:
 	add	r2, r4, #56
 	pld	[r2]
 	.syntax unified
-@ 223 "./arch/arm/include/asm/atomic.h" 1
+@ 223 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_add_return
 1:	ldrex	r1, [r2]
 	add	r1, r1, #1
@@ -819,43 +819,43 @@ mpi_queue_try_pop_obj:
 	.size	mpi_queue_try_pop_obj, .-mpi_queue_try_pop_obj
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__func__.36033, %object
-	.size	__func__.36033, 18
-__func__.36033:
+	.type	__func__.35475, %object
+	.size	__func__.35475, 18
+__func__.35475:
 	.ascii	"mpi_queue_release\000"
-	.type	__func__.35909, %object
-	.size	__func__.35909, 25
-__func__.35909:
+	.type	__func__.35351, %object
+	.size	__func__.35351, 25
+__func__.35351:
 	.ascii	"mpi_queue_do_try_pop_obj\000"
-	.type	__func__.35957, %object
-	.size	__func__.35957, 19
-__func__.35957:
+	.type	__func__.35399, %object
+	.size	__func__.35399, 19
+__func__.35399:
 	.ascii	"mpi_queue_push_obj\000"
-	.type	__func__.36005, %object
-	.size	__func__.36005, 16
-__func__.36005:
+	.type	__func__.35447, %object
+	.size	__func__.35447, 16
+__func__.35447:
 	.ascii	"mpi_queue_flush\000"
-	.type	__func__.36038, %object
-	.size	__func__.36038, 18
-__func__.36038:
+	.type	__func__.35480, %object
+	.size	__func__.35480, 18
+__func__.35480:
 	.ascii	"mpi_queue_destroy\000"
-	.type	__func__.36066, %object
-	.size	__func__.36066, 17
-__func__.36066:
+	.type	__func__.35508, %object
+	.size	__func__.35508, 17
+__func__.35508:
 	.ascii	"mpi_queue_create\000"
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:
-	.ascii	"%s,%d:queue(%d) released\000"
+	.ascii	"queue(%d) released\000"
 .LC1:
-	.ascii	"%s,%d:queue(%d) pop obj: %d, status: %d/%d\000"
+	.ascii	"queue(%d) pop obj: %d, status: %d/%d\000"
 .LC2:
-	.ascii	"%s,%d:queue(%d) push obj: %d, status: %d/%d\000"
+	.ascii	"queue(%d) push obj: %d, status: %d/%d\000"
 .LC3:
-	.ascii	"%s,%d:queue(%d) flushing\000"
+	.ascii	"queue(%d) flushing\000"
 .LC4:
-	.ascii	"%s,%d:queue(%d) destroying\000"
+	.ascii	"queue(%d) destroying\000"
 .LC5:
-	.ascii	"%s,%d:queue(%d) inited for %d nodes\000"
+	.ascii	"queue(%d) inited for %d nodes\000"
 	.section	___ksymtab_gpl+mpi_queue_create,"a"
 	.align	2
 	.type	__ksymtab_mpi_queue_create, %object

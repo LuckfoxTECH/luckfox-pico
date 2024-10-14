@@ -980,4 +980,43 @@
 #define RV1126_WIN2_DSP_INFO0			0x01a4
 #define RV1126_WIN2_DSP_ST0			0x01a8
 /* RV1126 register definition end   */
+
+/* RK3576 EBC VOP register definition start */
+#define EBC_CONFIG_DONE				0x0050
+#define EBC_WIN_MST2				0x0058
+#define EBC_WIN2_CTRL				0x006c
+
+#define EBC_VOP_SYS_CTRL			0x0100
+#define EBC_VOP_DSP_CTRL0			0x0104
+#define EBC_VOP_DSP_CTRL1			0x0108
+#define EBC_VOP_MCU_CTRL			0x010c
+#define EBC_DSP_HTOTAL_HS_END			0x0110
+#define EBC_DSP_HACT_ST_END			0x0114
+#define EBC_DSP_VTOTAL_VS_END			0x0118
+#define EBC_DSP_VACT_ST_END			0x011c
+#define EBC_DSP_VS_ST_END_F1			0x0120
+#define EBC_DSP_VACT_ST_END_F1			0x0124
+#define EBC_DSP_BG				0x0128
+#define EBC_BLANKING_VALUE			0x012c
+#define EBC_FRC_LOWER01_0			0x0130
+#define EBC_FRC_LOWER01_1			0x0134
+#define EBC_FRC_LOWER10_0			0x0138
+#define EBC_FRC_LOWER10_1			0x013c
+#define EBC_FRC_LOWER11_0			0x0140
+#define EBC_FRC_LOWER11_1			0x0144
+#define EBC_LINE_FLAG				0x0148
+#define EBC_VOP_SCAN_LINE_NUM			0x014c
+#define EBC_VOP_WIN_VIR				0x0150
+#define EBC_VOP_INT_EN				0x0154
+#define EBC_VOP_WIN_DSP_INFO			0x0158
+#define EBC_VOP_WIN_DSP_ST			0x015c
+#define EBC_MCU_RW_BYPASS_PORT			0x0160
+#define EBC_VOP_INT_CLR				0x0164
+#define EBC_VOP_INT_STATUS			0x0168
+
+#define RK3576_VO0_GRF_SOC_CON9			0x0024
+#define RK3576_VO0_GRF_SOC_CON13		0x0034
+#define RK3576_IOC_GRF_MISC_CON8		0x6420
+/* RK3576 EBC VOP register definition end */
+
 #endif /* _ROCKCHIP_VOP_REG_H */

@@ -55,6 +55,205 @@ RK_S32 TEST_SYS_CreateVideoFrame(const PIC_BUF_ATTR_S *pstBufAttr, VIDEO_FRAME_I
     return RK_SUCCESS;
 }
 
+RK_S32 TEST_SYS_AvsUnbindVenc(AVS_GRP AvsGrp, AVS_CHN AvsChn, VENC_CHN VencChn) {
+    RK_S32    s32Ret = RK_SUCCESS;
+    MPP_CHN_S stSrcChn;
+    MPP_CHN_S stDestChn;
+
+    stSrcChn.enModId = RK_ID_AVS;
+    stSrcChn.s32DevId = AvsGrp;
+    stSrcChn.s32ChnId = AvsChn;
+
+    stDestChn.enModId = RK_ID_VENC;
+    stDestChn.s32DevId = 0;
+    stDestChn.s32ChnId = VencChn;
+
+    s32Ret = RK_MPI_SYS_UnBind(&stSrcChn, &stDestChn);
+    if (s32Ret != RK_SUCCESS) {
+        RK_LOGE("failed with %#x!", s32Ret);
+        return RK_FAILURE;
+    }
+
+    return s32Ret;
+}
+
+
+RK_S32 TEST_SYS_AvsBindVpss(AVS_GRP AvsGrp, AVS_CHN AvsChn, VPSS_GRP VpssGrp) {
+    RK_S32 s32Ret = RK_SUCCESS;
+    MPP_CHN_S stSrcChn;
+    MPP_CHN_S stDestChn;
+
+    stSrcChn.enModId = RK_ID_AVS;
+    stSrcChn.s32DevId = AvsGrp;
+    stSrcChn.s32ChnId = AvsChn;
+
+    stDestChn.enModId = RK_ID_VPSS;
+    stDestChn.s32DevId = VpssGrp;
+    stDestChn.s32ChnId = 0;
+
+    s32Ret = RK_MPI_SYS_Bind(&stSrcChn, &stDestChn);
+    if (s32Ret != RK_SUCCESS) {
+        RK_LOGE("failed with %#x!", s32Ret);
+        return RK_FAILURE;
+    }
+
+    return s32Ret;
+}
+
+RK_S32 TEST_SYS_AvsUnbindVpss(AVS_GRP AvsGrp, AVS_CHN AvsChn, VPSS_GRP VpssGrp) {
+    RK_S32 s32Ret = RK_SUCCESS;
+    MPP_CHN_S stSrcChn;
+    MPP_CHN_S stDestChn;
+
+    stSrcChn.enModId = RK_ID_AVS;
+    stSrcChn.s32DevId = AvsGrp;
+    stSrcChn.s32ChnId = AvsChn;
+
+    stDestChn.enModId = RK_ID_VPSS;
+    stDestChn.s32DevId = VpssGrp;
+    stDestChn.s32ChnId = 0;
+
+    s32Ret = RK_MPI_SYS_UnBind(&stSrcChn, &stDestChn);
+    if (s32Ret != RK_SUCCESS) {
+        RK_LOGE("failed with %#x!", s32Ret);
+        return RK_FAILURE;
+    }
+
+    return s32Ret;
+}
+
+RK_S32 TEST_SYS_AvsBindVo(AVS_GRP AvsGrp, AVS_CHN AvsChn, VO_DEV VoDev, VO_CHN VoChn) {
+    RK_S32 s32Ret = RK_SUCCESS;
+    MPP_CHN_S stSrcChn;
+    MPP_CHN_S stDestChn;
+
+    stSrcChn.enModId = RK_ID_AVS;
+    stSrcChn.s32DevId = AvsGrp;
+    stSrcChn.s32ChnId = AvsChn;
+
+    stDestChn.enModId = RK_ID_VO;
+    stDestChn.s32DevId = VoDev;
+    stDestChn.s32ChnId = VoChn;
+
+    s32Ret = RK_MPI_SYS_Bind(&stSrcChn, &stDestChn);
+    if (s32Ret != RK_SUCCESS) {
+        RK_LOGE("failed with %#x!", s32Ret);
+        return RK_FAILURE;
+    }
+
+    return s32Ret;
+}
+
+RK_S32 TEST_SYS_AvsUnbindVo(AVS_GRP AvsGrp, AVS_CHN AvsChn, VO_DEV VoDev, VO_CHN VoChn) {
+    RK_S32 s32Ret = RK_SUCCESS;
+    MPP_CHN_S stSrcChn;
+    MPP_CHN_S stDestChn;
+
+    stSrcChn.enModId = RK_ID_AVS;
+    stSrcChn.s32DevId = AvsGrp;
+    stSrcChn.s32ChnId = AvsChn;
+
+    stDestChn.enModId = RK_ID_VO;
+    stDestChn.s32DevId = VoDev;
+    stDestChn.s32ChnId = VoChn;
+
+    s32Ret = RK_MPI_SYS_UnBind(&stSrcChn, &stDestChn);
+    if (s32Ret != RK_SUCCESS) {
+        RK_LOGE("failed with %#x!", s32Ret);
+        return RK_FAILURE;
+    }
+
+    return s32Ret;
+}
+
+RK_S32 TEST_SYS_ViBindAvs(VI_DEV ViDev, VI_CHN ViChn, AVS_GRP AvsGrp, AVS_PIPE AvsPipe) {
+    RK_S32 s32Ret = RK_SUCCESS;
+    MPP_CHN_S stSrcChn;
+    MPP_CHN_S stDestChn;
+
+    stSrcChn.enModId = RK_ID_VI;
+    stSrcChn.s32DevId = ViDev;
+    stSrcChn.s32ChnId = ViChn;
+
+    stDestChn.enModId = RK_ID_AVS;
+    stDestChn.s32DevId = AvsGrp;
+    stDestChn.s32ChnId = AvsPipe;
+
+    s32Ret = RK_MPI_SYS_Bind(&stSrcChn, &stDestChn);
+    if (s32Ret != RK_SUCCESS) {
+        RK_LOGE("failed with %#x!", s32Ret);
+        return RK_FAILURE;
+    }
+
+    return s32Ret;
+}
+
+RK_S32 TEST_SYS_ViUnbindAvs(VI_DEV ViDev, VI_CHN ViChn, AVS_GRP AvsGrp, AVS_PIPE AvsPipe) {
+    RK_S32 s32Ret = RK_SUCCESS;
+    MPP_CHN_S stSrcChn;
+    MPP_CHN_S stDestChn;
+
+    stSrcChn.enModId = RK_ID_VI;
+    stSrcChn.s32DevId = ViDev;
+    stSrcChn.s32ChnId = ViChn;
+
+    stDestChn.enModId = RK_ID_AVS;
+    stDestChn.s32DevId = AvsGrp;
+    stDestChn.s32ChnId = AvsPipe;
+
+    s32Ret = RK_MPI_SYS_UnBind(&stSrcChn, &stDestChn);
+    if (s32Ret != RK_SUCCESS) {
+        RK_LOGE("failed with %#x!", s32Ret);
+        return RK_FAILURE;
+    }
+
+    return s32Ret;
+}
+
+RK_S32 TEST_SYS_VpssBindAvs(VPSS_GRP VpssGrp, VPSS_CHN VpssChn, AVS_GRP AvsGrp, AVS_PIPE AvsPipe) {
+    RK_S32 s32Ret = RK_SUCCESS;
+    MPP_CHN_S stSrcChn;
+    MPP_CHN_S stDestChn;
+
+    stSrcChn.enModId = RK_ID_VPSS;
+    stSrcChn.s32DevId = VpssGrp;
+    stSrcChn.s32ChnId = VpssChn;
+
+    stDestChn.enModId = RK_ID_AVS;
+    stDestChn.s32DevId = AvsGrp;
+    stDestChn.s32ChnId = AvsPipe;
+
+    s32Ret = RK_MPI_SYS_Bind(&stSrcChn, &stDestChn);
+    if (s32Ret != RK_SUCCESS) {
+        RK_LOGE("failed with %#x!", s32Ret);
+        return RK_FAILURE;
+    }
+
+    return s32Ret;
+}
+
+RK_S32 TEST_SYS_VpssUnbindAvs(VPSS_GRP VpssGrp, VPSS_CHN VpssChn, AVS_GRP AvsGrp, AVS_PIPE AvsPipe) {
+    RK_S32 s32Ret = RK_SUCCESS;
+    MPP_CHN_S stSrcChn;
+    MPP_CHN_S stDestChn;
+
+    stSrcChn.enModId = RK_ID_VPSS;
+    stSrcChn.s32DevId = VpssGrp;
+    stSrcChn.s32ChnId = VpssChn;
+
+    stDestChn.enModId = RK_ID_AVS;
+    stDestChn.s32DevId = AvsGrp;
+    stDestChn.s32ChnId = AvsPipe;
+
+    s32Ret = RK_MPI_SYS_UnBind(&stSrcChn, &stDestChn);
+    if (s32Ret != RK_SUCCESS) {
+        RK_LOGE("failed with %#x!", s32Ret);
+        return RK_FAILURE;
+    }
+
+    return s32Ret;
+}
+
 RK_S32 TEST_SYS_VpssBindVo(VPSS_GRP VpssGrp, VPSS_CHN VpssChn, VO_DEV VoDev, VO_CHN VoChn) {
     RK_S32 s32Ret = RK_SUCCESS;
     MPP_CHN_S stSrcChn;

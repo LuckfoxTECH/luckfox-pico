@@ -30,8 +30,14 @@ rk_aiq_user_api2_abayertnrV23_SetAttrib(const rk_aiq_sys_ctx_t* sys_ctx, const r
 XCamReturn
 rk_aiq_user_api2_abayertnrV23_GetAttrib(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_bayertnr_attrib_v23_t* attr);
 
-XCamReturn
-rk_aiq_user_api2_abayertnrV23_SetStrength(const rk_aiq_sys_ctx_t* sys_ctx, const rk_aiq_bayertnr_strength_v23_t *pStrength);
+XCamReturn rk_aiq_user_api2_abayertnrV23Lite_SetAttrib(const rk_aiq_sys_ctx_t* sys_ctx,
+                                                       const rk_aiq_bayertnr_attrib_v23L_t* attr);
+
+XCamReturn rk_aiq_user_api2_abayertnrV23Lite_GetAttrib(const rk_aiq_sys_ctx_t* sys_ctx,
+                                                       rk_aiq_bayertnr_attrib_v23L_t* attr);
+
+XCamReturn rk_aiq_user_api2_abayertnrV23_SetStrength(
+    const rk_aiq_sys_ctx_t* sys_ctx, const rk_aiq_bayertnr_strength_v23_t* pStrength);
 
 XCamReturn
 rk_aiq_user_api2_abayertnrV23_GetStrength(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_bayertnr_strength_v23_t *pStrength);

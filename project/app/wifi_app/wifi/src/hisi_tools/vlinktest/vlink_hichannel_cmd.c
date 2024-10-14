@@ -19,10 +19,18 @@
 #define VLINK_SEND_MSG_MAX_LEN		(SYSTEM_CMD_SIZE - 4)
 #define VLINK_SEND_MSG_HEAD_LEN		3
 
+hi_u32 hi_sync_flag = 0;
+pthread_cond_t hi_sync_cond;
+pthread_mutex_t hi_sync_lock;
+
 hi_u32 hi_ota_sync_flag = 0;
 hi_bool ota_trans_ret = HI_TRUE;
 pthread_cond_t hi_ota_sync_cond;
 pthread_mutex_t hi_ota_sync_lock;
+
+hi_u64 hi_utc;
+hi_u32 ifgetutc;
+hi_u32 pir_state;
 
 hi_u32 vlink_hi_channel_cmd_netcfg_info(hi_char* ssid, hi_char* key, hi_char* sendmsg, hi_u32 *sendmsg_len)
 {
@@ -59,7 +67,7 @@ hi_u32 vlink_hi_channel_cmd_netcfg_info(hi_char* ssid, hi_char* key, hi_char* se
 
 	memcpy_s(sendmsg, *sendmsg_len, sendcmdbuf, *sendmsg_len);
 
-	return 0;
+	return HI_TRUE;
 }
 
 hi_u32 vlink_hi_channel_cmd_getmac_info(hi_void)
@@ -85,7 +93,7 @@ hi_u32 vlink_hi_channel_cmd_getmac_info(hi_void)
 		sample_log_print("vlink_hi_channel_cmd_getmac_info--send ok\n");
 	}
 
-	return 0;
+	return HI_TRUE;
 }
 
 hi_u32 vlink_hi_channel_cmd_get_info(hi_void)
@@ -111,7 +119,7 @@ hi_u32 vlink_hi_channel_cmd_get_info(hi_void)
 		pr_info("vlink_hi_channel_cmd_get_info--send ok\n");
 	}
 
-	return 0;
+	return HI_TRUE;
 }
 
 hi_u32 vlink_hi_channel_cmd_getip_info(hi_void)
@@ -137,7 +145,7 @@ hi_u32 vlink_hi_channel_cmd_getip_info(hi_void)
             sample_log_print("vlink_hi_channel_cmd_getip_info--send ok\n");
 	}
 
-	return 0;
+	return HI_TRUE;
 }
 
 hi_u32 vlink_hi_channel_cmd_setfilter_info(hi_char* device)
@@ -179,10 +187,10 @@ hi_u32 vlink_hi_channel_cmd_setfilter_info(hi_char* device)
         } else {
             pr_info("vlink_hi_channel_cmd_setfilter_info--send ok\n");
 	}
-	return 0;
+	return HI_TRUE;
 }
 
-hi_u32 vlink_hi_channel_cmd_keeplive_info(hi_char* serverip, hi_char* port, hi_char* expire)
+hi_u32 vlink_hi_channel_cmd_keeplive_info(hi_char* serverip, hi_char* port, hi_char* expire,hi_char * devid,hi_char * key)
 {
 	hi_u32 datalen = 0;
 	hi_u32 sendmsg_len = 0;
@@ -196,6 +204,8 @@ hi_u32 vlink_hi_channel_cmd_keeplive_info(hi_char* serverip, hi_char* port, hi_c
 	cJSON_AddStringToObject(pJsonRoot, "ip", serverip);
 	cJSON_AddStringToObject(pJsonRoot, "port", port);
 	cJSON_AddStringToObject(pJsonRoot, "expire", expire);
+	cJSON_AddStringToObject(pJsonRoot, "devid", devid);
+	cJSON_AddStringToObject(pJsonRoot, "key", key);
 	pJson = cJSON_Print(pJsonRoot);
 
 	sample_log_print("vlink_hi_channel_cmd_keeplive_info-------pJson[%s]---\n", pJson);
@@ -224,7 +234,7 @@ hi_u32 vlink_hi_channel_cmd_keeplive_info(hi_char* serverip, hi_char* port, hi_c
             pr_info("vlink_hi_channel_cmd_keeplive_info--send ok\n");
 	}
 
-	return 0;
+	return HI_TRUE;
 }
 
 hi_u32 vlink_hi_channel_cmd_reboot(hi_void)
@@ -245,7 +255,7 @@ hi_u32 vlink_hi_channel_cmd_reboot(hi_void)
         pr_info("vlink_hi_channel_cmd_reboot--send ok\n");
     }
 
-    return 0;
+    return HI_TRUE;
 }
 
 hi_u32 vlink_hi_channel_cmd_sta_disconnect(hi_void)
@@ -266,7 +276,7 @@ hi_u32 vlink_hi_channel_cmd_sta_disconnect(hi_void)
         pr_info("vlink_hi_channel_cmd_sta_disconnect--send ok\n");
     }
 
-    return 0;
+    return HI_TRUE;
 }
 
 hi_u32 vlink_hi_channel_cmd_deepsleep_info(hi_void)
@@ -291,7 +301,7 @@ hi_u32 vlink_hi_channel_cmd_deepsleep_info(hi_void)
             pr_info("vlink_hi_channel_cmd_deepsleep_info--send ok\n");
 	}
 
-	return 0;
+	return HI_TRUE;
 }
 
 hi_u32 vlink_hi_channel_cmd_startap_info(hi_void)
@@ -316,7 +326,7 @@ hi_u32 vlink_hi_channel_cmd_startap_info(hi_void)
             sample_log_print("vlink_hi_channel_cmd_startap_info--send ok\n");
 	}
 
-	return 0;
+	return HI_TRUE;
 }
 
 hi_u32 vlink_hi_channel_cmd_startota(hi_void)
@@ -344,7 +354,7 @@ hi_u32 vlink_hi_channel_cmd_startota(hi_void)
             sample_log_print("vlink_hi_channel_cmd_startota--send ok\n");
 	}
 
-	return 0;
+	return HI_TRUE;
 }
 
 
@@ -371,7 +381,7 @@ hi_u32 vlink_hi_channel_cmd_getrssi_info(hi_void)
         } else {
             pr_info("vlink_hi_channel_cmd_getrssi_info--send ok\n");
 	}
-	return 0;
+	return HI_TRUE;
 }
 
 hi_u32 vlink_hi_channel_cmd_getversion_info(hi_void)
@@ -395,7 +405,7 @@ hi_u32 vlink_hi_channel_cmd_getversion_info(hi_void)
         } else {
             pr_info("vlink_hi_channel_cmd_getversion_info--send ok\n");
 	}
-	return 0;
+	return HI_TRUE;
 }
 
 hi_u32 vlink_hi_channel_cmd_getwakecode_info(hi_void)
@@ -419,7 +429,7 @@ hi_u32 vlink_hi_channel_cmd_getwakecode_info(hi_void)
         } else {
             pr_info("vlink_hi_channel_cmd_getwakecode_info--send ok\n");
 	}
-	return 0;
+	return HI_TRUE;
 }
 
 hi_u32 vlink_hi_channel_cmd_factoryreset_info(hi_void)
@@ -443,31 +453,8 @@ hi_u32 vlink_hi_channel_cmd_factoryreset_info(hi_void)
         } else {
             pr_info("vlink_hi_channel_cmd_factoryreset_info--send ok\n");
 	}
-	return 0;
-}
 
-hi_u32 vlink_hi_channel_cmd_getpir_info(hi_void)
-{
-
-	hi_u32 datalen = 0;
-	hi_u32 sendmsg_len = 0;
-	//cmd 1-byte, len 2-bytes, data 380
-	unsigned char sendcmdbuf[VLINK_SEND_MSG_MAX_LEN] = {0};
-
-	sendcmdbuf[0] = CMD_SENDMSG_PIR_GET;
-	sendcmdbuf[1] = (datalen >> 8) & 0xFF;
-	sendcmdbuf[2] = datalen & 0xFF;	
-
-	sendmsg_len = datalen + VLINK_SEND_MSG_HEAD_LEN;
-
-	sample_log_print("vlink_hi_channel_cmd_getpir_info-------sendcmdbuf-[%02X]-[%02X]-[%02X]-\n", sendcmdbuf[0], sendcmdbuf[1], sendcmdbuf[2]);
-
-        if (hi_channel_send_to_dev(sendcmdbuf, sendmsg_len) != HI_SUCCESS) {
-            pr_info("vlink_hi_channel_cmd_getpir_info--send fail\n");
-        } else {
-            pr_info("vlink_hi_channel_cmd_getpir_info--send ok\n");
-	}
-	return 0;
+	return HI_TRUE;
 }
 
 hi_u32 vlink_hi_channel_cmd_setpir_info(hi_u8 enable)
@@ -516,7 +503,7 @@ hi_u32 vlink_hi_channel_cmd_setpir_info(hi_u8 enable)
         } else {
             pr_info("vlink_hi_channel_cmd_setpir_info--send ok\n");
 	}
-	return 0;
+	return HI_TRUE;
 }
 
 
@@ -567,7 +554,7 @@ hi_u32 vlink_hi_channel_cmd_settuya_info(hi_void)
         } else {
             sample_log_print("vlink_hi_channel_cmd_setpir_info--send ok\n");
 	}
-	return 0;
+	return HI_TRUE;
 }
 
 hi_u32 vlink_hi_channel_cmd_getall_info(hi_void)
@@ -593,7 +580,7 @@ hi_u32 vlink_hi_channel_cmd_getall_info(hi_void)
         sample_log_print("vlink_hi_channel_cmd_getall_info--send ok\n");
     }
 
-    return 0;
+    return HI_TRUE;
 }
 
 hi_u32 vlink_hi_channel_cmd_clrpir_info(hi_void)
@@ -619,7 +606,113 @@ hi_u32 vlink_hi_channel_cmd_clrpir_info(hi_void)
         sample_log_print("vlink_hi_channel_cmd_clrpir_info--send ok\n");
     }
 
-    return 0;
+    return HI_TRUE;
+}
+
+hi_u32 vlink_hi_channel_cmd_lpevent(hi_u32 type)
+{
+	cJSON * pJsonRoot = NULL;
+	cJSON *pJson = NULL;
+	hi_u32 datalen = 0;
+	hi_u32 sendmsg_len = 0;
+	hi_u32 ret;
+	char ptype[10];
+	memset(ptype,10,0);
+	//cmd 1-byte, len 2-bytes, data 380
+	unsigned char sendcmdbuf[VLINK_SEND_MSG_MAX_LEN] = {0};
+	snprintf(ptype,10,"%d",type);
+	pJsonRoot = cJSON_CreateObject();
+	cJSON_AddStringToObject(pJsonRoot, "type", ptype);
+	pJson = cJSON_Print(pJsonRoot);
+
+	sample_log_print("vlink_hi_channel_lpevent_info-----------pJson[%s]-len[%d]--\n", pJson, strlen(pJson));
+	datalen = strlen(pJson);
+
+	sendcmdbuf[0] = CMD_SENDMSG_LPEVENT;
+	sendcmdbuf[1] = (datalen >> 8) & 0xFF;
+	sendcmdbuf[2] = datalen & 0xFF;
+
+	sample_log_print("vlink_hi_channel_lpevent_info-------sendcmdbuf-[%02X]-[%02X]-[%02X]-\n", sendcmdbuf[0], sendcmdbuf[1], sendcmdbuf[2]);
+
+	memcpy_s(&sendcmdbuf[VLINK_SEND_MSG_HEAD_LEN], datalen, pJson, datalen);
+	sendmsg_len = VLINK_SEND_MSG_HEAD_LEN + datalen;
+
+	if (hi_channel_send_to_dev(sendcmdbuf, sendmsg_len) != HI_SUCCESS) {
+		ret = 0;
+		sample_log_print("vlink_hi_channel_cmd_lpevent--send fail\n");
+	} else {
+		ret = 1 ;
+		sample_log_print("vlink_hi_channel_cmd_lpevent--send ok\n");
+	}
+	free(pJson);
+	cJSON_Delete(pJsonRoot);
+	return ret;
+}
+
+hi_u32 vlink_hi_channel_cmd_utc(unsigned long long * res)
+{
+	cJSON * pJsonRoot = NULL;
+	cJSON *pJson = NULL;
+	hi_u32 datalen = 0;
+	hi_u32 sendmsg_len = 0;
+	hi_u32 ret;
+	unsigned char sendcmdbuf[VLINK_SEND_MSG_MAX_LEN] = {0};
+	pJsonRoot = cJSON_CreateObject();
+	pJson = cJSON_Print(pJsonRoot);
+	sample_log_print("vlink_hi_channel_utc_info-----------pJson[%s]-len[%d]--\n", pJson, strlen(pJson));
+	datalen = strlen(pJson);
+	sendcmdbuf[0] = CMD_SENDMSG_GET_UTC;
+	sendcmdbuf[1] = (datalen >> 8) & 0xFF;
+	sendcmdbuf[2] = datalen & 0xFF;
+
+	sample_log_print("vlink_hi_channel_utc_info-------sendcmdbuf-[%02X]-[%02X]-[%02X]-\n", sendcmdbuf[0], sendcmdbuf[1], sendcmdbuf[2]);
+
+	memcpy_s(&sendcmdbuf[VLINK_SEND_MSG_HEAD_LEN], datalen, pJson, datalen);
+	sendmsg_len = VLINK_SEND_MSG_HEAD_LEN + datalen;
+
+	if (hi_channel_send_to_dev(sendcmdbuf, sendmsg_len) != HI_SUCCESS) {
+		ret = 0;
+		sample_log_print("vlink_hi_channel_cmd_utc--send fail\n");
+	} else {
+		ret = 1;
+		sample_log_print("vlink_hi_channel_cmd_utc--send ok\n");
+	}
+	free(pJson);
+	cJSON_Delete(pJsonRoot);
+	if  (ret == 1) {
+
+		while (hi_sync_flag==0){
+		pthread_cond_wait(&hi_sync_cond,&hi_sync_lock);
+		}
+		pthread_mutex_unlock(&hi_sync_lock);
+	}
+	hi_sync_flag = 0;
+	*res = hi_utc;
+	return ifgetutc;
+}
+
+hi_u32 vlink_hi_channel_cmd_reset()
+{
+	hi_u32 datalen = 0;
+	hi_u32 sendmsg_len = 0;
+	//cmd 1-byte, len 2-bytes, data 380
+	unsigned char sendcmdbuf[VLINK_SEND_MSG_MAX_LEN] = {0};
+
+	sendcmdbuf[0] = CMD_SENDMSG_FACTORY_RESET;
+	sendcmdbuf[1] = (datalen >> 8) & 0xFF;
+	sendcmdbuf[2] = datalen & 0xFF;
+
+	sendmsg_len = datalen + VLINK_SEND_MSG_HEAD_LEN;
+
+	sample_log_print("vlink_hi_channel_cmd_factory_reset-------sendcmdbuf-[%02X]-[%02X]-[%02X]-\n", sendcmdbuf[0], sendcmdbuf[1], sendcmdbuf[2]);
+
+	if (hi_channel_send_to_dev(sendcmdbuf, sendmsg_len) != HI_SUCCESS) {
+		sample_log_print("vvlink_hi_channel_cmd_factory_reset---send fail\n");
+	} else {
+		sample_log_print("vlink_hi_channel_cmd_factory_reset---send ok\n");
+	}
+
+	return HI_TRUE;
 }
 
 hi_u32 vlink_hi_channel_cmd_ota(hi_char * path)
@@ -631,19 +724,19 @@ hi_u32 vlink_hi_channel_cmd_ota(hi_char * path)
 	hi_u32 times = 0;
 	if (pthread_cond_init(&hi_ota_sync_cond,NULL)!=0 || pthread_mutex_init(&hi_ota_sync_lock,NULL)) {
 		sample_log_print("get ota sync mutex or condition init failed \n");
-		return 0;
+		return HI_FALSE;
 	}
 	sendbuf = malloc(MAX_SEND_DATA_SIZE);
 	if (sendbuf == NULL) {
 		printf("failed to alloc mem for ota \n");
 		free(sendbuf);
-		return 0;
+		return HI_FALSE;
 	}
 	fp = fopen(path,"r");
 	if ( fp == NULL ) {
 		sample_log_print("failed to open %s \n",path);
 		free(sendbuf);
-		return 0;
+		return HI_FALSE;
 	}
 	sendbuf[0] = CMD_SENDMSG_OTADATA;
 	datalen=fread(&sendbuf[3],1,MAX_SEND_DATA_SIZE-100,fp);
@@ -692,6 +785,68 @@ hi_u32 vlink_hi_channel_cmd_ota(hi_char * path)
 	}
 	free(sendbuf);
 	sleep(10);//wait for wifi ota process
-	return 1;
+	return HI_TRUE;
 
+}
+
+vlink_hi_channel_cmd_exit_deepsleep()
+{
+	hi_u32 datalen = 0;
+	hi_u32 sendmsg_len = 0;
+	//cmd 1-byte, len 2-bytes, data 380
+	unsigned char sendcmdbuf[VLINK_SEND_MSG_MAX_LEN] = {0};
+
+	//memset(sendcmdbuf, 0, VLINK_SEND_MSG_MAX_LEN);
+
+	sendcmdbuf[0] = CMD_SENDMSG_STANDBY;
+	sendcmdbuf[1] = (datalen >> 8) & 0xFF;
+	sendcmdbuf[2] = datalen & 0xFF;
+
+	sendmsg_len = datalen + VLINK_SEND_MSG_HEAD_LEN;
+
+	sample_log_print("vlink_hi_channel_cmd_standby_info-------sendcmdbuf-[%02X]-[%02X]-[%02X]-\n", sendcmdbuf[0], sendcmdbuf[1], sendcmdbuf[2]);
+
+	if (hi_channel_send_to_dev(sendcmdbuf, sendmsg_len) != HI_SUCCESS) {
+		sample_log_print("vlink_hi_channel_cmd_standby_info--send fail\n");
+		return HI_FALSE;
+	} else {
+		sample_log_print("vlink_hi_channel_cmd_standby_info--send ok\n");
+	}
+	return HI_TRUE;
+}
+
+hi_u32 vlink_hi_channel_cmd_getpir_info(hi_u32 *pir_ret)
+{
+	hi_u32 datalen = 0;
+	hi_u32 sendmsg_len = 0;
+	hi_u32 ret;
+	//cmd 1-byte, len 2-bytes, data 380
+	unsigned char sendcmdbuf[VLINK_SEND_MSG_MAX_LEN] = {0};
+
+	//memset(sendcmdbuf, 0, VLINK_SEND_MSG_MAX_LEN);
+
+	sendcmdbuf[0] = CMD_SENDMSG_PIR_GET;
+	sendcmdbuf[1] = (datalen >> 8) & 0xFF;
+	sendcmdbuf[2] = datalen & 0xFF;
+
+	sendmsg_len = datalen + VLINK_SEND_MSG_HEAD_LEN;
+
+	sample_log_print("vlink_hi_channel_cmd_getpir_info-------sendcmdbuf-[%02X]-[%02X]-[%02X]-\n", sendcmdbuf[0], sendcmdbuf[1], sendcmdbuf[2]);
+
+    if (hi_channel_send_to_dev(sendcmdbuf, sendmsg_len) != HI_SUCCESS) {
+		ret = 0;
+		sample_log_print("vlink_hi_channel_cmd_getpir_info--send fail\n");
+	} else {
+		ret = 1;
+		sample_log_print("vlink_hi_channel_cmd_getpir_info--send ok\n");
+	}
+	if (ret == 1) {
+		while (hi_sync_flag==0){
+			pthread_cond_wait(&hi_sync_cond,&hi_sync_lock);
+		}
+		pthread_mutex_unlock(&hi_sync_lock);
+		hi_sync_flag = 0;
+	}
+	*pir_ret = pir_state;
+	return ret;
 }

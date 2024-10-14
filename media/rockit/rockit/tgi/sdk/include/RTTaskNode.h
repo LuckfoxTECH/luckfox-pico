@@ -17,23 +17,22 @@
 #ifndef SRC_RT_TASK_TASK_GRAPH_RTTASKNODE_H_
 #define SRC_RT_TASK_TASK_GRAPH_RTTASKNODE_H_
 
+#include "rt_metadata.h"
 #include "RTTaskNodeBase.h"
 #include "RTTaskNodeContext.h"
-#include "rt_metadata.h"
 
 class RTTaskNode : public RTTaskNodeBase {
-public:
-  RTTaskNode();
-  virtual ~RTTaskNode();
-
-public:
-  virtual RT_RET open(RTTaskNodeContext *context) = 0;
-  virtual RT_RET process(RTTaskNodeContext *context) = 0;
-  virtual RT_RET close(RTTaskNodeContext *context) = 0;
-  virtual RT_RET invoke(RtMetaData *meta);
-
-protected:
-  virtual RT_RET initSupportOptions();
-  virtual RT_RET invokeInternal(RtMetaData *meta);
+ public:
+    RTTaskNode();
+    virtual ~RTTaskNode();
+ public:
+    virtual RT_RET      open(RTTaskNodeContext *context) = 0;
+    virtual RT_RET      process(RTTaskNodeContext *context) = 0;
+    virtual RT_RET      close(RTTaskNodeContext *context) = 0;
+    virtual RT_RET      invoke(RtMetaData *meta);
+ protected:
+    virtual RT_RET      initSupportOptions();
+    virtual RT_RET      invokeInternal(RtMetaData *meta);
 };
-#endif // SRC_RT_TASK_TASK_GRAPH_RTTASKNODE_H_
+#endif  // SRC_RT_TASK_TASK_GRAPH_RTTASKNODE_H_
+

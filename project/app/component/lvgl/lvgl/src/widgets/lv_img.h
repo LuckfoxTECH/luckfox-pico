@@ -18,8 +18,8 @@ extern "C" {
 #if LV_USE_IMG != 0
 
 #include "../core/lv_obj.h"
-#include "../draw/lv_draw.h"
 #include "../misc/lv_fs.h"
+#include "../draw/lv_draw.h"
 
 /*********************
  *      DEFINES
@@ -33,20 +33,18 @@ extern "C" {
  * Data of image
  */
 typedef struct {
-  lv_obj_t obj;
-  const void *src; /*Image source: Pointer to an array or a file or a symbol*/
-  lv_point_t offset;
-  lv_coord_t w;         /*Width of the image (Handled by the library)*/
-  lv_coord_t h;         /*Height of the image (Handled by the library)*/
-  uint16_t angle;       /*rotation angle of the image*/
-  lv_point_t pivot;     /*rotation center of the image*/
-  uint16_t zoom;        /*256 means no zoom, 512 double size, 128 half size*/
-  uint8_t src_type : 2; /*See: lv_img_src_t*/
-  uint8_t cf : 5;       /*Color format from `lv_img_color_format_t`*/
-  uint8_t
-      antialias : 1; /*Apply anti-aliasing in transformations (rotate, zoom)*/
-  uint8_t obj_size_mode : 2; /*Image size mode when image size and object size
-                                is different.*/
+    lv_obj_t obj;
+    const void * src; /*Image source: Pointer to an array or a file or a symbol*/
+    lv_point_t offset;
+    lv_coord_t w;          /*Width of the image (Handled by the library)*/
+    lv_coord_t h;          /*Height of the image (Handled by the library)*/
+    uint16_t angle;    /*rotation angle of the image*/
+    lv_point_t pivot;     /*rotation center of the image*/
+    uint16_t zoom;         /*256 means no zoom, 512 double size, 128 half size*/
+    uint8_t src_type : 2;  /*See: lv_img_src_t*/
+    uint8_t cf : 5;        /*Color format from `lv_img_color_format_t`*/
+    uint8_t antialias : 1; /*Apply anti-aliasing in transformations (rotate, zoom)*/
+    uint8_t obj_size_mode: 2; /*Image size mode when image size and object size is different.*/
 } lv_img_t;
 
 extern const lv_obj_class_t lv_img_class;
@@ -55,15 +53,15 @@ extern const lv_obj_class_t lv_img_class;
  * Image size mode, when image size and object size is different
  */
 enum {
-  /** Zoom doesn't affect the coordinates of the object,
-   *  however if zoomed in the image is drawn out of the its coordinates.
-   *  The layout's won't change on zoom */
-  LV_IMG_SIZE_MODE_VIRTUAL = 0,
+    /** Zoom doesn't affect the coordinates of the object,
+     *  however if zoomed in the image is drawn out of the its coordinates.
+     *  The layout's won't change on zoom */
+    LV_IMG_SIZE_MODE_VIRTUAL = 0,
 
-  /** If the object size is set to SIZE_CONTENT, then object size equals zoomed
-   * image size. It causes layout recalculation. If the object size is set
-   * explicitly, the image will be cropped when zoomed in.*/
-  LV_IMG_SIZE_MODE_REAL,
+    /** If the object size is set to SIZE_CONTENT, then object size equals zoomed image size.
+     *  It causes layout recalculation.
+     *  If the object size is set explicitly, the image will be cropped when zoomed in.*/
+    LV_IMG_SIZE_MODE_REAL,
 };
 
 typedef uint8_t lv_img_size_mode_t;
@@ -77,7 +75,7 @@ typedef uint8_t lv_img_size_mode_t;
  * @param parent pointer to an object, it will be the parent of the new image
  * @return pointer to the created image
  */
-lv_obj_t *lv_img_create(lv_obj_t *parent);
+lv_obj_t * lv_img_create(lv_obj_t * parent);
 
 /*=====================
  * Setter functions
@@ -86,19 +84,18 @@ lv_obj_t *lv_img_create(lv_obj_t *parent);
 /**
  * Set the image data to display on the object
  * @param obj       pointer to an image object
- * @param src_img   1) pointer to an ::lv_img_dsc_t descriptor (converted by
- * LVGL's image converter) (e.g. &my_img) or 2) path to an image file (e.g.
- * "S:/dir/img.bin")or 3) a SYMBOL (e.g. LV_SYMBOL_OK)
+ * @param src_img   1) pointer to an ::lv_img_dsc_t descriptor (converted by LVGL's image converter) (e.g. &my_img) or
+ *                  2) path to an image file (e.g. "S:/dir/img.bin")or
+ *                  3) a SYMBOL (e.g. LV_SYMBOL_OK)
  */
-void lv_img_set_src(lv_obj_t *obj, const void *src);
+void lv_img_set_src(lv_obj_t * obj, const void * src);
 
 /**
- * Set an offset for the source of an image so the image will be displayed from
- * the new origin.
+ * Set an offset for the source of an image so the image will be displayed from the new origin.
  * @param obj       pointer to an image
  * @param x         the new offset along x axis.
  */
-void lv_img_set_offset_x(lv_obj_t *obj, lv_coord_t x);
+void lv_img_set_offset_x(lv_obj_t * obj, lv_coord_t x);
 
 /**
  * Set an offset for the source of an image.
@@ -106,16 +103,16 @@ void lv_img_set_offset_x(lv_obj_t *obj, lv_coord_t x);
  * @param obj       pointer to an image
  * @param y         the new offset along y axis.
  */
-void lv_img_set_offset_y(lv_obj_t *obj, lv_coord_t y);
+void lv_img_set_offset_y(lv_obj_t * obj, lv_coord_t y);
+
 
 /**
  * Set the rotation angle of the image.
  * The image will be rotated around the set pivot set by `lv_img_set_pivot()`
  * @param obj       pointer to an image object
- * @param angle     rotation angle in degree with 0.1 degree resolution
- * (0..3600: clock wise)
+ * @param angle     rotation angle in degree with 0.1 degree resolution (0..3600: clock wise)
  */
-void lv_img_set_angle(lv_obj_t *obj, int16_t angle);
+void lv_img_set_angle(lv_obj_t * obj, int16_t angle);
 
 /**
  * Set the rotation center of the image.
@@ -124,7 +121,8 @@ void lv_img_set_angle(lv_obj_t *obj, int16_t angle);
  * @param x         rotation center x of the image
  * @param y         rotation center y of the image
  */
-void lv_img_set_pivot(lv_obj_t *obj, lv_coord_t x, lv_coord_t y);
+void lv_img_set_pivot(lv_obj_t * obj, lv_coord_t x, lv_coord_t y);
+
 
 /**
  * Set the zoom factor of the image.
@@ -136,7 +134,7 @@ void lv_img_set_pivot(lv_obj_t *obj, lv_coord_t x, lv_coord_t y);
  * @example 128 half size
  * @example 512 double size
  */
-void lv_img_set_zoom(lv_obj_t *obj, uint16_t zoom);
+void lv_img_set_zoom(lv_obj_t * obj, uint16_t zoom);
 
 /**
  * Enable/disable anti-aliasing for the transformations (rotate, zoom) or not.
@@ -144,7 +142,7 @@ void lv_img_set_zoom(lv_obj_t *obj, uint16_t zoom);
  * @param obj       pointer to an image object
  * @param antialias true: anti-aliased; false: not anti-aliased
  */
-void lv_img_set_antialias(lv_obj_t *obj, bool antialias);
+void lv_img_set_antialias(lv_obj_t * obj, bool antialias);
 
 /**
  * Set the image object size mode.
@@ -152,7 +150,7 @@ void lv_img_set_antialias(lv_obj_t *obj, bool antialias);
  * @param obj       pointer to an image object
  * @param mode      the new size mode.
  */
-void lv_img_set_size_mode(lv_obj_t *obj, lv_img_size_mode_t mode);
+void lv_img_set_size_mode(lv_obj_t * obj, lv_img_size_mode_t mode);
 /*=====================
  * Getter functions
  *====================*/
@@ -160,59 +158,58 @@ void lv_img_set_size_mode(lv_obj_t *obj, lv_img_size_mode_t mode);
 /**
  * Get the source of the image
  * @param obj       pointer to an image object
- * @return          the image source (symbol, file name or ::lv-img_dsc_t for C
- * arrays)
+ * @return          the image source (symbol, file name or ::lv-img_dsc_t for C arrays)
  */
-const void *lv_img_get_src(lv_obj_t *obj);
+const void * lv_img_get_src(lv_obj_t * obj);
 
 /**
  * Get the offset's x attribute of the image object.
  * @param img       pointer to an image
  * @return          offset X value.
  */
-lv_coord_t lv_img_get_offset_x(lv_obj_t *obj);
+lv_coord_t lv_img_get_offset_x(lv_obj_t * obj);
 
 /**
  * Get the offset's y attribute of the image object.
  * @param obj       pointer to an image
  * @return          offset Y value.
  */
-lv_coord_t lv_img_get_offset_y(lv_obj_t *obj);
+lv_coord_t lv_img_get_offset_y(lv_obj_t * obj);
 
 /**
  * Get the rotation angle of the image.
  * @param obj       pointer to an image object
  * @return      rotation angle in 0.1 degrees (0..3600)
  */
-uint16_t lv_img_get_angle(lv_obj_t *obj);
+uint16_t lv_img_get_angle(lv_obj_t * obj);
 
 /**
  * Get the pivot (rotation center) of the image.
  * @param img       pointer to an image object
  * @param pivot     store the rotation center here
  */
-void lv_img_get_pivot(lv_obj_t *obj, lv_point_t *pivot);
+void lv_img_get_pivot(lv_obj_t * obj, lv_point_t * pivot);
 
 /**
  * Get the zoom factor of the image.
  * @param obj       pointer to an image object
  * @return          zoom factor (256: no zoom)
  */
-uint16_t lv_img_get_zoom(lv_obj_t *obj);
+uint16_t lv_img_get_zoom(lv_obj_t * obj);
 
 /**
  * Get whether the transformations (rotate, zoom) are anti-aliased or not
  * @param obj       pointer to an image object
  * @return          true: anti-aliased; false: not anti-aliased
  */
-bool lv_img_get_antialias(lv_obj_t *obj);
+bool lv_img_get_antialias(lv_obj_t * obj);
 
 /**
  * Get the size mode of the image
  * @param obj       pointer to an image object
  * @return          element of @ref lv_img_size_mode_t
  */
-lv_img_size_mode_t lv_img_get_size_mode(lv_obj_t *obj);
+lv_img_size_mode_t lv_img_get_size_mode(lv_obj_t * obj);
 
 /**********************
  *      MACROS

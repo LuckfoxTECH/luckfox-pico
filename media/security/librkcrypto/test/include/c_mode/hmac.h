@@ -7,7 +7,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *    notice, this list of conditions and the following disclaimer. 
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -52,31 +52,26 @@
 #ifndef __HMAC_H__
 #define __HMAC_H__
 
-#ifdef __cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
 
-int rk_hmac_md5(const unsigned char *key, unsigned int key_len,
-                const unsigned char *in, unsigned int in_len,
-                unsigned char *out, unsigned int *out_len);
+int rk_hmac_md5(const unsigned char *key, unsigned int key_len, const unsigned char *in,
+		unsigned int in_len, unsigned char *out, unsigned int *out_len);
 
-int rk_hmac_sha1(const unsigned char *key, unsigned int key_len,
-                 const unsigned char *in, unsigned int in_len,
-                 unsigned char *out, unsigned int *out_len);
+int rk_hmac_sha1(const unsigned char *key, unsigned int key_len, const unsigned char *in,
+		 unsigned int in_len, unsigned char *out, unsigned int *out_len);
 
-int rk_hmac_sha256(const unsigned char *key, unsigned int key_len,
-                   const unsigned char *in, unsigned int in_len,
-                   unsigned char *out, unsigned int *out_len);
+int rk_hmac_sha256(const unsigned char *key, unsigned int key_len, const unsigned char *in,
+		   unsigned int in_len, unsigned char *out, unsigned int *out_len);
 
-int rk_hmac_sha512(const unsigned char *key, unsigned int key_len,
-                   const unsigned char *in, unsigned int in_len,
-                   unsigned char *out, unsigned int *out_len);
+int rk_hmac_sha512(const unsigned char *key, unsigned int key_len, const unsigned char *in,
+		   unsigned int in_len, unsigned char *out, unsigned int *out_len);
 
-int rk_hmac_sm3(const unsigned char *key, unsigned int key_len,
-                const unsigned char *in, unsigned int in_len,
-                unsigned char *out, unsigned int *out_len);
+int rk_hmac_sm3(const unsigned char *key, unsigned int key_len, const unsigned char *in,
+		unsigned int in_len, unsigned char *out, unsigned int *out_len);
 
-#ifdef __cplusplus
+#ifdef  __cplusplus
 }
 #endif
 

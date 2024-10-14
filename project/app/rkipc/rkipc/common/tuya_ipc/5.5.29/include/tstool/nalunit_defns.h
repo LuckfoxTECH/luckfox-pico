@@ -54,20 +54,33 @@ enum NAL_UNIT_TYPE {
 };
 
 #define NAL_UNIT_TYPE_STR(a)                                                                       \
-	((a) == NAL_UNSPECIFIED         ? "unspecified"                                                \
-	 : (a) == NAL_NON_IDR           ? "non-IDR"                                                    \
-	 : (a) == NAL_PARTITION_A       ? "partition A"                                                \
-	 : (a) == NAL_PARTITION_B       ? "partition B"                                                \
-	 : (a) == NAL_PARTITION_C       ? "partition C"                                                \
-	 : (a) == NAL_IDR               ? "IDR"                                                        \
-	 : (a) == NAL_SEI               ? "SEI"                                                        \
-	 : (a) == NAL_SEQ_PARAM_SET     ? "seq param set"                                              \
-	 : (a) == NAL_PIC_PARAM_SET     ? "pic param set"                                              \
-	 : (a) == NAL_ACCESS_UNIT_DELIM ? "access unit delim"                                          \
-	 : (a) == NAL_END_OF_SEQ        ? "end of seq"                                                 \
-	 : (a) == NAL_END_OF_STREAM     ? "end of stream"                                              \
-	 : (a) == NAL_FILLER            ? "filler"                                                     \
-	                                : "???")
+	((a) == NAL_UNSPECIFIED                                                                        \
+	     ? "unspecified"                                                                           \
+	     : (a) == NAL_NON_IDR                                                                      \
+	           ? "non-IDR"                                                                         \
+	           : (a) == NAL_PARTITION_A                                                            \
+	                 ? "partition A"                                                               \
+	                 : (a) == NAL_PARTITION_B                                                      \
+	                       ? "partition B"                                                         \
+	                       : (a) == NAL_PARTITION_C                                                \
+	                             ? "partition C"                                                   \
+	                             : (a) == NAL_IDR                                                  \
+	                                   ? "IDR"                                                     \
+	                                   : (a) == NAL_SEI                                            \
+	                                         ? "SEI"                                               \
+	                                         : (a) == NAL_SEQ_PARAM_SET                            \
+	                                               ? "seq param set"                               \
+	                                               : (a) == NAL_PIC_PARAM_SET                      \
+	                                                     ? "pic param set"                         \
+	                                                     : (a) == NAL_ACCESS_UNIT_DELIM            \
+	                                                           ? "access unit delim"               \
+	                                                           : (a) == NAL_END_OF_SEQ             \
+	                                                                 ? "end of seq"                \
+	                                                                 : (a) == NAL_END_OF_STREAM    \
+	                                                                       ? "end of stream"       \
+	                                                                       : (a) == NAL_FILLER     \
+	                                                                             ? "filler"        \
+	                                                                             : "???")
 
 #define SLICE_P 0
 #define SLICE_B 1
@@ -81,17 +94,25 @@ enum NAL_UNIT_TYPE {
 #define ALL_SLICES_SI 9
 
 #define NAL_SLICE_TYPE_STR(a)                                                                      \
-	((a) == SLICE_P         ? "First P"                                                            \
-	 : (a) == SLICE_B       ? "First B"                                                            \
-	 : (a) == SLICE_I       ? "First I"                                                            \
-	 : (a) == SLICE_SP      ? "First SP"                                                           \
-	 : (a) == SLICE_SI      ? "First SI"                                                           \
-	 : (a) == ALL_SLICES_P  ? "All P"                                                              \
-	 : (a) == ALL_SLICES_B  ? "All B"                                                              \
-	 : (a) == ALL_SLICES_I  ? "All I"                                                              \
-	 : (a) == ALL_SLICES_SP ? "All SP"                                                             \
-	 : (a) == ALL_SLICES_SI ? "All SI"                                                             \
-	                        : "??")
+	((a) == SLICE_P                                                                                \
+	     ? "First P"                                                                               \
+	     : (a) == SLICE_B                                                                          \
+	           ? "First B"                                                                         \
+	           : (a) == SLICE_I                                                                    \
+	                 ? "First I"                                                                   \
+	                 : (a) == SLICE_SP                                                             \
+	                       ? "First SP"                                                            \
+	                       : (a) == SLICE_SI                                                       \
+	                             ? "First SI"                                                      \
+	                             : (a) == ALL_SLICES_P                                             \
+	                                   ? "All P"                                                   \
+	                                   : (a) == ALL_SLICES_B                                       \
+	                                         ? "All B"                                             \
+	                                         : (a) == ALL_SLICES_I                                 \
+	                                               ? "All I"                                       \
+	                                               : (a) == ALL_SLICES_SP                          \
+	                                                     ? "All SP"                                \
+	                                                     : (a) == ALL_SLICES_SI ? "All SI" : "??")
 
 // ------------------------------------------------------------
 // Datastructures

@@ -121,7 +121,11 @@ void ieee80211_notify_channel_change(struct ieee80211_local *local,
 			struct ieee80211_sub_if_data *sdata)
 {
 	if (local->hw.flags & IEEE80211_HW_SUPPORTS_MULTI_CHANNEL) {
-		BUG_ON(!sdata);
+		//BUG_ON(!sdata);
+		if(!sdata){
+			atbm_printk_err("%s %d ,ERROR !!! sdata is NULL\n",__func__,__LINE__);
+			return;
+		}
 		ieee80211_bss_info_change_notify(sdata, BSS_CHANGED_CHANNEL);
 	} else {
 		ieee80211_hw_config(local, IEEE80211_CONF_CHANGE_CHANNEL);
@@ -139,9 +143,15 @@ static struct ieee80211_channel *ieee80211_recalc_channel(
 	u32 offchannel_flag;
 	bool multi_channel;
 
-	BUG_ON(local && sdata);
-	BUG_ON(!local && !sdata);
+//	BUG_ON(local && sdata);
+//	BUG_ON(!local && !sdata);
 
+	if((local && sdata) || (!local && !sdata)){
+		atbm_printk_err("%s %d ,ERROR !!! local = %p sdata=%p\n",__func__,__LINE__,local,sdata);
+		return NULL;
+	}
+
+	
 	multi_channel = sdata ? true : false;
 	local = local ? local : sdata->local;
 	scan_chan = local->scan_channel;
@@ -151,7 +161,11 @@ static struct ieee80211_channel *ieee80211_recalc_channel(
 			scan_chan = NULL;
 		chan_state = &sdata->chan_state;
 	} else if (scan_chan) {
-		BUG_ON(!local->scan_sdata);
+	//	BUG_ON(!local->scan_sdata);
+		if(!local->scan_sdata){
+			atbm_printk_err("%s %d ,ERROR !!! local->scan_sdata is NULL\n",__func__,__LINE__);
+			return NULL;
+		}
 		chan_state = &local->scan_sdata->chan_state;
 	} else {
 		chan_state = &local->chan_state;
@@ -1440,7 +1454,11 @@ bool ieee80211_special_freq_update(struct ieee80211_local *local,struct ieee8021
 	}
 
 	
-	BUG_ON(freq_node_target == NULL);
+	//BUG_ON(freq_node_target == NULL);
+	if(freq_node_target == NULL){
+		atbm_printk_err("%s %d ,ERROR !!! freq_node_target is NULL\n",__func__,__LINE__);
+		return false;
+	}
 	freq_node_target->channel = special->channel;
 	freq_node_target->freq    = special->freq;
 	
@@ -1515,6 +1533,77 @@ static void ieee80211_name_free(struct ieee80211_local *local)
 	}
 	spin_unlock_bh(&local->ieee80211_name_lock);
 }
+//#include <net/regulatory.h>
+//#include <net/wireless/reg.h>
+
+
+int country_chan_found(const char *country)
+{
+	int i = 0,chan = 0;
+	struct country_chan{
+		  	char *country;
+		  	u8 chan;
+	 };
+	struct country_chan country_t[15]={
+		  {"CN",13},
+		  {"JP",14},
+		  {"US",11},{"CA",11},{"CO",11},{"DO",11},{"GT",11},
+		  {"MX",11},{"PA",11},{"PT",11},{"TW",11},{"UZ",11},
+		  {NULL,0}
+	};
+
+	do{
+		if(memcmp(country,country_t[i].country,2) == 0){
+			chan = country_t[i].chan;
+			break;
+		}
+		i++;
+	}while(country_t[i].country);
+
+	if(country_t[i].country == NULL){
+		return 14;
+	}
+
+	return chan;
+
+}
+
+
+void atbm_get_cfg80211_country_code(struct wiphy *wiphy,struct regulatory_request *request)
+{
+#ifdef  CONFIG_ATBM_5G_PRETEND_2G
+	atbm_printk_err("atbm_get_cfg80211_country_code\n");
+#else
+	struct ieee80211_local *local;
+	const struct ieee80211_regdomain *cfg80211_regdomain;
+	
+	if((!wiphy) || (!request)){
+		//atbm_printk_err("%s(%d) ,%s  \n",wiphy?" ":"wiphy is NULL",request?" ":"request is NULL");
+		return;
+	}
+	local = wiphy_priv(wiphy);
+	memcpy(local->country_code,request->alpha2,2);
+	
+	cfg80211_regdomain = rtnl_dereference(wiphy->regd);
+	if(cfg80211_regdomain){
+		atbm_printk_err("start freq = %d , end freq = %d \n",
+			cfg80211_regdomain->reg_rules[0].freq_range.start_freq_khz,
+			cfg80211_regdomain->reg_rules[0].freq_range.end_freq_khz);
+		local->country_support_chan = (cfg80211_regdomain->reg_rules[0].freq_range.end_freq_khz - 	
+			cfg80211_regdomain->reg_rules[0].freq_range.start_freq_khz)/5000 - 3;	
+		if(memcmp(request->alpha2,"JP",2) == 0){
+			local->country_support_chan += ((cfg80211_regdomain->reg_rules[1].freq_range.end_freq_khz - 	
+			cfg80211_regdomain->reg_rules[1].freq_range.start_freq_khz)/5000 - 3);
+		}			
+	}else{
+		atbm_printk_err("cfg80211_regdomain is NULL\n");
+		local->country_support_chan = country_chan_found(local->country_code);
+	}
+	atbm_printk_err("country code %c%c country_support_chan = %d \n",request->alpha2[0],request->alpha2[1],local->country_support_chan);
+#endif
+}
+
+
 struct ieee80211_hw *ieee80211_alloc_hw(size_t priv_data_len,
 					const struct ieee80211_ops *ops)
 {
@@ -1544,6 +1633,7 @@ struct ieee80211_hw *ieee80211_alloc_hw(size_t priv_data_len,
 	if (!wiphy)
 		return NULL;
 
+	wiphy->reg_notifier = atbm_get_cfg80211_country_code;
 	wiphy->mgmt_stypes = ieee80211_default_mgmt_stypes;
 	wiphy->privid = mac80211_wiphy_privid;
 
@@ -1557,9 +1647,11 @@ struct ieee80211_hw *ieee80211_alloc_hw(size_t priv_data_len,
 #endif
 			;
 #ifdef CONFIG_ATBM_SUPPORT_SAE
+#if  (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 8, 0))
+
 //#if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 0, 0))
 	wiphy->features |= NL80211_FEATURE_SAE;
-//#endif
+#endif
 #endif
 	if (!ops->set_key)
 		wiphy->flags |= WIPHY_FLAG_IBSS_RSN;
@@ -1571,7 +1663,7 @@ struct ieee80211_hw *ieee80211_alloc_hw(size_t priv_data_len,
 	local->hw.wiphy = wiphy;
 
 	local->hw.priv = (char *)local + ALIGN(sizeof(*local), NETDEV_ALIGN);
-
+#if 0
 	BUG_ON(!ops->tx);
 	BUG_ON(!ops->start);
 	BUG_ON(!ops->stop);
@@ -1579,6 +1671,21 @@ struct ieee80211_hw *ieee80211_alloc_hw(size_t priv_data_len,
 	BUG_ON(!ops->add_interface);
 	BUG_ON(!ops->remove_interface);
 	BUG_ON(!ops->configure_filter);
+#endif	
+	if(!ops->tx || !ops->start || !ops->stop || !ops->add_interface || !ops->remove_interface || !ops->configure_filter){
+		atbm_printk_err("%s %d ,ERROR !!! ops->tx=%p ops->start=%p ops->stop=%p ops->config=%p"
+						" ops->add_interface=%p ops->remove_interface=%p ops->configure_filter=%p\n",
+						__func__,__LINE__,
+						ops->tx,
+						ops->start,
+						ops->stop,
+						ops->config,
+						ops->add_interface,
+						ops->remove_interface,
+						ops->configure_filter);
+		return NULL;
+	}
+	
 	local->ops = ops;
 
 	local->hw.conf.chan_conf = &local->chan_state.conf;
@@ -1703,9 +1810,14 @@ int ieee80211_register_hw(struct ieee80211_hw *hw)
 	if (hw->max_report_rates == 0)
 		hw->max_report_rates = hw->max_rates;
 	
-	BUG_ON(strlen(WIFI_IF1NAME)>IFNAMSIZ-1);
-	BUG_ON(strlen(WIFI_IF2NAME)>IFNAMSIZ-1);
-
+//	BUG_ON(strlen(WIFI_IF1NAME)>IFNAMSIZ-1);
+//	BUG_ON(strlen(WIFI_IF2NAME)>IFNAMSIZ-1);
+	if((strlen(WIFI_IF1NAME)>IFNAMSIZ-1) || (strlen(WIFI_IF2NAME)>IFNAMSIZ-1)){
+		atbm_printk_err("%s %d ,ERROR !!! if1name len=%d , if2name len=%d , std_name len=%d\n",
+						__func__,__LINE__,strlen(WIFI_IF1NAME),strlen(WIFI_IF2NAME),IFNAMSIZ);
+		return -EINVAL;	
+	}
+	
 	/*
 	 * generic code guarantees at least one band,
 	 * set this very early because much code assumes

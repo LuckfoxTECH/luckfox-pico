@@ -143,6 +143,32 @@ XCamReturn
 rk_aiq_uapiV2_awb_SetFstFrWbgain(RkAiqAlgoContext *ctx,
                           const rk_aiq_wb_gain_t &wbgain,
                           bool need_sync);
+XCamReturn
+rk_aiq_uapiV2_awb_GetIQAutoExtPara(RkAiqAlgoContext *ctx,
+                          rk_aiq_uapiV2_Wb_Awb_IqAtExtPa_V32_t *autoExtPara);
+XCamReturn
+rk_aiq_uapiV2_awb_SetIQAutoExtPara(RkAiqAlgoContext *ctx,
+                          const rk_aiq_uapiV2_Wb_Awb_IqAtExtPa_V32_t *autoExtPara,
+                          bool need_sync);
+XCamReturn
+rk_aiq_uapiV2_awb_GetIQAutoPara(RkAiqAlgoContext *ctx,
+                          rk_aiq_uapiV2_Wb_Awb_IqAtPa_V32_t *autoPara);
+XCamReturn
+rk_aiq_uapiV2_awb_SetIQAutoPara(RkAiqAlgoContext *ctx,
+                          const rk_aiq_uapiV2_Wb_Awb_IqAtPa_V32_t *autoPara,
+                          bool need_sync);
+XCamReturn
+rk_aiq_uapiV2_awb_IqMap2Main(RkAiqAlgoContext *ctx, rk_aiq_uapiV2_awb_Slave2Main_Cfg_t slave2Main, bool need_sync);
+XCamReturn
+rk_aiq_uapiV2_awb_SetPreWbgain(RkAiqAlgoContext *ctx,
+                          const float  preWbgain[4],
+                          bool need_sync);
+XCamReturn
+rk_aiq_uapiV2_awb_freeConvertLut(rk_aiq_uapiV2_awb_Gain_Lut_Cfg_t *cct_lut_cfg);
+XCamReturn
+rk_aiq_uapiV2_awb_loadConvertLut(rk_aiq_uapiV2_awb_Gain_Lut_Cfg_t *cct_lut_cfg,char *fullfile);
+XCamReturn
+rk_aiq_uapiV2_awb_wbgainConvert2(rk_aiq_wb_gain_t  wbGainIn, rk_aiq_uapiV2_awb_Gain_Lut_Cfg_t *cct_lut_cfg, rk_aiq_wb_gain_t  *wbGainOut);
 
 #endif
 

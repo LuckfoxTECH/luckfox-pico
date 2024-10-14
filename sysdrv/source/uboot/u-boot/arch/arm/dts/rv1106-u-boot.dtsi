@@ -15,7 +15,7 @@
 		u-boot,spl-boot-order = &sdmmc, &spi_nor, &spi_nand, &emmc;
 	};
 
-	secure_otp: secure_otp@ff3fd8000 {
+	secure-otp@ff3fd8000 {
 		compatible = "rockchip,rv1106-secure-otp";
 		reg = <0xff3d8000 0x4000>;
 		secure_conf = <0xff07a018>;
@@ -66,6 +66,7 @@
 
 &sdmmc {
 	u-boot,dm-spl;
+	pwr-en-gpios = <&gpio0 RK_PA1 GPIO_ACTIVE_LOW>;
 	status = "okay";
 };
 
@@ -86,6 +87,14 @@
 };
 
 &sdmmc0_det {
+	u-boot,dm-spl;
+};
+
+&sdmmc0_idle_pins {
+	u-boot,dm-spl;
+};
+
+&sdmmc1m1_idle_pins {
 	u-boot,dm-spl;
 };
 
@@ -112,8 +121,32 @@
 	u-boot,dm-spl;
 };
 
+&pcfg_pull_down{
+	u-boot,dm-spl;
+};
+
+&gpio0 {
+	u-boot,dm-spl;
+	status = "okay";
+};
+
+&gpio1 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&gpio2 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
 &gpio3 {
 	u-boot,dm-spl;
+	status = "okay";
+};
+
+&gpio4 {
+	u-boot,dm-pre-reloc;
 	status = "okay";
 };
 

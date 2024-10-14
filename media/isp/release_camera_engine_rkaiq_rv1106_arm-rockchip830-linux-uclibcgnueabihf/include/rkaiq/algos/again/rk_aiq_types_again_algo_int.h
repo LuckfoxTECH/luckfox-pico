@@ -129,10 +129,10 @@ typedef struct Again_ProcResult_V1_s {
     int gainEn;
 
     //for sw simultaion
-    RK_GAIN_Params_V1_Select_t stSelect;
+    //RK_GAIN_Params_V1_Select_t stSelect;
 
     //for hw register
-    RK_GAIN_Fix_V1_t stFix;
+    RK_GAIN_Fix_V1_t* stFix;
 	
 } Again_ProcResult_V1_t;
 

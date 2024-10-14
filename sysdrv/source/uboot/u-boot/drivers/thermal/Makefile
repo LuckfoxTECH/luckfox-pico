@@ -8,3 +8,4 @@
 obj-$(CONFIG_DM_THERMAL) += thermal-uclass.o
 obj-$(CONFIG_IMX_THERMAL) += imx_thermal.o
 obj-$(CONFIG_ROCKCHIP_THERMAL) += rockchip_thermal.o
+obj-$(CONFIG_SY7636A_THERMAL) += sy7636a_thermal.o

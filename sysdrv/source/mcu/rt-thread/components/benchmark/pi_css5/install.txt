@@ -1,0 +1,25 @@
+PI(= 3.1415926535897932384626...) Calculation Program
+
+
+    ver. LG1.1.2-MP1.5.2a Nov. 1999
+    modified easier usage, May 2006
+
+If you have a C compiler installed, simply edit the makefile and build with:
+
+    make all
+
+
+Copyright
+    source files:
+        Original Copyright(C) 1999 Takuya OOURA
+        Email: ooura@mmm.t.u-tokyo.ac.jp
+        URL:   http://momonga.t.u-tokyo.ac.jp/~ooura/fft.html
+        You may use, copy, modify this code for any purpose and
+        without fee. You may distribute this ORIGINAL package.
+
+
+	Modifications Copyright(C) 2004, 2006 Dara Hazeghi
+        Email: dhazeghi@yahoo.com
+        URL:   http://www.myownlittleworld.com/miscellaenous/computers/piprogram.html
+        This package may be freely redistributed or modified
+        in accordance with its original license.

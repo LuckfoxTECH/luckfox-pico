@@ -18,7 +18,9 @@
 #ifndef __RK_AIQ_USER_API2_WRAPPER_H__
 #define __RK_AIQ_USER_API2_WRAPPER_H__
 
+#include "RkAiqUapitypes.h"
 #include "rk_aiq_user_api_sysctl.h"
+#include "algos/adebayer/rk_aiq_uapi_adebayer_int.h"
 
 int rk_aiq_uapi_sysctl_swWorkingModeDyn2(const rk_aiq_sys_ctx_t *ctx,
         work_mode_t *mode);
@@ -45,6 +47,12 @@ int rk_aiq_uapi_get_awbV32_stat(const rk_aiq_sys_ctx_t* sys_ctx,
                                 rk_tool_isp_awb_stats_v32_t* awb_stat);
 int rk_aiq_uapi_get_awbV21_stat(const rk_aiq_sys_ctx_t* sys_ctx,
                                 rk_tool_awb_stat_res2_v201_t* awb_stat);
+
+XCamReturn rk_aiq_get_adpcc_manual_attr(const rk_aiq_sys_ctx_t *sys_ctx,
+                                        Adpcc_Manual_Attr_t *manual);
+
+XCamReturn rk_aiq_set_adpcc_manual_attr(const rk_aiq_sys_ctx_t *sys_ctx,
+                                        Adpcc_Manual_Attr_t *manual);
 
 XCamReturn rk_aiq_user_api2_amerge_v10_queryinfo(const rk_aiq_sys_ctx_t* sys_ctx,
         uapiMergeCurrCtlData_t* merge_info);
@@ -94,6 +102,15 @@ XCamReturn rk_aiq_set_adrc_v12_manual_attr(const rk_aiq_sys_ctx_t* sys_ctx, mdrc
 
 XCamReturn rk_aiq_get_adrc_v12_manual_attr(const rk_aiq_sys_ctx_t* sys_ctx, mdrcAttr_V12_t* manual);
 
+XCamReturn rk_aiq_user_api2_adrc_v12_lite_queryinfo(const rk_aiq_sys_ctx_t* sys_ctx,
+                                                    DrcInfoV12Lite_t* drc_info);
+
+XCamReturn rk_aiq_set_adrc_v12_lite_manual_attr(const rk_aiq_sys_ctx_t* sys_ctx,
+                                                mdrcAttr_v12_lite_t* manual);
+
+XCamReturn rk_aiq_get_adrc_v12_lite_manual_attr(const rk_aiq_sys_ctx_t* sys_ctx,
+                                                mdrcAttr_v12_lite_t* manual);
+
 XCamReturn rk_aiq_set_agamma_v10_manual_attr(const rk_aiq_sys_ctx_t* sys_ctx,
         AgammaApiManualV10_t* manual);
 
@@ -124,6 +141,10 @@ XCamReturn rk_aiq_set_adehaze_v12_manual_attr(const rk_aiq_sys_ctx_t* sys_ctx,
 XCamReturn rk_aiq_get_adehaze_v12_manual_attr(const rk_aiq_sys_ctx_t* sys_ctx,
         mDehazeAttrV12_t* manual);
 
+XCamReturn rk_aiq_set_tool_accm_mode(rk_aiq_sys_ctx_t *ctx, uapi_wb_mode_t *mode);
+
+XCamReturn rk_aiq_get_accm_mode(rk_aiq_sys_ctx_t *ctx, uapi_wb_mode_t *mode);
+
 XCamReturn rk_aiq_set_accm_v1_manual_attr(const rk_aiq_sys_ctx_t* sys_ctx,
         rk_aiq_ccm_mccm_attrib_t* manual);
 
@@ -135,6 +156,18 @@ XCamReturn rk_aiq_set_accm_v2_manual_attr(const rk_aiq_sys_ctx_t* sys_ctx,
 
 XCamReturn rk_aiq_get_accm_v2_manual_attr(const rk_aiq_sys_ctx_t* sys_ctx,
         rk_aiq_ccm_mccm_attrib_v2_t* manual);
+
+XCamReturn rk_aiq_set_tool_3dlut_mode(rk_aiq_sys_ctx_t *ctx,
+                                      uapi_wb_mode_t *mode);
+
+XCamReturn rk_aiq_get_a3dlut_mode(rk_aiq_sys_ctx_t *ctx,
+                                  uapi_wb_mode_t *mode);
+
+XCamReturn rk_aiq_set_a3dlut_manual_attr(const rk_aiq_sys_ctx_t *sys_ctx,
+        rk_aiq_lut3d_mlut3d_attrib_t *manual);
+
+XCamReturn rk_aiq_get_a3dlut_manual_attr(const rk_aiq_sys_ctx_t *sys_ctx,
+        rk_aiq_lut3d_mlut3d_attrib_t *manual);
 
 XCamReturn rk_aiq_set_acgc_manual_attr(const rk_aiq_sys_ctx_t* sys_ctx,
                                        Cgc_Param_t* manual) ;
@@ -159,6 +192,25 @@ XCamReturn rk_aiq_set_asharp_manual_attr(const rk_aiq_sys_ctx_t *sys_ctx,
 
 XCamReturn rk_aiq_get_asharp_manual_attr(const rk_aiq_sys_ctx_t *sys_ctx,
         asharp_uapi_manual_t *manual);
+XCamReturn rk_aiq_set_alsc_manual_attr(const rk_aiq_sys_ctx_t *sys_ctx,
+                                       rk_aiq_lsc_table_t *manual);
+
+XCamReturn rk_aiq_get_alsc_manual_attr(const rk_aiq_sys_ctx_t *sys_ctx,
+                                       rk_aiq_lsc_table_t *manual);
+
+XCamReturn rk_aiq_set_current_camindex(const rk_aiq_sys_ctx_t *sys_ctx,
+                                       camgroup_uapi_t *manual);
+
+XCamReturn rk_aiq_get_current_camindex(const rk_aiq_sys_ctx_t *sys_ctx,
+                                       camgroup_uapi_t *manual);
+
+rk_aiq_sys_ctx_t* rk_aiq_get_last_sysctx(rk_aiq_sys_ctx_t *sys_ctx);
+
+XCamReturn rk_aiq_set_adebayer_attr(const rk_aiq_sys_ctx_t *sys_ctx,
+                                    adebayer_attrib_t *adebayer_attr);
+
+XCamReturn rk_aiq_get_adebayer_attr(const rk_aiq_sys_ctx_t *sys_ctx,
+                                    adebayer_attrib_t *adebayer_attr);
 
 XCamReturn
 rk_aiq_set_abayer2dnr_manual_attr(const rk_aiq_sys_ctx_t *sys_ctx,
@@ -225,7 +277,6 @@ rk_aiq_get_asharp_info(const rk_aiq_sys_ctx_t *sys_ctx,
 XCamReturn
 rk_aiq_get_again_info(const rk_aiq_sys_ctx_t *sys_ctx,
                       again_uapi_info_t *info);
-
 
 
 #endif /*__RK_AIQ_USER_API2_WRAPPER_H__*/

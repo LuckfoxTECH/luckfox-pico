@@ -26,6 +26,7 @@
 #include "common/rk-camera-module.h"
 #include "adebayer/rk_aiq_types_adebayer_algo.h"
 #include "ae/rk_aiq_types_ae_algo.h"
+#include "afd/rk_aiq_types_afd_algo.h"
 #include "awb/rk_aiq_types_awb_algo.h"
 #include "alsc/rk_aiq_types_alsc_algo.h"
 #include "accm/rk_aiq_types_accm_algo.h"
@@ -75,6 +76,8 @@
 
 #endif
 
+#include "rk_aiq_types_v20.h"
+#include "rk_aiq_types_v21.h"
 #include "rk_aiq_types_v3x.h" /*< v3x types */
 #include "rk_aiq_types_v32.h"
 
@@ -84,6 +87,11 @@
 #define rk_fmt_fourcc(a, b, c, d)\
     ((uint32_t)(a) | ((uint32_t)(b) << 8) | ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24))
 #define rk_fmt_fourcc_be(a, b, c, d)    (rk_fmt_fourcc(a, b, c, d) | (1 << 31))
+
+typedef struct rk_aiq_color_info_s{
+    float sensorGain;
+    float awbGain[2];
+}rk_aiq_color_info_t;
 
 typedef struct rk_aiq_range_s {
     float min;
@@ -318,6 +326,7 @@ typedef struct {
     bool fl_strth_adj_sup;
     bool has_irc; /*< has ircutter */
     bool fl_ir_strth_adj_sup;
+    bool _is_1608_sensor;       /*< for sensor sync mode verify. */
     uint8_t is_multi_isp_mode;
     uint16_t multi_isp_extended_pixel;
     uint8_t reserved[13];
@@ -336,6 +345,13 @@ typedef struct rk_aiq_sensor_nr_switch_s {
     uint32_t down_thres;
     uint32_t div_coeff;
 } rk_aiq_sensor_nr_switch_t;
+
+typedef struct rk_aiq_sensor_dcg_ratio_s {
+    bool valid;
+    uint32_t integer;
+    uint32_t decimal;
+    uint32_t div_coeff;
+} rk_aiq_sensor_dcg_ratio_t;
 
 typedef struct {
     bool focus_support;
@@ -402,6 +418,7 @@ typedef struct {
     uint32_t isp_acq_width;
     uint32_t isp_acq_height;
     rk_aiq_sensor_nr_switch_t nr_switch;
+    rk_aiq_sensor_dcg_ratio_t dcg_ratio;
     rk_aiq_lens_descriptor lens_des;
     struct rkmodule_awb_inf otp_awb;
     struct rkmodule_lsc_inf *otp_lsc;
@@ -416,30 +433,7 @@ typedef RkAiqExpParamComb_t rk_aiq_exposure_params_comb_t;
 typedef RKAiqAecExpInfo_t rk_aiq_exposure_params_t;
 
 // focus
-typedef struct
-{
-    bool vcm_config_valid;
-    bool zoomfocus_modifypos;
-    bool focus_correction;
-    bool zoom_correction;
-    bool lens_pos_valid;
-    bool zoom_pos_valid;
-    bool send_zoom_reback;
-    bool send_focus_reback;
-    bool end_zoom_chg;
-    bool focus_noreback;
-    int next_pos_num;
-    int next_lens_pos[RKAIQ_RAWAF_NEXT_ZOOMFOCUS_NUM];
-    int next_zoom_pos[RKAIQ_RAWAF_NEXT_ZOOMFOCUS_NUM];
-    int use_manual;
-    int auto_focpos;
-    int auto_zoompos;
-    int manual_focpos;
-    int manual_zoompos;
-    int vcm_start_ma;
-    int vcm_end_ma;
-} rk_aiq_focus_params_t;
-
+typedef rk_aiq_af_algo_focus_pos_t rk_aiq_focus_params_t;
 // isp
 
 #pragma pack(1)
@@ -455,14 +449,10 @@ struct rk_aiq_isp_window {
 typedef RKAiqAecStats_t rk_aiq_isp_aec_stats_t;
 
 typedef rk_aiq_af_algo_stat_v20_t rk_aiq_isp_af_stats_t;
-typedef rk_aiq_af_algo_meas_v20_t rk_aiq_isp_af_meas_t;
 typedef rk_aiq_af_algo_focus_pos_t rk_aiq_af_focus_pos_meas_t;
 
 typedef rk_aiq_pdaf_algo_stat_t rk_aiq_isp_pdaf_stats_t;
 typedef rk_aiq_pdaf_algo_meas_t rk_aiq_isp_pdaf_meas_t;
-
-typedef rk_aiq_ae_meas_params_t rk_aiq_isp_aec_meas_t;
-typedef rk_aiq_hist_meas_params_t rk_aiq_isp_hist_meas_t;
 
 /**wb gain **/
 
@@ -472,16 +462,7 @@ typedef sim_orb_stat_t rk_aiq_isp_orb_stats_t;
 typedef rk_aiq_orb_algo_stat_t rk_aiq_isp_orb_stats_t;
 #endif
 typedef rk_aiq_orb_algo_meas_t rk_aiq_isp_orb_meas_t;
-typedef struct {
-    unsigned char orb_en;
-    unsigned char limit_value;
-    unsigned int max_feature;
-} rk_aiq_isp_orb_t;
 
-
-typedef AgicProcResult_t rk_aiq_isp_gic_t;
-
-typedef AdebayerHwConfigV1_t rk_aiq_isp_debayer_t;
 
 typedef struct {
     unsigned char  equ_segm;
@@ -489,48 +470,7 @@ typedef struct {
     unsigned short gamma_y[45];
 } rk_aiq_isp_goc_t;
 
-typedef struct {
-    int UNKNOWN;
-} rk_aiq_isp_wdr_t;
 
-typedef rk_aiq_acsm_params_t rk_aiq_isp_csm_t;
-
-typedef struct {
-    int UNKNOWN;
-} rk_aiq_isp_conv422_t;
-
-typedef struct {
-    int UNKNOWN;
-} rk_aiq_isp_yuvconv_t;
-
-typedef struct {
-    int ldch_en;
-    int lut_h_size;
-    int lut_v_size;
-    int lut_size;
-    unsigned int lut_mem_fd;
-} rk_aiq_isp_ldch_t;
-
-typedef struct {
-    unsigned char fec_en;
-    int usage;
-    unsigned char config;
-    unsigned char crop_en;
-    unsigned int crop_width;
-    unsigned int crop_height;
-    unsigned char mesh_density;
-    unsigned int mesh_size;
-    unsigned int mesh_buf_fd;
-    //unsigned short sw_mesh_xi[FEC_MESH_XY_NUM_ALGO];
-    //unsigned char sw_mesh_xf[FEC_MESH_XY_NUM_ALGO];
-    //unsigned short sw_mesh_yi[FEC_MESH_XY_NUM_ALGO];
-    //unsigned char sw_mesh_yf[FEC_MESH_XY_NUM_ALGO];
-    int img_buf_index;
-    int img_buf_size;
-    uint32_t frame_id;
-} rk_aiq_isp_fec_t;
-
-typedef rk_aiq_acgc_params_t rk_aiq_isp_cgc_t;
 
 typedef struct {
     uint32_t frame_id;
@@ -549,43 +489,11 @@ typedef struct {
     };
 } rk_aiq_isp_stats_t;
 
-typedef RkAiqAmergeProcResult_t rk_aiq_isp_merge_t;
-typedef RkAiqAtmoProcResult_t rk_aiq_isp_tmo_t;
-
-typedef RkAiqAdrcProcResult_t rk_aiq_isp_drc_t;
-
-typedef RkAiqAdehazeProcResult_t rk_aiq_isp_dehaze_t;
-
-
-#if ANR_NO_SEPERATE_MARCO
-typedef RKAnr_Bayernr_Fix_t rk_aiq_isp_rawnr_t;
-typedef RKAnr_Mfnr_Fix_t rk_aiq_isp_tnr_t;
-typedef RKAnr_Ynr_Fix_t rk_aiq_isp_ynr_t;
-typedef RKAnr_Uvnr_Fix_t rk_aiq_isp_uvnr_t;
-typedef ANRProcResult_t rkaiq_anr_procRes_t;
-#else
-typedef RK_Bayernr_Fix_V1_t rk_aiq_isp_rawnr_t;
-typedef RK_MFNR_Fix_V1_t rk_aiq_isp_tnr_t;
-typedef RK_YNR_Fix_V1_t rk_aiq_isp_ynr_t;
-typedef RK_UVNR_Fix_V1_t rk_aiq_isp_uvnr_t;
-typedef ANRProcResult_t rkaiq_anr_procRes_t;
-#endif
 
 #if 1
-typedef RKAsharp_Sharp_Fix_t rk_aiq_isp_sharpen_t;
-typedef RKAsharp_Edgefilter_Fix_t rk_aiq_isp_edgeflt_t;
 typedef AsharpProcResult_t rkaiq_asharp_procRes_t;
 #endif
 
-typedef AblcProc_t rk_aiq_isp_blc_t;
-typedef AdpccProcResult_t rk_aiq_isp_dpcc_t;
-
-typedef RKAnr_Gain_Fix_t rk_aiq_isp_gain_t;
-
-typedef struct rk_aiq_isp_ie_s {
-    rk_aiq_aie_params_t base;
-    rk_aiq_aie_params_int_t extra;
-} rk_aiq_isp_ie_t;
 
 typedef enum rk_aiq_gray_mode_e {
     RK_AIQ_GRAY_MODE_CPSL, /*!< controlled by cpsl*/
@@ -698,86 +606,7 @@ typedef struct rk_aiq_cpsl_cap_s {
     rk_aiq_range_t strength_ir;
 } rk_aiq_cpsl_cap_t;
 
-// v21 types
 
-typedef RkAiqAdrcProcResult_t rk_aiq_isp_drc_v21_t;
-
-typedef struct rk_aiq_isp_blc_v21_s {
-    rk_aiq_isp_blc_t v0;
-    //TODO: additional blc1 params
-} rk_aiq_isp_blc_v21_t;
-
-typedef struct rk_aiq_isp_wb_gain_v21_s {
-    //TODO:
-    void* place_holder;
-} rk_aiq_isp_wb_gain_v21_t;
-
-typedef AgicProcResult_t rk_aiq_isp_gic_v21_t;
-typedef rk_aiq_isp_gic_v21_t rk_aiq_isp_gic_v3x_t;
-
-typedef struct rk_aiq_isp_ccm_v21_s {
-    //TODO:
-    void* place_holder;
-} rk_aiq_isp_ccm_v21_t;
-/*
-typedef struct rk_aiq_isp_dhaz_cfg_v21_s {
-    //TODO:
-    void* place_holder;
-} rk_aiq_isp_dhaz_cfg_v21_t;*/
-
-typedef RkAiqAdehazeProcResult_t rk_aiq_isp_dehaze_v21_t;
-
-typedef struct rk_aiq_isp_dhaz_stats_v21_s {
-    //TODO:
-    void* place_holder;
-} rk_aiq_isp_dhaz_stats_v21_t;
-
-// baynr, alias name of rawnr
-#if 0
-typedef struct rk_aiq_isp_baynr_v21_s {
-    //TODO:
-    void* place_holder;
-} rk_aiq_isp_baynr_v21_t;
-#else
-typedef RK_Bayernr_Fix_V2_t rk_aiq_isp_baynr_v21_t ;
-
-#endif
-typedef struct rk_aiq_isp_bay3d_v21_s {
-    //TODO:
-    void* place_holder;
-} rk_aiq_isp_bay3d_v21_t;
-
-#if 0
-typedef struct rk_aiq_isp_ynr_v21_s {
-    //TODO:
-    void* place_holder;
-} rk_aiq_isp_ynr_v21_t;
-#else
-typedef RK_YNR_Fix_V2_t rk_aiq_isp_ynr_v21_t ;
-
-#endif
-
-#if 0
-typedef struct rk_aiq_isp_cnr_v21_s {
-    //TODO:
-    void* place_holder;
-} rk_aiq_isp_cnr_v21_t;
-#else
-typedef RK_CNR_Fix_V1_t rk_aiq_isp_cnr_v21_t ;
-
-#endif
-
-#if 0
-typedef struct rk_aiq_isp_sharp_v21_s {
-    //TODO:
-    void* place_holder;
-} rk_aiq_isp_sharp_v21_t;
-#else
-typedef RK_SHARP_Fix_V3_t rk_aiq_isp_sharp_v21_t ;
-
-#endif
-
-typedef struct rk_aiq_awb_stat_res_v201_s rk_aiq_isp_raw_awb_meas_v21_t;
 typedef struct rk_aiq_awb_stat_res_v200_s rk_aiq_isp_raw_awb_meas_v20_t;
 
 typedef enum capture_raw_e {
@@ -811,6 +640,23 @@ typedef enum rk_isp_stream_mode_e {
     RK_ISP_STREAM_MODE_ONLNIE,
     RK_ISP_STREAM_MODE_OFFLNIE,
 } rk_isp_stream_mode_t;
+
+typedef struct {
+    struct rkmodule_awb_inf otp_awb;
+} rk_aiq_user_otp_info_t;
+
+typedef enum {
+    RK_ISP_RKRAWSTREAM_MODE_INVALID = 0,
+    RK_ISP_RKRAWSTREAM_MODE_HALF_ONLINE,
+    RK_ISP_RKRAWSTREAM_MODE_OFFLINE,
+} rk_aiq_rkrawstream_mode_t;
+
+typedef struct {
+    int width;
+    int height;
+    rk_aiq_format_t format;
+    rk_aiq_rkrawstream_mode_t mode;
+} rk_aiq_rkrawstream_info_t;
 
 #define RK_AIQ_CAM_GROUP_MAX_CAMS (8)
 

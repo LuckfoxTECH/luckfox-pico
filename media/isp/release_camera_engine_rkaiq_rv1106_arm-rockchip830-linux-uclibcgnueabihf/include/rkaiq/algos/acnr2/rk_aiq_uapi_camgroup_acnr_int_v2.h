@@ -14,20 +14,24 @@
 
 XCamReturn
 rk_aiq_uapi_camgroup_acnrV2_SetAttrib(RkAiqAlgoContext *ctx,
-                             rk_aiq_cnr_attrib_v2_t *attr,
-                             bool need_sync);
+                                      rk_aiq_cnr_attrib_v2_t *attr,
+                                      bool need_sync);
 
 XCamReturn
 rk_aiq_uapi_camgroup_acnrV2_GetAttrib(const RkAiqAlgoContext *ctx,
-                             rk_aiq_cnr_attrib_v2_t *attr);
+                                      rk_aiq_cnr_attrib_v2_t *attr);
 
 XCamReturn
 rk_aiq_uapi_camgroup_acnrV2_SetChromaSFStrength(const RkAiqAlgoContext *ctx,
-                                       float fPercent);
+        rk_aiq_cnr_strength_v2_t *pStrength);
 
 XCamReturn
 rk_aiq_uapi_camgroup_acnrV2_GetChromaSFStrength(const RkAiqAlgoContext *ctx,
-                                       float *pPercent);
+        rk_aiq_cnr_strength_v2_t *pStrength);
 
+
+XCamReturn
+rk_aiq_uapi_camgroup_acnrV2_GetInfo(const RkAiqAlgoContext *ctx,
+                                    rk_aiq_cnr_info_v2_t *pInfo);
 
 #endif

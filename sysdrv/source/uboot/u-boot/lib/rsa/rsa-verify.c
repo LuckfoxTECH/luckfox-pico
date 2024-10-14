@@ -86,11 +86,17 @@ static int rsa_mod_exp_hw(struct key_prop *prop, const uint8_t *sig,
 	uint8_t buf[sig_len];
 	rsa_key rsa_key;
 	int i, ret;
+#ifdef CONFIG_FIT_ENABLE_RSA4096_SUPPORT
+	if (key_len != RSA4096_BYTES)
+		return -EINVAL;
 
+	rsa_key.algo = CRYPTO_RSA4096;
+#else
 	if (key_len != RSA2048_BYTES)
 		return -EINVAL;
 
 	rsa_key.algo = CRYPTO_RSA2048;
+#endif
 	rsa_key.n = malloc(key_len);
 	rsa_key.e = malloc(key_len);
 	rsa_key.c = malloc(key_len);
@@ -603,20 +609,10 @@ int rsa_burn_key_hash(struct image_sign_info *info)
 	const void *blob = info->fdt_blob;
 	uint8_t digest[FIT_MAX_HASH_LEN];
 	uint8_t digest_read[FIT_MAX_HASH_LEN];
-	int sig_node, node, digest_len, i, ret = 0;
+	int sig_node, node, digest_len, i;
+	int ret = 0, written_size = 0;
 
-	dev = misc_otp_get_device(OTP_S);
-	if (!dev)
-		return -ENODEV;
-
-	ret = misc_otp_read(dev, OTP_SECURE_BOOT_ENABLE_ADDR,
-			    &secure_flags, OTP_SECURE_BOOT_ENABLE_SIZE);
-	if (ret)
-		return ret;
-
-	if (secure_flags == 0xff)
-		return 0;
-
+	/* Check burn-key-hash flag in itb first */
 	sig_node = fdt_subnode_offset(blob, 0, FIT_SIG_NODENAME);
 	if (sig_node < 0) {
 		debug("%s: No signature node found\n", __func__);
@@ -630,7 +626,20 @@ int rsa_burn_key_hash(struct image_sign_info *info)
 		return -1;
 
 	if (!(prop.burn_key))
-		return -EPERM;
+		return 0;
+
+	/* Handle burn_key_hash process from now on */
+	dev = misc_otp_get_device(OTP_S);
+	if (!dev)
+		return -ENODEV;
+
+	ret = misc_otp_read(dev, OTP_SECURE_BOOT_ENABLE_ADDR,
+			    &secure_flags, OTP_SECURE_BOOT_ENABLE_SIZE);
+	if (ret)
+		return ret;
+
+	if (secure_flags == 0xff)
+		return 0;
 
 	if (!prop.hash || !prop.modulus || !prop.public_exponent_BN)
 		return -ENOENT;
@@ -680,14 +689,24 @@ int rsa_burn_key_hash(struct image_sign_info *info)
 		goto error;
 
 	for (i = 0; i < OTP_RSA_HASH_SIZE; i++) {
-		if (digest_read[i]) {
+		if (digest_read[i] == digest[i]) {
+			written_size++;
+		} else if (digest_read[i] == 0) {
+			break;
+		} else {
 			printf("RSA: The secure region has been written.\n");
 			ret = -EIO;
 			goto error;
 		}
 	}
 
-	ret = misc_otp_write(dev, OTP_RSA_HASH_ADDR, digest, OTP_RSA_HASH_SIZE);
+	if (OTP_RSA_HASH_SIZE - written_size) {
+		ret = misc_otp_write(dev, OTP_RSA_HASH_ADDR + written_size, digest + written_size,
+				     OTP_RSA_HASH_SIZE - written_size);
+		if (ret)
+			goto error;
+	}
+
 	if (ret)
 		goto error;
 
@@ -697,6 +716,7 @@ int rsa_burn_key_hash(struct image_sign_info *info)
 		goto error;
 
 	if (memcmp(digest, digest_read, digest_len) != 0) {
+		ret = -EAGAIN;
 		printf("RSA: Write public key hash fail.\n");
 		goto error;
 	}
@@ -707,7 +727,10 @@ int rsa_burn_key_hash(struct image_sign_info *info)
 	if (ret)
 		goto error;
 
-	printf("RSA: Write key hash successfully\n");
+	if (written_size)
+		printf("RSA: Repair RSA key hash successfully.\n");
+	else
+		printf("RSA: Write RSA key hash successfully.\n");
 
 error:
 	free(rsa_key);

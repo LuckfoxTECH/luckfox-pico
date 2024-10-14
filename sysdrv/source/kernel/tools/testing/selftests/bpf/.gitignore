@@ -10,7 +10,6 @@ test_dev_cgroup
 /test_progs*
 test_tcpbpf_user
 !test_progs.h
-!test_progs.c
 test_verifier_log
 feature
 test_sock
@@ -38,4 +37,3 @@ test_cpp
 /tools
 /runqslower
 /bench
-!

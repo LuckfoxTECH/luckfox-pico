@@ -300,7 +300,13 @@ void atbm_pm_stay_awake_unlock(struct atbm_pm_state *pm)
 		return ;
 
 	spin_lock_irqsave(&stayawake_lock->stayawak_spinlock,flags);
-	BUG_ON(stayawake_lock->stayawak_cnt == 0);
+	
+	if(stayawake_lock->stayawak_cnt == 0){
+		spin_unlock_irqrestore(&stayawake_lock->stayawak_spinlock,flags);
+		atbm_printk_err("%s %d ,ERROR !!! stayawake_lock->stayawak_cnt == 0\n",__func__,__LINE__);
+		return;
+	}
+	
 	if(--stayawake_lock->stayawak_cnt == 0){
 		wake_unlock(&stayawake_lock->stayawak_lock);
 	}

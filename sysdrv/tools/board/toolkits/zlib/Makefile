@@ -18,7 +18,7 @@ PKG_NAME_ZLIB := zlib-1.2.11
 
 PKG_BIN := out
 
-PKG_CONF_OPTS += $(SYSDRV_OPTS) -Os
+PKG_CONF_OPTS += $(SYSDRV_CROSS_CFLAGS) $(SYSDRV_OPTS) -Os
 
 ifeq ($(PKG_USE_THUMB2),YES)
 PKG_CONF_OPTS += -mthumb -Wa,-mimplicit-it=thumb -mthumb-interwork

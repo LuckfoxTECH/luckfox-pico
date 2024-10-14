@@ -101,13 +101,13 @@ FT_BEGIN_HEADER
  *   details.
  */
 typedef struct FT_SfntName_ {
-  FT_UShort platform_id;
-  FT_UShort encoding_id;
-  FT_UShort language_id;
-  FT_UShort name_id;
+	FT_UShort platform_id;
+	FT_UShort encoding_id;
+	FT_UShort language_id;
+	FT_UShort name_id;
 
-  FT_Byte *string;    /* this string is *not* null-terminated! */
-  FT_UInt string_len; /* in bytes                              */
+	FT_Byte *string;    /* this string is *not* null-terminated! */
+	FT_UInt string_len; /* in bytes                              */
 
 } FT_SfntName;
 
@@ -197,8 +197,8 @@ FT_Get_Sfnt_Name(FT_Face face, FT_UInt idx, FT_SfntName *aname);
  *   2.8
  */
 typedef struct FT_SfntLangTag_ {
-  FT_Byte *string;    /* this string is *not* null-terminated! */
-  FT_UInt string_len; /* in bytes                              */
+	FT_Byte *string;    /* this string is *not* null-terminated! */
+	FT_UInt string_len; /* in bytes                              */
 
 } FT_SfntLangTag;
 

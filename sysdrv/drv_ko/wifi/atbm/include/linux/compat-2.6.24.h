@@ -205,7 +205,12 @@ struct header_ops {
 static inline void sg_mark_end(struct scatterlist *sg)
 {
 #ifdef CONFIG_DEBUG_SG
-	BUG_ON(sg->sg_magic != SG_MAGIC);
+//	BUG_ON(sg->sg_magic != SG_MAGIC);
+	if(sg->sg_magic != SG_MAGIC){
+		atbm_printk_err("%s %d ,ERROR !!! sg->sg_magic != SG_MAGIC\n",__func__,__LINE__);
+		return;
+	}
+
 #endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,24))
 	/*

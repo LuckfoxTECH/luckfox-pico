@@ -582,7 +582,10 @@ ieee80211_tx_h_select_key(struct ieee80211_tx_data *tx)
 		case WLAN_CIPHER_SUITE_WEP104:
 			if (ieee80211_is_auth(hdr->frame_control))
 				break;
-     		 fallthrough;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 10, 60))
+			
+				fallthrough;
+#endif
 		case WLAN_CIPHER_SUITE_TKIP:
 			if (!ieee80211_is_data_present(hdr->frame_control))
 				tx->key = NULL;
@@ -1361,7 +1364,13 @@ static bool __ieee80211_tx(struct ieee80211_local *local, struct sk_buff **skbp,
 		__le16 fc;
 		info = IEEE80211_SKB_CB(skb);
 		q=info->hw_queue;
-		BUG_ON(q>=IEEE80211_MAX_QUEUES);
+	//	BUG_ON(q>=IEEE80211_MAX_QUEUES);
+		
+		if(q>=IEEE80211_MAX_QUEUES){
+			atbm_printk_err("%s %d ,ERROR !!!q=%d > 16\n",__func__,__LINE__,q);
+			return false;
+		}
+		
 #endif
 
 		spin_lock_irqsave(&local->queue_stop_reason_lock, flags);
@@ -1619,7 +1628,7 @@ static void ieee80211_xmit_down_eap_rate(struct ieee80211_sub_if_data *sdata, st
 	if(sdata->vif.p2p)
 		info->flags |= IEEE80211_TX_CTL_NO_CCK_RATE;
 }
-#if 0
+#ifdef ANDROID
 static void ieee80211_xmit_down_ipv6_rate(struct ieee80211_sub_if_data *sdata, struct sk_buff *skb)
 {
 	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(skb);
@@ -1629,7 +1638,7 @@ static void ieee80211_xmit_down_ipv6_rate(struct ieee80211_sub_if_data *sdata, s
 		info->flags |= IEEE80211_TX_CTL_NO_CCK_RATE;
 	
 }
-#endif 
+#endif
 
 static void ieee80211_xmit_down_arp_rate(struct ieee80211_sub_if_data *sdata, struct sk_buff *skb)
 {
@@ -1835,7 +1844,13 @@ static bool ieee80211_ap_can_xmit(struct net_device *dev)
 		       #endif
 		       );
 #else
-	BUG_ON(chan == NULL);
+//	BUG_ON(chan == NULL);
+
+	if(chan == NULL){
+		atbm_printk_err("%s %d ,ERROR !!! chan is NULL\n",__func__,__LINE__);
+		return false;
+	}	
+
 	can_xmit = true;
 #endif
 #endif
@@ -2068,6 +2083,7 @@ netdev_tx_t ieee80211_subif_start_xmit(struct sk_buff *skb,
 	case NL80211_IFTYPE_AP:
 		fc |= cpu_to_le16(IEEE80211_FCTL_FROMDS);
 		/* DA BSSID SA */
+		
 		memcpy(hdr.addr1, skb->data, ETH_ALEN);
 		memcpy(hdr.addr2, sdata->vif.addr, ETH_ALEN);
 		memcpy(hdr.addr3, skb->data + ETH_ALEN, ETH_ALEN);
@@ -2499,7 +2515,7 @@ static void ieee80211_beacon_add_tim(struct ieee80211_if_ap *bss,
 {
 	u8 *pos, *tim;
 	int aid0 = 0;
-	int i, have_bits = 0, n1, n2;
+	int have_bits = 0, n1, n2;
 
 	/* Generate bitmap for TIM only if there are any STAs in power save
 	 * mode. */
@@ -2525,10 +2541,11 @@ static void ieee80211_beacon_add_tim(struct ieee80211_if_ap *bss,
 
 	bss->dtim_bc_mc = aid0 == 1;
 
-	if (have_bits) {
+	if (1/*have_bits*/) {
 		/* Find largest even number N1 so that bits numbered 1 through
 		 * (N1 x 8) - 1 in the bitmap are 0 and number N2 so that bits
 		 * (N2 + 1) x 8 through 2007 are 0. */
+#if 0		 
 		n1 = 0;
 		for (i = 0; i < IEEE80211_MAX_TIM_LEN; i++) {
 			if (bss->tim[i]) {
@@ -2543,7 +2560,10 @@ static void ieee80211_beacon_add_tim(struct ieee80211_if_ap *bss,
 				break;
 			}
 		}
-
+#else
+		n1 = 0;
+		n2 = 2;
+#endif
 		/* Bitmap control */
 		*pos++ = n1 | aid0;
 		/* Part Virt Bitmap */
@@ -2995,7 +3015,12 @@ struct sk_buff *ieee80211_probereq_get(struct ieee80211_hw *hw,
 	/*
 	*if vif is in station mode try to add extra ie;
 	*/
-	if(ieee80211_sdata_running(sdata) && (vif->type == NL80211_IFTYPE_STATION)){
+	if(ieee80211_sdata_running(sdata)
+#ifndef AP_MODE_SEND_PROBE_REQ	
+	 && (vif->type == NL80211_IFTYPE_STATION)
+#endif
+	)
+	{
 		extra = rcu_dereference(sdata->u.mgd.probe_request_extra);
 	}
 	

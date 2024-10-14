@@ -989,8 +989,8 @@ FT_BEGIN_HEADER
  *
  */
 typedef struct FT_Prop_GlyphToScriptMap_ {
-  FT_Face face;
-  FT_UShort *map;
+	FT_Face face;
+	FT_UShort *map;
 
 } FT_Prop_GlyphToScriptMap;
 
@@ -1134,8 +1134,8 @@ typedef struct FT_Prop_GlyphToScriptMap_ {
  *
  */
 typedef struct FT_Prop_IncreaseXHeight_ {
-  FT_Face face;
-  FT_UInt limit;
+	FT_Face face;
+	FT_UInt limit;
 
 } FT_Prop_IncreaseXHeight;
 

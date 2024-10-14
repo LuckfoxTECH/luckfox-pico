@@ -120,7 +120,7 @@ check_cfg_api_info:
 .L5:
 	mov	r3, r1
 	ldr	r2, [r0]
-	movs	r1, #74
+	movs	r1, #70
 	ldr	r0, .L20+4
 	b	.L17
 .L21:

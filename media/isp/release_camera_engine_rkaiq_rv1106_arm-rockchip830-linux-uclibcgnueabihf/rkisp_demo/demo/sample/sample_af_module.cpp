@@ -488,6 +488,106 @@ void sample_set_af_manual_meascfg(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode_
 
         // High light
         attr.manual_meascfg_v31.highlit_thresh = 912;
+    } else {
+        // rk3562
+        memset(&attr.manual_meascfg_v32, 0, sizeof(attr.manual_meascfg_v32));
+        attr.manual_meascfg_v32.af_en = 1;
+        attr.manual_meascfg_v32.rawaf_sel = 0; // normal = 0; hdr = 1
+        attr.manual_meascfg_v32.accu_8bit_mode = 1;
+        attr.manual_meascfg_v32.ae_mode = 1;
+        attr.manual_meascfg_v32.ae_sel = 1;
+        attr.manual_meascfg_v32.v_dnscl_mode = 1;
+
+        attr.manual_meascfg_v32.window_num = 2;
+        attr.manual_meascfg_v32.wina_h_offs = 2;
+        attr.manual_meascfg_v32.wina_v_offs = 2;
+        attr.manual_meascfg_v32.wina_h_size = 2580;
+        attr.manual_meascfg_v32.wina_v_size = 1935;
+
+        attr.manual_meascfg_v32.winb_h_offs = 500;
+        attr.manual_meascfg_v32.winb_v_offs = 600;
+        attr.manual_meascfg_v32.winb_h_size = 300;
+        attr.manual_meascfg_v32.winb_v_size = 300;
+
+        attr.manual_meascfg_v32.gamma_en = 1;
+        memcpy(attr.manual_meascfg_v32.gamma_y, gamma_y, RKAIQ_RAWAF_GAMMA_NUM * sizeof(uint16_t));
+
+        // param for winb
+        attr.manual_meascfg_v32.thres = 4;
+        attr.manual_meascfg_v32.shift_sum_a = 0;
+        attr.manual_meascfg_v32.shift_y_a = 0;
+        attr.manual_meascfg_v32.shift_sum_b = 1;
+        attr.manual_meascfg_v32.shift_y_b = 1;
+
+        // Vertical filter
+        // lowlit [0.025, 0.075], max=0.5
+        // int ver_flt_lowlit[6] =
+        //     { -372, 851, 465, -77, 0, 77 };
+
+        // normal [0.042, 0.14], max=0.5
+        int ver_flt_normal[6] =
+            { -265, 686, 512, -124, 0, 124 };
+
+        attr.manual_meascfg_v32.gaus_en = 1;
+        attr.manual_meascfg_v32.gaus_coe[1] = 64;
+        attr.manual_meascfg_v32.gaus_coe[4] = 64;
+        attr.manual_meascfg_v32.v1_fir_sel = 1; // 0:old 1:new
+        attr.manual_meascfg_v32.viir_en = 1;
+        attr.manual_meascfg_v32.v1_fv_outmode = 0; // 0 square, 1 absolute
+        attr.manual_meascfg_v32.v1_fv_shift = 1; //only for sel1
+        attr.manual_meascfg_v32.v_fv_thresh = 0;
+        attr.manual_meascfg_v32.v_fv_limit = 1023;
+        attr.manual_meascfg_v32.v_fv_slope = 256;
+        for (int i = 0; i < 3; i++) {
+            attr.manual_meascfg_v32.v1_iir_coe[i] = ver_flt_normal[i];
+            attr.manual_meascfg_v32.v1_fir_coe[i] = ver_flt_normal[i + 3];
+        }
+
+        // Horizontal filter
+        // lowlit [0.025, 0.075], max=0.5
+        // int hor_flt_lowlit[2][6] =
+        // {
+        //     { 512,   811,  -375,   266,     0,  -266 },
+        //     { 249,   945,  -448,    41,     0,   -41 },
+        // };
+        // normal [0.042, 0.14], max=0.5
+        int hor_flt_normal[2][6] =
+        {
+            { 512,   557,  -276,   460,     0,  -460 },
+            { 512,   870,  -399,    37,     0,   -37 },
+        };
+        attr.manual_meascfg_v32.hiir_en = 1;
+        attr.manual_meascfg_v32.h1_fv_outmode = 0; // 0 square, 1 absolute
+        attr.manual_meascfg_v32.h1_fv_shift = 1;
+        attr.manual_meascfg_v32.h_fv_thresh = 0;
+        attr.manual_meascfg_v32.h_fv_limit = 1023;
+        attr.manual_meascfg_v32.h_fv_slope = 256;
+        for (int i = 0; i < 6; i++) {
+            attr.manual_meascfg_v32.h1_iir1_coe[i] = hor_flt_normal[0][i];
+            attr.manual_meascfg_v32.h1_iir2_coe[i] = hor_flt_normal[1][i];
+        }
+
+        // level depended gain
+        attr.manual_meascfg_v32.ldg_en = 0;
+        attr.manual_meascfg_v32.h_ldg_lumth[0] = 64;
+        attr.manual_meascfg_v32.h_ldg_gain[0]  = 28;
+        attr.manual_meascfg_v32.h_ldg_gslp[0]  = (255-28)*255/45;
+        attr.manual_meascfg_v32.h_ldg_lumth[1] = 185;
+        attr.manual_meascfg_v32.h_ldg_gain[1]  = 8;
+        attr.manual_meascfg_v32.h_ldg_gslp[1]  = (255-8)*255/45;
+        attr.manual_meascfg_v32.v_ldg_lumth[0] = 64;
+        attr.manual_meascfg_v32.v_ldg_gain[0]  = 28;
+        attr.manual_meascfg_v32.v_ldg_gslp[0]  = (255-28)*255/45;
+        attr.manual_meascfg_v32.v_ldg_lumth[1] = 185;
+        attr.manual_meascfg_v32.v_ldg_gain[1]  = 8;
+        attr.manual_meascfg_v32.v_ldg_gslp[1]  = (255-8)*255/45;
+        attr.manual_meascfg_v32.hldg_dilate_num = 0;
+
+        // High light
+        attr.manual_meascfg_v32.highlit_thresh = 912;
+        // bls
+        attr.manual_meascfg_v32.bls_en = 0;
+        attr.manual_meascfg_v32.bls_offset = 0;
     }
 
     attr.sync.sync_mode = sync_mode;

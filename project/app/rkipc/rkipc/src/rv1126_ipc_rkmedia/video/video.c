@@ -139,7 +139,7 @@ static void *rkipc_get_venc_0(void *arg) {
 	while (g_video_run_) {
 		// 5.get the frame
 		// ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_0, &stFrame, -1);
-		mb = RK_MPI_SYS_GetMediaBuffer(RK_ID_VENC, 0, -1);
+		mb = RK_MPI_SYS_GetMediaBuffer(RK_ID_VENC, 0, 2500);
 		if (!mb) {
 			LOG_ERROR("RK_MPI_SYS_GetMediaBuffer get null buffer!\n");
 			continue;
@@ -656,7 +656,7 @@ int rkipc_pipe_0_to_RTSP_init() { // VI 0 2688*1520 -> VENC 0 H264 ->RTSP 0 &
 		// venc_chn_attr.stGopAttr.s32IPQpDelta = 3;
 		// venc_chn_attr.stGopAttr.s32ViQpDelta = 3;
 		venc_chn_attr.stGopAttr.u32BgInterval = 300;
-		venc_chn_attr.stGopAttr.u32GopSize = 30;
+		venc_chn_attr.stGopAttr.u32GopSize = 25;
 	}
 	venc_chn_attr.stVencAttr.imageType = IMAGE_TYPE_NV12;
 	venc_chn_attr.stVencAttr.u32PicWidth = video_width;
@@ -841,7 +841,7 @@ int rkipc_pipe_1_init() { // VI 1 640*480 -> VENC 1 H264 ->RTSP 1 & RTMP
 		// venc_chn_attr.stGopAttr.s32IPQpDelta = 3;
 		// venc_chn_attr.stGopAttr.s32ViQpDelta = 3;
 		venc_chn_attr.stGopAttr.u32BgInterval = 300;
-		venc_chn_attr.stGopAttr.u32GopSize = 30;
+		venc_chn_attr.stGopAttr.u32GopSize = 25;
 	}
 	venc_chn_attr.stVencAttr.imageType = IMAGE_TYPE_NV12;
 	venc_chn_attr.stVencAttr.u32PicWidth = video_width;
@@ -1103,7 +1103,7 @@ int rkipc_pipe_3_init() { // VI 3 1280*720 ->RGA 720*1280 ->VO
 	// strlen(video_device_name));
 	vi_chn_attr.pcVideoNode = video_device_name;
 	vi_chn_attr.u32BufCnt = buf_cnt;
-	// vi_chn_attr.stIspOpt.enMemoryType = VI_V4L2_MEMORY_TYPE_DMABUF; 这是啥
+	// vi_chn_attr.stIspOpt.enMemoryType = VI_V4L2_MEMORY_TYPE_DMABUF;
 	vi_chn_attr.u32Width = video_width;
 	vi_chn_attr.u32Height = video_height;
 	vi_chn_attr.enPixFmt = IMAGE_TYPE_NV12; // IMAGE_TYPE_YUV420P;RK_FMT_YUV420SP;
@@ -1217,9 +1217,28 @@ int rk_video_get_gop(int stream_id, int *value) {
 
 int rk_video_set_gop(int stream_id, int value) {
 	LOG_INFO("-------stream_id:%d,value:%d\n", stream_id, value);
+	int ret;
 	char entry[128] = {'\0'};
+	snprintf(entry, 127, "video.%d:gop_mode", stream_id);
+	g_gop_mode = rk_param_get_string(entry, NULL);
+
+	if (!strcmp(g_gop_mode, "normalP")) {
+		ret = RK_MPI_VENC_SetGop(stream_id, value);
+	} else if (!strcmp(g_gop_mode, "smartP")) {
+		VENC_GOP_ATTR_S stGopModeAttr;
+		stGopModeAttr.enGopMode = VENC_GOPMODE_SMARTP;
+		stGopModeAttr.u32BgInterval = value;
+		stGopModeAttr.u32GopSize = 25;
+		ret = RK_MPI_VENC_SetGopMode(stream_id, &stGopModeAttr);
+	} else {
+		ret = -1;
+	}
+
+	if (ret) {
+		LOG_ERROR("Set gop error! g_gop_mode is %s, ret is %d\n", g_gop_mode, ret);
+		return -1;
+	}
 	snprintf(entry, 127, "video.%d:gop", stream_id);
-	RK_MPI_VENC_SetGop(stream_id, value);
 	rk_param_set_int(entry, value);
 
 	return 0;
@@ -1643,7 +1662,7 @@ int rk_video_set_frame_rate_in(int stream_id, const char *value) {
 
 int rk_video_get_rotation(int *value) {
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.source:rotaion");
+	snprintf(entry, 127, "video.source:rotation");
 	*value = rk_param_get_int(entry, 0);
 
 	return 0;
@@ -1653,7 +1672,7 @@ int rk_video_set_rotation(int value) {
 	LOG_INFO("value is %d\n", value);
 	int rotation = 0;
 	char entry[128] = {'\0'};
-	snprintf(entry, 127, "video.source:rotaion");
+	snprintf(entry, 127, "video.source:rotation");
 	rk_param_set_int(entry, value);
 
 	return 0;
@@ -1664,27 +1683,45 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	int ret = 0;
 
 	OSD_REGION_INFO_S pstRgnInfo;
+	memset(&pstRgnInfo, 0, sizeof(pstRgnInfo));
 	pstRgnInfo.u32PosX = osd_data->origin_x;
 	pstRgnInfo.u32PosY = osd_data->origin_y;
-	pstRgnInfo.u8Enable = osd_data->enable;
 	pstRgnInfo.u32Width = osd_data->width;
 	pstRgnInfo.u32Height = osd_data->height;
 	pstRgnInfo.enRegionId = id;
+
+	if (osd_data->width && osd_data->height) {
+		pstRgnInfo.u8Enable = osd_data->enable;
+	} else {
+		pstRgnInfo.u8Enable = 0;
+	}
 
 	COVER_INFO_S pstCoverInfo;
 	pstCoverInfo.enPixelFormat = PIXEL_FORMAT_ARGB_8888; // RK_FMT_ARGB8888;  //for now ,not sure
 	pstCoverInfo.u32Color = 0xffffff;
 
+	LOG_DEBUG("PosX:%d, PosY:%d, Width:%d, Height:%d\n", pstRgnInfo.u32PosX, pstRgnInfo.u32PosY,
+	          pstRgnInfo.u32Width, pstRgnInfo.u32Height);
 	ret = RK_MPI_VENC_RGN_SetCover(VIDEO_PIPE_0, &pstRgnInfo, &pstCoverInfo);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("VIDEO_PIPE_0: RK_MPI_VENC_RGN_SetCover failed \n");
+		return RK_FAILURE;
+	}
 
 	pstRgnInfo.u32PosX = UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.1:width", 1) /
 	                                 rk_param_get_int("video.0:width", 1));
 	pstRgnInfo.u32PosY = UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.1:height", 1) /
 	                                 rk_param_get_int("video.0:height", 1));
-	ret |= RK_MPI_VENC_RGN_SetCover(VIDEO_PIPE_1, &pstRgnInfo, &pstCoverInfo);
+	pstRgnInfo.u32Width = UPALIGNTO16(osd_data->width * rk_param_get_int("video.1:width", 1) /
+	                                  rk_param_get_int("video.0:width", 1));
+	pstRgnInfo.u32Height = UPALIGNTO16(osd_data->height * rk_param_get_int("video.1:height", 1) /
+	                                   rk_param_get_int("video.0:height", 1));
+	LOG_DEBUG("PosX:%d, PosY:%d, Width:%d, Height:%d\n", pstRgnInfo.u32PosX, pstRgnInfo.u32PosY,
+	          pstRgnInfo.u32Width, pstRgnInfo.u32Height);
+	ret = RK_MPI_VENC_RGN_SetCover(VIDEO_PIPE_1, &pstRgnInfo, &pstCoverInfo);
 	// ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
 	if (RK_SUCCESS != ret) {
-		LOG_ERROR("RK_MPI_VENC_RGN_SetCover failed \n");
+		LOG_ERROR("VIDEO_PIPE_1: RK_MPI_VENC_RGN_SetCover failed \n");
 		return RK_FAILURE;
 	}
 	LOG_INFO("cover region to chn success\n");
@@ -1692,7 +1729,31 @@ int rkipc_osd_cover_create(int id, osd_data_s *osd_data) {
 	return ret;
 }
 
-int rkipc_osd_cover_destroy(int id, osd_data_s *osd_data) { return 0; }
+int rkipc_osd_cover_destroy(int id) {
+	LOG_INFO("id is %d\n", id);
+	int ret = 0;
+
+	OSD_REGION_INFO_S pstRgnInfo;
+	memset(&pstRgnInfo, 0, sizeof(pstRgnInfo));
+	pstRgnInfo.u8Enable = 0;
+	pstRgnInfo.enRegionId = id;
+
+	ret = RK_MPI_VENC_RGN_SetCover(VIDEO_PIPE_0, &pstRgnInfo, NULL);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("VIDEO_PIPE_0: RK_MPI_VENC_RGN_SetCover failed \n");
+		return RK_FAILURE;
+	}
+
+	ret = RK_MPI_VENC_RGN_SetCover(VIDEO_PIPE_1, &pstRgnInfo, NULL);
+	// ret = RK_MPI_RGN_AttachToChn(coverHandle, &stCoverChn, &stCoverChnAttr);
+	if (RK_SUCCESS != ret) {
+		LOG_ERROR("VIDEO_PIPE_1: RK_MPI_VENC_RGN_SetCover failed \n");
+		return RK_FAILURE;
+	}
+	LOG_INFO("destroy cover region to chn success\n");
+
+	return ret;
+}
 
 int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 	LOG_INFO("id is %d\n", id);
@@ -1700,6 +1761,7 @@ int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 	BITMAP_S stBitmap;
 
 	OSD_REGION_INFO_S pstRgnInfo;
+	memset(&pstRgnInfo, 0, sizeof(pstRgnInfo));
 	pstRgnInfo.u32PosX = osd_data->origin_x;
 	pstRgnInfo.u32PosY = osd_data->origin_y;
 	pstRgnInfo.u8Enable = osd_data->enable;
@@ -1712,23 +1774,55 @@ int rkipc_osd_bmp_create(int id, osd_data_s *osd_data) {
 	stBitmap.u32Width = osd_data->width;
 	stBitmap.u32Height = osd_data->height;
 	stBitmap.pData = (RK_VOID *)osd_data->buffer;
+	LOG_DEBUG("PosX:%d, PosY:%d, Width:%d, Height:%d\n", pstRgnInfo.u32PosX, pstRgnInfo.u32PosY,
+	          pstRgnInfo.u32Width, pstRgnInfo.u32Height);
 	ret = RK_MPI_VENC_RGN_SetBitMap(VIDEO_PIPE_0, &pstRgnInfo, &stBitmap);
+	if (ret != RK_SUCCESS) {
+		LOG_ERROR("VIDEO_PIPE_0: RK_MPI_VENC_RGN_SetBitMap failed with %d\n", ret);
+		return RK_FAILURE;
+	}
 
 	pstRgnInfo.u32PosX = UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.1:width", 1) /
 	                                 rk_param_get_int("video.0:width", 1));
 	pstRgnInfo.u32PosY = UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.1:height", 1) /
 	                                 rk_param_get_int("video.0:height", 1));
-	ret |= RK_MPI_VENC_RGN_SetBitMap(VIDEO_PIPE_1, &pstRgnInfo, &stBitmap);
+	LOG_DEBUG("PosX:%d, PosY:%d, Width:%d, Height:%d\n", pstRgnInfo.u32PosX, pstRgnInfo.u32PosY,
+	          pstRgnInfo.u32Width, pstRgnInfo.u32Height);
+	ret = RK_MPI_VENC_RGN_SetBitMap(VIDEO_PIPE_1, &pstRgnInfo, &stBitmap);
 	// ret = RK_MPI_RGN_SetBitMap(RgnHandle, &stBitmap);
 	if (ret != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_RGN_SetBitMap failed with %d\n", ret);
+		LOG_ERROR("VIDEO_PIPE_1: RK_MPI_VENC_RGN_SetBitMap failed with %d\n", ret);
 		return RK_FAILURE;
 	}
 
 	return ret;
 }
 
-int rkipc_osd_bmp_destroy(int id, osd_data_s *osd_data) { return 0; }
+int rkipc_osd_bmp_destroy(int id) {
+	LOG_INFO("id is %d\n", id);
+	int ret = 0;
+
+	OSD_REGION_INFO_S pstRgnInfo;
+	memset(&pstRgnInfo, 0, sizeof(pstRgnInfo));
+	pstRgnInfo.u8Enable = 0;
+	pstRgnInfo.enRegionId = id;
+
+	ret = RK_MPI_VENC_RGN_SetBitMap(VIDEO_PIPE_0, &pstRgnInfo, NULL);
+	if (ret != RK_SUCCESS) {
+		LOG_ERROR("VIDEO_PIPE_0: RK_MPI_VENC_RGN_SetBitMap failed with %d\n", ret);
+		return RK_FAILURE;
+	}
+
+	ret = RK_MPI_VENC_RGN_SetBitMap(VIDEO_PIPE_1, &pstRgnInfo, NULL);
+	// ret = RK_MPI_RGN_SetBitMap(RgnHandle, &stBitmap);
+	if (ret != RK_SUCCESS) {
+		LOG_ERROR("VIDEO_PIPE_1: RK_MPI_VENC_RGN_SetBitMap failed with %d\n", ret);
+		return RK_FAILURE;
+	}
+	LOG_INFO("destroy bmp success\n");
+
+	return ret;
+}
 
 int rkipc_osd_bmp_change(int id, osd_data_s *osd_data) {
 	// LOG_INFO("id is %d\n", id);
@@ -1736,6 +1830,7 @@ int rkipc_osd_bmp_change(int id, osd_data_s *osd_data) {
 	BITMAP_S stBitmap;
 
 	OSD_REGION_INFO_S pstRgnInfo;
+	memset(&pstRgnInfo, 0, sizeof(pstRgnInfo));
 	pstRgnInfo.u32PosX = osd_data->origin_x;
 	pstRgnInfo.u32PosY = osd_data->origin_y;
 	pstRgnInfo.u8Enable = osd_data->enable;
@@ -1749,14 +1844,18 @@ int rkipc_osd_bmp_change(int id, osd_data_s *osd_data) {
 	stBitmap.u32Height = osd_data->height;
 	stBitmap.pData = (RK_VOID *)osd_data->buffer;
 	ret = RK_MPI_VENC_RGN_SetBitMap(VIDEO_PIPE_0, &pstRgnInfo, &stBitmap);
+	if (ret != RK_SUCCESS) {
+		LOG_ERROR("VIDEO_PIPE_0: RK_MPI_VENC_RGN_SetBitMap failed with %d\n", ret);
+		return RK_FAILURE;
+	}
 
 	pstRgnInfo.u32PosX = UPALIGNTO16(osd_data->origin_x * rk_param_get_int("video.1:width", 1) /
 	                                 rk_param_get_int("video.0:width", 1));
 	pstRgnInfo.u32PosY = UPALIGNTO16(osd_data->origin_y * rk_param_get_int("video.1:height", 1) /
 	                                 rk_param_get_int("video.0:height", 1));
-	ret |= RK_MPI_VENC_RGN_SetBitMap(VIDEO_PIPE_1, &pstRgnInfo, &stBitmap);
+	ret = RK_MPI_VENC_RGN_SetBitMap(VIDEO_PIPE_1, &pstRgnInfo, &stBitmap);
 	if (ret != RK_SUCCESS) {
-		LOG_ERROR("RK_MPI_RGN_SetBitMap failed with %d\n", ret);
+		LOG_ERROR("VIDEO_PIPE_1: RK_MPI_VENC_RGN_SetBitMap failed with %d\n", ret);
 		return RK_FAILURE;
 	}
 

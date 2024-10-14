@@ -458,6 +458,16 @@
 #define SCMI_CLK_DDR                   20
 #define SCMI_CLK_CPU                   21
 #define SCMI_CLK_GPU                   22
+#define SCMI_CORE_CRYPTO               23
+#define SCMI_ACLK_CRYPTO               24
+#define SCMI_PKA_CRYPTO                25
+#define SCMI_HCLK_CRYPTO               26
+#define SCMI_CORE_CRYPTO_S             27
+#define SCMI_ACLK_CRYPTO_S             28
+#define SCMI_PKA_CRYPTO_S              29
+#define SCMI_CORE_KLAD                 30
+#define SCMI_ACLK_KLAD                 31
+#define SCMI_HCLK_TRNG                 32
 
 // CRU_SOFTRST_CON03(Offset:0xA0C)
 #define SRST_NCOREPORESET0             0x00000030

@@ -93,6 +93,7 @@
 #define T_HS_TRAIL_OFFSET	0x0020
 #define T_HS_EXIT_OFFSET	0x0024
 #define T_CLK_POST_OFFSET	0x0028
+#define T_CLK_POST_OFFSET_H	0x0040
 #define T_WAKUP_H_OFFSET	0x0030
 #define T_WAKUP_L_OFFSET	0x0034
 #define T_CLK_PRE_OFFSET	0x0038
@@ -112,6 +113,8 @@
 #define T_HS_EXIT(x)		UPDATE(x, 4, 0)
 #define T_CLK_POST_MASK		GENMASK(3, 0)
 #define T_CLK_POST(x)		UPDATE(x, 3, 0)
+#define T_CLK_POST_HI_MASK	GENMASK(7, 6)
+#define T_CLK_POST_HI(x)	UPDATE(x, 7, 6)
 #define T_WAKUP_H_MASK		GENMASK(1, 0)
 #define T_WAKUP_H(x)		UPDATE(x, 1, 0)
 #define T_WAKUP_L_MASK		GENMASK(7, 0)
@@ -328,7 +331,9 @@ static void inno_mipi_dphy_timing_update(struct inno_mipi_dphy *inno,
 		m = T_CLK_POST_MASK;
 		v = T_CLK_POST(t->clk_post);
 		inno_update_bits(inno, base + T_CLK_POST_OFFSET, m, v);
-
+		m = T_CLK_POST_HI_MASK;
+		v = T_CLK_POST_HI(t->clk_post >> 4);
+		inno_update_bits(inno, base + T_CLK_POST_OFFSET_H, m, v);
 		m = T_CLK_PRE_MASK;
 		v = T_CLK_PRE(t->clk_pre);
 		inno_update_bits(inno, base + T_CLK_PRE_OFFSET, m, v);

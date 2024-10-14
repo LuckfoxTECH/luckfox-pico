@@ -17,5 +17,6 @@ int rockchip_dw_hdmi_qp_disable(struct rockchip_connector *conn, struct display_
 int rockchip_dw_hdmi_qp_get_timing(struct rockchip_connector *conn, struct display_state *state);
 int rockchip_dw_hdmi_qp_detect(struct rockchip_connector *conn, struct display_state *state);
 int rockchip_dw_hdmi_qp_get_edid(struct rockchip_connector *conn, struct display_state *state);
+int rockchip_dw_hdmi_qp_check(struct rockchip_connector *conn, struct display_state *state);
 
 #endif /* _ROCKCHIP_DW_HDMI_QP_H_ */

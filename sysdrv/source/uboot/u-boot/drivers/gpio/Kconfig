@@ -24,6 +24,15 @@ config GPIO_HOG
 	  is a mechanism providing automatic GPIO request and config-
 	  uration as part of the gpio-controller's driver probe function.
 
+config GPIO_NO_UC_FLAG_SEQ_ALIAS
+	bool "Disable GPIO uclass sequence themselves with aliases"
+	depends on USING_KERNEL_DTB
+	default n
+	help
+	  Disable GPIO uclass sequence, this is a workaround when kernel
+	  dtb feature is enabled. Avoid gpio device probe failed when
+	  alloc req_seq both for gpio devices from U-Boot and kernel dtb.
+
 config ALTERA_PIO
 	bool "Altera PIO driver"
 	depends on DM_GPIO
@@ -212,12 +221,6 @@ config TEGRA186_GPIO
 	  covers both the "main" and "AON" controller instances, even though
 	  they have slightly different register layout.
 
-config GPIO_MAX96752F
-	bool "Maxim MAX96752F GPIO"
-	depends on DM_GPIO && I2C_MUX_MAX96752F
-	help
-	  Say yes here to support Maxim MAX96752F GPIOs.
-
 config GPIO_UNIPHIER
 	bool "UniPhier GPIO"
 	depends on ARCH_UNIPHIER
@@ -317,4 +320,13 @@ config MPC85XX_GPIO
 
 	  The driver has been tested on MPC85XX, but it is likely that other
 	  PowerQUICC III devices will work as well.
+
+config NCA9539_GPIO
+	bool "NCA9539 GPIO port expander driver"
+	depends on DM_GPIO
+	default n
+	help
+	  Device model driver support for NCA9539 GPIO expander. It should be
+	  usable on many NCA9539 families like NCA9539 & NCA9535.
+	  Tested on NCA9539.
 endmenu

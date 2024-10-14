@@ -229,9 +229,9 @@ mpp_dma_get_iova:
 	.size	mpp_dma_get_iova, .-mpp_dma_get_iova
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__func__.34638, %object
-	.size	__func__.34638, 17
-__func__.34638:
+	.type	__func__.34703, %object
+	.size	__func__.34703, 17
+__func__.34703:
 	.ascii	"mpp_dma_get_iova\000"
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:

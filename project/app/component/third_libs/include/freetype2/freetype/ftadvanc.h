@@ -112,8 +112,7 @@ FT_BEGIN_HEADER
  *   the affine transformation specified by @FT_Set_Transform.
  */
 FT_EXPORT(FT_Error)
-FT_Get_Advance(FT_Face face, FT_UInt gindex, FT_Int32 load_flags,
-               FT_Fixed *padvance);
+FT_Get_Advance(FT_Face face, FT_UInt gindex, FT_Int32 load_flags, FT_Fixed *padvance);
 
 /**************************************************************************
  *

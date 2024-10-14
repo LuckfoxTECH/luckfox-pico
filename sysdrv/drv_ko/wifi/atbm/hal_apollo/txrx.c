@@ -329,7 +329,13 @@ static void tx_policy_build(const struct atbm_common *hw_priv,
 	int i, j;
 	unsigned limit = hw_priv->short_frame_max_tx_count;
 	unsigned total = 0;
-	BUG_ON(rates[0].idx < 0);
+	//BUG_ON(rates[0].idx < 0);
+
+	if(rates[0].idx < 0){
+		atbm_printk_err("%s %d ,ERROR !!! rates[0].idx=%d < 0\n",__func__,__LINE__,rates[0].idx);
+		return;
+	}
+	
 	memset(policy, 0, sizeof(*policy));
 
 	/* minstrel is buggy a little bit, so distille
@@ -1565,9 +1571,11 @@ void __atbm_tx(struct ieee80211_hw *dev, struct sk_buff *skb)
 #ifdef CONFIG_ATBM_SUPPORT_P2P
     struct atbm_ieee80211_mgmt *mgmt = (struct atbm_ieee80211_mgmt *)skb->data;
 #endif
-	if (!skb->data)
-		BUG_ON(1);
-
+	if (!skb->data){
+		atbm_printk_err("%s %d ,ERROR !!! skb->data is NULL\n",__func__,__LINE__);
+		return;
+		//BUG_ON(1);
+	}
 	if (!(t.tx_info->control.vif)) {
 			atbm_printk_err("[TX]:vif is NULL\n");
 	        goto drop;
@@ -1790,8 +1798,15 @@ void __atbm_tx(struct ieee80211_hw *dev, struct sk_buff *skb)
 	spin_lock_bh(&priv->ps_state_lock);
 	{
 		tid_update = atbm_tx_h_pm_state(priv, &t);
-		BUG_ON(atbm_queue_put(&hw_priv->tx_queue[t.queue],
-				t.skb, &t.txpriv));
+		//BUG_ON(atbm_queue_put(&hw_priv->tx_queue[t.queue],t.skb, &t.txpriv));
+		if(atbm_queue_put(&hw_priv->tx_queue[t.queue],t.skb, &t.txpriv)){
+			atbm_printk_err("%s %d ,ERROR !!! atbm_queue_put error\n",__func__,__LINE__);
+			
+			spin_unlock_bh(&priv->ps_state_lock);
+			rcu_read_unlock();
+			atbm_skb_dtor(hw_priv, skb, &t.txpriv);
+			return;
+		}
 	}
 	spin_unlock_bh(&priv->ps_state_lock);
 
@@ -2007,7 +2022,8 @@ void atbm_tx_confirm_cb(struct atbm_common *hw_priv,
 		if(tx==NULL){
 			atbm_printk_err("TX IS NULL\n");
 			atbm_priv_vif_list_read_unlock(&priv->vif_lock);
-			BUG_ON(1);
+		//	BUG_ON(1);
+			atbm_printk_err("%s %d ,ERROR !!! tx is NULL\n",__func__,__LINE__);
 			return ;
 		}
 		tx_count = arg->ackFailures;
@@ -2053,7 +2069,8 @@ void atbm_tx_confirm_cb(struct atbm_common *hw_priv,
 			if(frame==NULL){
 				atbm_printk_tx("frame is null\n");
 				atbm_priv_vif_list_read_unlock(&priv->vif_lock);
-				BUG_ON(1);
+			//	BUG_ON(1);
+				atbm_printk_err("%s %d ,ERROR !!! frame is NULL\n",__func__,__LINE__);
 				return ;
 			}
 			if(atbm_queue_get_generation(arg->packetID) >= 5){
@@ -2328,81 +2345,34 @@ void atbm_rx_cb(struct atbm_vif *priv,
 /*
 *unusefull for p2p
 */
-#if 0
-	else if ((arg->link_id == ATBM_APOLLO_LINK_ID_UNMAPPED)
-			&& (priv->vif->p2p)
-			&& (priv->join_status == ATBM_APOLLO_JOIN_STATUS_AP)
-			&& ieee80211_is_action(frame->frame_control)
-			&& (mgmt->u.action.category == WLAN_CATEGORY_PUBLIC)) {
-		int action_linkid = 0;
-		atbm_printk_rx("%s line(%d):if_id(%d),WSM_START_MODE_P2P_GO reset link id\n",__func__,__LINE__,priv->if_id);
-		action_linkid = atbm_find_link_id(priv,ieee80211_get_SA(frame));
-		if(action_linkid != 0)
-		{
-			atbm_printk_rx("%s line(%d):if_id(%d),WSM_START_MODE_P2P_GO reset link id\n",__func__,__LINE__,priv->if_id);
-			spin_lock_bh(&priv->ps_state_lock);
-			priv->link_id_db[action_linkid - 1].prev_status =
-				priv->link_id_db[action_linkid - 1].status;
-			priv->link_id_db[action_linkid - 1].status =
-				ATBM_APOLLO_LINK_RESET;
-			spin_unlock_bh(&priv->ps_state_lock);
-			atbm_hw_priv_queue_work(hw_priv,&priv->linkid_reset_work);
-		}
-	}
 
-	if (arg->link_id && (arg->link_id != ATBM_APOLLO_LINK_ID_UNMAPPED)
-			&& (priv->vif->p2p)
-			&& (priv->join_status == ATBM_APOLLO_JOIN_STATUS_AP)
-			&& ieee80211_is_action(frame->frame_control)
-			&& (mgmt->u.action.category == WLAN_CATEGORY_PUBLIC)) {
-		int action_linkid = 0;
-		action_linkid = atbm_find_link_id(priv,ieee80211_get_SA(frame));
-		/* Link ID already exists for the ACTION frame.
-		 * Reset and Remap */
-		if(action_linkid &&(arg->link_id != action_linkid))
-		{
-			atbm_printk_rx("Link ID already exists for the ACTION frame\n");
-			spin_lock_bh(&priv->ps_state_lock);
-			priv->link_id_db[action_linkid - 1].prev_status =
-				priv->link_id_db[action_linkid - 1].status;
-			priv->link_id_db[action_linkid - 1].status =
-				ATBM_APOLLO_LINK_RESET_REMAP;
-			spin_unlock_bh(&priv->ps_state_lock);
-			atbm_hw_priv_queue_work(hw_priv,&priv->linkid_reset_work);
-		}
-	}
-#endif
-#if 0
-	if (unlikely(arg->status)) {
-		if (arg->status == WSM_STATUS_MICFAILURE) {
-			atbm_printk_err( "[RX] MIC failure. ENCRYPTION [%d][%pM][%pM]\n",
-				WSM_RX_STATUS_ENCRYPTION(arg->flags),frame->addr1,frame->addr2);
-			hdr->flag |= RX_FLAG_MMIC_ERROR;
-		} else if (arg->status == WSM_STATUS_NO_KEY_FOUND) {
-			atbm_printk_err( "[RX] No key found.ENCRYPTION [%d]\n",WSM_RX_STATUS_ENCRYPTION(arg->flags));			
-			hdr->flag |= RX_FLAG_UNKOWN_STA_FRAME;
-			if(priv->join_status != ATBM_APOLLO_JOIN_STATUS_AP){
-				goto drop;
-			}
-		} else {
-			atbm_printk_err("[RX] Receive failure: %d.ENCRYPTION [%d],fc(%x)\n",
-				arg->status,WSM_RX_STATUS_ENCRYPTION(arg->flags),mgmt->frame_control);			
-			hdr->flag |= RX_FLAG_UNKOWN_STA_FRAME;
-			if(priv->join_status != ATBM_APOLLO_JOIN_STATUS_AP){
-				goto drop;
-			}
-		}
-	}
-#endif
 	 if (unlikely(arg->status)) {
                 struct sta_info *sta;
+				char *da,*sa,*bssid;
+	 			if(priv->vif->type == NL80211_IFTYPE_AP || priv->vif->type == NL80211_IFTYPE_P2P_GO){
+					bssid = frame->addr1;
+					sa = frame->addr2;
+					da = frame->addr3;
+				}else{
+					da = frame->addr1;
+					bssid = frame->addr2;
+					sa = frame->addr3;
+					
+				}
+
+				if(memcmp(da,priv->vif->addr,6) != 0 && priv->join_status != ATBM_APOLLO_JOIN_STATUS_STA_LISTEN){
+					atbm_printk_err("recv dest addr:[%pM] , local addr:[%pM]\n",da,priv->vif->addr);
+					goto drop;
+				}
+				
                 rcu_read_lock();
                 sta = (struct sta_info *)sta_info_get_rx(vif_to_sdata(priv->vif), frame->addr2);
                 if(sta){
 						if(priv->join_status != ATBM_APOLLO_JOIN_STATUS_STA_LISTEN)
                         	atbm_printk_err("[%s Rx]:[%pM],PTK[%p],FLAGS[%lx],skb->len[%d]\n",
                                 vif_to_sdata(priv->vif)->name,frame->addr2,sta->ptk,sta->_flags,skb->len);
-                }else {
+                }
+				else {
 						if(priv->join_status != ATBM_APOLLO_JOIN_STATUS_STA_LISTEN)
                         	atbm_printk_err("[%s RX]:[%pM] is not assoctiated with us\n",
                                         vif_to_sdata(priv->vif)->name,frame->addr2);
@@ -2421,21 +2391,21 @@ void atbm_rx_cb(struct atbm_vif *priv,
                 rcu_read_unlock();
                 if (arg->status == WSM_STATUS_MICFAILURE) {
 						if(priv->join_status != ATBM_APOLLO_JOIN_STATUS_STA_LISTEN)
-                       	 atbm_printk_err( "[RX] MIC failure. ENCRYPTION [%d][%pM][%pM]\n",
-                                WSM_RX_STATUS_ENCRYPTION(arg->flags),frame->addr1,frame->addr2);
+                       	 atbm_printk_err( "[RX] MIC failure. ENCRYPTION [%d]da:[%pM],sa:[%pM]\n",
+                                WSM_RX_STATUS_ENCRYPTION(arg->flags),da,sa);
                         hdr->flag |= RX_FLAG_MMIC_ERROR;
                 } else if (arg->status == WSM_STATUS_NO_KEY_FOUND) {
 						if(priv->join_status != ATBM_APOLLO_JOIN_STATUS_STA_LISTEN)
-                        	atbm_printk_err( "[RX] No key found.ENCRYPTION [%d][%pM][%pM]\n",
-                                        WSM_RX_STATUS_ENCRYPTION(arg->flags),frame->addr1,frame->addr2);
+                        	atbm_printk_err( "[RX] No key found.ENCRYPTION [%d]da:[%pM],sa:[%pM]\n",
+                                        WSM_RX_STATUS_ENCRYPTION(arg->flags),da,sa);
                                 hdr->flag |= RX_FLAG_UNKOWN_STA_FRAME;
                         if(priv->join_status != ATBM_APOLLO_JOIN_STATUS_AP){
                                 goto drop;
                         }
                 } else {
                 	if(priv->join_status != ATBM_APOLLO_JOIN_STATUS_STA_LISTEN)
-                        atbm_printk_err("[RX] Receive failure: %d.ENCRYPTION [%d][%pM][%pM],fc(%x)\n",
-                                arg->status,WSM_RX_STATUS_ENCRYPTION(arg->flags),frame->addr1,frame->addr2,mgmt->frame_control);
+                        atbm_printk_err("[RX] Receive failure: %d.ENCRYPTION [%d] da:[%pM],sa:[%pM],fc(%x)\n",
+                                arg->status,WSM_RX_STATUS_ENCRYPTION(arg->flags),da,sa,mgmt->frame_control);
                         hdr->flag |= RX_FLAG_UNKOWN_STA_FRAME;
                         if(priv->join_status != ATBM_APOLLO_JOIN_STATUS_AP){
                                 goto drop;
@@ -2613,7 +2583,7 @@ void atbm_rx_cb(struct atbm_vif *priv,
 		}
 	}else {
 		if(ieee80211_has_protected(frame->frame_control)){
-			atbm_printk_err("[RX]:need sw decrypted?\n");
+			atbm_printk_debug("[RX]:need sw decrypted?\n");
 		}
 	}
 

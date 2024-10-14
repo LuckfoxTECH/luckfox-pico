@@ -83,6 +83,7 @@ void rkipc_get_opt(int argc, char *argv[]) {
 
 int main(int argc, char **argv) {
 	LOG_INFO("main begin\n");
+	rkipc_version_dump();
 	signal(SIGINT, sig_proc);
 	signal(SIGTERM, sig_proc);
 
@@ -96,7 +97,6 @@ int main(int argc, char **argv) {
 	rk_system_init();
 	rkipc_camera_id_ = rk_param_get_int("video.source:camera_id", 0); // need rk_param_init
 	rk_isp_init(rkipc_camera_id_, rkipc_iq_file_path_);
-	rk_isp_set_frame_rate(0, rk_param_get_int("isp.0.adjustment:fps", 30));
 	RK_MPI_SYS_Init();
 	rk_video_init();
 	if (rk_param_get_int("audio.0:enable", 0))

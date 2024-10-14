@@ -1,8 +1,8 @@
-commit fb2eed2be49e25359ed5c0718d309276ec595b4c
-Author: Colum Jin <colum.jin@rock-chips.com>
-Date:   Tue Jan 31 14:33:40 2023 +0800
+commit 28ee389dbc33c2c7db812cd08e54fd3a0f2f992b
+Author: LongChang Ma <chad.ma@rock-chips.com>
+Date:   Sat Apr 20 20:35:07 2024 +0800
 
-    support support dynmaic change chn attr
+    mpi: add mpi_node_queue* ops macro define
     
-    Signed-off-by: Colum Jin <colum.jin@rock-chips.com>
-    Change-Id: Id0a97974548aec855514a5123ad8dc89a94c4556
+    Signed-off-by: LongChang Ma <chad.ma@rock-chips.com>
+    Change-Id: Ic8bf20706d98d14b52e73dd89513b079f7a862ab

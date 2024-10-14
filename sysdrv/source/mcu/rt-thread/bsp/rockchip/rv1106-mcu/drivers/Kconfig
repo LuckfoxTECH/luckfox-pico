@@ -1,0 +1,72 @@
+source "$BSP_DIR/../common/drivers/Kconfig"
+
+menu "RT-Thread rockchip rv1106 drivers"
+
+config RT_USING_CRU
+    bool "Enable CRU"
+    default n
+
+if RT_USING_I2C
+menu "Enable I2C"
+    config RT_USING_I2C0
+        bool "Enable I2C0"
+        default n
+
+    config RT_USING_I2C1
+        bool "Enable I2C1"
+        default n
+
+    config RT_USING_I2C2
+        bool "Enable I2C2"
+        default n
+
+    config RT_USING_I2C3
+        bool "Enable I2C3"
+        default n
+
+    config RT_USING_I2C4
+        bool "Enable I2C4"
+        default n
+
+    config RT_USING_I2C5
+        bool "Enable I2C5"
+        default n
+endmenu
+endif
+
+if RT_USING_PWM
+    config RT_USING_PWM0
+        bool "Enable PWM0"
+        default n
+
+    config RT_USING_PWM1
+        bool "Enable PWM1"
+        default n
+
+    config RT_USING_PWM2
+        bool "Enable PWM2"
+        default n
+endif
+
+config RT_USING_SARADC
+    bool "Enable SARADC"
+    default n
+
+menu "Enable UART"
+    config RT_USING_UART
+        bool "Enable UART"
+        default y
+
+    if RT_USING_UART
+    config RT_USING_UART0
+        bool "Enable UART0"
+        default n
+
+    config RT_USING_UART2
+        bool "Enable UART2"
+        default y
+    endif
+endmenu
+
+endmenu
+

@@ -20,39 +20,39 @@
 #ifndef SRC_RT_MEDIA_INCLUDE_RTOBJECT_H_
 #define SRC_RT_MEDIA_INCLUDE_RTOBJECT_H_
 
-#include "rt_type.h" // NOLINT
 #include <typeinfo>
+#include "rt_type.h"  // NOLINT
 
 class RTMemTrace;
 class RTObject {
-public:
-  virtual const char *getName() = 0;
-  virtual void summary(INT32 fd) = 0;
-  virtual RT_BOOL equals(RTObject *ptr);
+ public:
+    virtual const char* getName() = 0;
+    virtual void    summary(INT32 fd) = 0;
+    virtual RT_BOOL equals(RTObject* ptr);
 
-  /** return hash-code of object.
-   *
-   * @return hash-code of object
-   *
-   * Best Practice: use jvmHashCode(typeid(this).name()) as hash code.
-   */
-  virtual UINT32 hashCode();
+    /** return hash-code of object.
+     *
+     * @return hash-code of object
+     *
+     * Best Practice: use jvmHashCode(typeid(this).name()) as hash code.
+     */
+    virtual UINT32  hashCode();
 
-public:
-  /** calculate hash-code of object name.
-   *
-   * @return hash-code of object name
-   *
-   * using hash function of the java virtual machine default.
-   */
-  static UINT32 jvmHashCode(const char *name);
+ public:
+    /** calculate hash-code of object name.
+     *
+     * @return hash-code of object name
+     *
+     * using hash function of the java virtual machine default.
+     */
+    static UINT32  jvmHashCode(const char* name);
 
-protected:
-  void trace(const char *name, void *ptr, UINT32 size); // Called in Constructor
-  void untrace(const char *name, void *ptr);            // Called in Destructor
+ protected:
+    void trace(const char* name, void* ptr, UINT32 size);  // Called in Constructor
+    void untrace(const char* name, void* ptr);  // Called in Destructor
 
-private:
-  static RTMemTrace *mObjTraces;
+ private:
+    static RTMemTrace* mObjTraces;
 };
 
-#endif // SRC_RT_MEDIA_INCLUDE_RTOBJECT_H_
+#endif   // SRC_RT_MEDIA_INCLUDE_RTOBJECT_H_

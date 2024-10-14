@@ -29,7 +29,7 @@ RKAIQ_BEGIN_DECLARE
 typedef struct CalibDbV2_YnrV2_C_ISO_s {
     // M4_NUMBER_MARK_DESC("iso", "f32", M4_RANGE(50, 204800), "50", M4_DIGIT(1), "index2")
     float iso;
-    // M4_ARRAY_DESC("sigma_curve", "f32", M4_SIZE(1,5), M4_RANGE(-65535.0, 65535), "0.0", M4_DIGIT(6), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("sigma_curve", "f32", M4_SIZE(1,5), M4_RANGE(-65535.0, 65535), "0.0", M4_DIGIT(20), M4_DYNAMIC(0))
     double sigma_curve[5];
     // M4_NUMBER_DESC("ynr_ci_l", "f32", M4_RANGE(0.0, 2.0), "0.5", M4_DIGIT(3))
     float ynr_ci_l;

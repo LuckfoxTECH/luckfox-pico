@@ -39,6 +39,11 @@
 	};
 };
 
+&sfc {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
 &emmc {
 	u-boot,dm-pre-reloc;
 	status = "okay";

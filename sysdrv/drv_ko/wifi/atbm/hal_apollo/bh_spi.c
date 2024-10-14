@@ -30,7 +30,11 @@ int atbm_register_bh(struct atbm_common *hw_priv)
 	int err = 0;
 	struct sched_param param = { .sched_priority = 1 };
 	bh_printk( "[BH] register.\n");
-	BUG_ON(hw_priv->bh_thread);
+	//BUG_ON(hw_priv->bh_thread);
+	if(hw_priv->bh_thread){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv->bh_thread is runing\n",__func__,__LINE__);
+		return 0;
+	}
 	atomic_set(&hw_priv->bh_rx, 0);
 	atomic_set(&hw_priv->bh_tx, 0);
 	atomic_set(&hw_priv->bh_term, 0);
@@ -363,8 +367,15 @@ static int atbm_spi_xmit_data(struct atbm_common *hw_priv)
 		  goto error;
 	} else {
 		wsm = (struct wsm_hdr_tx *)data;
-		BUG_ON(tx_len < sizeof(*wsm));
-		BUG_ON(__le32_to_cpu(wsm->len) != tx_len);
+	//	BUG_ON(tx_len < sizeof(*wsm));
+	//	BUG_ON(__le32_to_cpu(wsm->len) != tx_len);
+		if((tx_len < sizeof(*wsm)) || (__le32_to_cpu(wsm->len) != tx_len)){
+			atbm_printk_err("%s %d ,ERROR !!! tx_len(%d) < sizeof(*wsm)(%d) , __le32_to_cpu(wsm->len)(%d) != tx_len\n",
+				__func__,__LINE__,tx_len,sizeof(*wsm),__le32_to_cpu(wsm->len));
+			status = -1;
+			goto error;
+		}
+		
 		atomic_add(1, &hw_priv->bh_tx);
 
 		wsm->id &= __cpu_to_le32(~WSM_TX_SEQ(WSM_TX_SEQ_MAX));

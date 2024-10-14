@@ -1,0 +1,15 @@
+config ENABLE_DUAL_TRACKING
+    bool "Enable dual-tracking"
+    default n
+    select RT_USING_AUDIO_SERVER
+    select AUDIO_ENABLE_RECORDER
+    help
+        Enable dual-tracking, requires two sound cards that can record simultaneously
+
+    if ENABLE_DUAL_TRACKING
+        config ENABLE_DUAL_TRACKING_TEST
+            bool "Enable dual-tracking test"
+            default n
+            help
+                A dual-tracking demo
+    endif

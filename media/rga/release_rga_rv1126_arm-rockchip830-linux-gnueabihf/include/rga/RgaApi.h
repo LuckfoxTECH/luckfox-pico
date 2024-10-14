@@ -18,23 +18,23 @@
 #ifndef _rockchip_rga_c_h_
 #define _rockchip_rga_c_h_
 
-#include <errno.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
 #include <time.h>
 #include <unistd.h>
 
-#include <linux/stddef.h>
 #include <sys/mman.h>
+#include <linux/stddef.h>
 
 #include "drmrga.h"
 #include "rga.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"{
 #endif
 
 /*
@@ -44,28 +44,26 @@ extern "C" {
  * compatibility with the old C interface, so please do
  * not use ctx, because it is usually a NULL.
  */
-#define RgaInit(ctx)                                                           \
-  ({                                                                           \
-    int ret = 0;                                                               \
-    ret = c_RkRgaInit();                                                       \
-    c_RkRgaGetContext(ctx);                                                    \
-    ret;                                                                       \
-  })
-#define RgaDeInit(ctx)                                                         \
-  {                                                                            \
-    (void)ctx; /* unused */                                                    \
-    c_RkRgaDeInit();                                                           \
-  }
+#define RgaInit(ctx) ({ \
+    int ret = 0; \
+    ret = c_RkRgaInit(); \
+    c_RkRgaGetContext(ctx); \
+    ret;\
+})
+#define RgaDeInit(ctx) { \
+    (void)ctx;        /* unused */ \
+    c_RkRgaDeInit(); \
+}
 #define RgaBlit(...) c_RkRgaBlit(__VA_ARGS__)
 #define RgaCollorFill(...) c_RkRgaColorFill(__VA_ARGS__)
 #define RgaFlush() c_RkRgaFlush()
 
-int c_RkRgaInit();
+int  c_RkRgaInit();
 void c_RkRgaDeInit();
 void c_RkRgaGetContext(void **ctx);
-int c_RkRgaBlit(rga_info_t *src, rga_info_t *dst, rga_info_t *src1);
-int c_RkRgaColorFill(rga_info_t *dst);
-int c_RkRgaFlush();
+int  c_RkRgaBlit(rga_info_t *src, rga_info_t *dst, rga_info_t *src1);
+int  c_RkRgaColorFill(rga_info_t *dst);
+int  c_RkRgaFlush();
 
 #ifndef ANDROID /* linux */
 int c_RkRgaGetAllocBuffer(bo_t *bo_info, int width, int height, int bpp);

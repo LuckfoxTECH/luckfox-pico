@@ -29,7 +29,7 @@ RKAIQ_BEGIN_DECLARE
 typedef struct __csm_param {
     // M4_ENUM_DESC("op_mode", "RKAiqOPMode_t", "RK_AIQ_OP_MODE_AUTO")
     RKAiqOPMode_t op_mode;
-    // M4_BOOL_DESC("full_range", "0", M4_HIDE(0), "1")
+    // M4_BOOL_DESC("full_range", "1", M4_HIDE(0), "1")
     bool full_range;
     // M4_NUMBER_DESC("y_offset", "u8", M4_RANGE(0,63), "0", M4_DIGIT(0))
     uint8_t y_offset;

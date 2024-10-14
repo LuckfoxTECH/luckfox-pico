@@ -25,6 +25,23 @@ XCamReturn
 rk_aiq_uapi_asharp_SetIQpara(RkAiqAlgoContext *ctx,
                              rk_aiq_sharp_IQpara_t *para,
                              bool need_sync);
+XCamReturn
+rk_aiq_uapi_asharp_SetManualSharpIQPara(RkAiqAlgoContext *ctx,
+                             rk_aiq_sharp_manual_IQPara_t *para,
+                             bool need_sync);
+
+XCamReturn
+rk_aiq_uapi_asharp_GetManualSharpIQPara(RkAiqAlgoContext *ctx,
+                             rk_aiq_sharp_manual_IQPara_t *para);
+
+XCamReturn
+rk_aiq_uapi_aedgeFilter_SetManualSharpIQPara(RkAiqAlgoContext *ctx,
+                                        rk_aiq_edgeFilter_manual_IQPara_t *pPara,
+                                        bool need_sync);
+
+XCamReturn
+rk_aiq_uapi_aedgeFilter_GetManualSharpIQPara(RkAiqAlgoContext *ctx,
+                                        rk_aiq_edgeFilter_manual_IQPara_t *pPara);
 
 XCamReturn
 rk_aiq_uapi_asharp_GetIQpara(const RkAiqAlgoContext *ctx,

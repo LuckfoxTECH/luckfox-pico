@@ -1,4 +1,11 @@
 # Updatelog
+## V1.4 Updatelog
+1. Updated U-Boot to support fast boot for RV1106 using SPI NAND and eMMC.
+2. Optimized U-Boot compatibility with SD cards, reducing the likelihood of SD card recognition failures.
+3. Updated the kernel version to 5.10.160, increasing the NPU frequency for RV1106G3.
+4. Updated the Buildroot mirror source for more stable package downloads.
+5. Added support for custom file systems.
+6. Partial bug fixes
 ## V1.3 Updatelog
 1. Added support for Luckfox-pico-Ultra and Luckfox-pico-Ultra-W
 2. Optimized the selection process for board support files

@@ -44,7 +44,6 @@
 #include "bh.h"
 #include "svn_version.h"
 #include "module_fs.h"
-#include "internal_cmd.h"
 
 #if defined(CONFIG_HAS_EARLYSUSPEND)
 #ifdef ATBM_PM_USE_EARLYSUSPEND
@@ -170,7 +169,7 @@ void atbm_usb_release_tx_err_urb(struct sbus_priv *self,unsigned long *bitmap,in
 #define PER_PACKET_LEN 2048 //must pow 512
  char * atbm_usb_get_txDMABuf(struct sbus_priv *self); 
  char * atbm_usb_pick_txDMABuf(struct sbus_priv *self); 
- void atbm_usb_free_txDMABuf(struct sbus_priv *self);
+ int atbm_usb_free_txDMABuf(struct sbus_priv *self);
  void atbm_usb_free_txDMABuf_all(struct sbus_priv *self,u8 * buffer,int cnt);
  
 
@@ -680,8 +679,13 @@ static void atbm_usb_ctrlwrite_async_cb(struct urb *urb)
 	struct atbm_usb_ctrlrequest *ctrl = (struct atbm_usb_ctrlrequest *)urb->context;
 	struct sbus_priv *self = ctrl->self;
 	
-	BUG_ON(self == NULL);
-	
+//	BUG_ON(self == NULL);
+	if(!self){
+		atbm_printk_err("%s %d ,ERROR !!! self is NULL\n",__func__,__LINE__);
+		atbm_kfree(urb->context);
+		return;
+	}
+
 	if(urb->status){
 		atbm_printk_err("ctrl req urb err[%d]\n",urb->status);
 		atomic_set(&self->drvobj->ctrl_err,1);
@@ -809,6 +813,7 @@ int atbm_usb_ep0_cmd(struct sbus_priv *self)
 	static int tmpdata =0;
 	return atbm_usbctrl_vendorreq_sync(self,request,1,0, 0, &tmpdata,0);
 }
+
 static int atbm_usb_device_reset(struct sbus_priv *self)
 {
 	int ret = 0;
@@ -833,6 +838,7 @@ static int atbm_usb_device_reset(struct sbus_priv *self)
 error:
 	return -1;
 }
+
 static void atbm_usb_block_urbs(struct sbus_priv *self)
 {
 	int urb_index = 0;
@@ -918,6 +924,7 @@ static int atbm_usb_wait_anchor_empty_timeout(struct sbus_priv *self,int timeout
 exit:
 	return ret;
 }
+#if 0
 static int _atbm_lmac_restart(struct sbus_priv *self)
 {
 	int ret = 0;
@@ -1021,6 +1028,160 @@ error_prepare:
 	wsm_unlock_tx_async(hw_priv);
 	return -1;
 }
+#else
+static int _atbm_lmac_restart(struct sbus_priv *self)
+{
+	int ret = 0;
+	struct atbm_common *hw_priv = self->core;
+	int i;
+	/*
+	*kill all tx and rx urb and release tx pkg and cmd
+	*/
+	atbm_printk_init("%s\n",__func__);
+#ifdef USB_USE_TASTLET_TXRX
+
+	tasklet_disable(&self->tx_cmp_tasklet);
+	tasklet_disable(&self->rx_cmp_tasklet);
+#endif
+	wsm_lock_tx_async(hw_priv);
+	atbm_wifi_set_status(2);
+	/*
+	*from now ,rx_urb and tx_urb can not be submitted again until
+	*urb unblock.
+	*/
+	atbm_usb_block_urbs(self);
+	synchronize_rcu();
+	/*
+	*cpu hold
+	*/
+	atbm_usb_ep0_hw_reset_cmd(self,HW_HOLD_CPU,0);
+	atbm_usb_ep0_hw_reset_cmd(hw_priv->sbus_priv,HW_RESET_HIF,0);
+	/*
+	*reset mac
+	*/
+	{
+		u32 val32;
+		/*reset mac*/
+		ret = atbm_direct_read_reg_32(hw_priv,0x16100074,&val32);
+		if(ret<0)
+			atbm_printk_err("read 0xab0016c err\n");
+		val32 |= BIT(1);
+		ret = atbm_direct_write_reg_32(hw_priv,0x16100074,val32);
+		if(ret<0)
+			atbm_printk_err("write 0xab0016c err\n");
+		
+		ret = atbm_direct_read_reg_32(hw_priv,0x16100074,&val32);
+		atbm_printk_init("reset val(%x)\n",val32);
+		val32 &= ~BIT(1);
+		ret = atbm_direct_write_reg_32(hw_priv,0x16100074,val32);
+		if(ret<0)
+			atbm_printk_err("write 0xab0016c err\n");
+
+		ret = atbm_direct_read_reg_32(hw_priv,0x16100074,&val32);
+		
+		atbm_printk_init("after reset(%x)\n",val32);
+	}
+	/*
+	ret = atbm_usb_device_reset(self);
+	if(ret){
+		atbm_printk_err("Reset Usb Err\n");
+		goto error_prepare;
+	}
+	atbm_printk_init("Release All Tx Urb\n");
+	*/
+	ret = atbm_usb_wait_anchor_empty_timeout(self,1000);
+	/*
+	if(ret == 0){
+		ret = atbm_usb_device_reset(self);
+		if(ret){
+			atbm_printk_err("Reset Usb Err\n");
+			goto error_prepare;
+		}
+		ret = atbm_usb_wait_anchor_empty_timeout(self,1000);
+
+		if(ret == 0){
+			atbm_printk_err("Cancle Usb Err\n");
+			goto error_prepare;
+		}
+	}
+	*/
+	atbm_rx_bh_flush(hw_priv);	
+	atbm_usb_release_tx_err_urb(self,self->drvobj->tx_urb_map,1);
+	synchronize_rcu();
+	/*
+	ret = atbm_usb_device_reset(self);
+	if(ret){
+		atbm_printk_err("Reset Usb Err\n");
+		goto error_prepare;
+	}
+	*/
+	atbm_printk_init("Flush txrx urb\n");
+	/*
+	*waitting all wsm cmd destory
+	*/
+	atbm_destroy_wsm_cmd(hw_priv);
+	
+	hw_priv->bh_error = 0;
+	smp_mb();
+	ieee80211_pre_restart_hw_sync(hw_priv->hw);
+	atbm_printk_init("Flush iee80211 hw\n");
+	atbm_tx_queues_lock(hw_priv);
+	/*
+	*hold rtnl_lock,make sure that when down load fw,network layer cant not 
+	*send pkg and cmd
+	*/
+	rtnl_lock();
+	/*
+	*release hw buff
+	*/
+	hw_priv->wsm_tx_seq = 0;
+	hw_priv->buf_id_tx = 0;
+	hw_priv->wsm_rx_seq = 0;
+	hw_priv->hw_bufs_used = 0;
+	hw_priv->save_buf = NULL;
+	hw_priv->save_buf_len = 0;
+	hw_priv->save_buf_vif_selected = -1;
+	hw_priv->buf_id_rx = 0;
+	for (i = 0; i < ATBM_WIFI_MAX_VIFS; i++)
+		hw_priv->hw_bufs_used_vif[i] = 0;
+	
+	atomic_set(&hw_priv->atbm_pluged,1);
+	atbm_usb_unblock_urbs(self);
+	atbm_wifi_set_status(0);
+#ifdef USB_USE_TASTLET_TXRX
+
+	tasklet_enable(&self->rx_cmp_tasklet);
+	tasklet_enable(&self->tx_cmp_tasklet);
+#endif
+	/*
+	*load firmware
+	*/
+	ret = atbm_reinit_firmware(hw_priv);
+	
+	if(ret){
+		atbm_printk_init("%s:reload fw err\n",__func__);
+		goto error_reload;
+	}
+	/*
+	*restart ap and sta
+	*/
+	ret = ieee80211_restart_hw_sync(hw_priv->hw);
+	
+	rtnl_unlock();
+	atbm_tx_queues_unlock(hw_priv);
+	wsm_unlock_tx(hw_priv);
+	return ret;
+error_reload:
+	rtnl_unlock();
+	atbm_tx_queues_unlock(hw_priv);
+error_prepare:
+	wsm_unlock_tx_async(hw_priv);
+	return -1;
+}
+
+
+
+#endif
 int atbm_lmac_restart(struct sbus_priv *self)
 {
 	int ret  = -1;
@@ -1190,13 +1351,28 @@ void atbm_usb_free_err_data(struct sbus_priv *self,struct sbus_urb *tx_urb)
 	struct sk_buff *skb;
 	const struct atbm_txpriv *txpriv;
 	
-	BUG_ON(wsm == NULL);
+	//BUG_ON(wsm == NULL);
+	if(wsm == NULL){
+		atbm_printk_err("%s %d ,ERROR !!! wsm is NULL\n",__func__,__LINE__);
+		return;
+	}
+	
 	queue_id = atbm_queue_get_queue_id(wsm->packetID);
 
-	BUG_ON(queue_id >= 4);
+	//BUG_ON(queue_id >= 4);
+	if(queue_id >= 4){
+		atbm_printk_err("%s %d ,ERROR !!! queue_id >= 4\n",__func__,__LINE__);
+		return;
+	}
+	
 	queue = &hw_priv->tx_queue[queue_id];
-	BUG_ON(queue == NULL);
+	//BUG_ON(queue == NULL);
+	if(queue == NULL){
+		atbm_printk_err("%s %d ,ERROR !!! queue == NULL\n",__func__,__LINE__);
+		return;
+	}
 
+	
 	if(!WARN_ON(atbm_queue_get_skb(queue, wsm->packetID, &skb, &txpriv))) {
 
 		struct ieee80211_tx_info *tx = IEEE80211_SKB_CB(skb);
@@ -1284,7 +1460,12 @@ static int atbm_usb_xmit_data(struct sbus_priv *self,
 
 			if(usb_aggr_buff == NULL){
 				usb_aggr_buff= atbm_usb_get_txDMABuf(self);
-				BUG_ON(usb_aggr_buff == NULL);
+				//BUG_ON(usb_aggr_buff == NULL);
+				if(usb_aggr_buff == NULL){
+					atbm_printk_err("%s %d ,ERROR !!! usb_aggr_buff == NULL\n",__func__,__LINE__);
+					status=-7;
+					goto error;;
+				}
 				tx_urb->dma_buff_alloced ++;
 			}
 			txdmabuff = usb_aggr_buff; 
@@ -1294,8 +1475,15 @@ static int atbm_usb_xmit_data(struct sbus_priv *self,
 			//athenaB must set usb_len = 2048, ares not need
 			wsm->usb_len = __cpu_to_le16(PER_PACKET_LEN);
 #endif //#if (PROJ_TYPE!=ARES_A)	
-			BUG_ON(tx_len < sizeof(*wsm));
-			BUG_ON(actual_len < sizeof(*wsm));
+		//	BUG_ON(tx_len < sizeof(*wsm));
+		//	BUG_ON(actual_len < sizeof(*wsm));
+			if((tx_len < sizeof(*wsm)) || (actual_len < sizeof(*wsm))){
+				atbm_printk_err("%s %d ,ERROR !!! tx_len(%d),actual_len(%d),sizeof(*wsm)(%d)\n",__func__,__LINE__,
+									tx_len,actual_len,sizeof(*wsm));
+				status=-3;
+				goto error;;
+			}
+			
 			tx_urb->frame_cnt++;
 
 			self->tx_vif_selected =vif_selected;
@@ -1363,7 +1551,8 @@ static int atbm_usb_xmit_data(struct sbus_priv *self,
 	}
 
 	if(tx_urb->frame_cnt ==0){
-		WARN_ON(1);
+		//WARN_ON(1);
+		atbm_printk_err("%s %d ,WARING !!! tx_urb->frame_cnt ==0\n",__func__,__LINE__);
 	}
 	usb_anchor_urb(tx_urb->test_urb, &self->drvobj->tx_submitted);
 	if(!atbm_wifi_get_status()){
@@ -1463,9 +1652,16 @@ static int atbm_usb_xmit_data(struct sbus_priv *self,
 			tx_urb = &self->drvobj->tx_urb[urb_id];
 			wsm = (struct wsm_hdr_tx *)data;
 			tx_len=le16_to_cpu(wsm->usb_len);
-			BUG_ON(tx_len < sizeof(*wsm));
-			BUG_ON(actual_len < sizeof(*wsm));
-			BUG_ON(__le32_to_cpu(wsm->usb_len) != tx_len);
+		//	BUG_ON(tx_len < sizeof(*wsm));
+		//	BUG_ON(actual_len < sizeof(*wsm));
+		//	BUG_ON(__le32_to_cpu(wsm->usb_len) != tx_len);
+			if((tx_len < sizeof(*wsm)) || (actual_len < sizeof(*wsm)) ||(__le32_to_cpu(wsm->usb_len) != tx_len)){
+				atbm_printk_err("%s %d ,ERROR !!! tx_len(%d),actual_len(%d),sizeof(*wsm)(%d),__le32_to_cpu(wsm->usb_len)(%d)\n",__func__,__LINE__,
+									tx_len,actual_len,sizeof(*wsm),__le32_to_cpu(wsm->usb_len));
+				status=-3;
+				goto error;
+			}
+
 
 			atomic_add(1, &hw_priv->bh_tx);
 			//self->tx_data = (void *)data;
@@ -1519,7 +1715,12 @@ static int atbm_usb_xmit_data(struct sbus_priv *self,
 				unsigned int pipe;
 				u8 *submit_buff = tx_urb->pallocated_buf;
 				
-				BUG_ON(submit_buff == NULL);
+				//BUG_ON(submit_buff == NULL);
+				if(submit_buff == NULL){
+					atbm_printk_err("%s %d ,ERROR !!! submit_buff == NULL\n",__func__,__LINE__);
+					status=-1;
+					goto error;
+				}
 				//memcpy(submit_buff,txdata,actual_len);				
 				atbm_xmit_linearize(hw_priv,(struct wsm_tx*)txdata,submit_buff,actual_len);
 				pipe = usb_sndbulkpipe(self->drvobj->pusbdev, self->drvobj->ep_out);
@@ -1663,7 +1864,9 @@ char * atbm_usb_get_txDMABuf(struct sbus_priv *self)
 		self->drvobj->free_dma_buffer_cnt=0;
 		atbm_printk_err("free_dma_buffer_cnt ERR,NextAllocPost %p drvobj->NextFreePost %p\n",self->drvobj->NextAllocPost, self->drvobj->NextFreePost);
 		
-		BUG_ON(1);
+		//BUG_ON(1);
+		spin_unlock_irqrestore(&self->lock, flags);
+		return NULL;
 	}
 	
 	buf = self->drvobj->NextAllocPost;
@@ -1680,13 +1883,13 @@ char * atbm_usb_get_txDMABuf(struct sbus_priv *self)
 }
 
 
-void atbm_usb_free_txDMABuf(struct sbus_priv *self)
+int atbm_usb_free_txDMABuf(struct sbus_priv *self)
 {
 	if(self->drvobj->NextAllocPost == self->drvobj->NextFreePost){
 		if(self->drvobj->tx_dma_addr_buffer_full==0){
 			atbm_printk_err("self->drvobj->free_dma_buffer_cnt %d\n",self->drvobj->free_dma_buffer_cnt);
 			WARN_ON(self->drvobj->tx_dma_addr_buffer_full==0);
-			return;
+			return 0;
 		}
 		self->drvobj->tx_dma_addr_buffer_full = 0;
 	}
@@ -1699,14 +1902,15 @@ void atbm_usb_free_txDMABuf(struct sbus_priv *self)
 			self->drvobj->NextAllocPost, 
 			self->drvobj->NextFreePost,
 			self->drvobj->free_dma_buffer_cnt);
-		
-		BUG_ON(1);
+		return -1;
+		//BUG_ON(1);
 		
 	}
 	self->drvobj->NextFreePost += BUFF_ALLOC_LEN;
 	if(self->drvobj->NextFreePost == self->drvobj->tx_dma_addr_buffer_end){
 		self->drvobj->NextFreePost = self->drvobj->tx_dma_addr_buffer;
 	}
+	return 0;
 }
 void atbm_usb_free_txDMABuf_all(struct sbus_priv *self,u8 * buffer,int cnt)
 {
@@ -1715,13 +1919,24 @@ void atbm_usb_free_txDMABuf_all(struct sbus_priv *self,u8 * buffer,int cnt)
 	WARN_ON(cnt==0);
 	if((char *)buffer != self->drvobj->NextFreePost){			
 		atbm_printk_err("<WARNING> atbm_usb_free_txDMABuf_all (buffer(%p) != NextFreePost(%p))free_dma_buffer_cnt %d cnt %d\n",buffer, self->drvobj->NextFreePost,self->drvobj->free_dma_buffer_cnt,cnt);
-		BUG_ON(1);
-		self->drvobj->NextFreePost = buffer;
+		//BUG_ON(1);
+		//self->drvobj->NextFreePost = buffer;
+		//spin_unlock_irqrestore(&self->lock, flags);
+		goto exit_start;
+		
 	}
 	while(cnt--){
-		atbm_usb_free_txDMABuf(self);
+		if(atbm_usb_free_txDMABuf(self) < 0){
+			atbm_printk_err("<ERROR> atbm_usb_free_txDMABuf_all-> atbm_usb_free_txDMABuf err!");
+			goto exit_start;
+		}
 	}
 	spin_unlock_irqrestore(&self->lock, flags);
+	return;
+exit_start:
+	spin_unlock_irqrestore(&self->lock, flags);
+	atbm_bh_halt(self->core);
+
 }
 #endif
 #endif //#ifdef CONFIG_USE_DMA_ADDR_BUFFER
@@ -1969,7 +2184,9 @@ static int __atbm_usb_wsm_send(struct sbus_priv *self)
 		usb_unanchor_urb(wait_urb);
 		if(usb_anchor_empty(wsm_anchor) != 1){
 			atbm_printk_err("%s:wsm anchor is not empty\n",__func__);
-			BUG_ON(1);
+			//BUG_ON(1);
+			spin_unlock_bh(&hw_priv->wsm_cmd.lock);
+			return -1;
 		}
 	}
 	wsm_alloc_tx_buffer_NoLock(hw_priv);
@@ -2005,7 +2222,12 @@ static int __atbm_usb_wsm_send(struct sbus_priv *self)
 		unsigned int pipe;
 		u8 *submit_buff = wsm_urb->pallocated_buf;
 		
-		BUG_ON(submit_buff == NULL);
+		//BUG_ON(submit_buff == NULL);
+		if(submit_buff == NULL){
+			atbm_printk_err("%s %d ,ERROR !!! submit_buff == NULL\n",__func__,__LINE__);
+			return -1;
+		}
+
 		memcpy(submit_buff,txdata,actual_len);
 		pipe = usb_sndbulkpipe(self->drvobj->pusbdev, self->drvobj->ep_out);
 		usb_fill_bulk_urb(wsm_urb->test_urb,
@@ -2141,11 +2363,17 @@ int atbm_usb_free_tx_wsm(struct sbus_priv *self,struct sbus_urb *tx_urb)
 
 		queue_id = atbm_queue_get_queue_id(wsm->packetID);
 
-		BUG_ON(queue_id >= 4);
-
+		//BUG_ON(queue_id >= 4);
+		if(queue_id >= 4){
+			atbm_printk_err("%s %d ,ERROR !!! queue_id >= 4\n",__func__,__LINE__);
+			return -1;
+		}
 		queue = &hw_priv->tx_queue[queue_id];
-		BUG_ON(queue == NULL);
-
+		//BUG_ON(queue == NULL);
+		if(queue == NULL){
+			atbm_printk_err("%s %d ,ERROR !!! queue == NULL\n",__func__,__LINE__);
+			return -1;
+		}
 		if(!WARN_ON(atbm_queue_get_skb(queue, wsm->packetID, &skb, &txpriv))) {
 
 			struct ieee80211_tx_info *tx = IEEE80211_SKB_CB(skb);
@@ -2380,8 +2608,7 @@ static void atbm_usb_receive_data_complete(struct urb *urb)
 	struct atbm_common *hw_priv=NULL;
 	int RecvLength=urb->actual_length;
 	struct wsm_hdr *wsm;
-	struct ieee80211_hw *hw = NULL;
-	struct ieee80211_local *local = NULL;
+	
 	usb_printk( "rxend  Len %d\n",RecvLength);
 	
 	if(rx_urb != NULL){
@@ -2394,10 +2621,6 @@ static void atbm_usb_receive_data_complete(struct urb *urb)
 	
 	if(!hw_priv)
 		goto __free;
-
-	hw = hw_priv->hw;
-	local = hw_to_local(hw);
-	
 	if (!skb){
 		WARN_ON(1);
 		goto __free;
@@ -2421,7 +2644,7 @@ static void atbm_usb_receive_data_complete(struct urb *urb)
 			atbm_printk_err("<ERROR>:EOVERFLOW,len=%d\n",RecvLength);
 			if(RecvLength)
 				break;
-			atbm_printk_bus("<ERROR>:atbm_usb_rx_complete status=%d len %d\n",urb->status,RecvLength);
+			atbm_printk_err("<ERROR>:atbm_usb_rx_complete status=%d len %d\n",urb->status,RecvLength);
 			goto __free;
 		default:
 			atbm_printk_bus("atbm_usb_rx_complete2 error status=%d len %d\n",urb->status,RecvLength);
@@ -2433,12 +2656,21 @@ static void atbm_usb_receive_data_complete(struct urb *urb)
 		if(atbm_skb_tailroom(self->drvobj->suspend_skb)<self->drvobj->suspend_skb_len+RecvLength)
 		{
 			struct sk_buff * long_suspend_skb = NULL;
-			BUG_ON(self->drvobj->suspend_skb_len+RecvLength>RX_BUFFER_SIZE);
+		//	BUG_ON(self->drvobj->suspend_skb_len+RecvLength>RX_BUFFER_SIZE);
+			if(self->drvobj->suspend_skb_len+RecvLength>RX_BUFFER_SIZE){
+				atbm_printk_err("%s %d ,ERROR !!! self->drvobj->suspend_skb_len(%ld)+RecvLength(%d)>RX_BUFFER_SIZE(%d)\n",
+				__func__,__LINE__,self->drvobj->suspend_skb_len,RecvLength,RX_BUFFER_SIZE);
+				goto __free;
+			}
 			atbm_printk_err("suspend skb len is not enough(%d),(%ld)\n",
 				atbm_skb_tailroom(self->drvobj->suspend_skb),self->drvobj->suspend_skb_len+RecvLength);
 
 			long_suspend_skb = atbm_dev_alloc_skb(RX_BUFFER_SIZE+64);
-			BUG_ON(!long_suspend_skb);
+		//	BUG_ON(!long_suspend_skb);
+			if(!long_suspend_skb){
+				atbm_printk_err("%s %d ,ERROR !!! !long_suspend_skb\n",__func__,__LINE__);
+				goto __free;
+			}
 			atbm_skb_reserve(long_suspend_skb, 64);
 			memcpy((u8 *)long_suspend_skb->data,self->drvobj->suspend_skb->data,self->drvobj->suspend_skb_len);
 			atbm_dev_kfree_skb(self->drvobj->suspend_skb);
@@ -2452,6 +2684,23 @@ static void atbm_usb_receive_data_complete(struct urb *urb)
 	}
 	
 	wsm = (struct wsm_hdr *)skb->data;
+	
+	if((urb->status != -EPROTO) && (urb->status != -EOVERFLOW) && (RecvLength) && (wsm->len != RecvLength)){
+		if(((wsm->len  % 512)==0) && ((wsm->len+1) == RecvLength)){
+			//this correct , lmac output len = (wsm len +1 ) ,inorder to let hmac usb callback
+		}else{
+			atbm_printk_err("usb host send urb length err,change actual_length(%d) form  wsm->len(%d),wsm->id(%x) ,skb_len(%d)\n",
+														urb->actual_length,wsm->len,wsm->id,skb->len);
+
+			//frame_hexdump(__FUNCTION__,skb->data,urb->actual_length);
+			
+			RecvLength = wsm->len;
+			urb->actual_length = wsm->len;	
+		}
+		
+	}
+
+	
 	if (wsm->len != RecvLength){	
 		//add because usb not reset when rmmod driver, just drop error frame  
 		if(hw_priv->wsm_caps.firmwareReady==0){
@@ -2468,21 +2717,7 @@ static void atbm_usb_receive_data_complete(struct urb *urb)
 				u8 *data = skb->data;
 				atbm_printk_err("actual_length(%d),max_len(%d),transfer_buffer_length(%d)\n",
 								urb->actual_length,RX_BUFFER_SIZE,urb->transfer_buffer_length);
-				/*
-					add by yuzhihuang
-					usb recive packet loss ,  reload wifi driver
-					must set upper deal SIGUSR1 signal process pid when send signal befor
-				*/
-				if(urb->actual_length < urb->transfer_buffer_length){
-					atbm_printk_err("%s:need reload wifi driver! \n",__FUNCTION__);
-					if(local->upper_pid != 0)
-						send_signal(SIGUSR1,local->upper_pid);
-					else
-						atbm_printk_err("%s:not set upper process pid , not send signal\n",__FUNCTION__);
-				}
-				/*
-					end add
-				*/				
+					
 				while(actual_length > 0){
 					wsm = (struct wsm_hdr *)data;
 					atbm_printk_err("rx id (%x),len(%d)\n",wsm->id,wsm->len);
@@ -2490,6 +2725,9 @@ static void atbm_usb_receive_data_complete(struct urb *urb)
 					actual_length -= wsm->len;
 				}
 			}
+
+				atbm_bh_halt(hw_priv);
+#if 0
 			wsm = (struct wsm_hdr *)skb->data;
 			atbm_printk_err("rx rebulid usbsuspend  id %d wsm->len %d,RecvLength %d\n",wsm->id,wsm->len,RecvLength);
 
@@ -2507,6 +2745,7 @@ static void atbm_usb_receive_data_complete(struct urb *urb)
 				self->drvobj->suspend_skb_len = RecvLength;
 				goto resubmit;
 			}
+#endif
 		}
 	}
 	
@@ -2518,8 +2757,12 @@ static void atbm_usb_receive_data_complete(struct urb *urb)
 		//goto __free;
 	}
 
-	BUG_ON(RecvLength > RX_BUFFER_SIZE);
-	
+	//BUG_ON(RecvLength > RX_BUFFER_SIZE);
+	if(RecvLength > RX_BUFFER_SIZE){
+		atbm_printk_err("%s %d ,ERROR !!! RecvLength(%d) > RX_BUFFER_SIZE(%d)\n",__func__,__LINE__,RecvLength,RX_BUFFER_SIZE);
+	//	RecvLength = RX_BUFFER_SIZE - 1;
+		goto __free;
+	}
 	skb->pkt_type = ATBM_RX_RAW_FRAME;
 		
 	if(rx_urb->callback_handler){
@@ -3226,6 +3469,8 @@ static void atbm_usb_station_diconnect_sync(struct atbm_common *hw_priv,
 	if(hw_priv != hw->priv){
 		goto sync_end;
 	}
+
+	
 	/*
 	*according to system action,do some job:
 	*reboot or rmmod:disable supplicant authen
@@ -3369,7 +3614,11 @@ static int __atbm_usb_probe(struct usb_interface *intf,
 	self->drvobj=dvobj;
 	/*2---alloc rx_urb*/
 	dvobj->suspend_skb = __atbm_dev_alloc_skb(RX_BUFFER_SIZE+64,GFP_KERNEL);//dev_alloc_skb(RX_BUFFER_SIZE+64);
-	BUG_ON(dvobj->suspend_skb == NULL);
+//	BUG_ON(dvobj->suspend_skb == NULL);
+	if(dvobj->suspend_skb == NULL){
+		atbm_printk_err("%s %d ,ERROR !!! dvobj->suspend_skb == NULL\n",__func__,__LINE__);
+		return -ENOMEM;
+	}
 	atbm_skb_reserve(self->drvobj->suspend_skb, 64);
 	dvobj->suspend_skb_len = 0;
 #ifdef CONFIG_USE_DMA_ADDR_BUFFER	
@@ -3605,8 +3854,12 @@ static void __atbm_usb_disconnect(struct usb_interface *intf)
 		atbm_hw_priv_assign_pointer(NULL);
 		if(pdev)
 		{
-			BUG_ON((pdev!=interface_to_usbdev(intf)));
-			usb_put_dev(pdev);
+			//BUG_ON((pdev!=interface_to_usbdev(intf)));
+			if(pdev != interface_to_usbdev(intf)){
+				atbm_printk_err("%s %d ,ERROR !!! pdev != interface_to_usbdev(intf),please check kernel usb \n",__func__,__LINE__);
+				//return;
+			}else
+				usb_put_dev(pdev);
 		}
 		atbm_printk_exit("atbm_usb_disconnect---->oK\n");
 	}
@@ -4491,3 +4744,4 @@ static void  atbm_usb_module_exit(void)
 
 module_init(atbm_usb_module_init);
 module_exit(atbm_usb_module_exit);
+MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);

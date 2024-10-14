@@ -1,0 +1,33 @@
+config RT_USING_WLAN_WICED
+    bool "enable wice wlan"
+    select RT_USING_SDIO
+    select RT_USING_SDIO0
+    select RT_USING_LWIP
+    select RT_USING_WIFI
+    default n
+
+if RT_USING_WLAN_WICED
+config RT_USING_WICE_MFG_TEST
+    bool "enable wice mfg test"
+    default n
+
+choice
+    prompt "WICE Chip Selection"
+    default RT_USING_WLAN_CHIP_AP6212_A
+
+    config RT_USING_WLAN_CHIP_AP6181
+        bool "AP6181"
+
+    config RT_USING_WLAN_CHIP_AP6234
+        bool "AP6234"
+
+    config RT_USING_WLAN_CHIP_AP6255
+        bool "AP6255"
+
+    config RT_USING_WLAN_CHIP_AP6212
+         bool "AP6212"
+
+    config RT_USING_WLAN_CHIP_AP6212_A
+         bool "AP6212_A"
+endchoice
+endif

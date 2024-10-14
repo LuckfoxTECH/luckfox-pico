@@ -33,9 +33,10 @@ struct dm_key_uclass_platdata {
 
 	/* ADC key */
 	u8 channel;
-	u32 adcval;
-	u32 min;
-	u32 max;
+	int in_volt;
+	int center;
+	int min;
+	int max;
 
 	/* GPIO key */
 	u32 irq;

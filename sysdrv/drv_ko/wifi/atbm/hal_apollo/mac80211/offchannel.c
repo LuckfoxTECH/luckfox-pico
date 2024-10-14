@@ -308,8 +308,7 @@ void ieee80211_start_next_roc(struct ieee80211_local *local)
 	if (list_empty(&local->roc_list)) {
 		//ieee80211_run_deferred_scan(local);
 		if(!list_empty(&local->work_list)){
-//			BUG_ON(local->roc_pendding);
-//			BUG_ON(local->roc_pendding_sdata);
+
 //			printk(KERN_ERR "%s:start pendding work,roc_pendding(%x)\n",__func__,(unsigned int )local->roc_pendding);
 			ieee80211_queue_work(&local->hw, &local->work_work);
 		}	

@@ -1,0 +1,9 @@
+make_meta/make_meta
+make_meta/make_meta_host
+meta.img
+sensor_ae_awb_table/*_2a_table
+sensor_ae_awb_table/ae_awb_table.bin
+sensor_init/*_init
+zlib/out_board/
+zlib/out_host_pc/
+zlib/zlib-1.2.11/

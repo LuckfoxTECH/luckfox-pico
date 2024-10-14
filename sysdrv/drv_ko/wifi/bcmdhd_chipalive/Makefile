@@ -329,7 +329,7 @@ bcmdhd_pcie:
 bcmdhd_sdio:
 	$(warning "building BCMDHD_SDIO..........")
 	#$(MAKE) -C $(LINUXDIR) M=$(PWD) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) modules CONFIG_BCMDHD=m CONFIG_BCMDHD_SDIO=y
-	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KERNEL_DIR) M=$(shell pwd) modules -j12
+	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KERNEL_DIR) M=$(shell pwd) modules -j12 O=$(WIFI_BUILD_KERNEL_OBJ_DIR)
 	cp $(shell pwd)/bcmdhd.ko $(M_OUT_DIR)
 
 bcmdhd_usb:

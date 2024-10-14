@@ -93,7 +93,7 @@ mpi_ioctl_kernel:
 	bic	r3, r3, #31
 	ldr	r3, [r3, #8]
 	.syntax unified
-@ 157 "./include/linux/uaccess.h" 1
+@ 157 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/include/linux/uaccess.h" 1
 	.syntax unified
 adds r2, r8, r4; sbcscc r2, r2, r3; movcc r3, #0
 @ 0 "" 2
@@ -168,7 +168,7 @@ adds r2, r8, r4; sbcscc r2, r2, r3; movcc r3, #0
 	bic	r3, r3, #31
 	ldr	r3, [r3, #8]
 	.syntax unified
-@ 177 "./include/linux/uaccess.h" 1
+@ 177 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/include/linux/uaccess.h" 1
 	.syntax unified
 adds r2, r8, r6; sbcscc r2, r2, r3; movcc r3, #0
 @ 0 "" 2
@@ -228,18 +228,18 @@ adds r2, r8, r6; sbcscc r2, r2, r3; movcc r3, #0
 	.size	mpi_ioctl_kernel, .-mpi_ioctl_kernel
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__func__.36236, %object
-	.size	__func__.36236, 17
-__func__.36236:
+	.type	__func__.35736, %object
+	.size	__func__.35736, 17
+__func__.35736:
 	.ascii	"mpi_ioctl_kernel\000"
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:
-	.ascii	"\033[31m\033[1m%s,%d:error: no function\033[0m\000"
+	.ascii	"\033[1;31merror: no function\033[0m\000"
 .LC1:
-	.ascii	"\033[31m\033[1m%s,%d:error: copy_from_user fail: re"
-	.ascii	"t: %d\033[0m\000"
+	.ascii	"\033[1;31merror: copy_from_user fail: ret: %d\033[0"
+	.ascii	"m\000"
 .LC2:
-	.ascii	"%s,%d:%s:retcode = %d\000"
+	.ascii	"%s:retcode = %d\000"
 	.section	___ksymtab+mpi_ioctl_kernel,"a"
 	.align	2
 	.type	__ksymtab_mpi_ioctl_kernel, %object

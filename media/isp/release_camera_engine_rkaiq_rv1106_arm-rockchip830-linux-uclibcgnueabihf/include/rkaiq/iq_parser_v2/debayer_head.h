@@ -75,26 +75,26 @@ typedef struct __debayer {
 
 typedef struct CalibDbV2_Debayer_GInterp_s {
 
-    // M4_ARRAY_DESC("iso", "f32", M4_SIZE(1,13), M4_RANGE(50, 204800), "50", M4_DIGIT(1), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("iso", "f32", M4_SIZE(1,13), M4_RANGE(50, 204800), "[50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400, 204800]", M4_DIGIT(1), M4_DYNAMIC(0))
     float iso[DEBAYER_ISO_STEP_MAX];
 
-    // M4_ARRAY_DESC("debayer_clip_en", "u8", M4_SIZE(1,13),M4_RANGE(0, 1),"1", M4_DIGIT(0), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("debayer_clip_en", "u8", M4_SIZE(1,13),M4_RANGE(0, 1),"0", M4_DIGIT(0), M4_DYNAMIC(0))
     unsigned char debayer_clip_en[DEBAYER_ISO_STEP_MAX];
 
-    // M4_ARRAY_DESC("debayer_gain_offset", "u16", M4_SIZE(1,13),M4_RANGE(0,4095), "4", M4_DIGIT(0), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("debayer_gain_offset", "u16", M4_SIZE(1,13),M4_RANGE(0,4095), "[1024, 1024,1024, 2047, 4095, 4095, 4095, 4095, 4095, 4095, 4095, 4095, 4095]", M4_DIGIT(0), M4_DYNAMIC(0))
     unsigned short debayer_gain_offset[DEBAYER_ISO_STEP_MAX];
 
-    // M4_ARRAY_DESC("debayer_max_ratio", "u8", M4_SIZE(1,13),M4_RANGE(0,63), "4", M4_DIGIT(0), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("debayer_max_ratio", "u8", M4_SIZE(1,13),M4_RANGE(0,63), "[4, 4, 4, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1]", M4_DIGIT(0), M4_DYNAMIC(0))
     unsigned char debayer_max_ratio[DEBAYER_ISO_STEP_MAX];
 
 } CalibDbV2_Debayer_GInterp_t;
 
 typedef struct CalibDbV2_Debayer_GDirectWgt_s {
 
-    // M4_ARRAY_DESC("iso", "f32", M4_SIZE(1,13), M4_RANGE(50, 204800), "50", M4_DIGIT(1), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("iso", "f32", M4_SIZE(1,13), M4_RANGE(50, 204800), "[50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400, 204800]", M4_DIGIT(1), M4_DYNAMIC(0))
     float iso[DEBAYER_ISO_STEP_MAX];
 
-    // M4_ARRAY_DESC("debayer_hf_offset", "u16",M4_SIZE(1,13), M4_RANGE(0, 65535), "1", M4_DIGIT(0), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("debayer_hf_offset", "u16",M4_SIZE(1,13), M4_RANGE(0, 65535), "[4096, 4096, 8192, 16384, 32768, 32768, 65535, 65535, 65535, 65535, 65535, 65535, 65535]", M4_DIGIT(0), M4_DYNAMIC(0))
     unsigned short debayer_hf_offset[DEBAYER_ISO_STEP_MAX];
 
     // M4_ARRAY_DESC("debayer_thed0", "u8",M4_SIZE(1,13), M4_RANGE(0,15), "3", M4_DIGIT(0), M4_DYNAMIC(0))
@@ -112,10 +112,10 @@ typedef struct CalibDbV2_Debayer_GDirectWgt_s {
 } CalibDbV2_Debayer_GDirectWgt_t;
 
 typedef struct CalibDbV2_Debayer_GFilter_s {
-    // M4_ARRAY_DESC("iso", "f32", M4_SIZE(1,13), M4_RANGE(50, 204800), "50", M4_DIGIT(1), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("iso", "f32", M4_SIZE(1,13), M4_RANGE(50, 204800), "[50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400, 204800]", M4_DIGIT(1), M4_DYNAMIC(0))
     float iso[DEBAYER_ISO_STEP_MAX];
 
-    // M4_ARRAY_DESC("debayer_gfilter_en", "u8",M4_SIZE(1,13), M4_RANGE(0, 1), "1", M4_DIGIT(0), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("debayer_gfilter_en", "u8",M4_SIZE(1,13), M4_RANGE(0, 1), "0", M4_DIGIT(0), M4_DYNAMIC(0))
     unsigned char debayer_gfilter_en[DEBAYER_ISO_STEP_MAX];
 
     // M4_ARRAY_DESC("debayer_gfilter_offset", "u16",M4_SIZE(1,13),  M4_RANGE(0,2047), "1", M4_DIGIT(0), M4_DYNAMIC(0))
@@ -125,7 +125,7 @@ typedef struct CalibDbV2_Debayer_GFilter_s {
 
 typedef struct CalibDbV2_Debayer_CFilter_s {
 
-    // M4_ARRAY_DESC("iso", "f32", M4_SIZE(1,13), M4_RANGE(50, 204800), "50", M4_DIGIT(1), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("iso", "f32", M4_SIZE(1,13), M4_RANGE(50, 204800), "[50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400, 204800]", M4_DIGIT(1), M4_DYNAMIC(0))
     float iso[DEBAYER_ISO_STEP_MAX];
 
     // M4_ARRAY_DESC("debayer_cfilter_en", "u8",M4_SIZE(1,13),M4_RANGE(0, 1), "1", M4_DIGIT(0), M4_DYNAMIC(0))
@@ -212,12 +212,38 @@ typedef struct CalibDbV2_Debayer_Tuning_s {
 
 } CalibDbV2_Debayer_Tuning_t;
 
-
-
 typedef struct CalibDbV2_Debayer_v2_s {
     // M4_STRUCT_DESC("TuningPara", "normal_ui_style")
     CalibDbV2_Debayer_Tuning_t param;
 } CalibDbV2_Debayer_v2_t;
+
+// TODO: add debayer v2-lite params
+
+typedef struct CalibDbV2_Debayer_Tuning_Lite_s {
+    // M4_BOOL_DESC("debayer_en", "1")
+    bool debayer_en;
+
+    // M4_ARRAY_DESC("g_lowfreq_filter1", "s8", M4_SIZE(1,4),  M4_RANGE(-16, 15), "[-2,2,-4,4]", M4_DIGIT(0), M4_DYNAMIC(0))
+    int lowfreq_filter1[4];
+
+    // M4_ARRAY_DESC("g_highfreq_filter2", "s8", M4_SIZE(1,4),  M4_RANGE(-16, 15), "[-1,2,-2,4]", M4_DIGIT(0), M4_DYNAMIC(0))
+    int  highfreq_filter2[4];
+
+    // M4_ARRAY_TABLE_DESC("g_interp", "array_table_ui", M4_INDEX_DEFAULT)
+    CalibDbV2_Debayer_GInterp_t g_interp;
+
+    // M4_ARRAY_TABLE_DESC("g_drctwgt", "array_table_ui", M4_INDEX_DEFAULT)
+    CalibDbV2_Debayer_GDirectWgt_t g_drctwgt;
+
+    // M4_ARRAY_TABLE_DESC("g_fliter", "array_table_ui", M4_INDEX_DEFAULT)
+    CalibDbV2_Debayer_GFilter_t g_filter;
+
+} CalibDbV2_Debayer_Tuning_Lite_t;
+
+typedef struct CalibDbV2_Debayer_v2_lite_s {
+    // M4_STRUCT_DESC("TuningPara", "normal_ui_style")
+    CalibDbV2_Debayer_Tuning_Lite_t param;
+} CalibDbV2_Debayer_v2_lite_t;
 
 
 RKAIQ_END_DECLARE

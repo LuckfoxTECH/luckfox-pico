@@ -353,6 +353,12 @@ RK_VOID LKOpticalFlowPyrSample(const RK_CHAR *moduleName, RK_CHAR *fileName,
                          astPrevPyr, astNextPyr, &stPrevPts, &stNextPts,
                          &stStatus, &stErr, &stMv);
 
+    IVE_PYRAMID_CTRL_S pstPyramidCtrl = {0};
+    pstPyramidCtrl.level = 3;
+    RK_U32 pryamidSize = RK_MPI_IVE_Pyramid_GetSize(u32Width, u32Height, &pstPyramidCtrl);
+    stLkCtrl.stMem.u32Size = pryamidSize * 2;
+    s32Ret = RK_CreateIveMem(&stLkCtrl.stMem, stLkCtrl.stMem.u32Size);
+
     prevPts = (IVE_POINT_S25Q7_S *)stPrevPts.u64VirAddr;
     nextPts = (IVE_POINT_S25Q7_S *)stNextPts.u64VirAddr;
     vector = (IVE_MV_S9Q7_S *)stMv.u64VirAddr;

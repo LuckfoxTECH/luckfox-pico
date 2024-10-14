@@ -154,6 +154,8 @@ static int hwid_adc_find_dtb(const char *file_name)
 		 */
 		if (adc_record[channel] == 0) {
 			ret = adc_channel_single_shot(dev_name, channel, &raw_adc);
+			if (ret)
+				ret = adc_channel_single_shot("adc", channel, &raw_adc);
 			if (ret) {
 				debug("   - failed to read adc, ret=%d\n", ret);
 				return 0;
@@ -267,13 +269,8 @@ struct resource_file *resource_read_hwid_dtb(void)
 
 	hwid_init_data();
 
-	if (list_empty(&entrys_head)) {
-		if (resource_init_list())
-			return NULL;
-	}
-
-	list_for_each(node, &entrys_dtbs_head) {
-		file = list_entry(node, struct resource_file, dtbs);
+	list_for_each(node, &entry_head) {
+		file = list_entry(node, struct resource_file, link);
 		if (!strstr(file->name, DTB_SUFFIX))
 			continue;
 

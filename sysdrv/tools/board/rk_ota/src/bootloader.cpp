@@ -369,18 +369,15 @@ static int mtd_write(char *src_path, long long size, char *dest_path) {
     struct stat sb;
     char mtd_write_erase_cmd[256] = {0};
     stat(dest_path, &sb);
-    long long dd_bs = 1;
-    long long dd_count = size;
 
     if ((sb.st_mode & S_IFMT) == S_IFCHR) {
         memset(mtd_write_erase_cmd, 0, sizeof(mtd_write_erase_cmd)/sizeof(mtd_write_erase_cmd[0]));
         sprintf(mtd_write_erase_cmd, "flash_erase %s 0 0", dest_path);
         system(mtd_write_erase_cmd);
 
-        // dd if=/mnt/sdcard/sdupdate.img bs=4 skip=2727533 count=3646464 | nandwrite -p /dev/block/by-name/recovery
+        // e.g. nandwrite -p /dev/block/by-name/system_b /mnt/sdcard/rk_update/system.img
         memset(mtd_write_erase_cmd, 0, sizeof(mtd_write_erase_cmd)/sizeof(mtd_write_erase_cmd[0]));
-        sprintf(mtd_write_erase_cmd, "dd if=%s bs=%lld count=%lld | nandwrite -p %s",
-                src_path, dd_bs, dd_count, dest_path );
+        sprintf(mtd_write_erase_cmd, "nandwrite -p %s %s", dest_path, src_path);
         system(mtd_write_erase_cmd);
     } else {
         LOGE("flash_erase: can't erase MTD \"%s\"\n", dest_path);

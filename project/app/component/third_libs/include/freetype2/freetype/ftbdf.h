@@ -68,10 +68,10 @@ FT_BEGIN_HEADER
  *      Property is a 32-bit unsigned integer.
  */
 typedef enum BDF_PropertyType_ {
-  BDF_PROPERTY_TYPE_NONE = 0,
-  BDF_PROPERTY_TYPE_ATOM = 1,
-  BDF_PROPERTY_TYPE_INTEGER = 2,
-  BDF_PROPERTY_TYPE_CARDINAL = 3
+	BDF_PROPERTY_TYPE_NONE = 0,
+	BDF_PROPERTY_TYPE_ATOM = 1,
+	BDF_PROPERTY_TYPE_INTEGER = 2,
+	BDF_PROPERTY_TYPE_CARDINAL = 3
 
 } BDF_PropertyType;
 
@@ -109,13 +109,13 @@ typedef struct BDF_PropertyRec_ *BDF_Property;
  *      An unsigned integer, if type is @BDF_PROPERTY_TYPE_CARDINAL.
  */
 typedef struct BDF_PropertyRec_ {
-  BDF_PropertyType type;
-  union {
-    const char *atom;
-    FT_Int32 integer;
-    FT_UInt32 cardinal;
+	BDF_PropertyType type;
+	union {
+		const char *atom;
+		FT_Int32 integer;
+		FT_UInt32 cardinal;
 
-  } u;
+	} u;
 
 } BDF_PropertyRec;
 
@@ -146,8 +146,7 @@ typedef struct BDF_PropertyRec_ {
  *   This function only works with BDF faces, returning an error otherwise.
  */
 FT_EXPORT(FT_Error)
-FT_Get_BDF_Charset_ID(FT_Face face, const char **acharset_encoding,
-                      const char **acharset_registry);
+FT_Get_BDF_Charset_ID(FT_Face face, const char **acharset_encoding, const char **acharset_registry);
 
 /**************************************************************************
  *
@@ -188,8 +187,7 @@ FT_Get_BDF_Charset_ID(FT_Face face, const char **acharset_encoding,
  *   @BDF_PROPERTY_TYPE_NONE.
  */
 FT_EXPORT(FT_Error)
-FT_Get_BDF_Property(FT_Face face, const char *prop_name,
-                    BDF_PropertyRec *aproperty);
+FT_Get_BDF_Property(FT_Face face, const char *prop_name, BDF_PropertyRec *aproperty);
 
 /* */
 

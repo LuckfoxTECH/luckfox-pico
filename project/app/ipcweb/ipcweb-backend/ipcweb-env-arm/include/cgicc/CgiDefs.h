@@ -39,7 +39,7 @@
 /*! \namespace cgicc
  * \brief The namespace containing the cgicc library
  *
- * The namespace containing all classes and functions of the
+ * The namespace containing all classes and functions of the 
  * GNU cgicc library.
  */
 
@@ -47,17 +47,17 @@
 #ifdef WIN32
 
 // export library symbols
-#ifdef CGICC_EXPORTS
-#define CGICC_API __declspec(dllexport)
-#else
-#define CGICC_API __declspec(dllimport)
-#endif
+#  ifdef CGICC_EXPORTS
+#    define CGICC_API __declspec(dllexport)
+#  else
+#    define CGICC_API __declspec(dllimport)
+#  endif
 
-#define HOST "Win32"
-#define VERSION "3.2.16"
+#  define HOST "Win32"
+#  define VERSION "3.2.16"
 
 #else
-#define CGICC_API
+#  define CGICC_API
 #endif /* WIN32 */
 
 #endif /* ! _CGIDEFS_H_ */

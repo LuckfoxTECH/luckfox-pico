@@ -22,7 +22,7 @@
 default_h264e:
 	.word	.LC0
 	.word	7
-	.word	664
+	.word	688
 	.word	rc_model_v2_init
 	.word	rc_model_v2_deinit
 	.word	0

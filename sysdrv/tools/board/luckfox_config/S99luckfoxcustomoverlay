@@ -1,0 +1,206 @@
+#!/bin/bash
+LUCKFOX_FDT_DTB=/tmp/.fdt.dtb
+LUCKFOX_FDT_HDR_DTB=/tmp/.fdt_header.dtb
+LUCKFOX_FDT_HDR_OVERLAY_DTS=/tmp/.fdt_header_overlay.dts
+LUCKFOX_FDT_HDR_OVERLAY_DTBO=/tmp/.fdt_header_overlay.dtbo
+
+LUCKFOX_FDT_DUMP_TXT=/tmp/.fdt_dump.txt
+LF_CUSTOM_DTS_PATH="/mnt/cfg"
+SYS_OVERLAYS_PATH="/sys/kernel/config/device-tree/overlays"
+LUCKFOX_CHIP_MEDIA_CLASS="emmc"
+LUCKFOX_CHIP_MEDIA="/dev/mmcblk0p4"
+
+function luckfox_tools_check() {
+	if ! command -v dialog &>/dev/null; then
+		echo "The dialog is not installed "
+		exit
+	fi
+
+	if ! command -v dtc &>/dev/null; then
+		echo "The dtc is not installed"
+		exit
+	fi
+
+	# get media class dev
+	if [[ -e /dev/mmcblk0p4 ]]; then
+		LUCKFOX_CHIP_MEDIA_CLASS="emmc"
+		LUCKFOX_CHIP_MEDIA=/dev/mmcblk0p4
+	elif [[ -e /dev/mmcblk1p4 ]]; then
+		LUCKFOX_CHIP_MEDIA_CLASS="sdmmc"
+		LUCKFOX_CHIP_MEDIA=/dev/mmcblk1p4
+		luckfox_set_pin_parameter "SDMMC" 1
+	elif [[ -e /dev/mtdblock3 ]]; then
+		LUCKFOX_CHIP_MEDIA_CLASS="spi_nand"
+		LUCKFOX_CHIP_MEDIA=/dev/mtdblock3
+	else
+		LUCKFOX_CHIP_MEDIA_CLASS="unknown"
+		echo "Do not know the storage medium of Luckfox!"
+		exit
+	fi
+
+}
+
+# -- Static Overlay --
+function luckfox_sha256_convert() {
+	local sha256_hash=$1
+	local formatted_hash=""
+
+	for ((i = 0; i < ${#sha256_hash}; i += 8)); do
+		formatted_hash+="0x${sha256_hash:$i:8} "
+	done
+
+	echo "$formatted_hash"
+}
+
+function luckfox_update_fdt() {
+	# get fdt_header
+	local origin_fdt_size_hex origin_fdt_size
+	dd if=$LUCKFOX_CHIP_MEDIA of=$LUCKFOX_FDT_HDR_DTB bs=1 skip=0 count=2048 >/dev/null 2>&1
+
+	# get size
+	if [ ! -f $LUCKFOX_FDT_HDR_DTB ]; then
+		echo "$LUCKFOX_FDT_HDR_DTB can't be found!"
+		return
+	fi
+	origin_fdt_size_hex=$(fdtdump $LUCKFOX_FDT_HDR_DTB | grep -A 5 "fdt {" | grep "data-size" | awk '{print $3}' | tr -d ';<>')
+	origin_fdt_size=$(printf "%d\n" "$origin_fdt_size_hex")
+
+	# get fdt dtb
+	dd if=$LUCKFOX_CHIP_MEDIA of=$LUCKFOX_FDT_DTB bs=1 skip=2048 count="$origin_fdt_size" >/dev/null 2>&1
+
+	# create fdt dump
+	if [ ! -f $LUCKFOX_FDT_DTB ]; then
+		echo "$LUCKFOX_FDT_DTB can't be found!"
+		return
+	fi
+	fdtdump $LUCKFOX_FDT_DTB >$LUCKFOX_FDT_DUMP_TXT
+}
+
+function luckfox_fdt_overlay() {
+	#region
+	local fdt_overlay_dtbo="$1"
+	local fdt_dtb_size fdt_size fdt_size_hex fdt_hash_data
+
+	fdtoverlay -i $LUCKFOX_FDT_DTB -o $LUCKFOX_FDT_DTB "$fdt_overlay_dtbo" >/dev/null 2>&1
+	fdt_dtb_size=$(ls -la $LUCKFOX_FDT_DTB | awk '{print $5}')
+
+	kernel_offset=$(fdtdump $LUCKFOX_FDT_HDR_DTB | grep -A 2 "kernel {" | grep "data-position" | sed -n 's/.*<\(0x[0-9a-fA-F]*\)>.*/\1/p')
+	fdt_offset=$(fdtdump $LUCKFOX_FDT_HDR_DTB | grep -A 2 "fdt {" | grep "data-position" | sed -n 's/.*<\(0x[0-9a-fA-F]*\)>.*/\1/p')
+
+	kernel_offset_dec=$((kernel_offset))
+	fdt_offset_dec=$((fdt_offset))
+	result_dec=$((kernel_offset_dec - fdt_offset_dec))
+
+	if [ $result_dec -lt "$fdt_dtb_size" ]; then
+		echo "Kernel will be affected !"
+	fi
+
+	dd if=$LUCKFOX_FDT_DTB of=$LUCKFOX_CHIP_MEDIA bs=1 seek=2048 count="$fdt_dtb_size" >/dev/null 2>&1
+
+	# fdt header
+	if [ ! -f $LUCKFOX_FDT_DTB ]; then
+		echo "$LUCKFOX_FDT_DTB can't be found!"
+		return
+	fi
+	fdt_size=$(ls -la $LUCKFOX_FDT_DTB | awk '{print $5}')
+	fdt_size_hex=$(printf "%x\n" "$fdt_size")
+	fdt_hash_data=$(luckfox_sha256_convert "$(sha256sum $LUCKFOX_FDT_DTB | awk '{print $1}')")
+	fdt_header_content="
+/dts-v1/;
+/plugin/;
+
+&{/images/fdt}{
+    data-size=<0x$fdt_size_hex>;
+    hash{
+        value=<$fdt_hash_data>;
+    };
+};
+"
+	echo "$fdt_header_content" >$LUCKFOX_FDT_HDR_OVERLAY_DTS
+	dtc -I dts -O dtb $LUCKFOX_FDT_HDR_OVERLAY_DTS -o $LUCKFOX_FDT_HDR_OVERLAY_DTBO
+	if [ ! -f $LUCKFOX_FDT_HDR_OVERLAY_DTBO ]; then
+		echo "$LUCKFOX_FDT_HDR_OVERLAY_DTBO can't found!"
+		return
+	fi
+	fdtoverlay -i $LUCKFOX_FDT_HDR_DTB -o $LUCKFOX_FDT_HDR_DTB $LUCKFOX_FDT_HDR_OVERLAY_DTBO >/dev/null 2>&1
+	dd if=$LUCKFOX_FDT_HDR_DTB of=$LUCKFOX_CHIP_MEDIA bs=1 seek=0 count=2048 >/dev/null 2>&1
+	#endregion
+}
+
+# Load the device tree dynamically
+function luckfox_load_dynamic_dts() {
+	local dtbo_node_name
+
+	if [ ! -d ${LF_CUSTOM_DTS_PATH}/dtbo/ ]; then
+		exit 1
+		#echo "Can't find ${LF_CUSTOM_DTS_PATH}/dtbo dir !"
+	fi
+
+	for dts_file in ${LF_CUSTOM_DTS_PATH}/dtbo/*.dts; do
+		#Get DTBO name
+		dtbo_node_name="$(basename "$dts_file" .dts)"
+		#Check DTBO path
+		if [ -d "${SYS_OVERLAYS_PATH}/${dtbo_node_name}" ]; then
+			echo "Node is exist"
+			continue
+		fi
+
+		#DTS->DTBO
+		dtc -I dts -O dtb ${LF_CUSTOM_DTS_PATH}/dtbo/${dtbo_node_name}.dts -o \
+			${LF_CUSTOM_DTS_PATH}/dtbo/${dtbo_node_name}.dtbo
+
+		if [ ! -f "${LF_CUSTOM_DTS_PATH}/dtbo/${dtbo_node_name}.dtbo" ]; then
+			echo "${dtbo_node_name}.dts to dtbo error!"
+			continue
+		else
+			mkdir -p ${SYS_OVERLAYS_PATH}/${dtbo_node_name}
+		fi
+		#Load and enable DTBO
+		cat ${LF_CUSTOM_DTS_PATH}/dtbo/${dtbo_node_name}.dtbo > \
+			${SYS_OVERLAYS_PATH}/${dtbo_node_name}/dtbo
+		echo 1 >${SYS_OVERLAYS_PATH}/${dtbo_node_name}/status
+
+		rm ${LLF_CUSTOM_DTS_PATH}/dtbo/${dtbo_node_name}.dtbo
+	done
+}
+
+#Overwrite the disk device tree (requires restart)
+function luckfox_load_static_dts() {
+	local dtbo_node_name
+	if [ ! -d ${LF_CUSTOM_DTS_PATH}/fdt_overlay/ ]; then
+		echo "Can't find ${LF_CUSTOM_DTS_PATH}/fdt_overlay dir!"
+	fi
+
+	for dts_file in ${LF_CUSTOM_DTS_PATH}/fdt_overlay/*.dts; do
+		#Get DTBO name
+		dtbo_node_name="$(basename "$dts_file" .dts)"
+
+		#DTS->DTBO
+		dtc -I dts -O dtb ${LF_CUSTOM_DTS_PATH}/fdt_overlay/${dtbo_node_name}.dts -o \
+			${LF_CUSTOM_DTS_PATH}/fdt_overlay/${dtbo_node_name}.dtbo
+
+		if [ ! -f "${LF_CUSTOM_DTS_PATH}/fdt_overlay/${dtbo_node_name}.dtbo" ]; then
+			echo "${dtbo_node_name}.dts to dtbo error!"
+			continue
+		fi
+
+		# load to disk
+		luckfox_update_fdt
+		luckfox_fdt_overlay ${LF_CUSTOM_DTS_PATH}/fdt_overlay/${dtbo_node_name}.dtbo
+		rm ${LUCKFOX_FDT_OVERLAY_DTBO}
+
+	done
+}
+
+case $1 in
+start)
+	luckfox_load_dynamic_dts
+	;;
+stop)
+	luckfox_tools_check
+	luckfox_load_static_dts
+	;;
+*)
+	exit 1
+	;;
+esac

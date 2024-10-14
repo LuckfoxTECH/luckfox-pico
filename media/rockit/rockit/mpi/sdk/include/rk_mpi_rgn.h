@@ -20,17 +20,13 @@ RK_S32 RK_MPI_RGN_SetAttr(RGN_HANDLE Handle, const RGN_ATTR_S *pstRegion);
 
 RK_S32 RK_MPI_RGN_SetBitMap(RGN_HANDLE Handle, const BITMAP_S *pstBitmap);
 
-RK_S32 RK_MPI_RGN_AttachToChn(RGN_HANDLE Handle, const MPP_CHN_S *pstChn,
-                              const RGN_CHN_ATTR_S *pstChnAttr);
+RK_S32 RK_MPI_RGN_AttachToChn(RGN_HANDLE Handle, const MPP_CHN_S *pstChn, const RGN_CHN_ATTR_S *pstChnAttr);
 RK_S32 RK_MPI_RGN_DetachFromChn(RGN_HANDLE Handle, const MPP_CHN_S *pstChn);
 
-RK_S32 RK_MPI_RGN_SetDisplayAttr(RGN_HANDLE Handle, const MPP_CHN_S *pstChn,
-                                 const RGN_CHN_ATTR_S *pstChnAttr);
-RK_S32 RK_MPI_RGN_GetDisplayAttr(RGN_HANDLE Handle, const MPP_CHN_S *pstChn,
-                                 RGN_CHN_ATTR_S *pstChnAttr);
+RK_S32 RK_MPI_RGN_SetDisplayAttr(RGN_HANDLE Handle, const MPP_CHN_S *pstChn, const RGN_CHN_ATTR_S *pstChnAttr);
+RK_S32 RK_MPI_RGN_GetDisplayAttr(RGN_HANDLE Handle, const MPP_CHN_S *pstChn, RGN_CHN_ATTR_S *pstChnAttr);
 
-RK_S32 RK_MPI_RGN_GetCanvasInfo(RGN_HANDLE Handle,
-                                RGN_CANVAS_INFO_S *pstCanvasInfo);
+RK_S32 RK_MPI_RGN_GetCanvasInfo(RGN_HANDLE Handle, RGN_CANVAS_INFO_S *pstCanvasInfo);
 RK_S32 RK_MPI_RGN_UpdateCanvas(RGN_HANDLE Handle);
 
 #ifdef __cplusplus
@@ -40,3 +36,4 @@ RK_S32 RK_MPI_RGN_UpdateCanvas(RGN_HANDLE Handle);
 #endif /* End of #ifdef __cplusplus */
 
 #endif /* INCLUDE_RT_MPI_RK_MPI_RGN_H__ */
+

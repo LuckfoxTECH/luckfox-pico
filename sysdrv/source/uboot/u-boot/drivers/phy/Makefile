@@ -18,3 +18,5 @@ obj-$(CONFIG_PHY_ROCKCHIP_USBDP) += phy-rockchip-usbdp.o
 obj-$(CONFIG_PHY_SANDBOX) += sandbox-phy.o
 obj-$(CONFIG_$(SPL_)PIPE3_PHY) += ti-pipe3-phy.o
 obj-$(CONFIG_PHY_ROCKCHIP_NANENG_COMBOPHY) += phy-rockchip-naneng-combphy.o
+
+CFLAGS_phy-rockchip-inno-usb2.o := -Wno-error=unused-function -Wno-error=unused-const-variable -Wunused-const-variable=0

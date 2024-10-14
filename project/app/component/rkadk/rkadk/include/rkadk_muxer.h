@@ -21,14 +21,15 @@
 extern "C" {
 #endif
 
-#include "rkadk_common.h"
-#include "rkadk_media_comm.h"
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include "rkadk_common.h"
+#include "rkadk_aov.h"
+#include "rkadk_media_comm.h"
 
-#define RKADK_MUXER_FILE_NAME_LEN 256
+#define RKADK_MUXER_FILE_NAME_LEN RKADK_MAX_FILE_PATH_LEN
 #define RKADK_MUXER_STREAM_MAX_CNT RECORD_FILE_NUM_MAX
 #define RKADK_MUXER_TRACK_MAX_CNT 2 /* a video track and a audio track */
 #define RKADK_MUXER_CELL_MAX_CNT 40
@@ -41,6 +42,8 @@ typedef enum {
   RKADK_MUXER_EVENT_MANUAL_SPLIT_END,
   RKADK_MUXER_EVENT_ERR_CREATE_FILE_FAIL,
   RKADK_MUXER_EVENT_ERR_WRITE_FILE_FAIL,
+  RKADK_MUXER_EVENT_FILE_WRITING_SLOW,
+  RKADK_MUXER_EVENT_ERR_CARD_NONEXIST,
   RKADK_MUXER_EVENT_BUTT
 } RKADK_MUXER_EVENT_E;
 
@@ -67,17 +70,16 @@ typedef RKADK_VOID (*RKADK_MUXER_EVENT_CALLBACK_FN)(
     RKADK_MW_PTR pHandle, const RKADK_MUXER_EVENT_INFO_S *pstEventInfo);
 
 /* Muxer request file name callback function */
-typedef int (*RKADK_MUXER_REQUEST_FILE_NAME_CB)(RKADK_VOID *pHandle,
-                                                RKADK_CHAR *pcFileName,
-                                                RKADK_U32 u32MuxerId);
+typedef int (*RKADK_MUXER_REQUEST_FILE_NAME_CB)(RKADK_VOID *pHandle, RKADK_CHAR *pcFileName,
+                                          RKADK_U32 u32MuxerId);
 
 /* cell release buf callback */
 typedef int (*RKADK_MUXER_CELL_CALLBACK)(void *pMbBlk);
 
 /* muxer manual split type enum */
 typedef enum {
-  MUXER_PRE_MANUAL_SPLIT,    /* pre manual split type */
-  MUXER_NORMAL_MANUAL_SPLIT, /* normal manual split type */
+  MUXER_PRE_MANUAL_SPLIT,      /* pre manual split type */
+  MUXER_NORMAL_MANUAL_SPLIT,   /* normal manual split type */
 } RKADK_MUXER_MANUAL_SPLIT_TYPE_E;
 
 /* pre manual split attribute */
@@ -121,7 +123,6 @@ typedef struct {
 } RKADK_TRACK_AUDIO_SOURCE_INFO_S;
 
 typedef struct {
-  RKADK_U32 u32ChnId;
   RKADK_TRACK_SOURCE_TYPE_E enTrackType;
   union {
     RKADK_TRACK_VIDEO_SOURCE_INFO_S stVideoInfo; /* <video track info */
@@ -131,6 +132,9 @@ typedef struct {
 
 /* muxer stream attribute */
 typedef struct {
+  RKADK_U32 u32ViChn;
+  RKADK_U32 u32VencChn;
+  bool bUseVpss;
   RKADK_U32 u32TimeLenSec; /* record time */
   RKADK_U32 u32TrackCnt;   /* track cnt*/
   RKADK_MUXER_TRACK_SOURCE_S
@@ -158,24 +162,53 @@ typedef struct {
   RKADK_STREAM_TYPE_E enStreamType; /* stream type */
 } RKADK_MUXER_FPS_ATTR_S;
 
+/* record type enum */
+typedef enum {
+  RKADK_REC_TYPE_NORMAL = 0, /* normal record */
+  RKADK_REC_TYPE_LAPSE, /* time lapse record, record a frame by an fixed time
+                           interval */
+  RKADK_REC_TYPE_AOV_LAPSE, /* low power time lapse record */
+  RKADK_REC_TYPE_BUTT,
+} RKADK_MUXER_REC_TYPE_E;
+
+typedef void (*RKADK_ISP_WAKE_UP_PAUSE)(RKADK_U32 u32CamId);
+typedef void (*RKADK_ISP_WAKE_UP_RESUME)(RKADK_U32 u32CamId);
+typedef int (*RKADK_ISP_SET_FRAME_RATE)(RKADK_U32 u32CamId, unsigned int uFps);
+
+typedef struct {
+  RKADK_ISP_WAKE_UP_PAUSE pfnSingleFrame;
+  RKADK_ISP_WAKE_UP_RESUME pfnMultiFrame;
+} RKADK_AOV_ATTR_S;
+
 /* muxer attribute param */
 typedef struct {
   RKADK_U32 u32CamId;
-  bool bLapseRecord;
+  RKADK_MUXER_REC_TYPE_E enRecType;
   RKADK_U32 u32StreamCnt; /* stream cnt */
+  RKADK_U32 u32FragKeyFrame;
   RKADK_MUXER_STREAM_ATTR_S
   astStreamAttr[RKADK_MUXER_STREAM_MAX_CNT]; /* array of stream attr */
   RKADK_MUXER_PRE_RECORD_ATTR_S stPreRecordAttr;
   RKADK_MUXER_REQUEST_FILE_NAME_CB pcbRequestFileNames;
   RKADK_MUXER_EVENT_CALLBACK_FN pfnEventCallback;
+  RKADK_AOV_ATTR_S stAovAttr;
 } RKADK_MUXER_ATTR_S;
+
+typedef enum {
+  MULTI_FRAME_MODE,
+  SINGLE_FRAME_MODE,
+} RKADK_ISP_FRAME_MODE;
 
 typedef struct {
   RKADK_U32 u32CamId;
-  bool bLapseRecord;
+  RKADK_MUXER_REC_TYPE_E enRecType;
   RKADK_U32 u32StreamCnt;
   RKADK_MW_PTR pMuxerHandle[RKADK_MUXER_STREAM_MAX_CNT];
   RKADK_U64 u64AudioPts;
+  RKADK_U32 u32FragKeyFrame;
+  int enableFileCache;
+  RKADK_AOV_ATTR_S stAovAttr;
+  RKADK_ISP_FRAME_MODE enFrameMode;
 } RKADK_MUXER_HANDLE_S;
 
 /**
@@ -186,7 +219,12 @@ typedef struct {
  * @return others failure
  */
 RKADK_S32 RKADK_MUXER_Create(RKADK_MUXER_ATTR_S *pstMuxerAttr,
-                             RKADK_MW_PTR *ppHandle);
+                           RKADK_MW_PTR *ppHandle);
+
+RKADK_S32 RKADK_MUXER_Enable(RKADK_MUXER_ATTR_S *pstMuxerAttr,
+                           RKADK_MW_PTR pHandle);
+
+RKADK_S32 RKADK_MUXER_Disable(RKADK_MW_PTR pHandle);
 
 /**
  * @brief destory a muxer.
@@ -198,7 +236,7 @@ RKADK_S32 RKADK_MUXER_Destroy(RKADK_MW_PTR pHandle);
 
 /**
  * @brief start muxer
- * @param[in]pRecorder, pointer of muxer
+ * @param[in]pRecorder : pointer of muxer
  * @return 0 success
  * @return -1 failure
  */
@@ -207,11 +245,28 @@ RKADK_S32 RKADK_MUXER_Start(RKADK_MW_PTR pHandle);
 /**
  * @brief stop muxer
  * @param[in]pRecorder : pointer of muxer
- * @param[in]bQuickMode : quick stop mode flag.
  * @return 0 success
  * @return others failure
  */
 RKADK_S32 RKADK_MUXER_Stop(RKADK_MW_PTR pHandle);
+
+/**
+ * @brief start muxer
+ * @param[in]pRecorder : pointer of muxer
+ * @param[in]enStrmType : stream type, mainStream or subStream
+ * @return 0 success
+ * @return -1 failure
+ */
+RKADK_S32 RKADK_MUXER_Single_Start(RKADK_MW_PTR pHandle, RKADK_STREAM_TYPE_E enStrmType);
+
+/**
+ * @brief stop muxer
+ * @param[in]pRecorder : pointer of muxer
+ * @param[in]enStrmType : stream type, mainStream or subStream
+ * @return 0 success
+ * @return others failure
+ */
+RKADK_S32 RKADK_MUXER_Single_Stop(RKADK_MW_PTR pHandle, RKADK_STREAM_TYPE_E enStrmType);
 
 /**
  * @brief set muxer framerate
@@ -222,7 +277,7 @@ RKADK_S32 RKADK_MUXER_Stop(RKADK_MW_PTR pHandle);
  * @return others failure
  */
 RKADK_S32 RKADK_MUXER_SetFrameRate(RKADK_MW_PTR pHandle,
-                                   RKADK_MUXER_FPS_ATTR_S stFpsAttr);
+                                 RKADK_MUXER_FPS_ATTR_S stFpsAttr);
 
 /**
  * @brief manual splite file.
@@ -231,9 +286,8 @@ RKADK_S32 RKADK_MUXER_SetFrameRate(RKADK_MW_PTR pHandle,
  * @return 0 success
  * @return others failure
  */
-RKADK_S32
-RKADK_MUXER_ManualSplit(RKADK_MW_PTR pHandle,
-                        RKADK_MUXER_MANUAL_SPLIT_ATTR_S *pstSplitAttr);
+RKADK_S32 RKADK_MUXER_ManualSplit(RKADK_MW_PTR pHandle,
+                                RKADK_MUXER_MANUAL_SPLIT_ATTR_S *pstSplitAttr);
 
 /**
  * @brief whether to enable audio
@@ -243,21 +297,30 @@ bool RKADK_MUXER_EnableAudio(RKADK_S32 s32CamId);
 /**
  * @brief write video frame
  */
-int RKADK_MUXER_WriteVideoFrame(RKADK_MEDIA_VENC_DATA_S stData, int64_t pts,
-                                void *handle);
+int RKADK_MUXER_WriteVideoFrame(RKADK_MEDIA_VENC_DATA_S stData, void *handle);
 
 /**
  * @brief write audio frame
  */
-int RKADK_MUXER_WriteAudioFrame(void *pMbBlk, RKADK_U32 size, int64_t pts,
-                                void *handle);
+int RKADK_MUXER_WriteAudioFrame(void *pMbBlk, RKADK_U32 size, int64_t pts, void *handle);
 
 RKADK_S32 RKADK_MUXER_ResetParam(RKADK_U32 chnId, RKADK_MW_PTR pHandle,
-                                 RKADK_MUXER_ATTR_S *pstMuxerAttr, int index);
+                              RKADK_MUXER_ATTR_S *pstMuxerAttr, int index);
 
-RKADK_S32 RKADK_MUXER_Reset(RKADK_MW_PTR pHandle, RKADK_U32 chnId);
+RKADK_S32 RKADK_MUXER_Reset(RKADK_MW_PTR pHandle);
 
 void RKADK_MUXER_SetResetState(RKADK_MW_PTR pHandle, bool state);
+
+int RKADK_MUXER_GetViChn(RKADK_MW_PTR pHandle, RKADK_U32 u32VencChn);
+
+bool RKADK_MUXER_IsUseVpss(RKADK_MW_PTR pHandle, RKADK_U32 u32VencChn);
+
+RKADK_S32 RKADK_MUXER_UpdateRes(RKADK_MW_PTR pHandle, RKADK_U32 chnId,
+                              RKADK_U32 u32Wdith, RKADK_U32 u32Hieght);
+
+#ifdef FILE_CACHE
+void RKADK_MUXER_FsCacheNotify();
+#endif
 
 #ifdef __cplusplus
 }

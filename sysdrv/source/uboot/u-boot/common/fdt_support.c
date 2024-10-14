@@ -8,6 +8,7 @@
  */
 
 #include <common.h>
+#include <abuf.h>
 #include <android_image.h>
 #include <exports.h>
 #include <fdt_support.h>
@@ -320,29 +321,6 @@ int fdt_bootargs_append(void *fdt, char *data)
 	return ret;
 }
 
-int fdt_bootargs_append_ab(void *fdt, char *slot)
-{
-	char *str;
-	int len, ret = 0;
-
-	if (!slot)
-		return 0;
-
-	len = strlen(ANDROID_ARG_SLOT_SUFFIX) + strlen(slot) + 1;
-	str = malloc(len);
-	if (!str)
-		return -ENOMEM;
-
-	snprintf(str, len, "%s%s", ANDROID_ARG_SLOT_SUFFIX, slot);
-	ret = fdt_bootargs_append(fdt, str);
-	if (ret)
-		printf("Apend slot info to bootargs fail");
-
-	free(str);
-
-	return ret;
-}
-
 /**
  * board_fdt_chosen_bootargs - boards may override this function to use
  *                             alternative kernel command line arguments
@@ -354,6 +332,7 @@ __weak char *board_fdt_chosen_bootargs(void *fdt)
 
 int fdt_chosen(void *fdt)
 {
+	struct abuf buf = {};
 	int   nodeoffset;
 	int   err;
 	char  *str;		/* used to set string properties */
@@ -368,6 +347,17 @@ int fdt_chosen(void *fdt)
 	nodeoffset = fdt_find_or_add_subnode(fdt, 0, "chosen");
 	if (nodeoffset < 0)
 		return nodeoffset;
+
+	if (IS_ENABLED(CONFIG_BOARD_RNG_SEED) && !board_rng_seed(&buf)) {
+		err = fdt_setprop(fdt, nodeoffset, "rng-seed",
+				  abuf_data(&buf), abuf_size(&buf));
+		abuf_uninit(&buf);
+		if (err < 0) {
+			printf("WARNING: could not set rng-seed %s.\n",
+			       fdt_strerror(err));
+			return err;
+		}
+	}
 
 	str = board_fdt_chosen_bootargs(fdt);
 	if (str) {

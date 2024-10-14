@@ -98,6 +98,7 @@ static int rockchip_decom_start(struct udevice *dev, void *buf)
 	struct decom_param *param = (struct decom_param *)buf;
 	unsigned int limit_lo = param->size_dst & 0xffffffff;
 	unsigned int limit_hi = param->size_dst >> 32;
+	u32 irq_status;
 
 #if CONFIG_IS_ENABLED(DM_RESET)
 	reset_assert(&priv->rst);
@@ -118,6 +119,11 @@ static int rockchip_decom_start(struct udevice *dev, void *buf)
 
 	priv->done = false;
 
+	irq_status = readl(priv->base + DECOM_ISR);
+	/* clear interrupts */
+	if (irq_status)
+		writel(irq_status, priv->base + DECOM_ISR);
+
 	if (param->mode == DECOM_LZ4)
 		writel(LZ4_CONT_CSUM_CHECK_EN |
 		       LZ4_HEAD_CSUM_CHECK_EN |
@@ -137,6 +143,8 @@ static int rockchip_decom_start(struct udevice *dev, void *buf)
 	writel(limit_lo, priv->base + DECOM_LMTSL);
 	writel(limit_hi, priv->base + DECOM_LMTSH);
 
+	if (param->flags && DCOMP_FLG_IRQ_ONESHOT)
+		writel(DECOM_INT_MASK, priv->base + DECOM_IEN);
 	writel(DECOM_ENABLE, priv->base + DECOM_ENR);
 
 	priv->idle_check_once = true;

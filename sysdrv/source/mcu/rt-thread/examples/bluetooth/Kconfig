@@ -1,0 +1,10 @@
+
+menu "Bluetooth examlpes"
+
+source "$RTT_DIR/examples/bluetooth/bt_api_test/Kconfig"
+source "$RTT_DIR/examples/bluetooth/bt_discovery/Kconfig"
+source "$RTT_DIR/examples/bluetooth/a2dp_sink/Kconfig"
+source "$RTT_DIR/examples/bluetooth/a2dp_source/Kconfig"
+source "$RTT_DIR/examples/bluetooth/hfp_client/Kconfig"
+
+endmenu

@@ -21,6 +21,7 @@
 #define __CALIBDBV2_YNRV22_UAPI_HEADER_H__
 
 #include "rk_aiq_comm.h"
+// clang-format off
 
 RKAIQ_BEGIN_DECLARE
 
@@ -50,9 +51,9 @@ typedef struct RK_YNR_Params_V22_Select_s
     bool ynr_thumb_mix_cur_en;
 
 
-    // M4_ARRAY_DESC("lumaPoint", "u16", M4_SIZE(1,17), M4_RANGE(0, 1024), "0", M4_DIGIT(0), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("lumaPoint", "u16", M4_SIZE(1,17), M4_RANGE(0, 1024), "[0,64,128,192,256,320,384,448,512,576,640,704,768,832,896,960,1024]", M4_DIGIT(0), M4_DYNAMIC(0))
     uint16_t lumaPoint[YNR_V22_ISO_CURVE_POINT_NUM];
-    // M4_ARRAY_DESC("sigma", "f32", M4_SIZE(1,17), M4_RANGE(0, 4095), "0", M4_DIGIT(3), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("sigma", "f32", M4_SIZE(1,17), M4_RANGE(0, 4095), "32", M4_DIGIT(3), M4_DYNAMIC(0))
     float sigma[YNR_V22_ISO_CURVE_POINT_NUM];
 
     // M4_ARRAY_DESC("lo_lumaPoint", "u16", M4_SIZE(1,6), M4_RANGE(0,256), "[0,32,64,128,192,256]", M4_DIGIT(0), M4_DYNAMIC(0))
@@ -117,9 +118,9 @@ typedef struct RK_YNR_Params_V22_Select_s
     float hi_bf_scale;
     // M4_NUMBER_DESC("hi_gain_alpha", "f32", M4_RANGE(0.0, 1.0), "1.0", M4_DIGIT(2))
     float hi_gain_alpha;
-    // M4_NUMBER_DESC("hi_center_weight", "f32", M4_RANGE(0.0, 1.0), "1.0", M4_DIGIT(2))
+    // M4_NUMBER_DESC("hi_center_weight", "f32", M4_RANGE(0.0, 128.0), "1.0", M4_DIGIT(2))
     float hi_center_weight;
-    // M4_NUMBER_DESC("hi_weight_offset", "f32", M4_RANGE(0.0, 128.0), "0.05", M4_DIGIT(2))
+    // M4_NUMBER_DESC("hi_weight_offset", "f32", M4_RANGE(0.0, 1.0), "0.05", M4_DIGIT(2))
     float hi_weight_offset;
     // M4_NUMBER_DESC("hi_min_sigma", "f32", M4_RANGE(0.0, 1.0), "0.0068", M4_DIGIT(4))
     float hi_min_sigma;
@@ -154,6 +155,8 @@ typedef struct Aynr_ExpInfo_V22_s {
     float arAGain[3];
     // M4_ARRAY_DESC("dgain", "f32", M4_SIZE(1,3), M4_RANGE(0, 204800), "1", M4_DIGIT(3))
     float arDGain[3];
+    // M4_ARRAY_DESC("isp_dgain", "f32", M4_SIZE(1,3), M4_RANGE(0, 204800), "1", M4_DIGIT(3))
+    float isp_dgain[3];
     // M4_NUMBER_DESC("blc_ob_predgain", "f32", M4_RANGE(0, 204800), "1", M4_DIGIT(3))
     float blc_ob_predgain;
     // M4_ARRAY_DESC("iso", "u32", M4_SIZE(1,3), M4_RANGE(0, 204800), "1", M4_DIGIT(0))
@@ -184,5 +187,6 @@ typedef struct rk_aiq_ynr_info_v22_s {
 
 
 RKAIQ_END_DECLARE
+// clang-format on
 
 #endif

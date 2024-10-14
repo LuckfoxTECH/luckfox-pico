@@ -33,7 +33,7 @@ Example usage of scripts/tools for Rockchip
 		./scripts/stacktrace.sh dump.txt tpl
 
 	# avbtool.py
-		./avbtool.py info_image --image vbmeta.img
+		./scripts/avbtool.py info_image --image vbmeta.img
 
 [tools]
 	# resource_tool

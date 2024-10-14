@@ -46,7 +46,8 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define gicd_readl(offset)	readl((void *)GICD_BASE + (offset))
 #define gicd_writel(v, offset)	writel(v, (void *)GICD_BASE + (offset))
-#define LINXU_AMP_NODES		"/rockchip-amp/amp-cpus"
+#define ROCKCHIP_AMP_NODE		"/rockchip-amp"
+#define ROCKCHIP_AMP_CPUS_NODE		"/rockchip-amp/amp-cpus"
 
 typedef struct boot_args {
 	ulong arg0;
@@ -60,10 +61,11 @@ typedef struct boot_cpu {
 	u32 state;
 	u32 entry;
 	u32 linux_os;
+	u32 boot_on;
 } boot_cpu_t;
 
 static boot_cpu_t g_bootcpu;
-static u32 g_cpus_boot_by_linux[8];
+static u32 os_amp_dispatcher_cpu[8];
 
 static u32 fit_get_u32_default(const void *fit, int noffset,
 			       const char *prop, u32 def)
@@ -77,23 +79,32 @@ static u32 fit_get_u32_default(const void *fit, int noffset,
 	return fdt32_to_cpu(*val);
 }
 
-static int parse_cpus_boot_by_linux(void)
+static int parse_os_amp_dispatcher(void)
 {
 	const void *fdt = gd->fdt_blob;
 	int noffset, cpu, i = 0;
 	u64 mpidr;
 
-	memset(g_cpus_boot_by_linux, 0xff, sizeof(g_cpus_boot_by_linux));
-	noffset = fdt_path_offset(fdt, LINXU_AMP_NODES);
+	memset(os_amp_dispatcher_cpu, 0xff, sizeof(os_amp_dispatcher_cpu));
+
+	noffset = fdt_path_offset(fdt, ROCKCHIP_AMP_NODE);
+	if (noffset < 0)
+		return 0;
+
+	if (!fdtdec_get_is_enabled(fdt, noffset))
+		return 0;
+
+	noffset = fdt_path_offset(fdt, ROCKCHIP_AMP_CPUS_NODE);
 	if (noffset < 0)
 		return 0;
 
 	fdt_for_each_subnode(cpu, fdt, noffset) {
 		mpidr = fdtdec_get_uint64(fdt, cpu, "id", 0xffffffff);
-		if (mpidr == 0xffffffff)
+		if (mpidr == 0xffffffff) /* invalid */
 			continue;
-		g_cpus_boot_by_linux[i++] = mpidr;
-		printf("CPU[0x%llx] is required boot by Linux\n", mpidr);
+
+		os_amp_dispatcher_cpu[i++] = mpidr;
+		AMP_I("cpu[%llx] belong to os amp-dispatcher\n", mpidr);
 	}
 
 	return 0;
@@ -134,7 +145,7 @@ static int load_linux_for_nonboot_cpu(u32 cpu, u32 aarch64, u32 load,
 	flush_dcache_all();
 
 	/* fixup: ramdisk/fdt/entry depend on U-Boot */
-	*entry = env_get_ulong("kernel_addr_r", 16, 0);
+	*entry = (u32)images.ep;
 
 	return 0;
 }
@@ -206,38 +217,83 @@ finish:
 	return 0;
 }
 
+__weak int fit_standalone_release(char *id, uintptr_t entry_point)
+{
+	return 0;
+}
+
+static int standalone_handler(const char *id, u32 entry_point, int data_size)
+{
+	int ret;
+
+	if (!sysmem_alloc_base_by_name(id,
+			(phys_addr_t)entry_point, data_size))
+		return -ENXIO;
+
+	printf("Handle standalone: '%s' at 0x%08x ...", id, entry_point);
+
+	ret = fit_standalone_release((char *)id, entry_point);
+	if (ret) {
+		printf("failed, ret=%d\n", ret);
+		return ret;
+	}
+	printf("OK\n");
+
+	return 0;
+}
+
 static int brought_up_amp(void *fit, int noffset,
 			  boot_cpu_t *bootcpu, int is_linux)
 {
 	const char *desc;
 	boot_args_t args;
 	u32 cpu, aarch64, hyp;
-	u32 load, thumb, us;
+	u32 load, load_c, thumb, us;
 	u32 pe_state, entry;
 	int boot_on;
 	int data_size;
 	int i, ret;
-	u8  arch = -ENODATA;
+	u8 type = -ENODATA;
+	u8 arch = -ENODATA;
 
 	desc = fdt_getprop(fit, noffset, "description", NULL);
 	cpu = fit_get_u32_default(fit, noffset, "cpu", -ENODATA);
 	hyp = fit_get_u32_default(fit, noffset, "hyp", 0);
 	thumb = fit_get_u32_default(fit, noffset, "thumb", 0);
-	load = fit_get_u32_default(fit, noffset, "load", -ENODATA);
+	entry = load = fit_get_u32_default(fit, noffset, "load", -ENODATA);
+	load_c = fit_get_u32_default(fit, noffset, "load_c", -ENODATA);
 	us = fit_get_u32_default(fit, noffset, "udelay", 0);
 	boot_on = fit_get_u32_default(fit, noffset, "boot-on", 1);
 	fit_image_get_arch(fit, noffset, &arch);
+	fit_image_get_type(fit, noffset, &type);
 	fit_image_get_data_size(fit, noffset, &data_size);
 	memset(&args, 0, sizeof(args));
 
-	if (!desc || cpu == -ENODATA || arch == -ENODATA ||
+	/* standalone is simple, just handle it and then exit. Allow failure */
+	if (type == IH_TYPE_STANDALONE) {
+		if (!desc || load == -ENODATA) {
+			AMP_E("standalone: \"desc\" or \"load\" property missing!\n");
+			goto exit;
+		}
+		standalone_handler(desc, load, data_size);
+		goto exit;
+	}
+
+	if (!desc || cpu == -ENODATA || arch == -ENODATA || type == -ENODATA ||
 	    (load == -ENODATA && !is_linux)) {
 		AMP_E("Property missing!\n");
 		return -EINVAL;
 	}
+
+	if (is_linux) {
+		if (load != -ENODATA)
+			env_set_hex("kernel_addr_r", load);
+		if (load_c != -ENODATA)
+			env_set_hex("kernel_addr_c", load_c);
+	}
+
 	aarch64 = (arch == IH_ARCH_ARM) ? 0 : 1;
 	pe_state = PE_STATE(aarch64, hyp, thumb, 0);
-	entry = load;
 
 #ifdef DEBUG
 	AMP_I("       desc: %s\n", desc);
@@ -245,10 +301,19 @@ static int brought_up_amp(void *fit, int noffset,
 	AMP_I("    aarch64: %d\n", aarch64);
 	AMP_I("        hyp: %d\n", hyp);
 	AMP_I("      thumb: %d\n", thumb);
-	AMP_I("      entry: 0x%08x\n", entry);
+	AMP_I("       load: 0x%08x\n", load);
+	AMP_I("     load_c: 0x%08x\n", load_c);
 	AMP_I("   pe_state: 0x%08x\n", pe_state);
 	AMP_I("   linux-os: %d\n\n", is_linux);
 #endif
+
+	/* If os amp-dispatcher owns this cpu, don't boot it */
+	for (i = 0; i < ARRAY_SIZE(os_amp_dispatcher_cpu); i++) {
+		if (cpu == os_amp_dispatcher_cpu[i]) {
+			boot_on = 0;
+			break;
+		}
+	}
 
 	/* this cpu is boot cpu ? */
 	if ((read_mpidr() & 0x0fff) == cpu) {
@@ -256,6 +321,7 @@ static int brought_up_amp(void *fit, int noffset,
 		bootcpu->entry = entry;
 		bootcpu->state = pe_state;
 		bootcpu->linux_os = is_linux;
+		bootcpu->boot_on = boot_on;
 		return 0;
 	}
 
@@ -279,14 +345,6 @@ static int brought_up_amp(void *fit, int noffset,
 			return -ENXIO;
 	}
 
-	/* If linux assign the boot-on state, use it */
-	for (i = 0; i < ARRAY_SIZE(g_cpus_boot_by_linux); i++) {
-		if (cpu == g_cpus_boot_by_linux[i]) {
-			boot_on = 0;
-			break;
-		}
-	}
-
 	if (!boot_on)
 		return 0;
 
@@ -294,7 +352,7 @@ static int brought_up_amp(void *fit, int noffset,
 	ret = smc_cpu_on(cpu, pe_state, entry, &args, is_linux);
 	if (ret)
 		return ret;
-
+exit:
 	if (us)
 		udelay(us);
 
@@ -313,6 +371,12 @@ static int brought_up_all_amp(void *fit, const char *fit_uname_cfg)
 	conf_noffset = fit_conf_get_node(fit, fit_uname_cfg);
 	if (conf_noffset < 0)
 		return conf_noffset;
+
+	/*
+	 * If boot cpu is not assigned in amp.img, the default value 0 makes
+	 * boot cpu power down itself in final process, so we must initial it.
+	 */
+	g_bootcpu.boot_on = 1;
 
 	linux_noffset = fdt_subnode_offset(fit, conf_noffset, "linux");
 	if (linux_noffset > 0) {
@@ -336,9 +400,25 @@ static int brought_up_all_amp(void *fit, const char *fit_uname_cfg)
 
 	/* === only boot cpu can reach here === */
 
-	if (!g_bootcpu.linux_os) {
+	if (!g_bootcpu.boot_on) {
+		AMP_I("Primary cpu[%x, self] with state 0x%x, entry 0x%08x ... Power down!\n",
+		      (u32)read_mpidr() & 0x0fff, g_bootcpu.state, g_bootcpu.entry);
+		dsb();
+		isb();
+		/* make sure I am off before os amp-dispatcher probe */
+		psci_cpu_off(0);
+
+		/* Never reach here */
+		while (1) {
+			AMP_E("Primary cpu[%x, self] power down failed\n",
+			      (u32)read_mpidr());
+			__asm("wfe");
+		}
+	}
+
+	if (!g_bootcpu.linux_os && g_bootcpu.entry) {
 		flush_dcache_all();
-		AMP_I("Brought up cpu[%x, self] with state 0x%x, entry 0x%08x ...",
+		AMP_I("Brought up primary cpu[%x, self] with state 0x%x, entry 0x%08x ...",
 		      (u32)read_mpidr() & 0x0fff, g_bootcpu.state, g_bootcpu.entry);
 		cleanup_before_linux();
 		printf("OK\n");
@@ -415,8 +495,11 @@ int amp_cpus_on(void)
 		goto out1;
 	}
 
-	/* prase linux info */
-	parse_cpus_boot_by_linux();
+	ret = parse_os_amp_dispatcher();
+	if (ret < 0) {
+		ret = -EINVAL;
+		goto out1;
+	}
 
 	/* Load loadables */
 	memset(&images, 0, sizeof(images));

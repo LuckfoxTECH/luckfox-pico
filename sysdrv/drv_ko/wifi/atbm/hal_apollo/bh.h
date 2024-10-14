@@ -52,7 +52,11 @@ int wsm_release_vif_tx_buffer(struct atbm_common *hw_priv, int if_id,
 void atbm_put_skb(struct atbm_common *hw_priv, struct sk_buff *skb);
 
 int atbm_powerave_sdio_sync(struct atbm_common *hw_priv);
+#ifdef SDIO_BUS
+
+int atbm_device_hibernate(struct atbm_common *hw_priv);
 int atbm_device_wakeup(struct atbm_common *hw_priv);
+#endif
 void atbm_get_cca_work(struct atbm_work_struct *work);
 #ifdef ATBM_SDIO_PATCH
 u16 atbm_CalCheckSum(const u8 *data,u16 len);

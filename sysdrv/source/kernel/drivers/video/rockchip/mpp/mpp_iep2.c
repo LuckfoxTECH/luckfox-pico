@@ -606,6 +606,9 @@ static int iep2_run(struct mpp_dev *mpp,
 			  | IEP2_REG_BUS_ERROR_EN
 			  | IEP2_REG_TIMEOUT_EN);
 
+	/* flush tlb before starting hardware */
+	mpp_iommu_flush_tlb(mpp->iommu_info);
+
 	mpp_task_run_begin(mpp_task, timing_en, MPP_WORK_TIMEOUT_DELAY);
 
 	/* Last, flush the registers */
@@ -624,7 +627,7 @@ static int iep2_irq(struct mpp_dev *mpp)
 {
 	u32 work_mode = mpp_read(mpp, IEP2_REG_WORK_MODE);
 
-	if (!(work_mode & IEP2_REG_IEP2_MODE))
+	if (work_mode && !(work_mode & IEP2_REG_IEP2_MODE))
 		return IRQ_NONE;
 	mpp->irq_status = mpp_read(mpp, IEP2_REG_INT_STS);
 	mpp_write(mpp, IEP2_REG_INT_CLR, 0xffffffff);

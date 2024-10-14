@@ -53,8 +53,14 @@
 RKAIQ_BEGIN_DECLARE
 
 typedef struct _RkAiqAlgoContext RkAiqAlgoContext;
+#ifndef RKAIQAECEXPINFO_T
+#define RKAIQAECEXPINFO_T
 typedef struct RKAiqAecExpInfo_s RKAiqAecExpInfo_t;
+#endif
+#ifndef CAMCALIBDBCONTEXT_T
+#define CAMCALIBDBCONTEXT_T
 typedef void CamCalibDbContext_t;
+#endif
 typedef struct CamCalibDbV2Context_s CamCalibDbV2Context_t;
 typedef struct _RkAiqResComb RkAiqResComb;
 
@@ -85,8 +91,7 @@ typedef enum RkAiqAlgoType_e {
     RK_AIQ_ALGO_TYPE_ACGC,
     RK_AIQ_ALGO_TYPE_ASD,
     RK_AIQ_ALGO_TYPE_ADRC,
-	RK_AIQ_ALGO_TYPE_ADEGAMMA,
-
+    RK_AIQ_ALGO_TYPE_ADEGAMMA,
     RK_AIQ_ALGO_TYPE_ARAWNR,
     RK_AIQ_ALGO_TYPE_AMFNR,
     RK_AIQ_ALGO_TYPE_AYNR,
@@ -96,6 +101,7 @@ typedef enum RkAiqAlgoType_e {
     RK_AIQ_ALGO_TYPE_AMD,
     RK_AIQ_ALGO_TYPE_AGAIN,
     RK_AIQ_ALGO_TYPE_ACAC,
+    RK_AIQ_ALGO_TYPE_AFD,
     RK_AIQ_ALGO_TYPE_MAX
 } RkAiqAlgoType_t;
 
@@ -121,13 +127,13 @@ typedef struct _RkAiqAlgoDesComm {
 // for all algos
 
 typedef enum RkAiqAlgoConfType_e {
-    RK_AIQ_ALGO_CONFTYPE_INIT = 0,
-    RK_AIQ_ALGO_CONFTYPE_UPDATECALIB = 0x01,
-    RK_AIQ_ALGO_CONFTYPE_CHANGEMODE  = 0x02,
-    RK_AIQ_ALGO_CONFTYPE_NEEDRESET   = 0x04,
-    RK_AIQ_ALGO_CONFTYPE_CHANGERES   = 0x08,
-    RK_AIQ_ALGO_CONFTYPE_KEEPSTATUS  = 0x10,
-    RK_AIQ_ALGO_CONFTYPE_CHANGECAMS  = 0x20,
+    RK_AIQ_ALGO_CONFTYPE_INIT = 0,           // just used for the firt time, no much meaning now, equal to UPDATECALIB | NEEDRESET
+    RK_AIQ_ALGO_CONFTYPE_UPDATECALIB = 0x01, // update iq parameters
+    RK_AIQ_ALGO_CONFTYPE_UPDATECALIB_PTR = 0x02, // only update callib pointer, contents related to algo not changed
+    RK_AIQ_ALGO_CONFTYPE_NEEDRESET   = 0x04, // not used now, reset to the initial status
+    RK_AIQ_ALGO_CONFTYPE_CHANGERES   = 0x08, // for resolution changed, should map exposure, etc.
+    RK_AIQ_ALGO_CONFTYPE_KEEPSTATUS  = 0x10, // algo shoud keep the last iteration status
+    RK_AIQ_ALGO_CONFTYPE_CHANGECAMS  = 0x20, // not used now
     RK_AIQ_ALGO_CONFTYPE_MAX
 } RkAiqAlgoConfType_t;
 
@@ -161,7 +167,7 @@ typedef struct _RkAiqAlgoCom {
 
 // generic result type
 typedef struct _RkAiqAlgoResCom {
-    char place_holder[1];
+    bool cfg_update;
 } RkAiqAlgoResCom;
 
 typedef struct _RkAiqAlgoDescription {

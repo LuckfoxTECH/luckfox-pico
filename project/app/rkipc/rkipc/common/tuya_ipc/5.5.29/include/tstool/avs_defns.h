@@ -78,16 +78,16 @@ typedef struct _avs_frame *avs_frame_p;
 
 #define avs_frame_rate(code)                                                                       \
 	((code) == 1 ? 24000.0 / 1001 : /* 23.967... */                                                \
-	     (code) == 2 ? 24                                                                          \
-	 : (code) == 3   ? 25                                                                          \
-	 : (code) == 4   ? 30000.0 / 1001                                                              \
-	                 : /* 29.97... */                                                              \
-         (code) == 5 ? 30                                                                        \
-	   : (code) == 6   ? 50                                                                        \
-	   : (code) == 7   ? 60000.0 / 1001                                                            \
-	                   : /* 59.94... */                                                            \
-         (code) == 8 ? 60                                                                      \
-	                     : 25) /* Hmm-really an error */
+	     (code) == 2                                                                               \
+	         ? 24                                                                                  \
+	         : (code) == 3                                                                         \
+	               ? 25                                                                            \
+	               : (code) == 4 ? 30000.0 / 1001 : /* 29.97... */                                 \
+	                     (code) == 5                                                               \
+	                         ? 30                                                                  \
+	                         : (code) == 6 ? 50                                                    \
+	                                       : (code) == 7 ? 60000.0 / 1001 : /* 59.94... */         \
+	                                             (code) == 8 ? 60 : 25) /* Hmm-really an error */
 
 #define AVS_I_PICTURE_CODING 0 // our invention, but reasonable in context
 #define AVS_P_PICTURE_CODING 1
@@ -95,10 +95,9 @@ typedef struct _avs_frame *avs_frame_p;
 
 // Note that "I" is made up by us (there is no picture coding on I frames)
 #define AVS_PICTURE_CODING_STR(s)                                                                  \
-	((s) == AVS_I_PICTURE_CODING   ? "I"                                                           \
-	 : (s) == AVS_P_PICTURE_CODING ? "P"                                                           \
-	 : (s) == AVS_B_PICTURE_CODING ? "B"                                                           \
-	                               : "Reserved")
+	((s) == AVS_I_PICTURE_CODING                                                                   \
+	     ? "I"                                                                                     \
+	     : (s) == AVS_P_PICTURE_CODING ? "P" : (s) == AVS_B_PICTURE_CODING ? "B" : "Reserved")
 
 // ------------------------------------------------------------
 // Context for looping over the AVS items and pictures in an elementary

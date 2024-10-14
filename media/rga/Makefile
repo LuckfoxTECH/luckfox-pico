@@ -21,6 +21,10 @@ PKG_CONF_OPTS += -DLIBDRM_FILE_INCLUDE=$(CURRENT_DIR)/../libdrm/out/include
 PKG_CONF_OPTS += -DLIBDRM_FILE_LIB=$(CURRENT_DIR)/../libdrm/out/lib
 endif
 
+PKG_CONF_OPTS += -DRKRGA_TARGET_SOC=$(CONFIG_RK_CHIP)
+
+PKG_CONF_OPTS += -DRGA_ENABLE_INSTALL_SAMPLES=ON
+
 ifeq ($(CONFIG_RK_RGA2),y)
 PKG_TARGET := rga-build
 endif
@@ -63,6 +67,7 @@ rga-build: libdrm rga-release
 	popd; \
 	mkdir -p $(CURRENT_DIR)/$(PKG_BIN)/include/rga; \
 	mv -f `find $(CURRENT_DIR)/$(PKG_BIN)/include -type f` $(CURRENT_DIR)/$(PKG_BIN)/include/rga; \
+	mv $(CURRENT_DIR)/$(PKG_BIN)/samples $(CURRENT_DIR)/$(PKG_BIN)/rga_samples; \
 	) || exit -1;
 
 rga-release:
@@ -70,7 +75,7 @@ rga-release:
 
 libdrm:
 ifeq ($(CONFIG_RK_RGA2_USE_LIBDRM),y)
-	@make -C ../libdrm
+	@test -f $(RK_MEDIA_OUTPUT)/lib/libdrm.so || make -C $(RK_MEDIA_TOP_DIR)/libdrm
 endif
 
 clean:

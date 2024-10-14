@@ -1,19 +1,3 @@
-/*
- * Copyright (c) 2022 Rockchip, Inc. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
-
 #ifndef __RKDEMUXER_H__
 #define __RKDEMUXER_H__
 #ifdef __cplusplus
@@ -23,6 +7,9 @@ extern "C" {
 
 #define DEMUXER_VIDEO_YUV420SP_10BIT 0
 #define DEMUXER_VIDEO_YUV420SP 1
+#define DEMUXER_VIDEO_YUV400 2
+#define DEMUXER_VIDEO_YUV422 3
+#define DEMUXER_VIDEO_YUV444 4
 
 typedef struct _RKDEMUXER_READ_PACKET_CALLBACK_S {
     void (*read_video_packet)(void *);
@@ -34,6 +21,8 @@ typedef struct StDemuxerInput{
     int8_t   s8ReadModeFlag;
     int8_t   s8VideoEnableFlag;
     int8_t   s8AudioEnableFlag;
+    const char *transport;
+    int rtsp_io_timeout;
 } DemuxerInput;
 
 typedef struct StDemuxerParam{
@@ -71,10 +60,14 @@ typedef struct StDemuxerPacket{
 int rkdemuxer_init(void **demuxer_cfg, DemuxerInput *ptr);
 void rkdemuxer_deinit(void **demuxer_cfg);
 int rkdemuxer_get_param(void *demuxer_cfg, const char *input_name, DemuxerParam *ptr);
-int rkdemuxer_read_packet_start(void *demuxer_cfg);
+int rkdemuxer_read_packet_start(void *demuxer_cfg, int64_t startPts);
 int rkdemuxer_read_packet_stop(void *demuxer_cfg);
 int rkdemuxer_read_one_video_packet(void *demuxer_cfg, DemuxerPacket *output_packet);
 int rkdemuxer_read_one_audio_packet(void *demuxer_cfg, DemuxerPacket *output_packet);
+int rkdemuxer_read_video_duration(void *demuxer_cfg, int64_t *duration);
+int rkdemuxer_read_audio_duration(void *demuxer_cfg, int64_t *duration);
+int rkdemuxer_seek_video_pts(void *demuxer_cfg, int64_t seekPts);
+int rkdemuxer_seek_audio_pts(void *demuxer_cfg, int64_t seekPts);
 
 #ifdef __cplusplus
 }

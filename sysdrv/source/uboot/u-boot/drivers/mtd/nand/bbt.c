@@ -17,17 +17,80 @@
 #ifdef CONFIG_MTD_NAND_BBT_USING_FLASH
 
 #ifdef BBT_DEBUG
-#define BBT_DBG pr_err
+#define bbt_dbg pr_err
 #else
-#define BBT_DBG(args...)
+#define bbt_dbg(args...)
 #endif
+
+#define BBT_VERSION_INVALID		(0xFFFFFFFFU)
+#define BBT_VERSION_BLOCK_ABNORMAL	(BBT_VERSION_INVALID - 1)
+#define BBT_VERSION_MAX			(BBT_VERSION_INVALID - 8)
 
 struct nanddev_bbt_info {
 	u8 pattern[4];
 	unsigned int version;
+	u32 hash;
 };
 
 static u8 bbt_pattern[] = {'B', 'b', 't', '0' };
+
+#if defined(BBT_DEBUG) && defined(BBT_DEBUG_DUMP)
+static void bbt_dbg_hex(char *s, void *buf, u32 len)
+{
+	u32 i, j = 0;
+	u32 *p32 = (u32 *)buf;
+
+	for (i = 0; i < len / 4; i++) {
+		if (j == 0)
+			printf("%s %p + 0x%04x: ", s, buf, i * 4);
+
+		printf("0x%08x,", p32[i]);
+
+		if (++j >= (4)) {
+			j = 0;
+			printf("\n");
+		}
+	}
+	printf("\n");
+}
+#endif
+
+static u32 js_hash(u8 *buf, u32 len)
+{
+	u32 hash = 0x47C6A7E6;
+	u32 i;
+
+	for (i = 0; i < len; i++)
+		hash ^= ((hash << 5) + buf[i] + (hash >> 2));
+
+	return hash;
+}
+
+static bool bbt_check_hash(u8 *buf, u32 len, u32 hash_cmp)
+{
+	u32 hash;
+
+	/* compatible with no-hash version */
+	if (hash_cmp == 0 || hash_cmp == 0xFFFFFFFF)
+		return 1;
+
+	hash = js_hash(buf, len);
+	if (hash != hash_cmp)
+		return 0;
+
+	return 1;
+}
+
+static u32 bbt_nand_isbad_bypass(struct nand_device *nand, u32 block)
+{
+	struct mtd_info *mtd = nanddev_to_mtd(nand);
+	struct nand_pos pos;
+
+	nanddev_bbt_set_block_status(nand, block, NAND_BBT_BLOCK_STATUS_UNKNOWN);
+	nanddev_offs_to_pos(nand, block * mtd->erasesize, &pos);
+
+	return nanddev_isbad(nand, &pos);
+}
 
 /**
  * nanddev_read_bbt() - Read the BBT (Bad Block Table)
@@ -50,7 +113,7 @@ static int nanddev_read_bbt(struct nand_device *nand, u32 block, bool update)
 	u8 *data_buf, *oob_buf;
 	struct nanddev_bbt_info *bbt_info;
 	struct mtd_oob_ops ops;
-	int bbt_page_num;
+	u32 bbt_page_num;
 	int ret = 0;
 	unsigned int version = 0;
 
@@ -87,27 +150,69 @@ static int nanddev_read_bbt(struct nand_device *nand, u32 block, bool update)
 	/* Store one entry for each block */
 	ret = mtd_read_oob(mtd, block * mtd->erasesize, &ops);
 	if (ret && ret != -EUCLEAN) {
-		pr_err("%s fail %d\n", __func__, ret);
-		ret = -EIO;
+		pr_err("read_bbt blk=%d fail=%d update=%d\n", block, ret, update);
+		ret = 0;
+		version = BBT_VERSION_BLOCK_ABNORMAL;
 		goto out;
 	} else {
 		ret = 0;
 	}
 
-	if (oob_buf[0] != 0xff && !memcmp(bbt_pattern, bbt_info->pattern, 4))
-		version = bbt_info->version;
+	/* bad block or good block without bbt */
+	if (memcmp(bbt_pattern, bbt_info->pattern, 4)) {
+		ret = 0;
+		goto out;
+	}
 
-	BBT_DBG("read_bbt from blk=%d tag=%d ver=%d\n", block, update, version);
+	/* good block with abnornal bbt */
+	if (oob_buf[0] == 0xff ||
+	    !bbt_check_hash(data_buf, nbytes + sizeof(struct nanddev_bbt_info) - 4, bbt_info->hash)) {
+		pr_err("read_bbt check fail blk=%d ret=%d update=%d\n", block, ret, update);
+		ret = 0;
+		version = BBT_VERSION_BLOCK_ABNORMAL;
+		goto out;
+	}
+
+	/* good block with good bbt */
+	version = bbt_info->version;
+	bbt_dbg("read_bbt from blk=%d ver=%d update=%d\n", block, version, update);
 	if (update && version > nand->bbt.version) {
 		memcpy(nand->bbt.cache, data_buf, nbytes);
 		nand->bbt.version = version;
 	}
 
+#if defined(BBT_DEBUG) && defined(BBT_DEBUG_DUMP)
+	bbt_dbg_hex("bbt", data_buf, nbytes + sizeof(struct nanddev_bbt_info));
+	if (version) {
+		u8 *temp_buf = kzalloc(bbt_page_num * mtd->writesize, GFP_KERNEL);
+		bool in_scan = nand->bbt.option & NANDDEV_BBT_SCANNED;
+
+		if (!temp_buf)
+			goto out;
+
+		memcpy(temp_buf, nand->bbt.cache, nbytes);
+		memcpy(nand->bbt.cache, data_buf, nbytes);
+
+		if (!in_scan)
+			nand->bbt.option |= NANDDEV_BBT_SCANNED;
+		for (block = 0; block < nblocks; block++) {
+			ret = nanddev_bbt_get_block_status(nand, block);
+			if (ret != NAND_BBT_BLOCK_GOOD)
+				bbt_dbg("bad block[0x%x], ret=%d\n", block, ret);
+		}
+		if (!in_scan)
+			nand->bbt.option &= ~NANDDEV_BBT_SCANNED;
+		memcpy(nand->bbt.cache, temp_buf, nbytes);
+		kfree(temp_buf);
+		ret = 0;
+	}
+#endif
+
 out:
 	kfree(data_buf);
 	kfree(oob_buf);
 
-	return ret < 0 ? -EIO : version;
+	return ret < 0 ? -EIO : (int)version;
 }
 
 static int nanddev_write_bbt(struct nand_device *nand, u32 block)
@@ -120,11 +225,11 @@ static int nanddev_write_bbt(struct nand_device *nand, u32 block)
 	u8 *data_buf, *oob_buf;
 	struct nanddev_bbt_info *bbt_info;
 	struct mtd_oob_ops ops;
-	int bbt_page_num;
-	int ret = 0;
+	u32 bbt_page_num;
+	int ret = 0, version;
 	struct nand_pos pos;
 
-	BBT_DBG("write_bbt to blk=%d ver=%d\n", block, nand->bbt.version);
+	bbt_dbg("write_bbt to blk=%d ver=%d\n", block, nand->bbt.version);
 	if (!nand->bbt.cache)
 		return -ENOMEM;
 
@@ -151,6 +256,7 @@ static int nanddev_write_bbt(struct nand_device *nand, u32 block)
 	memcpy(data_buf, nand->bbt.cache, nbytes);
 	memcpy(bbt_info, bbt_pattern, 4);
 	bbt_info->version = nand->bbt.version;
+	bbt_info->hash = js_hash(data_buf, nbytes + sizeof(struct nanddev_bbt_info) - 4);
 
 	/* Store one entry for each block */
 	nanddev_offs_to_pos(nand, block * mtd->erasesize, &pos);
@@ -166,7 +272,20 @@ static int nanddev_write_bbt(struct nand_device *nand, u32 block)
 	ops.ooblen = bbt_page_num * mtd->oobsize;
 	ops.ooboffs = 0;
 	ret = mtd_write_oob(mtd, block * mtd->erasesize, &ops);
+	if (ret) {
+		nand->ops->erase(nand, &pos);
+		goto out;
+	}
 
+	version = nanddev_read_bbt(nand, block, false);
+	if (version != bbt_info->version) {
+		pr_err("bbt_write fail, blk=%d recheck fail %d-%d\n",
+		       block, version, bbt_info->version);
+		nand->ops->erase(nand, &pos);
+		ret = -EIO;
+	} else {
+		ret = 0;
+	}
 out:
 	kfree(data_buf);
 	kfree(oob_buf);
@@ -180,14 +299,30 @@ static __maybe_unused int nanddev_bbt_format(struct nand_device *nand)
 	struct mtd_info *mtd = nanddev_to_mtd(nand);
 	struct nand_pos pos;
 	u32 start_block, block;
+	unsigned int bits_per_block = fls(NAND_BBT_BLOCK_NUM_STATUS);
+	unsigned int nwords = DIV_ROUND_UP(nblocks * bits_per_block,
+					   BITS_PER_LONG);
 
 	start_block = nblocks - NANDDEV_BBT_SCAN_MAXBLOCKS;
 
 	for (block = 0; block < nblocks; block++) {
 		nanddev_offs_to_pos(nand, block * mtd->erasesize, &pos);
-		if (nanddev_isbad(nand, &pos))
+		if (nanddev_isbad(nand, &pos)) {
+			if (bbt_nand_isbad_bypass(nand, 0)) {
+				memset(nand->bbt.cache, 0, nwords * sizeof(*nand->bbt.cache));
+				pr_err("bbt_format fail, test good block %d fail\n", 0);
+				return -EIO;
+			}
+
+			if (!bbt_nand_isbad_bypass(nand, block)) {
+				memset(nand->bbt.cache, 0, nwords * sizeof(*nand->bbt.cache));
+				pr_err("bbt_format fail, test bad block %d fail\n", block);
+				return -EIO;
+			}
+
 			nanddev_bbt_set_block_status(nand, block,
 						     NAND_BBT_BLOCK_FACTORY_BAD);
+		}
 	}
 
 	for (block = 0; block < NANDDEV_BBT_SCAN_MAXBLOCKS; block++) {
@@ -214,11 +349,31 @@ static int nanddev_scan_bbt(struct nand_device *nand)
 	nand->bbt.option |= NANDDEV_BBT_SCANNED;
 #ifndef CONFIG_SPL_BUILD
 	if (nand->bbt.version == 0) {
-		nanddev_bbt_format(nand);
+		ret = nanddev_bbt_format(nand);
+		if (ret) {
+			nand->bbt.option = 0;
+			pr_err("%s format fail\n", __func__);
+
+			return ret;
+		}
+
 		ret = nanddev_bbt_update(nand);
 		if (ret) {
 			nand->bbt.option = 0;
-			pr_err("%s fail\n", __func__);
+			pr_err("%s update fail\n", __func__);
+
+			return ret;
+		}
+	}
+#endif
+
+#if defined(BBT_DEBUG)
+	pr_err("scan_bbt success\n");
+	if (nand->bbt.version) {
+		for (block = 0; block < nblocks; block++) {
+			ret = nanddev_bbt_get_block_status(nand, block);
+			if (ret != NAND_BBT_BLOCK_GOOD)
+				bbt_dbg("bad block[0x%x], ret=%d\n", block, ret);
 		}
 	}
 #endif
@@ -275,32 +430,32 @@ EXPORT_SYMBOL_GPL(nanddev_bbt_cleanup);
 int nanddev_bbt_update(struct nand_device *nand)
 {
 #ifdef CONFIG_MTD_NAND_BBT_USING_FLASH
+	struct nand_pos pos;
+	struct mtd_info *mtd = nanddev_to_mtd(nand);
+
 	if (nand->bbt.cache &&
 	    nand->bbt.option & NANDDEV_BBT_USE_FLASH) {
 		unsigned int nblocks = nanddev_neraseblocks(nand);
 		u32 bbt_version[NANDDEV_BBT_SCAN_MAXBLOCKS];
 		int start_block, block;
 		u32 min_version, block_des;
-		int ret, count = 0;
+		int ret, count = 0, status;
 
 		start_block = nblocks - NANDDEV_BBT_SCAN_MAXBLOCKS;
 		for (block = 0; block < NANDDEV_BBT_SCAN_MAXBLOCKS; block++) {
-			ret = nanddev_bbt_get_block_status(nand, start_block + block);
-			if (ret == NAND_BBT_BLOCK_FACTORY_BAD) {
-				bbt_version[block] = 0xFFFFFFFF;
-				continue;
-			}
-			ret = nanddev_read_bbt(nand, start_block + block,
-					       false);
-			if (ret < 0)
-				bbt_version[block] = 0xFFFFFFFF;
-			else if (ret == 0)
-				bbt_version[block] = 0;
+			status = nanddev_bbt_get_block_status(nand, start_block + block);
+			ret = nanddev_read_bbt(nand, start_block + block, false);
+			if (ret == 0 && status == NAND_BBT_BLOCK_FACTORY_BAD)
+				bbt_version[block] = BBT_VERSION_INVALID;
+			else if (ret == -EIO)
+				bbt_version[block] = BBT_VERSION_INVALID;
+			else if (ret == BBT_VERSION_BLOCK_ABNORMAL)
+				bbt_version[block] = ret;
 			else
 				bbt_version[block] = ret;
 		}
 get_min_ver:
-		min_version = 0xFFFFFFFF;
+		min_version = BBT_VERSION_MAX;
 		block_des = 0;
 		for (block = 0; block < NANDDEV_BBT_SCAN_MAXBLOCKS; block++) {
 			if (bbt_version[block] < min_version) {
@@ -309,25 +464,38 @@ get_min_ver:
 			}
 		}
 
+		/* Overwrite the BBT_VERSION_BLOCK_ABNORMAL block */
+		if (nand->bbt.version < min_version)
+			nand->bbt.version = min_version + 4;
+
 		if (block_des > 0) {
 			nand->bbt.version++;
 			ret = nanddev_write_bbt(nand, block_des);
-			bbt_version[block_des - start_block] = 0xFFFFFFFF;
 			if (ret) {
-				pr_err("%s blk= %d ret= %d\n", __func__,
-				       block_des, ret);
-				goto get_min_ver;
-			} else {
-				count++;
-				if (count < 2)
-					goto get_min_ver;
-				BBT_DBG("%s success\n", __func__);
-			}
-		} else {
-			pr_err("%s failed\n", __func__);
+				pr_err("bbt_update fail, blk=%d ret= %d\n", block_des, ret);
 
-			return -1;
+				return -1;
+			}
+
+			bbt_version[block_des - start_block] = BBT_VERSION_INVALID;
+			count++;
+			if (count < 2)
+				goto get_min_ver;
+			bbt_dbg("bbt_update success\n");
+		} else {
+			pr_err("bbt_update failed\n");
+			ret = -1;
 		}
+
+		for (block = 0; block < NANDDEV_BBT_SCAN_MAXBLOCKS; block++) {
+			if (bbt_version[block] == BBT_VERSION_BLOCK_ABNORMAL) {
+				block_des = start_block + block;
+				nanddev_offs_to_pos(nand, block_des * mtd->erasesize, &pos);
+				nand->ops->erase(nand, &pos);
+			}
+		}
+
+		return ret;
 	}
 #endif
 	return 0;

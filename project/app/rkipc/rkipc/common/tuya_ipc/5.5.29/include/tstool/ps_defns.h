@@ -100,38 +100,55 @@ typedef struct PS_packet *PS_packet_p;
 #define NUMBER_SUBSTREAM_TYPES 6 // useful for array sizing
 
 #define SUBSTREAM_STR(what)                                                                        \
-	((what) == SUBSTREAM_OTHER         ? "other"                                                   \
-	 : (what) == SUBSTREAM_AC3         ? "AC3"                                                     \
-	 : (what) == SUBSTREAM_DTS         ? "DTS"                                                     \
-	 : (what) == SUBSTREAM_LPCM        ? "LPCM"                                                    \
-	 : (what) == SUBSTREAM_SUBPICTURES ? "subpictures"                                             \
-	                                   : "???")
+	((what) == SUBSTREAM_OTHER                                                                     \
+	     ? "other"                                                                                 \
+	     : (what) == SUBSTREAM_AC3                                                                 \
+	           ? "AC3"                                                                             \
+	           : (what) == SUBSTREAM_DTS                                                           \
+	                 ? "DTS"                                                                       \
+	                 : (what) == SUBSTREAM_LPCM                                                    \
+	                       ? "LPCM"                                                                \
+	                       : (what) == SUBSTREAM_SUBPICTURES ? "subpictures" : "???")
 
 #define SUBSTREAM_IS_AUDIO(what)                                                                   \
 	((what) == SUBSTREAM_AC3 || (what) == SUBSTREAM_DTS || (what) == SUBSTREAM_LPCM)
 
 #define BSMOD_STR(bsmod, acmod)                                                                    \
-	((bsmod) == 0                                   ? "main audio service: complete main (CM)"     \
-	 : (bsmod) == 1                                 ? "main audio service: music & effects (ME)"   \
-	 : (bsmod) == 2                                 ? "associated service: visually impaired (VI)" \
-	 : (bsmod) == 3                                 ? "associated service: hearing impaired (HI)"  \
-	 : (bsmod) == 4                                 ? "associated service: dialogue (D)"           \
-	 : (bsmod) == 5                                 ? "associated service: commentary (C)"         \
-	 : (bsmod) == 6                                 ? "associated service: emergency (E)"          \
-	 : (bsmod) == 7 && (acmod) == 1                 ? "associated service: voice over (VO)"        \
-	 : (bsmod) == 7 && (acmod) >= 2 && (acmod) <= 7 ? "main audio service: karaoke"                \
-	                                                : "???")
+	((bsmod) == 0                                                                                  \
+	     ? "main audio service: complete main (CM)"                                                \
+	     : (bsmod) == 1                                                                            \
+	           ? "main audio service: music & effects (ME)"                                        \
+	           : (bsmod) == 2                                                                      \
+	                 ? "associated service: visually impaired (VI)"                                \
+	                 : (bsmod) == 3                                                                \
+	                       ? "associated service: hearing impaired (HI)"                           \
+	                       : (bsmod) == 4                                                          \
+	                             ? "associated service: dialogue (D)"                              \
+	                             : (bsmod) == 5                                                    \
+	                                   ? "associated service: commentary (C)"                      \
+	                                   : (bsmod) == 6                                              \
+	                                         ? "associated service: emergency (E)"                 \
+	                                         : (bsmod) == 7 && (acmod) == 1                        \
+	                                               ? "associated service: voice over (VO)"         \
+	                                               : (bsmod) == 7 && (acmod) >= 2 && (acmod) <= 7  \
+	                                                     ? "main audio service: karaoke"           \
+	                                                     : "???")
 
 #define ACMOD_STR(acmod)                                                                           \
-	((acmod) == 0   ? "1+1 Ch1,Ch2"                                                                \
-	 : (acmod) == 1 ? "1/0 C"                                                                      \
-	 : (acmod) == 2 ? "2/0 L,R"                                                                    \
-	 : (acmod) == 3 ? "3/0 L,C,R"                                                                  \
-	 : (acmod) == 4 ? "2/1 L,R,S"                                                                  \
-	 : (acmod) == 5 ? "3/1 L,C,R,S"                                                                \
-	 : (acmod) == 6 ? "2/2 L,R,SL,SR"                                                              \
-	 : (acmod) == 7 ? "3/2 L,C,R,SL,SR"                                                            \
-	                : "???")
+	((acmod) == 0                                                                                  \
+	     ? "1+1 Ch1,Ch2"                                                                           \
+	     : (acmod) == 1                                                                            \
+	           ? "1/0 C"                                                                           \
+	           : (acmod) == 2                                                                      \
+	                 ? "2/0 L,R"                                                                   \
+	                 : (acmod) == 3                                                                \
+	                       ? "3/0 L,C,R"                                                           \
+	                       : (acmod) == 4                                                          \
+	                             ? "2/1 L,R,S"                                                     \
+	                             : (acmod) == 5                                                    \
+	                                   ? "3/1 L,C,R,S"                                             \
+	                                   : (acmod) == 6 ? "2/2 L,R,SL,SR"                            \
+	                                                  : (acmod) == 7 ? "3/2 L,C,R,SL,SR" : "???")
 
 #endif // _ps_defns
 

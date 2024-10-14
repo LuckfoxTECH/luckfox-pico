@@ -24,7 +24,10 @@
 #include "auvnr/rk_aiq_uapi_auvnr_int_v1.h"
 #include "amfnr/rk_aiq_uapi_amfnr_int_v1.h"
 
+#ifndef RK_AIQ_SYS_CTX_T
+#define RK_AIQ_SYS_CTX_T
 typedef struct rk_aiq_sys_ctx_s rk_aiq_sys_ctx_t;
+#endif
 
 RKAIQ_BEGIN_DECLARE
 

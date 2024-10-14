@@ -220,13 +220,10 @@ typedef struct Acnr_ProcResult_V1_s {
     int cnrEn;
 
     //for sw simultaion
-    RK_CNR_Params_V1_Select_t stSelect;
+    //RK_CNR_Params_V1_Select_t stSelect;
 
     //for hw register
-    RK_CNR_Fix_V1_t stFix;
-
-    bool isNeedUpdate;
-
+    RK_CNR_Fix_V1_t* stFix;
 } Acnr_ProcResult_V1_t;
 
 

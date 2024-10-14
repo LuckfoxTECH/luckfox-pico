@@ -1,0 +1,136 @@
+﻿# cat /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+userspace
+# cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq
+1608000
+# cat /sys/class/devfreq/dmc/governor
+cat: can't open '/sys/class/devfreq/dmc/governor': No such file or directory
+# cat /sys/class/devfreq/dmc/cur_freq
+cat: can't open '/sys/class/devfreq/dmc/cur_freq': No such file or directory
+# 
+# 
+# cat /sys/kernel/debug/clk/clk_summary | grep crypto
+cat: can't open '/sys/kernel/debug/clk/clk_summary': No such file or directory
+# 
+# 
+# ./librkcrypto_test -t
+I rkcrypto: [rk_crypto_init, 397]: rkcrypto api version 1.2.0
+E rkcrypto: [rk_oem_otp_key_cipher, 394]: TEEC_InitializeContext failed with code TEEC res= 0xffff0008
+test rk_oem_otp_key_cipher failed! 0xf0000000
+dma_fd: test otp_key throughput FAILED!!!
+Test otp key throughput FAILED.
+
+I rkcrypto: [rk_crypto_init, 397]: rkcrypto api version 1.2.0
+dma_fd: [DES-64]        ECB     ENCRYPT 277MB/s.
+dma_fd: [DES-64]        ECB     DECRYPT 277MB/s.
+dma_fd: [DES-64]        CBC     ENCRYPT 77MB/s.
+dma_fd: [DES-64]        CBC     DECRYPT 277MB/s.
+dma_fd: [TDES-192]      ECB     ENCRYPT 105MB/s.
+dma_fd: [TDES-192]      ECB     DECRYPT 105MB/s.
+dma_fd: [TDES-192]      CBC     ENCRYPT 28MB/s.
+dma_fd: [TDES-192]      CBC     DECRYPT 105MB/s.
+dma_fd: [AES-256]       ECB     ENCRYPT 559MB/s.
+dma_fd: [AES-256]       ECB     DECRYPT 558MB/s.
+dma_fd: [AES-256]       CBC     ENCRYPT 173MB/s.
+dma_fd: [AES-256]       CBC     DECRYPT 558MB/s.
+dma_fd: [AES-256]       CTS     N/A
+dma_fd: [AES-256]       CTS     N/A
+dma_fd: [AES-256]       CTR     ENCRYPT 443MB/s.
+dma_fd: [AES-256]       CTR     DECRYPT 442MB/s.
+dma_fd: [SM4-128]       ECB     N/A
+dma_fd: [SM4-128]       ECB     N/A
+dma_fd: [SM4-128]       CBC     N/A
+dma_fd: [SM4-128]       CBC     N/A
+dma_fd: [SM4-128]       CTS     N/A
+dma_fd: [SM4-128]       CTS     N/A
+dma_fd: [SM4-128]       CTR     N/A
+dma_fd: [SM4-128]       CTR     N/A
+dma_fd: test cipher throughput SUCCESS.
+
+virt:   [DES-64]        ECB     ENCRYPT 269MB/s.
+virt:   [DES-64]        ECB     DECRYPT 269MB/s.
+virt:   [DES-64]        CBC     ENCRYPT 76MB/s.
+virt:   [DES-64]        CBC     DECRYPT 269MB/s.
+virt:   [TDES-192]      ECB     ENCRYPT 104MB/s.
+virt:   [TDES-192]      ECB     DECRYPT 104MB/s.
+virt:   [TDES-192]      CBC     ENCRYPT 28MB/s.
+virt:   [TDES-192]      CBC     DECRYPT 104MB/s.
+virt:   [AES-256]       ECB     ENCRYPT 526MB/s.
+virt:   [AES-256]       ECB     DECRYPT 526MB/s.
+virt:   [AES-256]       CBC     ENCRYPT 170MB/s.
+virt:   [AES-256]       CBC     DECRYPT 526MB/s.
+virt:   [AES-256]       CTS     N/A
+virt:   [AES-256]       CTS     N/A
+virt:   [AES-256]       CTR     ENCRYPT 422MB/s.
+virt:   [AES-256]       CTR     DECRYPT 422MB/s.
+virt:   [SM4-128]       ECB     N/A
+virt:   [SM4-128]       ECB     N/A
+virt:   [SM4-128]       CBC     N/A
+virt:   [SM4-128]       CBC     N/A
+virt:   [SM4-128]       CTS     N/A
+virt:   [SM4-128]       CTS     N/A
+virt:   [SM4-128]       CTR     N/A
+virt:   [SM4-128]       CTR     N/A
+virt:   test cipher throughput SUCCESS.
+
+I rkcrypto: [rk_crypto_init, 397]: rkcrypto api version 1.2.0
+dma_fd: [AES-256]       GCM     ENCRYPT 172MB/s.
+dma_fd: [AES-256]       GCM     DECRYPT 172MB/s.
+dma_fd: [SM4-128]       GCM     N/A
+dma_fd: test aead throughput SUCCESS.
+
+virt:   [AES-256]       GCM     N/A
+virt:   [SM4-128]       GCM     N/A
+virt:   test aead throughput SUCCESS.
+
+I rkcrypto: [rk_crypto_init, 397]: rkcrypto api version 1.2.0
+virt:   [         MD5]  177MB/s.
+virt:   [        SHA1]  144MB/s.
+virt:   [      SHA256]  177MB/s.
+virt:   [      SHA224]  177MB/s.
+virt:   [      SHA512]  N/A
+virt:   [      SHA384]  N/A
+virt:   [  SHA512_224]  N/A
+virt:   [  SHA512_256]  N/A
+virt:   [         SM3]  N/A
+virt:   test hash throughput SUCCESS.
+
+dma_fd: [         MD5]  180MB/s.
+dma_fd: [        SHA1]  145MB/s.
+dma_fd: [      SHA256]  180MB/s.
+dma_fd: [      SHA224]  180MB/s.
+dma_fd: [      SHA512]  N/A
+dma_fd: [      SHA384]  N/A
+dma_fd: [  SHA512_224]  N/A
+dma_fd: [  SHA512_256]  N/A
+dma_fd: [         SM3]  N/A
+dma_fd: test hash throughput SUCCESS.
+
+virt:   [    HMAC_MD5]  177MB/s.
+virt:   [   HMAC_SHA1]  144MB/s.
+virt:   [ HMAC_SHA256]  177MB/s.
+virt:   [ HMAC_SHA512]  N/A
+virt:   [    HMAC_SM3]  N/A
+virt:   test hmac throughput SUCCESS.
+
+dma_fd: [    HMAC_MD5]  180MB/s.
+dma_fd: [   HMAC_SHA1]  145MB/s.
+dma_fd: [ HMAC_SHA256]  180MB/s.
+dma_fd: [ HMAC_SHA512]  N/A
+dma_fd: [    HMAC_SM3]  N/A
+dma_fd: test hmac throughput SUCCESS.
+
+I rkcrypto: [rk_crypto_init, 397]: rkcrypto api version 1.2.0
+virt:   [RSA-1024]      PRIV    ENCRYPT 25ms.
+virt:   [RSA-1024]      PUB     DECRYPT 6ms.
+virt:   [RSA-2048]      PRIV    ENCRYPT 181ms.
+virt:   [RSA-2048]      PUB     DECRYPT 44ms.
+virt:   [RSA-3072]      PRIV    ENCRYPT 521ms.
+virt:   [RSA-3072]      PUB     DECRYPT 68ms.
+virt:   [RSA-4096]      PRIV    ENCRYPT 1147ms.
+virt:   [RSA-4096]      PUB     DECRYPT 85ms.
+test rsa throughput SUCCESS.
+
+Test throughput SUCCESS.
+
+######## Test done ########
+# 

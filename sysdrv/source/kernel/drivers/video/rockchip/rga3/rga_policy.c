@@ -15,7 +15,7 @@
 #define GET_GCD(n1, n2) \
 	({ \
 		int i; \
-		int gcd = 0; \
+		int gcd = 1; \
 		for (i = 1; i <= (n1) && i <= (n2); i++) { \
 			if ((n1) % i == 0 && (n2) % i == 0) \
 				gcd = i; \
@@ -46,6 +46,53 @@ static int rga_set_feature(struct rga_req *rga_base)
 	return feature;
 }
 
+static bool rga_check_csc_constant(const struct rga_hw_data *data, struct rga_req *rga_base,
+				   uint32_t mode, uint32_t flag)
+{
+	if (mode & flag)
+		return true;
+
+	if ((rga_base->full_csc.flag & 0x1) && (data->feature & RGA_FULL_CSC))
+		return true;
+
+	return false;
+}
+
+static bool rga_check_csc(const struct rga_hw_data *data, struct rga_req *rga_base)
+{
+	switch (rga_base->yuv2rgb_mode) {
+	case 0x1:
+		return rga_check_csc_constant(data, rga_base,
+					      data->csc_y2r_mode, RGA_MODE_CSC_BT601L);
+	case 0x2:
+		return rga_check_csc_constant(data, rga_base,
+					      data->csc_y2r_mode, RGA_MODE_CSC_BT601F);
+	case 0x3:
+		return rga_check_csc_constant(data, rga_base,
+					      data->csc_y2r_mode, RGA_MODE_CSC_BT709);
+	case 0x1 << 2:
+		return rga_check_csc_constant(data, rga_base,
+					      data->csc_r2y_mode, RGA_MODE_CSC_BT601F);
+	case 0x2 << 2:
+		return rga_check_csc_constant(data, rga_base,
+					      data->csc_r2y_mode, RGA_MODE_CSC_BT601L);
+	case 0x3 << 2:
+		return rga_check_csc_constant(data, rga_base,
+					      data->csc_r2y_mode, RGA_MODE_CSC_BT709);
+	default:
+		break;
+	}
+
+	if ((rga_base->full_csc.flag & 0x1)) {
+		if (data->feature & RGA_FULL_CSC)
+			return true;
+		else
+			return false;
+	}
+
+	return true;
+}
+
 static bool rga_check_resolution(const struct rga_rect_range *range, int width, int height)
 {
 	if (width > range->max.width || height > range->max.height)
@@ -61,32 +108,34 @@ static bool rga_check_format(const struct rga_hw_data *data,
 		int rd_mode, int format, int win_num)
 {
 	int i;
-	bool matched = false;
+	const uint32_t *formats;
+	uint32_t format_count;
 
-	if (rd_mode == RGA_RASTER_MODE) {
-		for (i = 0; i < data->win[win_num].num_of_raster_formats; i++) {
-			if (format == data->win[win_num].raster_formats[i]) {
-				matched = true;
-				break;
-			}
-		}
-	} else if (rd_mode == RGA_FBC_MODE) {
-		for (i = 0; i < data->win[win_num].num_of_fbc_formats; i++) {
-			if (format == data->win[win_num].fbc_formats[i]) {
-				matched = true;
-				break;
-			}
-		}
-	} else if (rd_mode == RGA_TILE_MODE) {
-		for (i = 0; i < data->win[win_num].num_of_tile_formats; i++) {
-			if (format == data->win[win_num].tile_formats[i]) {
-				matched = true;
-				break;
-			}
-		}
+	switch (rd_mode) {
+	case RGA_RASTER_MODE:
+		formats = data->win[win_num].formats[RGA_RASTER_INDEX];
+		format_count = data->win[win_num].formats_count[RGA_RASTER_INDEX];
+		break;
+	case RGA_FBC_MODE:
+		formats = data->win[win_num].formats[RGA_AFBC16x16_INDEX];
+		format_count = data->win[win_num].formats_count[RGA_AFBC16x16_INDEX];
+		break;
+	case RGA_TILE_MODE:
+		formats = data->win[win_num].formats[RGA_TILE8x8_INDEX];
+		format_count = data->win[win_num].formats_count[RGA_TILE8x8_INDEX];
+		break;
+	default:
+		return false;
 	}
 
-	return matched;
+	if (formats == NULL || format_count == 0)
+		return false;
+
+	for (i = 0; i < format_count; i++)
+		if (format == formats[i])
+			return true;
+
+	return false;
 }
 
 static bool rga_check_align(uint32_t byte_stride_align, uint32_t format, uint16_t w_stride)
@@ -320,6 +369,13 @@ int rga_job_assign(struct rga_job *job)
 		if (!rga_check_dst(data, dst)) {
 			if (DEBUGGER_EN(MSG))
 				pr_info("core = %d, break on rga_check_dst",
+					scheduler->core);
+			continue;
+		}
+
+		if (!rga_check_csc(data, rga_base)) {
+			if (DEBUGGER_EN(MSG))
+				pr_info("core = %d, break on rga_check_csc",
 					scheduler->core);
 			continue;
 		}

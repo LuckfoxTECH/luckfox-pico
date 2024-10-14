@@ -68,14 +68,13 @@ static int do_gpio_status(bool all, const char *gpio_name)
 	struct udevice *dev;
 	int banklen;
 	int flags;
-	int ret;
 
 	flags = 0;
 	if (gpio_name && !*gpio_name)
 		gpio_name = NULL;
-	for (ret = uclass_first_device(UCLASS_GPIO, &dev);
+	for (uclass_first_device(UCLASS_GPIO, &dev);
 	     dev;
-	     ret = uclass_next_device(&dev)) {
+	     uclass_next_device(&dev)) {
 		const char *bank_name;
 		int num_bits;
 
@@ -111,7 +110,7 @@ static int do_gpio_status(bool all, const char *gpio_name)
 			flags |= FLAG_SHOW_NEWLINE;
 	}
 
-	return ret;
+	return 0;
 }
 #endif
 

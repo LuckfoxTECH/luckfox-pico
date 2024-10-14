@@ -4,7 +4,6 @@
 #define FEC_MESH_XY_NUM_ALGO 524288
 
 typedef struct {
-    unsigned char update;
     unsigned char sw_fec_en;
     unsigned char crop_en;
     unsigned int crop_width;
@@ -16,6 +15,7 @@ typedef struct {
     //unsigned char meshxf[FEC_MESH_XY_NUM_ALGO];
     //unsigned short meshyi[FEC_MESH_XY_NUM_ALGO];
     //unsigned char meshyf[FEC_MESH_XY_NUM_ALGO];
+    int usage;
     int img_buf_index;
 } fec_preprocess_result_t;
 

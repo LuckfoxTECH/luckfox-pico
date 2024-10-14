@@ -70,9 +70,9 @@ post_chk()
 	fi
 
 	network_init &
-	check_linker /userdata   /usr/www/userdata
-	check_linker /media/usb0 /usr/www/usb0
-	check_linker /mnt/sdcard /usr/www/sdcard
+	check_linker /userdata   /oem/usr/www/userdata
+	check_linker /media/usb0 /oem/usr/www/usb0
+	check_linker /mnt/sdcard /oem/usr/www/sdcard
 	# if /data/rkipc not exist, cp /usr/share
 	rkipc_ini=/userdata/rkipc.ini
 	default_rkipc_ini=/tmp/rkipc-factory-config.ini
@@ -89,6 +89,10 @@ post_chk()
 		lsmod | grep sc3336
 		if [ $? -eq 0 ] ;then
 			ln -s -f /oem/usr/share/rkipc-300w.ini $default_rkipc_ini
+		fi
+		lsmod | grep imx415
+		if [ $? -eq 0 ] ;then
+			ln -s -f /oem/usr/share/rkipc-800w.ini $default_rkipc_ini
 		fi
 	fi
 	tmp_md5=/tmp/.rkipc-ini.md5sum
@@ -115,6 +119,10 @@ post_chk()
 
 	if [ ! -f "/userdata/image.bmp" ]; then
 		cp -fa /oem/usr/share/image.bmp /userdata/
+	fi
+
+	if [ -f "/oem/usr/share/speaker_test.wav" ];then
+		rk_mpi_ao_test -i /oem/usr/share/speaker_test.wav --sound_card_name=hw:0,0 --device_ch=2 --device_rate=8000 --input_rate=8000 --input_ch=2 --set_volume 50
 	fi
 
 	if [ -d "/oem/usr/share/iqfiles" ];then

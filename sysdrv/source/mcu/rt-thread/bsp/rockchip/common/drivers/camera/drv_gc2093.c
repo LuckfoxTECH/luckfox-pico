@@ -1,0 +1,1972 @@
+/**
+  * Copyright (c) 2022 Rockchip Electronic Co.,Ltd
+  *
+  * SPDX-License-Identifier: Apache-2.0
+  ******************************************************************************
+  * @file    drv_gc2093.c
+  * @version V0.0.1
+  *
+  * Change Logs:
+  * 2022-08-30     Sisyphean Zhou     first implementation
+  * 2022-12-09     chujin.zhou        gc2093 support get config from boardcfg
+  * 2023-01-11     Sisyphean Zhou     gc2093 support get config from boardcfg
+  * 2023-02-28     Sisyphean Zhou     gc2093 add 1080P 25fps output
+  *
+  ******************************************************************************
+  */
+
+#include "camera.h"
+#include <rthw.h>
+#include <rtdevice.h>
+#include <rtthread.h>
+#include <rtconfig.h>
+#include "hal_base.h"
+#include "board.h"
+#include "drv_clock.h"
+#include "board.h"
+
+#ifdef RT_USING_GC2093
+
+#define gc2093_dbg_PRT      0
+
+#if gc2093_dbg_PRT
+#include <stdio.h>
+#define gc2093_dbg(fmt, args...)    rt_kprintf("[GC2093] " fmt "", ##args)
+#else
+#define gc2093_dbg(fmt, args...)
+#endif
+
+#define gc2093_info(fmt, args...)         rt_kprintf("[GC2093] "fmt"", ##args)
+#define gc2093_err(fmt, args...)         rt_kprintf("[GC2093] ERR "fmt"", ##args)
+
+#define GC2093_REG_ID_H_ADDRESS   (0x03f0)
+#define GC2093_REG_ID_L_ADDRESS   (0x03f1)
+#define GC2093_REG_EXP_SHORT_H     0x0001
+#define GC2093_REG_EXP_SHORT_L     0x0002
+#define GC2093_REG_EXP_LONG_H      0x0003
+#define GC2093_REG_EXP_LONG_L      0x0004
+#define GC2093_REG_ANA_GAIN_L      0x00b3
+#define GC2093_REG_ANA_GAIN_H      0x00b4
+
+#define MIPI_FREQ_297M             297000000
+#define MIPI_FREQ_396M             396000000
+
+#define GC2093_XVCLK_FREQ          27000000
+
+#define GC2093_REG_CHIP_ID_H       0x03F0
+#define GC2093_REG_CHIP_ID_L       0x03F1
+
+#define GC2093_REG_VB_H            0x0007
+#define GC2093_REG_VB_L            0x0008
+
+#define GC2093_REG_VTS_H           0x0041
+#define GC2093_REG_VTS_L           0x0042
+
+#define GC2093_MIRROR_FLIP_REG     0x0017
+#define MIRROR_MASK                BIT(0)
+#define FLIP_MASK                  BIT(1)
+
+#define GC2093_REG_CTRL_MODE       0x003E
+#define GC2093_MODE_SW_STANDBY     0x11
+#define GC2093_MODE_STREAMING      0x91
+
+#define GC2093_CHIP_ID             0x2093
+
+#define GC2093_VTS_MAX             0x3FFF
+#define GC2093_HTS_MAX             0xFFF
+
+#define GC2093_EXPOSURE_MAX        0x3FFF
+#define GC2093_EXPOSURE_MIN        1
+#define GC2093_EXPOSURE_STEP       1
+
+#define GC2093_GAIN_MIN            0x40
+#define GC2093_GAIN_MAX            0x2000
+#define GC2093_GAIN_STEP           1
+#define GC2093_GAIN_DEFAULT        64
+
+#define REG_END                   (0x0)
+#define REG_DELAY                 (0xff)
+
+#define ARRAY_SIZE(x)             (sizeof(x) / sizeof((x)[0]))
+
+/* redefine system err code */
+#define RET_SYS_EOK                     (RT_EOK)
+#define RET_SYS_ERROR                   (-RT_ERROR)
+#define RET_SYS_ETIMEOUT                (-RT_ETIMEOUT)  /**< Timed out */
+#define RET_SYS_EFULL                   (-RT_EFULL)     /**< The resource is full */
+#define RET_SYS_EEMPTY                  (-RT_EEMPTY)    /**< The resource is empty */
+#define RET_SYS_ENOMEM                  (-RT_ENOMEM)    /**< No memory */
+#define RET_SYS_ENOSYS                  (-RT_ENOSYS)    /**< No system */
+#define RET_SYS_EBUSY                   (-RT_EBUSY)     /**< Busy */
+#define RET_SYS_EIO                     (-RT_EIO)       /**< IO error */
+#define RET_SYS_EINTR                   (-RT_EINTR)     /**< Interrupted system call */
+#define RET_SYS_EINVAL                  (-RT_EINVAL)    /**< Invalid argument */
+
+struct rt_i2c_bus_device;
+
+struct gc2093_sensor_reg
+{
+    uint16_t reg_addr;
+    uint8_t val;
+} __attribute__((__packed__));
+
+struct gain_reg_config
+{
+    uint32_t value;
+    uint16_t analog_gain;
+    uint16_t col_gain;
+    uint16_t analog_sw;
+    uint16_t ram_width;
+};
+
+struct gc2093_mode
+{
+    uint16_t width;
+    uint16_t height;
+    struct v4l2_fract max_fps;
+    uint16_t hts_def;
+    uint16_t vts_def;
+    uint16_t exp_def;
+    uint32_t xvclk;
+    uint32_t link_freq;
+    /* const struct sensor_reg *reg_list; */
+#ifndef REG_LIST_CONVERSION_DEBUG
+    const uint8_t *reg_list;
+#else
+    const struct gc2093_sensor_reg *reg_list;
+#endif
+    uint32_t reg_num;
+    uint8_t hdr_mode;
+} __attribute__((__packed__));
+
+struct gc2093_dev
+{
+    struct rk_camera_device parent;
+    char name[RK_CAMERA_DEVICE_NAME_SIZE];
+    uint8_t time_valid_delay;
+    uint8_t gain_valid_delay;
+    char i2c_name[RK_CAMERA_I2C_NAME_SIZE];
+    struct rt_i2c_bus_device *i2c_bus;
+    uint8_t i2c_addr;
+    uint8_t flip;
+    struct rt_mutex mutex_lock;
+    struct rk_camera_exp_val init_exp;
+    const struct gc2093_mode *cur_mode;
+    struct gc2093_mode *dst_mode;
+    uint8_t hdr;
+    bool has_init_exp;
+    bool streaming;
+};
+#pragma pack()
+
+typedef struct gc2093_dev *rt_gc2093_dev_t;
+
+static struct gc2093_dev g_gc2093;
+#ifndef REG_LIST_CONVERSION_DEBUG
+#define USING_720P
+/*
+ * window size=1920*1080 mipi@2lane
+ * mclk=27M mipi_clk=594Mbps
+ * pixel_line_total=2200 line_frame_total=1125
+ * row_time=16.67us frame_rate=60fps
+ */
+static const uint8_t gc2093_thunderboot_settings[] =
+{
+#ifdef USING_720P
+    0x3, 0x03, 0xfe, 0xf0,
+    0x3, 0x03, 0xfe, 0xf0,
+    0x3, 0x03, 0xfe, 0xf0,
+    0x3, 0x03, 0xfe, 0x00,
+    0xa, 0x03, 0xf2, 0x00, 0x00, 0x36, 0xc0, 0x0b, 0x01, 0x63, 0x40,
+    0x3, 0x03, 0xfc, 0x8e,
+    0x3, 0x00, 0x87, 0x18,
+    0x3, 0x00, 0xee, 0x30,
+    0x3, 0x00, 0xd0, 0xbf,
+    0x3, 0x01, 0xa0, 0x00,
+    0x5, 0x01, 0xa4, 0x40, 0x40, 0x40,
+    0x3, 0x01, 0xaf, 0x09,
+    0x12, 0x00, 0x01, 0x00, 0x02, 0x04, 0x02, 0x02, 0x94, 0x00, 0x11, 0x00, 0xb4, 0x00, 0x04, 0x02, 0xd0, 0x07, 0x8c,
+    0x3, 0x00, 0x13, 0x15,
+    0x3, 0x00, 0x19, 0x0c,
+    0x4, 0x00, 0x41, 0x02, 0xee,
+    0x3, 0x00, 0x53, 0x60,
+    0x3, 0x00, 0x8d, 0x92,
+    0x3, 0x00, 0x90, 0x00,
+    0x3, 0x00, 0xc7, 0xe1,
+    0x3, 0x00, 0x1b, 0x73,
+    0x4, 0x00, 0x28, 0x0d, 0x24,
+    0x3, 0x00, 0x2b, 0x04,
+    0x3, 0x00, 0x2e, 0x23,
+    0x3, 0x00, 0x37, 0x03,
+    0x4, 0x00, 0x43, 0x04, 0x28,
+    0x4, 0x00, 0x4a, 0x01, 0x20,
+    0x3, 0x00, 0x55, 0x28,
+    0x3, 0x00, 0x66, 0x3f,
+    0x3, 0x00, 0x68, 0x3f,
+    0x3, 0x00, 0x6b, 0x44,
+    0x4, 0x00, 0x77, 0x00, 0x20,
+    0x3, 0x00, 0x7c, 0xa1,
+    0x3, 0x00, 0xce, 0x7c,
+    0x3, 0x00, 0xd3, 0xd4,
+    0x3, 0x00, 0xe6, 0x50,
+    0x3, 0x00, 0xb6, 0xc0,
+    0x3, 0x00, 0xb0, 0x68,
+    0x3, 0x00, 0x8f, 0x41,
+    0x3, 0x01, 0x83, 0x00,
+    0x3, 0x01, 0x87, 0x50,
+    0x4, 0x01, 0x01, 0x0c, 0x89,
+    0x3, 0x01, 0x04, 0x01,
+    0x3, 0x01, 0x0f, 0x00,
+    0x3, 0x01, 0x58, 0x00,
+    0x3, 0x01, 0x23, 0x08,
+    0x3, 0x01, 0x23, 0x00,
+    0x5, 0x01, 0x20, 0x01, 0x04, 0xd8,
+    0x5, 0x01, 0x24, 0x03, 0xff, 0x00,
+    0x3, 0x00, 0x1a, 0x8c,
+    0x3, 0x00, 0xc6, 0xe0,
+    0x3, 0x00, 0x26, 0x30,
+    0x3, 0x01, 0x42, 0x00,
+    0x5, 0x01, 0x49, 0x1e, 0x0f, 0x00,
+    0x3, 0x01, 0x55, 0x07,
+    0x6, 0x04, 0x14, 0x78, 0x78, 0x78, 0x78,
+    0x6, 0x04, 0x54, 0x78, 0x78, 0x78, 0x78,
+    0x3, 0x04, 0xe0, 0x18,
+    0x9, 0x01, 0x92, 0x00, 0x01, 0x40, 0x02, 0xd0, 0x05, 0x00,
+    0x3, 0x01, 0x9a, 0x06,
+    0x3, 0x00, 0x7b, 0x2a,
+    0x3, 0x00, 0x23, 0x2d,
+    0x5, 0x02, 0x01, 0x27, 0x56, 0xb6,
+    0x4, 0x02, 0x12, 0x80, 0x07,
+    0x3, 0x02, 0x15, 0x12,
+    0x3, 0x00, 0x3e, 0x91,
+    0x42,
+#else
+    0x3, 0x00, 0x3e, 0x91,
+    0x3, 0x03, 0xfe, 0xf0,
+    0x3, 0x03, 0xfe, 0xf0,
+    0x3, 0x03, 0xfe, 0xf0,
+    0x3, 0x03, 0xfe, 0x00,
+    0xa, 0x03, 0xf2, 0x00, 0x00, 0x36, 0xc0, 0x0b, 0x01, 0x58, 0x40,
+    0x3, 0x03, 0xfc, 0x8e,
+    0x3, 0x00, 0x87, 0x18,
+    0x3, 0x00, 0xee, 0x30,
+    0x3, 0x00, 0xd0, 0xbf,
+    0x3, 0x01, 0xa0, 0x00,
+    0x5, 0x01, 0xa4, 0x40, 0x40, 0x40,
+    0x3, 0x01, 0xaf, 0x09,
+    0x12, 0x00, 0x01, 0x00, 0x02, 0x04, 0x02, 0x02, 0x94, 0x00, 0x11, 0x00, 0x02, 0x00, 0x04, 0x04, 0x40, 0x07, 0x8c,
+    0x3, 0x00, 0x13, 0x15,
+    0x3, 0x00, 0x19, 0x0c,
+    0x4, 0x00, 0x41, 0x04, 0xe2,
+    0x3, 0x00, 0x53, 0x60,
+    0x3, 0x00, 0x8d, 0x92,
+    0x3, 0x00, 0x90, 0x00,
+    0x3, 0x00, 0xc7, 0xe1,
+    0x3, 0x00, 0x1b, 0x73,
+    0x4, 0x00, 0x28, 0x0d, 0x24,
+    0x3, 0x00, 0x2b, 0x04,
+    0x3, 0x00, 0x2e, 0x23,
+    0x3, 0x00, 0x37, 0x03,
+    0x4, 0x00, 0x43, 0x04, 0x28,
+    0x4, 0x00, 0x4a, 0x01, 0x20,
+    0x3, 0x00, 0x55, 0x28,
+    0x3, 0x00, 0x66, 0x3f,
+    0x3, 0x00, 0x68, 0x3f,
+    0x3, 0x00, 0x6b, 0x44,
+    0x4, 0x00, 0x77, 0x00, 0x20,
+    0x3, 0x00, 0x7c, 0xa1,
+    0x3, 0x00, 0xce, 0x7c,
+    0x3, 0x00, 0xd3, 0xd4,
+    0x3, 0x00, 0xe6, 0x50,
+    0x3, 0x00, 0xb6, 0xc0,
+    0x3, 0x00, 0xb0, 0x68,
+    0x3, 0x00, 0x8f, 0x41,
+    0x3, 0x01, 0x83, 0x00,
+    0x3, 0x01, 0x87, 0x50,
+    0x4, 0x01, 0x01, 0x0c, 0x89,
+    0x3, 0x01, 0x04, 0x01,
+    0x3, 0x01, 0x0f, 0x00,
+    0x3, 0x01, 0x58, 0x00,
+    0x3, 0x01, 0x23, 0x08,
+    0x3, 0x01, 0x23, 0x00,
+    0x5, 0x01, 0x20, 0x01, 0x04, 0xd8,
+    0x4, 0x01, 0x24, 0x03, 0xff,
+    0x3, 0x00, 0x1a, 0x8c,
+    0x3, 0x00, 0xc6, 0xe0,
+    0x3, 0x00, 0x26, 0x30,
+    0x3, 0x01, 0x42, 0x00,
+    0x5, 0x01, 0x49, 0x1e, 0x0f, 0x00,
+    0x3, 0x01, 0x55, 0x07,
+    0x6, 0x04, 0x14, 0x78, 0x78, 0x78, 0x78,
+    0x6, 0x04, 0x54, 0x78, 0x78, 0x78, 0x78,
+    0x3, 0x04, 0xe0, 0x18,
+    0x3, 0x01, 0x92, 0x02,
+    0x7, 0x01, 0x94, 0x03, 0x04, 0x38, 0x07, 0x80,
+    0x3, 0x01, 0x9a, 0x06,
+    0x3, 0x00, 0x7b, 0x2a,
+    0x3, 0x00, 0x23, 0x2d,
+    0x5, 0x02, 0x01, 0x27, 0x56, 0xb6,
+    0x4, 0x02, 0x12, 0x80, 0x07,
+    0x3, 0x02, 0x15, 0x10,
+    0x3, 0x00, 0x3e, 0x91,
+    0x44,
+#endif
+};
+
+/*
+ * window size=1920*1080 mipi@2lane
+ * mclk=27M mipi_clk=594Mbps
+ * pixel_line_total=2200 line_frame_total=1125
+ * row_time=29.62us frame_rate=30fps
+ */
+static const uint8_t gc2093_1080p_30fps_settings[] =
+{
+    0x3, 0x00, 0x3e, 0x91,
+    0x3, 0x03, 0xfe, 0xf0,
+    0x3, 0x03, 0xfe, 0xf0,
+    0x3, 0x03, 0xfe, 0xf0,
+    0x3, 0x03, 0xfe, 0x00,
+    0xa, 0x03, 0xf2, 0x00, 0x00, 0x36, 0xc0, 0x0b, 0x01, 0x58, 0x40,
+    0x3, 0x03, 0xfc, 0x8e,
+    0x3, 0x00, 0x87, 0x18,
+    0x3, 0x00, 0xee, 0x30,
+    0x3, 0x00, 0xd0, 0xbf,
+    0x3, 0x01, 0xa0, 0x00,
+    0x5, 0x01, 0xa4, 0x40, 0x40, 0x40,
+    0x3, 0x01, 0xaf, 0x09,
+    0x12, 0x00, 0x01, 0x00, 0x02, 0x04, 0x02, 0x02, 0x94, 0x00, 0x11, 0x00, 0x02, 0x00, 0x04, 0x04, 0x40, 0x07, 0x8c,
+    0x3, 0x00, 0x13, 0x15,
+    0x3, 0x00, 0x19, 0x0c,
+    0x4, 0x00, 0x41, 0x09, 0xc4,
+    0x3, 0x00, 0x53, 0x60,
+    0x3, 0x00, 0x8d, 0x92,
+    0x3, 0x00, 0x90, 0x00,
+    0x3, 0x00, 0xc7, 0xe1,
+    0x3, 0x00, 0x1b, 0x73,
+    0x4, 0x00, 0x28, 0x0d, 0x24,
+    0x3, 0x00, 0x2b, 0x04,
+    0x3, 0x00, 0x2e, 0x23,
+    0x3, 0x00, 0x37, 0x03,
+    0x4, 0x00, 0x43, 0x04, 0x28,
+    0x4, 0x00, 0x4a, 0x01, 0x20,
+    0x3, 0x00, 0x55, 0x28,
+    0x3, 0x00, 0x66, 0x3f,
+    0x3, 0x00, 0x68, 0x3f,
+    0x3, 0x00, 0x6b, 0x44,
+    0x4, 0x00, 0x77, 0x00, 0x20,
+    0x3, 0x00, 0x7c, 0xa1,
+    0x3, 0x00, 0xce, 0x7c,
+    0x3, 0x00, 0xd3, 0xd4,
+    0x3, 0x00, 0xe6, 0x50,
+    0x3, 0x00, 0xb6, 0xc0,
+    0x3, 0x00, 0xb0, 0x68,
+    0x3, 0x00, 0x8f, 0x41,
+    0x3, 0x01, 0x83, 0x00,
+    0x3, 0x01, 0x87, 0x50,
+    0x4, 0x01, 0x01, 0x0c, 0x89,
+    0x3, 0x01, 0x04, 0x01,
+    0x3, 0x01, 0x0f, 0x00,
+    0x3, 0x01, 0x58, 0x00,
+    0x3, 0x01, 0x23, 0x08,
+    0x3, 0x01, 0x23, 0x00,
+    0x5, 0x01, 0x20, 0x01, 0x04, 0xd8,
+    0x4, 0x01, 0x24, 0x03, 0xff,
+    0x3, 0x00, 0x1a, 0x8c,
+    0x3, 0x00, 0xc6, 0xe0,
+    0x3, 0x00, 0x26, 0x30,
+    0x3, 0x01, 0x42, 0x00,
+    0x5, 0x01, 0x49, 0x1e, 0x0f, 0x00,
+    0x3, 0x01, 0x55, 0x07,
+    0x6, 0x04, 0x14, 0x78, 0x78, 0x78, 0x78,
+    0x6, 0x04, 0x54, 0x78, 0x78, 0x78, 0x78,
+    0x3, 0x04, 0xe0, 0x18,
+    0x3, 0x01, 0x92, 0x02,
+    0x7, 0x01, 0x94, 0x03, 0x04, 0x38, 0x07, 0x80,
+    0x3, 0x01, 0x9a, 0x06,
+    0x3, 0x00, 0x7b, 0x2a,
+    0x3, 0x00, 0x23, 0x2d,
+    0x5, 0x02, 0x01, 0x27, 0x56, 0xb6,
+    0x4, 0x02, 0x12, 0x80, 0x07,
+    0x3, 0x02, 0x15, 0x10,
+    0x3, 0x01, 0x00, 0x00,
+    0x44,
+};
+
+static const uint8_t gc2093_1080p_25fps_settings[] =
+{
+    0x3, 0x00, 0x3e, 0x91,
+    0x3, 0x03, 0xfe, 0xf0,
+    0x3, 0x03, 0xfe, 0xf0,
+    0x3, 0x03, 0xfe, 0xf0,
+    0x3, 0x03, 0xfe, 0x00,
+    0xa, 0x03, 0xf2, 0x00, 0x00, 0x36, 0xc0, 0x0b, 0x01, 0x58, 0x40,
+    0x3, 0x03, 0xfc, 0x8e,
+    0x3, 0x00, 0x87, 0x18,
+    0x3, 0x00, 0xee, 0x30,
+    0x3, 0x00, 0xd0, 0xbf,
+    0x3, 0x01, 0xa0, 0x00,
+    0x5, 0x01, 0xa4, 0x40, 0x40, 0x40,
+    0x3, 0x01, 0xaf, 0x09,
+    0x12, 0x00, 0x01, 0x00, 0x02, 0x04, 0x02, 0x02, 0x94, 0x00, 0x11, 0x00, 0x02, 0x00, 0x04, 0x04, 0x40, 0x07, 0x8c,
+    0x3, 0x00, 0x13, 0x15,
+    0x3, 0x00, 0x19, 0x0c,
+    0x4, 0x00, 0x41, 0x0B, 0xB8,
+    0x3, 0x00, 0x53, 0x60,
+    0x3, 0x00, 0x8d, 0x92,
+    0x3, 0x00, 0x90, 0x00,
+    0x3, 0x00, 0xc7, 0xe1,
+    0x3, 0x00, 0x1b, 0x73,
+    0x4, 0x00, 0x28, 0x0d, 0x24,
+    0x3, 0x00, 0x2b, 0x04,
+    0x3, 0x00, 0x2e, 0x23,
+    0x3, 0x00, 0x37, 0x03,
+    0x4, 0x00, 0x43, 0x04, 0x28,
+    0x4, 0x00, 0x4a, 0x01, 0x20,
+    0x3, 0x00, 0x55, 0x28,
+    0x3, 0x00, 0x66, 0x3f,
+    0x3, 0x00, 0x68, 0x3f,
+    0x3, 0x00, 0x6b, 0x44,
+    0x4, 0x00, 0x77, 0x00, 0x20,
+    0x3, 0x00, 0x7c, 0xa1,
+    0x3, 0x00, 0xce, 0x7c,
+    0x3, 0x00, 0xd3, 0xd4,
+    0x3, 0x00, 0xe6, 0x50,
+    0x3, 0x00, 0xb6, 0xc0,
+    0x3, 0x00, 0xb0, 0x68,
+    0x3, 0x00, 0x8f, 0x41,
+    0x3, 0x01, 0x83, 0x00,
+    0x3, 0x01, 0x87, 0x50,
+    0x4, 0x01, 0x01, 0x0c, 0x89,
+    0x3, 0x01, 0x04, 0x01,
+    0x3, 0x01, 0x0f, 0x00,
+    0x3, 0x01, 0x58, 0x00,
+    0x3, 0x01, 0x23, 0x08,
+    0x3, 0x01, 0x23, 0x00,
+    0x5, 0x01, 0x20, 0x01, 0x04, 0xd8,
+    0x4, 0x01, 0x24, 0x03, 0xff,
+    0x3, 0x00, 0x1a, 0x8c,
+    0x3, 0x00, 0xc6, 0xe0,
+    0x3, 0x00, 0x26, 0x30,
+    0x3, 0x01, 0x42, 0x00,
+    0x5, 0x01, 0x49, 0x1e, 0x0f, 0x00,
+    0x3, 0x01, 0x55, 0x07,
+    0x6, 0x04, 0x14, 0x78, 0x78, 0x78, 0x78,
+    0x6, 0x04, 0x54, 0x78, 0x78, 0x78, 0x78,
+    0x3, 0x04, 0xe0, 0x18,
+    0x3, 0x01, 0x92, 0x02,
+    0x7, 0x01, 0x94, 0x03, 0x04, 0x38, 0x07, 0x80,
+    0x3, 0x01, 0x9a, 0x06,
+    0x3, 0x00, 0x7b, 0x2a,
+    0x3, 0x00, 0x23, 0x2d,
+    0x5, 0x02, 0x01, 0x27, 0x56, 0xb6,
+    0x4, 0x02, 0x12, 0x80, 0x07,
+    0x3, 0x02, 0x15, 0x10,
+    0x3, 0x01, 0x00, 0x00,
+    0x44,
+};
+/*
+ * window size=1920*1080 mipi@2lane
+ * mclk=27M mipi_clk=792Mbps
+ * pixel_line_total=2640 line_frame_total=1250
+ * row_time=13.33us frame_rate=60fps
+ */
+static const uint8_t gc2093_1080p_hdr_settings[] =
+{
+    0x03, 0x03, 0xfe, 0x80,
+    0x03, 0x03, 0xfe, 0x80,
+    0x03, 0x03, 0xfe, 0x80,
+    0x03, 0x03, 0xfe, 0x00,
+    0x0a, 0x03, 0xf2, 0x00, 0x00, 0x36, 0xc0, 0x0b, 0x01, 0x58, 0x40,
+    0x03, 0x03, 0xfc, 0x8e,
+    0x03, 0x00, 0x87, 0x18,
+    0x03, 0x00, 0xee, 0x30,
+    0x03, 0x00, 0xd0, 0xbf,
+    0x03, 0x01, 0xa0, 0x00,
+    0x05, 0x01, 0xa4, 0x40, 0x40, 0x40,
+    0x03, 0x01, 0xaf, 0x09,
+    0x12, 0x00, 0x01, 0x00, 0x02, 0x04, 0x02, 0x02, 0x94, 0x00, 0x11, 0x00, 0x02, 0x00, 0x04, 0x04, 0x40, 0x07, 0x8c,
+    0x03, 0x00, 0x13, 0x15,
+    0x03, 0x00, 0x19, 0x0c,
+    0x04, 0x00, 0x41, 0x04, 0xe2,
+    0x03, 0x00, 0x53, 0x60,
+    0x03, 0x00, 0x8d, 0x92,
+    0x03, 0x00, 0x90, 0x00,
+    0x03, 0x00, 0xc7, 0xe1,
+    0x03, 0x00, 0x1b, 0x73,
+    0x04, 0x00, 0x28, 0x0d, 0x24,
+    0x03, 0x00, 0x2b, 0x04,
+    0x03, 0x00, 0x2e, 0x23,
+    0x03, 0x00, 0x37, 0x03,
+    0x04, 0x00, 0x43, 0x04, 0x20,
+    0x04, 0x00, 0x4a, 0x01, 0x20,
+    0x03, 0x00, 0x55, 0x30,
+    0x03, 0x00, 0x6b, 0x44,
+    0x04, 0x00, 0x77, 0x00, 0x20,
+    0x03, 0x00, 0x7c, 0xa1,
+    0x03, 0x00, 0xd3, 0xd4,
+    0x03, 0x00, 0xe6, 0x50,
+    0x03, 0x00, 0xb6, 0xc0,
+    0x03, 0x00, 0xb0, 0x60,
+    0x03, 0x01, 0x02, 0x89,
+    0x03, 0x01, 0x04, 0x01,
+    0x03, 0x01, 0x0e, 0x01,
+    0x03, 0x01, 0x58, 0x00,
+    0x03, 0x01, 0x83, 0x01,
+    0x03, 0x01, 0x87, 0x50,
+    0x03, 0x01, 0x23, 0x08,
+    0x03, 0x01, 0x23, 0x00,
+    0x05, 0x01, 0x20, 0x01, 0x00, 0x10,
+    0x05, 0x01, 0x24, 0x03, 0xff, 0x3c,
+    0x03, 0x00, 0x1a, 0x8c,
+    0x03, 0x00, 0xc6, 0xe0,
+    0x03, 0x00, 0x26, 0x30,
+    0x03, 0x01, 0x42, 0x00,
+    0x05, 0x01, 0x49, 0x1e, 0x0f, 0x00,
+    0x03, 0x01, 0x55, 0x00,
+    0x06, 0x04, 0x14, 0x78, 0x78, 0x78, 0x78,
+    0x06, 0x04, 0x54, 0x78, 0x78, 0x78, 0x78,
+    0x03, 0x04, 0xe0, 0x18,
+    0x03, 0x01, 0x92, 0x02,
+    0x07, 0x01, 0x94, 0x03, 0x04, 0x38, 0x07, 0x80,
+    0x03, 0x01, 0x9a, 0x06,
+    0x03, 0x00, 0x7b, 0x2a,
+    0x03, 0x00, 0x23, 0x2d,
+    0x05, 0x02, 0x01, 0x27, 0x56, 0xb6,
+    0x04, 0x02, 0x12, 0x80, 0x07,
+    0x03, 0x02, 0x15, 0x12,
+    0x03, 0x00, 0x3e, 0x91,
+    0x03, 0x00, 0x27, 0x71,
+    0x03, 0x02, 0x15, 0x92,
+    0x03, 0x02, 0x4d, 0x01,
+    0x42,
+};
+
+static const uint8_t gc2093_1080p_hdr_25fps_settings[] =
+{
+    0x03, 0x03, 0xfe, 0x80,
+    0x03, 0x03, 0xfe, 0x80,
+    0x03, 0x03, 0xfe, 0x80,
+    0x03, 0x03, 0xfe, 0x00,
+    0x0a, 0x03, 0xf2, 0x00, 0x00, 0x36, 0xc0, 0x0b, 0x01, 0x58, 0x40,
+    0x03, 0x03, 0xfc, 0x8e,
+    0x03, 0x00, 0x87, 0x18,
+    0x03, 0x00, 0xee, 0x30,
+    0x03, 0x00, 0xd0, 0xbf,
+    0x03, 0x01, 0xa0, 0x00,
+    0x05, 0x01, 0xa4, 0x40, 0x40, 0x40,
+    0x03, 0x01, 0xaf, 0x09,
+    0x12, 0x00, 0x01, 0x00, 0x02, 0x04, 0x02, 0x02, 0x94, 0x00, 0x11, 0x00, 0x02, 0x00, 0x04, 0x04, 0x40, 0x07, 0x8c,
+    0x03, 0x00, 0x13, 0x15,
+    0x03, 0x00, 0x19, 0x0c,
+    0x04, 0x00, 0x41, 0x05, 0xdc,
+    0x03, 0x00, 0x53, 0x60,
+    0x03, 0x00, 0x8d, 0x92,
+    0x03, 0x00, 0x90, 0x00,
+    0x03, 0x00, 0xc7, 0xe1,
+    0x03, 0x00, 0x1b, 0x73,
+    0x04, 0x00, 0x28, 0x0d, 0x24,
+    0x03, 0x00, 0x2b, 0x04,
+    0x03, 0x00, 0x2e, 0x23,
+    0x03, 0x00, 0x37, 0x03,
+    0x04, 0x00, 0x43, 0x04, 0x20,
+    0x04, 0x00, 0x4a, 0x01, 0x20,
+    0x03, 0x00, 0x55, 0x30,
+    0x03, 0x00, 0x6b, 0x44,
+    0x04, 0x00, 0x77, 0x00, 0x20,
+    0x03, 0x00, 0x7c, 0xa1,
+    0x03, 0x00, 0xd3, 0xd4,
+    0x03, 0x00, 0xe6, 0x50,
+    0x03, 0x00, 0xb6, 0xc0,
+    0x03, 0x00, 0xb0, 0x60,
+    0x03, 0x01, 0x02, 0x89,
+    0x03, 0x01, 0x04, 0x01,
+    0x03, 0x01, 0x0e, 0x01,
+    0x03, 0x01, 0x58, 0x00,
+    0x03, 0x01, 0x83, 0x01,
+    0x03, 0x01, 0x87, 0x50,
+    0x03, 0x01, 0x23, 0x08,
+    0x03, 0x01, 0x23, 0x00,
+    0x05, 0x01, 0x20, 0x01, 0x00, 0x10,
+    0x05, 0x01, 0x24, 0x03, 0xff, 0x3c,
+    0x03, 0x00, 0x1a, 0x8c,
+    0x03, 0x00, 0xc6, 0xe0,
+    0x03, 0x00, 0x26, 0x30,
+    0x03, 0x01, 0x42, 0x00,
+    0x05, 0x01, 0x49, 0x1e, 0x0f, 0x00,
+    0x03, 0x01, 0x55, 0x00,
+    0x06, 0x04, 0x14, 0x78, 0x78, 0x78, 0x78,
+    0x06, 0x04, 0x54, 0x78, 0x78, 0x78, 0x78,
+    0x03, 0x04, 0xe0, 0x18,
+    0x03, 0x01, 0x92, 0x02,
+    0x07, 0x01, 0x94, 0x03, 0x04, 0x38, 0x07, 0x80,
+    0x03, 0x01, 0x9a, 0x06,
+    0x03, 0x00, 0x7b, 0x2a,
+    0x03, 0x00, 0x23, 0x2d,
+    0x05, 0x02, 0x01, 0x27, 0x56, 0xb6,
+    0x04, 0x02, 0x12, 0x80, 0x07,
+    0x03, 0x02, 0x15, 0x12,
+    0x03, 0x00, 0x3e, 0x91,
+    0x03, 0x00, 0x27, 0x71,
+    0x03, 0x02, 0x15, 0x92,
+    0x03, 0x02, 0x4d, 0x01,
+    0x42,
+};
+#else
+
+static const struct gc2093_sensor_reg gc2093_thunderboot_settings[] =
+{
+    /****system****/
+    // {0x003e,0x91},
+    {0x03fe, 0xf0},
+    {0x03fe, 0xf0},
+    {0x03fe, 0xf0},
+    {0x03fe, 0x00},
+    {0x03f2, 0x00},
+    {0x03f3, 0x00},
+    {0x03f4, 0x36},
+    {0x03f5, 0xc0},
+    {0x03f6, 0x0B},
+    {0x03f7, 0x01},
+    {0x03f8, 0x63},
+    {0x03f9, 0x40},
+    {0x03fc, 0x8e},
+    /****CISCTL & ANALOG****/
+    {0x0087, 0x18},
+    {0x00ee, 0x30},
+    {0x00d0, 0xbf},
+    {0x01a0, 0x00},
+    {0x01a4, 0x40},
+    {0x01a5, 0x40},
+    {0x01a6, 0x40},
+    {0x01af, 0x09},
+    {0x0001, 0x00},
+    {0x0002, 0x02},
+    {0x0003, 0x04},
+    {0x0004, 0x02},
+    {0x0005, 0x02},
+    {0x0006, 0x94},
+    {0x0007, 0x00},
+    {0x0008, 0x11},
+    {0x0009, 0x00},
+    {0x000a, 0xb4},
+    {0x000b, 0x00},
+    {0x000c, 0x04},
+    {0x000d, 0x02},
+    {0x000e, 0xd0},
+    {0x000f, 0x07},
+    {0x0010, 0x8c},
+    {0x0013, 0x15},
+    {0x0019, 0x0c},
+    {0x0041, 0x02},
+    {0x0042, 0xee},
+    {0x0053, 0x60},
+    {0x008d, 0x92},
+    {0x0090, 0x00},
+    {0x00c7, 0xe1},
+    {0x001b, 0x73},
+    {0x0028, 0x0d},
+    {0x0029, 0x24},
+    {0x002b, 0x04},
+    {0x002e, 0x23},
+    {0x0037, 0x03},
+    {0x0043, 0x04},
+    {0x0044, 0x28},
+    {0x004a, 0x01},
+    {0x004b, 0x20},
+    {0x0055, 0x28},
+    {0x0066, 0x3f},
+    {0x0068, 0x3f},
+    {0x006b, 0x44},
+    {0x0077, 0x00},
+    {0x0078, 0x20},
+    {0x007c, 0xa1},
+    {0x00ce, 0x7c},
+    {0x00d3, 0xd4},
+    {0x00e6, 0x50},
+    /*gain*/
+    {0x00b6, 0xc0},
+    {0x00b0, 0x68},
+    {0x008f, 0x41},
+    {0x0183, 0x00},
+    {0x0187, 0x50},
+    /*isp*/
+    {0x0101, 0x0c},
+    {0x0102, 0x89},
+    {0x0104, 0x01},
+    {0x010f, 0x00},
+    {0x0158, 0x00},
+    /*dark sun*/
+    {0x0123, 0x08},
+    {0x0123, 0x00},
+    {0x0120, 0x01},
+    {0x0121, 0x04},
+    {0x0122, 0xd8},
+    {0x0124, 0x03},
+    {0x0125, 0xff},
+    {0x0126, 0x00},
+    {0x001a, 0x8c},
+    {0x00c6, 0xe0},
+    /*blk*/
+    {0x0026, 0x30},
+    {0x0142, 0x00},
+    {0x0149, 0x1e},
+    {0x014a, 0x0f},
+    {0x014b, 0x00},
+    {0x0155, 0x07},
+    {0x0414, 0x78},
+    {0x0415, 0x78},
+    {0x0416, 0x78},
+    {0x0417, 0x78},
+    {0x0454, 0x78},
+    {0x0455, 0x78},
+    {0x0456, 0x78},
+    {0x0457, 0x78},
+    {0x04e0, 0x18},
+    /*window*/
+    {0x0192, 0x00},
+    {0x0193, 0x01},
+    {0x0194, 0x40},
+    {0x0195, 0x02},
+    {0x0196, 0xd0},
+    {0x0197, 0x05},
+    {0x0198, 0x00},
+    /****DVP & MIPI****/
+    {0x019a, 0x06},
+    {0x007b, 0x2a},
+    {0x0023, 0x2d},
+    {0x0201, 0x27},
+    {0x0202, 0x56},
+    {0x0203, 0xb6},
+    {0x0212, 0x80},
+    {0x0213, 0x07},
+    {0x0215, 0x12},
+    {0x003e, 0x91},
+    {REG_END, 0x00},
+};
+
+/*
+ * window size=1920*1080 mipi@2lane
+ * mclk=27M mipi_clk=594Mbps
+ * pixel_line_total=2200 line_frame_total=1125
+ * row_time=29.62us frame_rate=30fps
+ */
+static const struct gc2093_sensor_reg gc2093_1080p_30fps_settings[] =
+{
+    /* System */
+    {0x03fe, 0x80},
+    {0x03fe, 0x80},
+    {0x03fe, 0x80},
+    {0x03fe, 0x00},
+    {0x03f2, 0x00},
+    {0x03f3, 0x00},
+    {0x03f4, 0x36},
+    {0x03f5, 0xc0},
+    {0x03f6, 0x0a},
+    {0x03f7, 0x01},
+    {0x03f8, 0x2c},
+    {0x03f9, 0x10},
+    {0x03fc, 0x8e},
+    /* Cisctl & Analog */
+    {0x0087, 0x18},
+    {0x00ee, 0x30},
+    {0x00d0, 0xb7},
+    {0x01a0, 0x00},
+    {0x01a4, 0x40},
+    {0x01a5, 0x40},
+    {0x01a6, 0x40},
+    {0x01af, 0x09},
+    {0x0001, 0x00},
+    {0x0002, 0x02},
+    {0x0003, 0x00},
+    {0x0004, 0x02},
+    {0x0005, 0x04},
+    {0x0006, 0x4c},
+    {0x0007, 0x00},
+    {0x0008, 0x11},
+    {0x0009, 0x00},
+    {0x000a, 0x02},
+    {0x000b, 0x00},
+    {0x000c, 0x04},
+    {0x000d, 0x04},
+    {0x000e, 0x40},
+    {0x000f, 0x07},
+    {0x0010, 0x8c},
+    {0x0013, 0x15},
+    {0x0019, 0x0c},
+    {0x0041, 0x04},
+    {0x0042, 0x65},
+    {0x0053, 0x60},
+    {0x008d, 0x92},
+    {0x0090, 0x00},
+    {0x00c7, 0xe1},
+    {0x001b, 0x73},
+    {0x0028, 0x0d},
+    {0x0029, 0x24},
+    {0x002b, 0x04},
+    {0x002e, 0x23},
+    {0x0037, 0x03},
+    {0x0043, 0x04},
+    {0x0044, 0x38},
+    {0x004a, 0x01},
+    {0x004b, 0x28},
+    {0x0055, 0x38},
+    {0x0066, 0x05},
+    {0x0068, 0x05},
+    {0x006b, 0x44},
+    {0x0077, 0x00},
+    {0x0078, 0x20},
+    {0x007c, 0xa1},
+    {0x00ce, 0x6e},
+    {0x00d3, 0xd4},
+    {0x00e6, 0x50},
+    /* Gain */
+    {0x00b6, 0xc0},
+    {0x00b0, 0x60},
+    {0x008f, 0xc1},
+    {0x0183, 0x09},
+    {0x0187, 0x53},
+    /* Isp */
+    {0x0101, 0x0c},
+    {0x0102, 0x89},
+    {0x0104, 0x01},
+    {0x010f, 0x00},
+    {0x0158, 0x00},
+    {0x0123, 0x08},
+    {0x0123, 0x00},
+    {0x0120, 0x01},
+    {0x0121, 0x00},
+    {0x0122, 0x10},
+    {0x0124, 0x03},
+    {0x0125, 0xff},
+    {0x0126, 0x3c},
+    {0x001a, 0x8c},
+    {0x00c6, 0xe0},
+    /* Blk */
+    {0x0026, 0x30},
+    {0x0142, 0x00},
+    {0x0149, 0x1e},
+    {0x014a, 0x07},
+    {0x014b, 0x80},
+    {0x0155, 0x00},
+    {0x0414, 0x78},
+    {0x0415, 0x78},
+    {0x0416, 0x78},
+    {0x0417, 0x78},
+    {0x0454, 0x00},
+    {0x0455, 0x00},
+    {0x0456, 0x00},
+    {0x0457, 0x00},
+    {0x04e0, 0x00},
+    /* Window */
+    {0x0192, 0x02},
+    {0x0193, 0x00},
+    {0x0194, 0x03},
+    {0x0195, 0x04},
+    {0x0196, 0x38},
+    {0x0197, 0x07},
+    {0x0198, 0x80},
+    /* MIPI */
+    {0x019a, 0x06},
+    {0x007b, 0x2a},
+    {0x0023, 0x2d},
+    {0x0201, 0x27},
+    {0x0202, 0x56},
+    {0x0203, 0xce},
+    {0x0212, 0x80},
+    {0x0213, 0x07},
+    {0x0215, 0x12},
+    {0x003e, 0x91},
+    {REG_END, 0x00},
+};
+
+/*
+ * window size=1920*1080 mipi@2lane
+ * mclk=27M mipi_clk=792Mbps
+ * pixel_line_total=2640 line_frame_total=1250
+ * row_time=13.33us frame_rate=60fps
+ */
+static const struct gc2093_sensor_reg gc2093_1080p_hdr_settings[] =
+{
+    /* System */
+    {0x03fe, 0x80},
+    {0x03fe, 0x80},
+    {0x03fe, 0x80},
+    {0x03fe, 0x00},
+    {0x03f2, 0x00},
+    {0x03f3, 0x00},
+    {0x03f4, 0x36},
+    {0x03f5, 0xc0},
+    {0x03f6, 0x0B},
+    {0x03f7, 0x01},
+    {0x03f8, 0x58},
+    {0x03f9, 0x40},
+    {0x03fc, 0x8e},
+    /* Cisctl & Analog */
+    {0x0087, 0x18},
+    {0x00ee, 0x30},
+    {0x00d0, 0xbf},
+    {0x01a0, 0x00},
+    {0x01a4, 0x40},
+    {0x01a5, 0x40},
+    {0x01a6, 0x40},
+    {0x01af, 0x09},
+    {0x0001, 0x00},
+    {0x0002, 0x02},
+    {0x0003, 0x04},
+    {0x0004, 0x02},
+    {0x0005, 0x02},
+    {0x0006, 0x94},
+    {0x0007, 0x00},
+    {0x0008, 0x11},
+    {0x0009, 0x00},
+    {0x000a, 0x02},
+    {0x000b, 0x00},
+    {0x000c, 0x04},
+    {0x000d, 0x04},
+    {0x000e, 0x40},
+    {0x000f, 0x07},
+    {0x0010, 0x8c},
+    {0x0013, 0x15},
+    {0x0019, 0x0c},
+    {0x0041, 0x04},
+    {0x0042, 0xe2},
+    {0x0053, 0x60},
+    {0x008d, 0x92},
+    {0x0090, 0x00},
+    {0x00c7, 0xe1},
+    {0x001b, 0x73},
+    {0x0028, 0x0d},
+    {0x0029, 0x24},
+    {0x002b, 0x04},
+    {0x002e, 0x23},
+    {0x0037, 0x03},
+    {0x0043, 0x04},
+    {0x0044, 0x20},
+    {0x004a, 0x01},
+    {0x004b, 0x20},
+    {0x0055, 0x30},
+    {0x006b, 0x44},
+    {0x0077, 0x00},
+    {0x0078, 0x20},
+    {0x007c, 0xa1},
+    {0x00d3, 0xd4},
+    {0x00e6, 0x50},
+    /* Gain */
+    {0x00b6, 0xc0},
+    {0x00b0, 0x60},
+    /* Isp */
+    {0x0102, 0x89},
+    {0x0104, 0x01},
+    {0x010e, 0x01},
+    {0x0158, 0x00},
+    {0x0183, 0x01},
+    {0x0187, 0x50},
+    /* Dark sun*/
+    {0x0123, 0x08},
+    {0x0123, 0x00},
+    {0x0120, 0x01},
+    {0x0121, 0x00},
+    {0x0122, 0x10},
+    {0x0124, 0x03},
+    {0x0125, 0xff},
+    {0x0126, 0x3c},
+    {0x001a, 0x8c},
+    {0x00c6, 0xe0},
+    /* Blk */
+    {0x0026, 0x30},
+    {0x0142, 0x00},
+    {0x0149, 0x1e},
+    {0x014a, 0x0f},
+    {0x014b, 0x00},
+    {0x0155, 0x00},
+    {0x0414, 0x78},
+    {0x0415, 0x78},
+    {0x0416, 0x78},
+    {0x0417, 0x78},
+    {0x0454, 0x78},
+    {0x0455, 0x78},
+    {0x0456, 0x78},
+    {0x0457, 0x78},
+    {0x04e0, 0x18},
+    /* Window */
+    {0x0192, 0x02},
+    {0x0194, 0x03},
+    {0x0195, 0x04},
+    {0x0196, 0x38},
+    {0x0197, 0x07},
+    {0x0198, 0x80},
+    /* MIPI */
+    {0x019a, 0x06},
+    {0x007b, 0x2a},
+    {0x0023, 0x2d},
+    {0x0201, 0x27},
+    {0x0202, 0x56},
+    {0x0203, 0xb6},
+    {0x0212, 0x80},
+    {0x0213, 0x07},
+    {0x0215, 0x12},
+    {0x003e, 0x91},
+    /* HDR En */
+    {0x0027, 0x71},
+    {0x0215, 0x92},
+    {0x024d, 0x01},
+    {REG_END, 0x00},
+};
+
+#endif
+
+static const struct gc2093_mode supported_modes[] =
+{
+#ifdef USING_720P
+    [GC2093_1280X720] = {
+        .width = 1280,
+        .height = 720,
+        .max_fps = {
+            .numerator = 10000,
+            .denominator = 1100000,
+        },
+        .exp_def = 0x460,
+        .hts_def = 0xa50,
+        .vts_def = 0x2ee,
+        .xvclk = 27000000,
+        .link_freq = 396000000,
+        .reg_list = gc2093_thunderboot_settings,
+        .reg_num = ARRAY_SIZE(gc2093_thunderboot_settings),
+        .hdr_mode = NO_HDR,
+    },
+#else
+    [GC2093_1920X1080_60FPS] = {
+        .width = 1920,
+        .height = 1080,
+        .max_fps = {
+            .numerator = 10000,
+            .denominator = 600000,
+        },
+        .exp_def = 0x460,
+        .hts_def = 0xa50,
+        .vts_def = 0x4e2,
+        .link_freq = 396000000,
+        .reg_list = gc2093_thunderboot_settings,
+        .reg_num = ARRAY_SIZE(gc2093_thunderboot_settings),
+        .hdr_mode = NO_HDR,
+    },
+#endif
+    [GC2093_1920X1080_30FPS] = {
+        .width = 1920,
+        .height = 1080,
+        .max_fps = {
+            .numerator = 10000,
+            .denominator = 300000,
+        },
+        .exp_def = 0x460,
+        .hts_def = 0x898,
+        .vts_def = 0x465,
+        .xvclk = 27000000,
+        .link_freq = 297000000,
+        .reg_list = gc2093_1080p_30fps_settings,
+        .reg_num = ARRAY_SIZE(gc2093_1080p_30fps_settings),
+        .hdr_mode = NO_HDR,
+    },
+    [GC2093_1920X1080_25FPS] = {
+        .width = 1920,
+        .height = 1080,
+        .max_fps = {
+            .numerator = 10000,
+            .denominator = 250000,
+        },
+        .exp_def = 0x460,
+        .hts_def = 0x898,
+        .vts_def = 0x546,
+        .xvclk = 27000000,
+        .link_freq = 297000000,
+        .reg_list = gc2093_1080p_25fps_settings,
+        .reg_num = ARRAY_SIZE(gc2093_1080p_25fps_settings),
+        .hdr_mode = NO_HDR,
+    },
+    [GC2093_1920X1080_30FPS_HDR] = {
+        .width = 1920,
+        .height = 1080,
+        .max_fps = {
+            .numerator = 10000,
+            .denominator = 300000,
+        },
+        .exp_def = 0x460,
+        .hts_def = 0xa50,
+        .vts_def = 0x4e2,
+        .xvclk = 27000000,
+        .link_freq = 396000000,
+        .reg_list = gc2093_1080p_hdr_settings,
+        .reg_num = ARRAY_SIZE(gc2093_1080p_hdr_settings),
+        .hdr_mode = HDR_X2,
+    },
+    [GC2093_1920X1080_25FPS_HDR] = {
+        .width = 1920,
+        .height = 1080,
+        .max_fps = {
+            .numerator = 10000,
+            .denominator = 250000,
+        },
+        .exp_def = 0x460,
+        .hts_def = 0xa50,
+        .vts_def = 0x5dc,
+        .xvclk = 27000000,
+        .link_freq = 396000000,
+        .reg_list = gc2093_1080p_hdr_25fps_settings,
+        .reg_num = ARRAY_SIZE(gc2093_1080p_hdr_25fps_settings),
+        .hdr_mode = HDR_X2,
+    },
+};
+
+static const struct gain_reg_config gain_reg_configs[] =
+{
+    {  64, 0x0000, 0x0100, 0x6807, 0x00f8},
+    {  75, 0x0010, 0x010c, 0x6807, 0x00f8},
+    {  90, 0x0020, 0x011b, 0x6c08, 0x00f9},
+    { 105, 0x0030, 0x012c, 0x6c0a, 0x00fa},
+    { 122, 0x0040, 0x013f, 0x7c0b, 0x00fb},
+    { 142, 0x0050, 0x0216, 0x7c0d, 0x00fe},
+    { 167, 0x0060, 0x0235, 0x7c0e, 0x00ff},
+    { 193, 0x0070, 0x0316, 0x7c10, 0x0801},
+    { 223, 0x0080, 0x0402, 0x7c12, 0x0802},
+    { 257, 0x0090, 0x0431, 0x7c13, 0x0803},
+    { 299, 0x00a0, 0x0532, 0x7c15, 0x0805},
+    { 346, 0x00b0, 0x0635, 0x7c17, 0x0807},
+    { 397, 0x00c0, 0x0804, 0x7c18, 0x0808},
+    { 444, 0x005a, 0x0919, 0x7c17, 0x0807},
+    { 523, 0x0083, 0x0b0f, 0x7c17, 0x0807},
+    { 607, 0x0093, 0x0d12, 0x7c19, 0x0809},
+    { 700, 0x0084, 0x1000, 0x7c1b, 0x080c},
+    { 817, 0x0094, 0x123a, 0x7c1e, 0x080f},
+    {1131, 0x005d, 0x1a02, 0x7c23, 0x0814},
+    {1142, 0x009b, 0x1b20, 0x7c25, 0x0816},
+    {1334, 0x008c, 0x200f, 0x7c27, 0x0818},
+    {1568, 0x009c, 0x2607, 0x7c2a, 0x081b},
+    {2195, 0x00b6, 0x3621, 0x7c32, 0x0823},
+    {2637, 0x00ad, 0x373a, 0x7c36, 0x0827},
+    {3121, 0x00bd, 0x3d02, 0x7c3a, 0x082b},
+};
+
+struct gc2093_ops
+{
+    ret_err_t (*init)(struct gc2093_dev *dev);
+    ret_err_t (*open)(struct gc2093_dev *dev, uint16_t oflag);
+    ret_err_t (*close)(struct gc2093_dev *dev);
+    ret_err_t (*control)(struct gc2093_dev *dev, dt_cmd_t cmd, void *arg);
+};
+
+static ret_err_t gc2093_read_reg(struct rt_i2c_bus_device *bus,
+                                 uint16_t reg, uint8_t *data)
+{
+    struct rt_i2c_msg msg[2];
+    uint8_t send_buf[2];
+    uint8_t recv_buf[1];
+    int retry = 10;
+    ret_err_t ret;
+
+    RT_ASSERT(bus != RT_NULL);
+
+    send_buf[0] = ((reg >> 8) & 0xff);
+    send_buf[1] = ((reg >> 0) & 0xff);
+    msg[0].addr = g_gc2093.i2c_addr;
+    msg[0].flags = RT_I2C_WR;
+    msg[0].len = 2;
+    msg[0].buf = send_buf;
+
+    msg[1].addr = g_gc2093.i2c_addr;
+    msg[1].flags = RT_I2C_RD;
+    msg[1].len = 1;
+    msg[1].buf = recv_buf;
+
+    while (1)
+    {
+        ret = rt_i2c_transfer(bus, &msg, 2);
+        if (ret == 2)
+        {
+            *data = recv_buf[0];
+            return RET_SYS_EOK;
+        }
+        else
+        {
+            gc2093_err("write reg, retry:%d, reg [0x%x]-->0x%x\n", retry, reg, data);
+            if (--retry)
+                continue;
+            else
+                return RET_SYS_ERROR;
+        }
+    }
+}
+
+static ret_err_t gc2093_write_reg(struct rt_i2c_bus_device *bus,
+                                  uint16_t reg, uint8_t data)
+{
+    uint8_t send_buf[3];
+    struct rt_i2c_msg msg;
+    int ret = 0;
+    int retry = 10;
+
+    RT_ASSERT(bus != RT_NULL);
+
+    send_buf[0] = ((reg >> 8) & 0xff);
+    send_buf[1] = ((reg >> 0) & 0xff);
+    send_buf[2] = data;
+
+    msg.addr = g_gc2093.i2c_addr;
+    msg.flags = RT_I2C_WR;
+    msg.buf = send_buf;
+    msg.len = 3;
+
+    while (1)
+    {
+        ret = rt_i2c_transfer(bus, &msg, 1);
+        if (ret == 1)
+        {
+            return RET_SYS_EOK;
+        }
+        else
+        {
+            gc2093_err("write reg, retry:%d, reg [0x%x]-->0x%x\n", retry, reg, data);
+            if (--retry)
+                continue;
+            else
+                return RET_SYS_ERROR;
+        }
+    }
+    return ret;
+}
+
+#ifndef REG_LIST_CONVERSION_DEBUG
+static int gc2093_write_multiple_reg_continue(struct gc2093_dev *dev,
+        const uint8_t *i2c_data, int len)
+{
+    uint16_t i;
+    struct rt_i2c_bus_device *i2c_bus;
+    struct rt_i2c_msg msg;
+    int ret = 0;
+    int offset = 0;
+    int retry = 10;
+
+    RT_ASSERT(dev != RT_NULL);
+    RT_ASSERT(i2c_data != RT_NULL);
+
+    i2c_bus = dev->i2c_bus;
+    RT_ASSERT(i2c_bus != RT_NULL);
+
+    for (i = 0; i < i2c_data[len - 1];)
+    {
+        msg.addr = g_gc2093.i2c_addr;
+        msg.flags = RT_I2C_WR;
+        msg.buf = (uint8_t *)&i2c_data[offset + 1];
+        msg.len = i2c_data[offset];
+        ret = rt_i2c_transfer(i2c_bus, &msg, 1);
+
+        if (ret != 1)
+        {
+            gc2093_err("write multi-regs, retry=%d, addr=0x%02x%02x\n", retry, i2c_data[offset + 1], i2c_data[offset + 2]);
+            if (--retry)
+                continue;
+            else
+                return RET_SYS_ERROR;
+        }
+        offset += (i2c_data[offset] + 1);
+        retry = 10;
+        i++;
+    }
+    return RET_SYS_EOK;
+}
+
+#else
+static ret_err_t gc2093_write_reg_discontinued(struct rt_i2c_bus_device *bus,
+        char *data, uint32_t len)
+{
+    struct rt_i2c_msg msg;
+    int ret = 0;
+    int retry = 10;
+    RT_ASSERT(bus != RT_NULL);
+
+    msg.addr = g_gc2093.i2c_addr;
+    msg.flags = RT_I2C_WR;
+    msg.buf = data;
+    msg.len = len;
+    while (1)
+    {
+        ret = rt_i2c_transfer(bus, &msg, 1);
+        if (ret == 1)
+        {
+            return RET_SYS_EOK;
+        }
+        else
+        {
+            gc2093_err("write discontinued reg, retry:%d\n", retry);
+            if (--retry)
+                continue;
+            else
+                return RET_SYS_ERROR;
+        }
+    }
+}
+
+static void GC2093_write_multiple_reg(struct gc2093_dev *dev,
+                                      const struct gc2093_sensor_reg *reg, int len)
+{
+    uint16_t i;
+    struct rt_i2c_bus_device *i2c_bus;
+    int k = 0;
+    char *data = rt_malloc(len);
+    uint16_t reg_addr;
+    int j = 0;
+    int cnt = 0;
+
+    RT_ASSERT(dev != RT_NULL);
+    RT_ASSERT(reg != RT_NULL);
+
+    i2c_bus = dev->i2c_bus;
+    RT_ASSERT(i2c_bus != RT_NULL);
+
+    for (i = 0;; i++)
+    {
+        if (reg[i].reg_addr == REG_END)
+        {
+            if (k > 0)
+            {
+                cnt++;
+                rt_kprintf("0x%x, ", k + 2);
+                for (j = 0; j < k + 2; j++)
+                    rt_kprintf("0x%02x, ", data[j]);
+                rt_kprintf("\n");
+                gc2093_write_reg_discontinued(i2c_bus, data, k + 2);
+                k = 0;
+            }
+            break;
+        }
+
+        if (reg[i].reg_addr == REG_DELAY)
+        {
+            if (k > 0)
+            {
+                cnt++;
+                rt_kprintf("0x%x, ", k + 2);
+                for (j = 0; j < k + 2; j++)
+                    rt_kprintf("0x%02x, ", data[j]);
+                rt_kprintf("\n");
+                gc2093_write_reg_discontinued(i2c_bus, data, k + 2);
+                k = 0;
+            }
+            HAL_DelayUs(reg[i].val);
+        }
+        else
+        {
+            if (k == 0)
+            {
+                reg_addr = reg[i].reg_addr;
+                data[0] = ((reg_addr >> 8) & 0xff);
+                data[1] = ((reg_addr >> 0) & 0xff);
+                data[2] = reg[i].val;
+                k++;
+            }
+            else
+            {
+                if ((reg[i - 1].reg_addr + 1) == reg[i].reg_addr)
+                {
+                    data[k + 2] = reg[i].val;
+                    k++;
+                    //rt_kprintf(">>>k %d, addr %04x\n", k, reg[i].reg_addr);
+                }
+                else
+                {
+                    cnt++;
+                    rt_kprintf("0x%x, ", k + 2);
+                    for (j = 0; j < k + 2; j++)
+                        rt_kprintf("0x%02x, ", data[j]);
+                    rt_kprintf("\n");
+                    gc2093_write_reg_discontinued(i2c_bus, data, k + 2);
+                    reg_addr = reg[i].reg_addr;
+                    data[0] = ((reg_addr >> 8) & 0xff);
+                    data[1] = ((reg_addr >> 0) & 0xff);
+                    data[2] = reg[i].val;
+                    k = 1;
+                }
+
+            }
+        }
+    }
+    rt_kprintf("0x%x,\n", cnt);
+
+}
+#endif
+
+ret_err_t rk_gc2093_init(struct rk_camera_device *dev)
+{
+    ret_err_t ret = RET_SYS_EOK;
+    struct gc2093_dev *gc2093;
+
+    gc2093 = (struct gc2093_dev *)dev;
+    struct rk_camera_device *camera = (struct rk_camera_device *)&gc2093->parent;
+
+    if (gc2093)
+    {
+#ifdef USING_720P
+        camera->info.mbus_fmt.width = 1280;
+        camera->info.mbus_fmt.height = 720;
+        camera->info.mbus_fmt.pixelcode = MEDIA_BUS_FMT_SRGGB10_1X10;//0x0c uyvy;0x08 vyuy;0x04 yvyu;0x00 yuyv
+        camera->info.mbus_fmt.field = 0;
+        camera->info.mbus_fmt.colorspace = 0;
+        camera->info.mbus_config.linked_freq = 396000000;
+#else
+        camera->info.mbus_fmt.width = 1920;
+        camera->info.mbus_fmt.height = 1080;
+        camera->info.mbus_fmt.pixelcode = MEDIA_BUS_FMT_SRGGB10_1X10;//0x0c uyvy;0x08 vyuy;0x04 yvyu;0x00 yuyv
+        camera->info.mbus_fmt.field = 0;
+        camera->info.mbus_fmt.colorspace = 0;
+        camera->info.mbus_config.linked_freq = 297000000;
+#endif
+        camera->info.mbus_config.mbus_type = CAMERA_MBUS_CSI2_DPHY;
+        camera->info.mbus_config.flags = MEDIA_BUS_FLAGS_CSI2_LVDS_LANES_2 |
+                                         MEDIA_BUS_FLAGS_CSI2_LVDS_CLOCK_MODE_CONTIN;
+        camera->info.hdr_mode = 0;
+
+        gc2093->i2c_bus = (struct rt_i2c_bus_device *)rt_device_find(gc2093->i2c_name);
+
+        if (!gc2093->i2c_bus)
+        {
+            gc2093_dbg("not find i2c source 2:%s !!!\n",
+                       gc2093->i2c_name);
+            return RET_SYS_ENOSYS;
+        }
+        else
+        {
+            gc2093_dbg("find i2c_bus:%s\n", gc2093->i2c_name);
+        }
+    }
+    else
+    {
+        ret = RET_SYS_ENOSYS;
+    }
+
+    return ret;
+}
+
+static ret_err_t rk_gc2093_open(struct rk_camera_device *dev, rt_uint16_t oflag)
+{
+#if RT_USING_GC2093_OPS
+    struct gc2093_dev *GC2093;
+#endif
+    ret_err_t ret = RET_SYS_EOK;
+
+    gc2093_dbg("(%s) enter \n", __FUNCTION__);
+
+    RT_ASSERT(dev != RT_NULL);
+
+    return ret;
+}
+
+ret_err_t rk_gc2093_close(struct rk_camera_device *dev)
+{
+    uint8_t ret = RET_SYS_EOK;
+
+    RT_ASSERT(dev != RT_NULL);
+
+    return ret;
+}
+
+static ret_err_t rk_gc2093_set_gain(struct gc2093_dev *dev, uint32_t gain)
+{
+    int ret, i = 0;
+    uint16_t pre_gain = 0;
+
+    for (i = 0; i < ARRAY_SIZE(gain_reg_configs) - 1; i++)
+        if ((gain_reg_configs[i].value <= gain) && (gain < gain_reg_configs[i + 1].value))
+            break;
+
+    ret = gc2093_write_reg(dev->i2c_bus, 0x00b4, gain_reg_configs[i].analog_gain >> 8);
+    ret |= gc2093_write_reg(dev->i2c_bus, 0x00b3, gain_reg_configs[i].analog_gain & 0xff);
+    ret |= gc2093_write_reg(dev->i2c_bus, 0x00b8, gain_reg_configs[i].col_gain >> 8);
+    ret |= gc2093_write_reg(dev->i2c_bus, 0x00b9, gain_reg_configs[i].col_gain & 0xff);
+    ret |= gc2093_write_reg(dev->i2c_bus, 0x00ce, gain_reg_configs[i].analog_sw >> 8);
+    ret |= gc2093_write_reg(dev->i2c_bus, 0x00c2, gain_reg_configs[i].analog_sw & 0xff);
+    ret |= gc2093_write_reg(dev->i2c_bus, 0x00cf, gain_reg_configs[i].ram_width >> 8);
+    ret |= gc2093_write_reg(dev->i2c_bus, 0x00d9, gain_reg_configs[i].ram_width & 0xff);
+
+    pre_gain = 64 * gain / gain_reg_configs[i].value;
+
+    ret |= gc2093_write_reg(dev->i2c_bus, 0x00b1, (pre_gain >> 6));
+    ret |= gc2093_write_reg(dev->i2c_bus, 0x00b2, ((pre_gain & 0x3f) << 2));
+
+    return ret;
+}
+
+static ret_err_t rk_gc2093_set_expval(struct gc2093_dev *dev, struct rk_camera_exp_val *exp)
+{
+    ret_err_t ret = RET_SYS_EOK;
+    uint32_t l_exp_time, s_exp_time;
+    uint32_t l_a_gain;
+    uint16_t vb;
+    uint8_t vb_h, vb_l;
+
+    RT_ASSERT(dev != RT_NULL);
+
+    rt_mutex_take(&dev->mutex_lock, RT_WAITING_FOREVER);
+
+    if (!dev->has_init_exp && !dev->streaming)
+    {
+        dev->init_exp = *exp;
+        dev->has_init_exp = true;
+        gc2093_dbg("gc2093 don't stream, record exp for hdr!\n");
+
+        rt_mutex_release(&dev->mutex_lock);
+        return ret;
+    }
+
+    if (dev->cur_mode->hdr_mode == HDR_X2)
+    {
+        l_exp_time = exp->reg_time[1];
+        s_exp_time = exp->reg_time[0];
+        l_a_gain = exp->reg_gain[1];
+    }
+    else
+    {
+        l_exp_time = exp->reg_time[0];
+        l_a_gain = exp->reg_gain[0];
+        s_exp_time = 0;
+    }
+
+    if (l_exp_time < 0x30 || s_exp_time < 4)
+        gc2093_write_reg(dev->i2c_bus, 0x0032, 0xfd);
+    else
+        gc2093_write_reg(dev->i2c_bus, 0x0032, 0xf8);
+
+    if (dev->cur_mode->hdr_mode == HDR_X2)
+    {
+        gc2093_read_reg(dev->i2c_bus, GC2093_REG_VB_H, &vb_h);
+        gc2093_read_reg(dev->i2c_bus, GC2093_REG_VB_L, &vb_l);
+        vb = vb_h << 8 | vb_l;
+        if (s_exp_time > vb - 8)
+            s_exp_time = vb - 8;
+        if (l_exp_time + s_exp_time > dev->cur_mode->vts_def)
+            l_exp_time = dev->cur_mode->vts_def - s_exp_time;
+    }
+    else
+    {
+        if (l_exp_time > GC2093_EXPOSURE_MAX)
+            l_exp_time = GC2093_EXPOSURE_MAX;
+    }
+
+    gc2093_dbg("l_a_gain: 0x%x, l_exp_time: 0x%X\n", l_a_gain, l_exp_time);
+
+    rk_gc2093_set_gain(dev, l_a_gain);
+
+    gc2093_write_reg(dev->i2c_bus, GC2093_REG_EXP_LONG_H,
+                     (uint8_t)(l_exp_time >> 8) & 0xff);
+    gc2093_write_reg(dev->i2c_bus, GC2093_REG_EXP_LONG_L,
+                     (uint8_t)(l_exp_time & 0xff));
+    if (dev->cur_mode->hdr_mode == HDR_X2)
+    {
+        gc2093_write_reg(dev->i2c_bus, GC2093_REG_EXP_SHORT_H,
+                         (uint8_t)(s_exp_time >> 8) & 0xff);
+        gc2093_write_reg(dev->i2c_bus, GC2093_REG_EXP_SHORT_L,
+                         (uint8_t)(s_exp_time & 0xff));
+    }
+    rt_mutex_release(&dev->mutex_lock);
+
+    return ret;
+}
+
+static ret_err_t rk_gc2093_get_expinf(struct gc2093_dev *dev, struct rk_camera_exp_info *exp)
+{
+    ret_err_t ret = RET_SYS_EOK;
+    const struct gc2093_mode *mode;
+
+    RT_ASSERT(dev != RT_NULL);
+
+    mode = dev->cur_mode;
+    exp->width = mode->width;
+    exp->height = mode->height;
+    exp->hts = mode->hts_def;
+    exp->vts = mode->vts_def;
+    exp->pix_clk = (uint64_t)exp->hts * (uint64_t)exp->vts * (uint64_t)mode->max_fps.denominator /
+                   (uint64_t)mode->max_fps.numerator;
+    exp->time_valid_delay = dev->time_valid_delay;
+    exp->gain_valid_delay = dev->gain_valid_delay;
+
+    exp->dst_width = dev->dst_mode->width;
+    exp->dst_height = dev->dst_mode->height;
+    exp->dst_hts = dev->dst_mode->hts_def;
+    exp->dst_vts = dev->dst_mode->vts_def;
+    exp->dst_pix_clk = (uint64_t)exp->dst_hts * (uint64_t)exp->dst_vts *
+                       (uint64_t)dev->dst_mode->max_fps.denominator /
+                       (uint64_t)dev->dst_mode->max_fps.numerator;
+
+    return ret;
+}
+
+static ret_err_t rk_gc2093_stream_on(struct gc2093_dev *dev)
+{
+    ret_err_t ret = RET_SYS_EOK;
+
+    gc2093_dbg("stream_on enter tick:%u\n", rt_tick_get());
+
+    RT_ASSERT(dev != RT_NULL);
+
+    rt_mutex_take(&dev->mutex_lock, RT_WAITING_FOREVER);
+
+#ifndef REG_LIST_CONVERSION_DEBUG
+    //delay for i2c transaction
+    HAL_DelayUs(500);
+    gc2093_write_multiple_reg_continue(dev,
+                                       dev->cur_mode->reg_list,
+                                       dev->cur_mode->reg_num);
+#else
+    GC2093_write_multiple_reg(dev, dev->cur_mode->reg_list, dev->cur_mode->reg_num);
+#endif
+
+#ifndef RT_USING_CAM_STREAM_ON_LATE
+    if (dev->has_init_exp)
+    {
+        rt_mutex_release(&dev->mutex_lock);
+        rk_gc2093_set_expval(dev, &dev->init_exp);
+        rt_mutex_take(&dev->mutex_lock, RT_WAITING_FOREVER);
+    }
+    dev->streaming = true;
+    ret |= gc2093_write_reg(dev->i2c_bus, GC2093_REG_CTRL_MODE,
+                            GC2093_MODE_STREAMING);
+#endif
+
+    rt_mutex_release(&dev->mutex_lock);
+
+    gc2093_dbg("stream_on exit tick:%u\n", rt_tick_get());
+
+    return ret;
+}
+
+static ret_err_t rk_gc2093_stream_on_late(struct gc2093_dev *dev)
+{
+    ret_err_t ret = RET_SYS_EOK;
+
+    gc2093_dbg("stream_on_late enter tick:%u\n", rt_tick_get());
+
+    RT_ASSERT(dev != RT_NULL);
+
+    rt_mutex_take(&dev->mutex_lock, RT_WAITING_FOREVER);
+
+    if (dev->has_init_exp)
+    {
+        rt_mutex_release(&dev->mutex_lock);
+        rk_gc2093_set_expval(dev, &dev->init_exp);
+        rt_mutex_take(&dev->mutex_lock, RT_WAITING_FOREVER);
+    }
+    ret |= gc2093_write_reg(dev->i2c_bus, GC2093_REG_CTRL_MODE,
+                            GC2093_MODE_STREAMING);
+    dev->streaming = true;
+    rt_mutex_release(&dev->mutex_lock);
+
+    gc2093_dbg("stream_on_late exit tick:%u\n", rt_tick_get());
+
+    return ret;
+}
+
+static ret_err_t rk_gc2093_stream_off(struct gc2093_dev *dev)
+{
+    ret_err_t ret = RET_SYS_EOK;
+    struct rt_i2c_bus_device *i2c_bus;
+
+    RT_ASSERT(dev != RT_NULL);
+
+    i2c_bus = dev->i2c_bus;
+    if (i2c_bus)
+    {
+        rt_mutex_take(&dev->mutex_lock, RT_WAITING_FOREVER);
+
+        ret = gc2093_write_reg(dev->i2c_bus, 0x0100, 0x00);
+
+        rt_mutex_release(&dev->mutex_lock);
+    }
+    else
+    {
+        gc2093_err("not find out i2c bus!\n");
+    }
+    dev->streaming = false;
+
+    return ret;
+}
+
+static ret_err_t rk_gc2093_get_intput_fmt(struct gc2093_dev *dev, struct rk_camera_mbus_framefmt *mbus_fmt)
+{
+    ret_err_t ret = RET_SYS_EOK;
+    const struct gc2093_mode *mode;
+
+    RT_ASSERT(dev != RT_NULL);
+
+    mode = dev->cur_mode;
+    mbus_fmt->width = mode->width;
+    mbus_fmt->height = mode->height;
+    mbus_fmt->field = 0;
+    mbus_fmt->pixelcode = MEDIA_BUS_FMT_SBGGR10_1X10;
+
+    return ret;
+}
+
+static ret_err_t rk_gc2093_set_intput_fmt(struct gc2093_dev *dev, struct rk_camera_mbus_framefmt *mbus_fmt)
+{
+    ret_err_t ret = RET_SYS_EOK;
+    const struct gc2093_mode *mode;
+    int i = 0;
+    bool is_find_fmt = false;
+    struct rk_camera_device *camera = (struct rk_camera_device *)&dev->parent;
+
+    RT_ASSERT(dev != RT_NULL);
+
+    if (mbus_fmt->width == dev->dst_mode->width &&
+            mbus_fmt->height == dev->dst_mode->height)
+    {
+        mode = dev->dst_mode;
+        is_find_fmt = true;
+    }
+    else
+    {
+        for (i = 0; i < ARRAY_SIZE(supported_modes); i++)
+        {
+            mode = &supported_modes[i];
+            if (mbus_fmt->width == mode->width &&
+                    mbus_fmt->height == mode->height)
+            {
+                is_find_fmt = true;
+                break;
+            }
+        }
+    }
+    if (is_find_fmt)
+    {
+        if (mode->width != dev->cur_mode->width)
+        {
+            dev->cur_mode = mode;
+            gc2093_info("switch to dst fmt, dst_width %d, dst_height %d, dst_fps %d, hdr: %d, dst_vts: 0x%x\n",
+                        dev->cur_mode->width, dev->cur_mode->height,
+                        dev->cur_mode->max_fps.denominator / dev->cur_mode->max_fps.numerator,
+                        dev->cur_mode->hdr_mode, dev->cur_mode->vts_def);
+            rt_mutex_take(&dev->mutex_lock, RT_WAITING_FOREVER);
+#ifndef REG_LIST_CONVERSION_DEBUG
+            gc2093_write_multiple_reg_continue((struct gc2093_dev *)dev, dev->cur_mode->reg_list, dev->cur_mode->reg_num);
+#endif
+            rt_mutex_release(&dev->mutex_lock);
+        }
+        camera->info.hdr_mode = mode->hdr_mode;
+    }
+
+    return ret;
+}
+
+static ret_err_t rk_gc2093_match_dst_config(struct gc2093_dev *dev, struct rk_camera_dst_config *dst_config)
+{
+    ret_err_t ret = RET_SYS_ENOSYS;
+    const struct gc2093_mode *mode;
+    int i = 0;
+    bool is_find_fmt = false;
+    int cur_fps = 0, dst_fps;
+
+    RT_ASSERT(dev != RT_NULL);
+
+    dst_fps = dst_config->cam_fps_denominator / dst_config->cam_fps_numerator;
+    dev->flip = dst_config->cam_mirror_flip;
+    dev->hdr = dst_config->cam_hdr;
+
+    gc2093_info("cur resulotion, width %d, height %d, fps %d!\n",
+                dev->cur_mode->width, dev->cur_mode->height, dev->cur_mode->max_fps.denominator / dev->cur_mode->max_fps.numerator);
+    for (i = 0; i < ARRAY_SIZE(supported_modes); i++)
+    {
+        mode = &supported_modes[i];
+        cur_fps = mode->max_fps.denominator / mode->max_fps.numerator;
+        if (dst_config->width == mode->width &&
+                dst_config->height == mode->height &&
+                dst_fps == cur_fps &&
+                dst_config->cam_hdr == mode->hdr_mode)
+        {
+            is_find_fmt = true;
+            break;
+        }
+    }
+    if (is_find_fmt)
+    {
+        dev->dst_mode = (struct gc2093_mode *)mode;
+        ret = RET_SYS_EOK;
+    }
+    else
+    {
+        gc2093_err(" not match resulotion, width %d, height %d, fps %d %d %d!\n",
+                   dst_config->width, dst_config->height, dst_fps,
+                   dst_config->cam_fps_denominator, dst_config->cam_fps_numerator);
+    }
+    dst_config->is_match = is_find_fmt;
+    dev->flip = dst_config->cam_mirror_flip;
+
+    return ret;
+}
+
+ret_err_t rk_gc2093_control(struct rk_camera_device *dev,
+                            int cmd,
+                            void *args)
+{
+
+    ret_err_t ret = RET_SYS_EOK;
+    struct gc2093_dev *gc2093;
+
+    RT_ASSERT(dev != RT_NULL);
+    gc2093 = (struct gc2093_dev *)dev;
+
+    switch (cmd)
+    {
+
+    case RK_DEVICE_CTRL_DEVICE_INIT:
+    {
+        ret = rk_gc2093_init(dev);
+    }
+    break;
+
+    case RK_DEVICE_CTRL_CAMERA_STREAM_ON:
+    {
+        ret = rk_gc2093_stream_on(gc2093);
+    }
+    break;
+    case RK_DEVICE_CTRL_CAMERA_STREAM_OFF:
+    {
+        ret = rk_gc2093_stream_off(gc2093);
+    }
+    break;
+    case RK_DEVICE_CTRL_CAMERA_GET_EXP_INF:
+    {
+        ret = rk_gc2093_get_expinf(gc2093, (struct rk_camera_exp_info *)args);
+    }
+    break;
+    case RK_DEVICE_CTRL_CAMERA_SET_EXP_VAL:
+    {
+        ret = rk_gc2093_set_expval(gc2093, (struct rk_camera_exp_val *)args);
+    }
+    break;
+    case RK_DEVICE_CTRL_CAMERA_GET_FORMAT:
+    {
+        ret = rk_gc2093_get_intput_fmt(gc2093, (struct rk_camera_mbus_framefmt *)args);
+    }
+    break;
+    case RK_DEVICE_CTRL_CAMERA_SET_FORMAT:
+    {
+        ret = rk_gc2093_set_intput_fmt(gc2093, (struct rk_camera_mbus_framefmt *)args);
+    }
+    break;
+    case RK_DEVICE_CTRL_CID_MATCH_CAM_CONFIG:
+    {
+        ret = rk_gc2093_match_dst_config(gc2093, (struct rk_camera_dst_config *)args);
+    }
+    break;
+    case RK_DEVICE_CTRL_CAMERA_STREAM_ON_LATE:
+    {
+        rk_gc2093_stream_on_late(gc2093);
+    }
+    break;
+
+    default:
+        break;
+    }
+
+    return ret;
+}
+
+struct rk_camera_ops rk_gc2093_ops =
+{
+    rk_gc2093_init,
+    rk_gc2093_open,
+    NULL,
+    rk_gc2093_control
+};
+
+int rk_camera_gc2093_init(void)
+{
+    ret_err_t ret = RET_SYS_EOK;
+    struct gc2093_dev *instance = &g_gc2093;
+    struct rk_camera_device *camera = &instance->parent;
+    struct camera_board_desc *gc2093 = (struct camera_board_desc *)&camera_gc2093;
+    camera->ops = &rk_gc2093_ops;
+
+    rt_strncpy(instance->name, gc2093->isp_subdev_name, rt_strlen(gc2093->isp_subdev_name));
+    rt_strncpy(instance->i2c_name, gc2093->i2c_bus, rt_strlen(gc2093->i2c_bus));
+
+    instance->i2c_bus = (struct rt_i2c_bus_device *)rt_device_find(instance->i2c_name);
+    if (gc2093->mode_id <= GC2093_MODE_ID_MAX)
+    {
+        gc2093_dbg("mode_id: %d\n", gc2093->mode_id);
+        instance->cur_mode = &supported_modes[gc2093->mode_id];
+    }
+    else
+    {
+        gc2093_info("mode id is over range, default use mode_id: 0,%s\n", instance->i2c_name);
+        instance->cur_mode = &supported_modes[0];
+    }
+
+    instance->dst_mode = &supported_modes[GC2093_1920X1080_30FPS];
+    instance->i2c_addr = gc2093->i2c_addr;
+    instance->time_valid_delay = gc2093->time_valid_delay;
+    instance->gain_valid_delay = gc2093->gain_valid_delay;
+    instance->flip = 0;
+    instance->hdr = 0;
+
+    HAL_GPIO_SetPinDirection((struct GPIO_REG *)gc2093->pwren_gpio.gpio_group, gc2093->pwren_gpio.gpio_pin, GPIO_OUT);
+    HAL_GPIO_SetPinLevel((struct GPIO_REG *)gc2093->pwren_gpio.gpio_group, gc2093->pwren_gpio.gpio_pin, GPIO_HIGH);
+    // HAL_PINCTRL_SetIOMUX(CAMERA_PEN_GPIO_BANK, gc2093->pwren_gpio.gpio_pin, PIN_CONFIG_MUX_FUNC0);
+
+    HAL_GPIO_SetPinDirection((struct GPIO_REG *)gc2093->pwdn_gpio.gpio_group, gc2093->pwdn_gpio.gpio_pin, GPIO_OUT);
+    HAL_GPIO_SetPinLevel((struct GPIO_REG *)gc2093->pwdn_gpio.gpio_group, gc2093->pwdn_gpio.gpio_pin, GPIO_HIGH);
+    // HAL_PINCTRL_SetIOMUX(CAMERA_PWDN_GPIO_BANK, gc2093->pwdn_gpio.gpio_pin, PIN_CONFIG_MUX_FUNC0);
+
+    HAL_GPIO_SetPinDirection((struct GPIO_REG *)gc2093->rst_gpio.gpio_group, gc2093->rst_gpio.gpio_pin, GPIO_OUT);
+    HAL_GPIO_SetPinLevel((struct GPIO_REG *)gc2093->rst_gpio.gpio_group, gc2093->rst_gpio.gpio_pin, GPIO_HIGH);
+    // HAL_PINCTRL_SetIOMUX(CAMERA_RST_GPIO_BANK, gc2093->rst_gpio.gpio_pin, PIN_CONFIG_MUX_FUNC0);
+
+    HAL_GPIO_SetPinLevel((struct GPIO_REG *)gc2093->pwren_gpio.gpio_group, gc2093->pwren_gpio.gpio_pin, 1);
+    HAL_GPIO_SetPinLevel((struct GPIO_REG *)gc2093->rst_gpio.gpio_group, gc2093->rst_gpio.gpio_pin, 0);
+    HAL_DelayUs(10);
+    HAL_GPIO_SetPinLevel((struct GPIO_REG *)gc2093->pwdn_gpio.gpio_group, gc2093->pwdn_gpio.gpio_pin, 1);
+    HAL_GPIO_SetPinLevel((struct GPIO_REG *)gc2093->rst_gpio.gpio_group, gc2093->rst_gpio.gpio_pin, 1);
+
+    if (gc2093->mclk_out_gate_id && gc2093->mclk_id)
+    {
+        clk_set_rate(gc2093->mclk_id, instance->cur_mode->xvclk);
+        HAL_CRU_ClkEnable(gc2093->mclk_out_gate_id);
+    }
+
+    rt_mutex_init(&instance->mutex_lock, "GC2093_mutex", RT_IPC_FLAG_FIFO);
+    RT_ASSERT(rt_object_get_type(&instance->mutex_lock.parent.parent) == RT_Object_Class_Mutex);
+    camera->i2c_bus = instance->i2c_bus;
+    rt_strncpy(camera->name, instance->name, rt_strlen(gc2093->isp_subdev_name));
+    rk_camera_register(camera, camera->name, instance);
+
+    return ret;
+}
+
+void gc2093_detect(void)
+{
+    struct gc2093_dev *instance = &g_gc2093;
+    uint8_t id[2];
+    gc2093_dbg("start to detect GC2093 for testing \n");
+    gc2093_dbg("dev name:%s\n", instance->name);
+    gc2093_dbg("dev i2c_bus:%s\n", instance->i2c_name);
+    instance->i2c_bus = (struct rt_i2c_bus_device *)rt_device_find(instance->i2c_name);
+    if (!instance->i2c_bus)
+    {
+        gc2093_dbg("Warning:not find i2c source 1:%s !!!\n", instance->i2c_name);
+        return;
+    }
+    else
+    {
+        gc2093_dbg("find i2c_bus:%s\n", instance->i2c_name);
+    }
+    gc2093_read_reg(instance->i2c_bus, GC2093_REG_ID_H_ADDRESS, id);
+    gc2093_read_reg(instance->i2c_bus, GC2093_REG_ID_L_ADDRESS, &id[1]);
+    gc2093_info("sensor id:0x%X", *((uint16_t *)id));
+}
+
+#if defined(__RT_THREAD__)
+INIT_DEVICE_EXPORT(rk_camera_gc2093_init);
+#ifdef RT_USING_FINSH
+#include <finsh.h>
+MSH_CMD_EXPORT(gc2093_detect, check gc2093 is available or not);
+#endif
+#endif
+
+#endif /* RT_USING_GC2093 */

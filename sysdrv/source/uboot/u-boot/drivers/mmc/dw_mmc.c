@@ -8,17 +8,21 @@
 
 #include <common.h>
 #include <bouncebuf.h>
+#include <div64.h>
 #include <errno.h>
 #include <malloc.h>
 #include <memalign.h>
 #include <mmc.h>
 #include <dwmmc.h>
+#include <dm/pinctrl.h>
+#include <dm.h>
 #ifdef CONFIG_DM_GPIO
 #include <asm/gpio.h>
 #include <asm-generic/gpio.h>
 #endif
 
 #define PAGE_SIZE 4096
+#define MSEC_PER_SEC	1000ULL
 
 /*
  * Currently it supports read/write up to 8*8*4 Bytes per
@@ -159,18 +163,62 @@ static void dwmci_prepare_data(struct dwmci_host *host,
 	dwmci_writel(host, DWMCI_BYTCNT, data->blocksize * data->blocks);
 }
 
-static unsigned int dwmci_get_timeout(struct mmc *mmc, const unsigned int size)
+#ifdef CONFIG_SPL_BUILD
+static unsigned int dwmci_get_drto(struct dwmci_host *host,
+				   const unsigned int size)
+{
+	unsigned int drto_clks;
+	unsigned int drto_div;
+	unsigned int drto_ms;
+
+	drto_clks = dwmci_readl(host, DWMCI_TMOUT) >> 8;
+	drto_div = (dwmci_readl(host, DWMCI_CLKDIV) & 0xff) * 2;
+	if (drto_div == 0)
+		drto_div = 1;
+
+	drto_ms = DIV_ROUND_UP_ULL((u64)MSEC_PER_SEC * drto_clks * drto_div,
+				   host->mmc->clock);
+
+	/* add a bit spare time */
+	drto_ms += 10;
+
+	return drto_ms;
+}
+#else
+static unsigned int dwmci_get_drto(struct dwmci_host *host,
+				   const unsigned int size)
 {
 	unsigned int timeout;
 
 	timeout = size * 8;	/* counting in bits */
 	timeout *= 10;		/* wait 10 times as long */
-	timeout /= mmc->clock;
-	timeout /= mmc->bus_width;
+	timeout /= host->mmc->clock;
+	timeout /= host->mmc->bus_width;
 	timeout *= 1000;	/* counting in msec */
 	timeout = (timeout < 10000) ? 10000 : timeout;
 
 	return timeout;
+}
+#endif
+
+static unsigned int dwmci_get_cto(struct dwmci_host *host)
+{
+	unsigned int cto_clks;
+	unsigned int cto_div;
+	unsigned int cto_ms;
+
+	cto_clks = dwmci_readl(host, DWMCI_TMOUT) & 0xff;
+	cto_div = (dwmci_readl(host, DWMCI_CLKDIV) & 0xff) * 2;
+	if (cto_div == 0)
+		cto_div = 1;
+
+	cto_ms = DIV_ROUND_UP_ULL((u64)MSEC_PER_SEC * cto_clks * cto_div,
+				  host->mmc->clock);
+
+	/* add a bit spare time */
+	cto_ms += 10;
+
+	return cto_ms;
 }
 
 static int dwmci_data_transfer(struct dwmci_host *host, struct mmc_data *data)
@@ -192,7 +240,11 @@ static int dwmci_data_transfer(struct dwmci_host *host, struct mmc_data *data)
 	else
 		buf = (unsigned int *)data->src;
 
-	timeout = dwmci_get_timeout(host->mmc, size);
+	timeout = dwmci_get_drto(host, size);
+	/* The tuning data is 128bytes, a timeout of 1ms is sufficient.*/
+	if ((dwmci_readl(host, DWMCI_CMD) & 0x1F) == MMC_SEND_TUNING_BLOCK_HS200)
+		timeout = 1;
+
 	size /= 4;
 
 	for (;;) {
@@ -200,6 +252,11 @@ static int dwmci_data_transfer(struct dwmci_host *host, struct mmc_data *data)
 		/* Error during data transfer. */
 		if (mask & (DWMCI_DATA_ERR | DWMCI_DATA_TOUT)) {
 			debug("%s: DATA ERROR!\n", __func__);
+			/*
+			 * It is necessary to wait for several cycles before
+			 * resetting the controller while data timeout or error.
+			 */
+			udelay(1);
 			dwmci_wait_reset(host, DWMCI_RESET_ALL);
 			dwmci_writel(host, DWMCI_CMD, DWMCI_CMD_PRV_DAT_WAIT |
 				     DWMCI_CMD_UPD_CLK | DWMCI_CMD_START);
@@ -252,6 +309,7 @@ read_again:
 				}
 				dwmci_writel(host, DWMCI_RINTSTS,
 					     DWMCI_INTMSK_RXDR);
+				start = get_timer(0);
 			} else if (data->flags == MMC_DATA_WRITE &&
 				   (mask & DWMCI_INTMSK_TXDR)) {
 				while (size) {
@@ -281,6 +339,7 @@ write_again:
 				}
 				dwmci_writel(host, DWMCI_RINTSTS,
 					     DWMCI_INTMSK_TXDR);
+				start = get_timer(0);
 			}
 		}
 
@@ -329,9 +388,8 @@ static int dwmci_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	struct dwmci_host *host = mmc->priv;
 	ALLOC_CACHE_ALIGN_BUFFER(struct dwmci_idmac, cur_idmac,
 				 data ? DIV_ROUND_UP(data->blocks, 8) : 0);
-	int ret = 0, flags = 0, i;
+	int ret = 0, flags = 0;
 	unsigned int timeout = 500;
-	u32 retry = 100000;
 	u32 mask, ctrl;
 	ulong start = get_timer(0);
 	struct bounce_buffer bbstate;
@@ -400,16 +458,18 @@ static int dwmci_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 
 	dwmci_writel(host, DWMCI_CMD, flags);
 
-	for (i = 0; i < retry; i++) {
+	timeout = dwmci_get_cto(host);
+	start = get_timer(0);
+	do {
 		mask = dwmci_readl(host, DWMCI_RINTSTS);
 		if (mask & DWMCI_INTMSK_CDONE) {
 			if (!data)
 				dwmci_writel(host, DWMCI_RINTSTS, mask);
 			break;
 		}
-	}
+	} while (!(get_timer(start) > timeout));
 
-	if (i == retry) {
+	if (get_timer(start) > timeout) {
 		debug("%s: Timeout.\n", __func__);
 		return -ETIMEDOUT;
 	}
@@ -470,9 +530,8 @@ static int dwmci_send_cmd_prepare(struct mmc *mmc, struct mmc_cmd *cmd,
 #endif
 	struct dwmci_host *host = mmc->priv;
 	struct dwmci_idmac *cur_idmac;
-	int ret = 0, flags = 0, i;
+	int ret = 0, flags = 0;
 	unsigned int timeout = 500;
-	u32 retry = 100000;
 	u32 mask;
 	ulong start = get_timer(0);
 	struct bounce_buffer bbstate;
@@ -541,16 +600,18 @@ static int dwmci_send_cmd_prepare(struct mmc *mmc, struct mmc_cmd *cmd,
 
 	dwmci_writel(host, DWMCI_CMD, flags);
 
-	for (i = 0; i < retry; i++) {
+	timeout = dwmci_get_cto(host);
+	start = get_timer(0);
+	do {
 		mask = dwmci_readl(host, DWMCI_RINTSTS);
 		if (mask & DWMCI_INTMSK_CDONE) {
 			if (!data)
 				dwmci_writel(host, DWMCI_RINTSTS, mask);
 			break;
 		}
-	}
+	} while (!(get_timer(start) > timeout));
 
-	if (i == retry) {
+	if (get_timer(start) > timeout) {
 		debug("%s: Timeout.\n", __func__);
 		return -ETIMEDOUT;
 	}
@@ -735,6 +796,22 @@ static int dwmci_init(struct mmc *mmc)
 	uint32_t use_dma;
 	uint32_t verid;
 
+#if defined(CONFIG_DM_GPIO) && (defined(CONFIG_SPL_GPIO_SUPPORT) || !defined(CONFIG_SPL_BUILD))
+	struct gpio_desc pwr_en_gpio;
+	u32 delay_ms;
+
+	if (mmc_getcd(mmc) == 1 &&
+	    !gpio_request_by_name(mmc->dev, "pwr-en-gpios", 0, &pwr_en_gpio, GPIOD_IS_OUT)) {
+		dm_gpio_set_value(&pwr_en_gpio, 0);
+		pinctrl_select_state(mmc->dev, "idle");
+		delay_ms = dev_read_u32_default(mmc->dev, "power-off-delay-ms", 200);
+		mdelay(delay_ms);
+		dm_gpio_set_value(&pwr_en_gpio, 1);
+		pinctrl_select_state(mmc->dev, "default");
+		dm_gpio_free(mmc->dev, &pwr_en_gpio);
+	}
+#endif
+
 	if (host->board_init)
 		host->board_init(host);
 #ifdef CONFIG_ARCH_ROCKCHIP
@@ -795,18 +872,24 @@ static int dwmci_init(struct mmc *mmc)
 static int dwmci_get_cd(struct udevice *dev)
 {
 	int ret = -1;
+	struct mmc *mmc = mmc_get_mmc_dev(dev);
+	struct dwmci_host *host = mmc->priv;
 
 #if defined(CONFIG_DM_GPIO) && (defined(CONFIG_SPL_GPIO_SUPPORT) || !defined(CONFIG_SPL_BUILD))
 	struct gpio_desc detect;
 
 	ret = gpio_request_by_name(dev, "cd-gpios", 0, &detect, GPIOD_IS_IN);
 	if (ret) {
-		return ret;
+		goto dw_mmc_cdetect;
 	}
 
 	ret = !dm_gpio_get_value(&detect);
 	dm_gpio_free(dev, &detect);
+	return ret;
+dw_mmc_cdetect:
 #endif
+	ret = (dwmci_readl(host, DWMCI_CDETECT) & (1 << 0)) == 0 ? 1 : 0;
+
 	return ret;
 }
 

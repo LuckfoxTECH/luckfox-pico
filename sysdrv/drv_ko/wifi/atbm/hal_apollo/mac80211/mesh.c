@@ -433,7 +433,11 @@ int ieee80211_new_mesh_header(struct ieee80211s_hdr *meshhdr,
 		char *addr6)
 {
 	int aelen = 0;
-	BUG_ON(!addr4or5 && addr6);
+	//BUG_ON(!addr4or5 && addr6);
+	if(!addr4or5 && addr6){
+		atbm_printk_err("%s %d ,ERROR !!! addr4or5=%x,addr6=%x\n",__func__,__LINE__,addr4or5,addr6);
+		return -1;
+	}
 	memset(meshhdr, 0, sizeof(*meshhdr));
 	meshhdr->ttl = sdata->u.mesh.mshcfg.dot11MeshTTL;
 	put_unaligned(cpu_to_le32(sdata->u.mesh.mesh_seqnum), &meshhdr->seqnum);

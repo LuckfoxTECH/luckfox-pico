@@ -1529,3 +1529,28 @@ U_BOOT_DRIVER(fusb302) = {
 	.probe = fusb302_probe,
 	.priv_auto_alloc_size = sizeof(struct fusb302_chip),
 };
+
+static int do_pd(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
+{
+	struct power_delivery_data power_data;
+	struct udevice *dev;
+	int ret;
+
+	ret = uclass_get_device(UCLASS_PD, 0, &dev);
+	if (ret)
+		return ret;
+
+	ret = power_delivery_get_data(dev, &power_data);
+	if (ret)
+		return ret;
+
+	if (power_data.online && power_data.current)
+		printf("Found Type-C PD, Set Power %dmV, %dmA\n",
+		       power_data.voltage, power_data.current);
+	else
+		printf("No Type-C PD found\n");
+
+	return 0;
+}
+
+U_BOOT_CMD(pd, 1, 0, do_pd, "pd default, select power from dtb", "pd");

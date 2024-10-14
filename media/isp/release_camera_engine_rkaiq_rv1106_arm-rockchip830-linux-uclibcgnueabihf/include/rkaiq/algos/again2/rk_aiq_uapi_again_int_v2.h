@@ -41,4 +41,8 @@ XCamReturn
 rk_aiq_uapi_againV2_GetInfo(const RkAiqAlgoContext *ctx,
                             rk_aiq_gain_info_v2_t *pInfo);
 
+XCamReturn
+rk_aiq_uapiV2_againV2_WriteInput(RkAiqAlgoContext *ctx,
+                                 const rk_aiq_uapiV2_again_wrtIn_attr_t &attr,
+                                 bool need_sync);
 #endif

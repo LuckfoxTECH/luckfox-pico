@@ -1,0 +1,9 @@
+from building import *
+  
+cwd     = GetCurrentDir()
+src     = Glob('*.c')
+CPPPATH = [cwd]
+LOCAL_CCFLAGS = ' -Wno-maybe-uninitialized -Wno-unused-variable -Wno-unused-but-set-variable'
+group   = DefineGroup('Tinymembench', src, depend = ['RT_USING_TINYMEMBENCH'], CPPPATH = CPPPATH, LOCAL_CCFLAGS = LOCAL_CCFLAGS)
+
+Return('group')

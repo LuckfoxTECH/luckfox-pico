@@ -1,0 +1,20 @@
+# RT-Thread building script for bridge
+
+import os
+from building import *
+
+cwd = GetCurrentDir()
+objs = []
+list = os.listdir(cwd)
+
+if GetDepend('RT_USING_LITTLEVGL2RTT_V7'):
+    path = os.path.join(cwd, "LittlevGL2RTT_v7_4")
+    if os.path.isfile(os.path.join(path, 'SConscript')):
+        objs = objs + SConscript(os.path.join("LittlevGL2RTT_v7_4", 'SConscript'))
+
+if GetDepend('RT_USING_LITTLEVGL2RTT_V8'):
+    path = os.path.join(cwd, "LittlevGL2RTT_v8_3")
+    if os.path.isfile(os.path.join(path, 'SConscript')):
+        objs = objs + SConscript(os.path.join("LittlevGL2RTT_v8_3", 'SConscript'))
+
+Return('objs')

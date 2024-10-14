@@ -131,11 +131,11 @@ typedef struct FT_StrokerRec_ *FT_Stroker;
  *     compatibility.
  */
 typedef enum FT_Stroker_LineJoin_ {
-  FT_STROKER_LINEJOIN_ROUND = 0,
-  FT_STROKER_LINEJOIN_BEVEL = 1,
-  FT_STROKER_LINEJOIN_MITER_VARIABLE = 2,
-  FT_STROKER_LINEJOIN_MITER = FT_STROKER_LINEJOIN_MITER_VARIABLE,
-  FT_STROKER_LINEJOIN_MITER_FIXED = 3
+	FT_STROKER_LINEJOIN_ROUND = 0,
+	FT_STROKER_LINEJOIN_BEVEL = 1,
+	FT_STROKER_LINEJOIN_MITER_VARIABLE = 2,
+	FT_STROKER_LINEJOIN_MITER = FT_STROKER_LINEJOIN_MITER_VARIABLE,
+	FT_STROKER_LINEJOIN_MITER_FIXED = 3
 
 } FT_Stroker_LineJoin;
 
@@ -160,9 +160,9 @@ typedef enum FT_Stroker_LineJoin_ {
  *     The end of lines is rendered as a square around the last point.
  */
 typedef enum FT_Stroker_LineCap_ {
-  FT_STROKER_LINECAP_BUTT = 0,
-  FT_STROKER_LINECAP_ROUND,
-  FT_STROKER_LINECAP_SQUARE
+	FT_STROKER_LINECAP_BUTT = 0,
+	FT_STROKER_LINECAP_ROUND,
+	FT_STROKER_LINECAP_SQUARE
 
 } FT_Stroker_LineCap;
 
@@ -192,8 +192,8 @@ typedef enum FT_Stroker_LineCap_ {
  *   @FT_Outline_GetOutsideBorder to get these.
  */
 typedef enum FT_StrokerBorder_ {
-  FT_STROKER_BORDER_LEFT = 0,
-  FT_STROKER_BORDER_RIGHT
+	FT_STROKER_BORDER_LEFT = 0,
+	FT_STROKER_BORDER_RIGHT
 
 } FT_StrokerBorder;
 
@@ -345,8 +345,7 @@ FT_Stroker_Rewind(FT_Stroker stroker);
  *   This function calls @FT_Stroker_Rewind automatically.
  */
 FT_EXPORT(FT_Error)
-FT_Stroker_ParseOutline(FT_Stroker stroker, FT_Outline *outline,
-                        FT_Bool opened);
+FT_Stroker_ParseOutline(FT_Stroker stroker, FT_Outline *outline, FT_Bool opened);
 
 /**************************************************************************
  *
@@ -484,8 +483,7 @@ FT_Stroker_ConicTo(FT_Stroker stroker, FT_Vector *control, FT_Vector *to);
  *   @FT_Stroker_EndSubPath.
  */
 FT_EXPORT(FT_Error)
-FT_Stroker_CubicTo(FT_Stroker stroker, FT_Vector *control1, FT_Vector *control2,
-                   FT_Vector *to);
+FT_Stroker_CubicTo(FT_Stroker stroker, FT_Vector *control1, FT_Vector *control2, FT_Vector *to);
 
 /**************************************************************************
  *
@@ -527,8 +525,8 @@ FT_Stroker_CubicTo(FT_Stroker stroker, FT_Vector *control1, FT_Vector *control2,
  *   the counts associated to both borders.
  */
 FT_EXPORT(FT_Error)
-FT_Stroker_GetBorderCounts(FT_Stroker stroker, FT_StrokerBorder border,
-                           FT_UInt *anum_points, FT_UInt *anum_contours);
+FT_Stroker_GetBorderCounts(FT_Stroker stroker, FT_StrokerBorder border, FT_UInt *anum_points,
+                           FT_UInt *anum_contours);
 
 /**************************************************************************
  *
@@ -568,8 +566,7 @@ FT_Stroker_GetBorderCounts(FT_Stroker stroker, FT_StrokerBorder border,
  *   all borders at once.
  */
 FT_EXPORT(void)
-FT_Stroker_ExportBorder(FT_Stroker stroker, FT_StrokerBorder border,
-                        FT_Outline *outline);
+FT_Stroker_ExportBorder(FT_Stroker stroker, FT_StrokerBorder border, FT_Outline *outline);
 
 /**************************************************************************
  *
@@ -596,8 +593,7 @@ FT_Stroker_ExportBorder(FT_Stroker stroker, FT_StrokerBorder border,
  *   FreeType error code.  0~means success.
  */
 FT_EXPORT(FT_Error)
-FT_Stroker_GetCounts(FT_Stroker stroker, FT_UInt *anum_points,
-                     FT_UInt *anum_contours);
+FT_Stroker_GetCounts(FT_Stroker stroker, FT_UInt *anum_points, FT_UInt *anum_contours);
 
 /**************************************************************************
  *
@@ -705,8 +701,7 @@ FT_Glyph_Stroke(FT_Glyph *pglyph, FT_Stroker stroker, FT_Bool destroy);
  *   account for this added size.
  */
 FT_EXPORT(FT_Error)
-FT_Glyph_StrokeBorder(FT_Glyph *pglyph, FT_Stroker stroker, FT_Bool inside,
-                      FT_Bool destroy);
+FT_Glyph_StrokeBorder(FT_Glyph *pglyph, FT_Stroker stroker, FT_Bool inside, FT_Bool destroy);
 
 /* */
 

@@ -17,32 +17,31 @@
 #ifndef __MPP_COMPAT_H__
 #define __MPP_COMPAT_H__
 
-#include "mpp_err.h"
 #include "rk_type.h"
+#include "mpp_err.h"
 
 typedef enum MppCompatId_e {
-  MPP_COMPAT_INC_FBC_BUF_SIZE,
-  MPP_COMPAT_ENC_ASYNC_INPUT,
-  MPP_COMPAT_BUTT,
+    MPP_COMPAT_INC_FBC_BUF_SIZE,
+    MPP_COMPAT_ENC_ASYNC_INPUT,
+    MPP_COMPAT_BUTT,
 } MppCompatId;
 
 typedef enum MppCompatType_e {
-  MPP_COMPAT_BOOL,
-  MPP_COMPAT_S32,
-  MPP_COMPAT_TYPE_BUTT,
+    MPP_COMPAT_BOOL,
+    MPP_COMPAT_S32,
+    MPP_COMPAT_TYPE_BUTT,
 } MppCompatType;
 
 typedef struct MppCompat_t MppCompat;
 
-/* external user can only update value_ext to notify mpp to change its behavior
- */
+/* external user can only update value_ext to notify mpp to change its behavior */
 struct MppCompat_t {
-  const MppCompatId feature_id;
-  const MppCompatType feature_type;
-  const RK_S32 value_mpp;
-  RK_S32 value_usr;
-  const char *name;
-  MppCompat *const next;
+    const MppCompatId   feature_id;
+    const MppCompatType feature_type;
+    const RK_S32        value_mpp;
+    RK_S32              value_usr;
+    const char          *name;
+    MppCompat * const   next;
 };
 
 #ifdef __cplusplus

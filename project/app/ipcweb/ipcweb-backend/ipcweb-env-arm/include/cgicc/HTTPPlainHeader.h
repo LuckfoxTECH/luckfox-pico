@@ -18,41 +18,42 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA 
  */
 
 #ifndef _HTTPPLAINHEADER_H_
 #define _HTTPPLAINHEADER_H_ 1
 
 #ifdef __GNUG__
-#pragma interface
+#  pragma interface
 #endif
 
 /*! \file HTTPPlainHeader.h
  * \brief Shortcut to HTTPContentHeader for \c text/plain
- *
+ * 
  */
 
 #include "HTTPContentHeader.h"
 
 namespace cgicc {
-
-// ============================================================
-// Class HTTPPlainHeader
-// ============================================================
-/*! \class HTTPPlainHeader HTTPPlainHeader.h cgicc/HTTPPlainHeader.h
- * \brief Shortcut to HTTPContentHeader for \c text/html
- *
- */
-class CGICC_API HTTPPlainHeader : public HTTPContentHeader {
-public:
-  /*! \brief Create a new \c text/plain header  */
-  HTTPPlainHeader();
-
-  /*! \brief Destructor */
-  virtual ~HTTPPlainHeader();
-};
-
+  
+  // ============================================================
+  // Class HTTPPlainHeader
+  // ============================================================
+  /*! \class HTTPPlainHeader HTTPPlainHeader.h cgicc/HTTPPlainHeader.h
+   * \brief Shortcut to HTTPContentHeader for \c text/html
+   *
+   */
+  class CGICC_API HTTPPlainHeader : public HTTPContentHeader 
+  {
+  public:
+    /*! \brief Create a new \c text/plain header  */
+    HTTPPlainHeader();
+    
+    /*! \brief Destructor */
+    virtual ~HTTPPlainHeader();
+  };
+  
 } // namespace cgicc
 
 #endif /* ! _HTTPPLAINHEADER_H_ */

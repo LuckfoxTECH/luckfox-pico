@@ -268,4 +268,51 @@ typedef struct CalibDbV2_drc_V12_s {
     CalibDbV2_Adrc_V12_t DrcTuningPara;
 } CalibDbV2_drc_V12_t;
 
+typedef struct localV12Lite_s {
+    // M4_ARRAY_TABLE_DESC("LocalData", "array_table_ui", "none")
+    LocalDataV2_t LocalData;
+    // M4_ARRAY_TABLE_DESC("MotionData", "array_table_ui", "none")
+    MotionData_t MotionData;
+    // M4_NUMBER_DESC("curPixWeit", "f32", M4_RANGE(0,1), "0.37", M4_DIGIT(3))
+    float curPixWeit;
+    // M4_NUMBER_DESC("Range_force_sgm", "f32", M4_RANGE(0,1), "0.0", M4_DIGIT(4))
+    float Range_force_sgm;
+    // M4_NUMBER_DESC("Range_sgm_cur", "f32", M4_RANGE(0,1), "0.125", M4_DIGIT(4))
+    float Range_sgm_cur;
+    // M4_NUMBER_DESC("Space_sgm_cur", "u16", M4_RANGE(0,4095), "4068", M4_DIGIT(0))
+    int Space_sgm_cur;
+} localV12Lite_t;
+
+typedef struct CalibDbV2_Adrc_v12_lite_s {
+    // M4_BOOL_DESC("Enable", "1")
+    bool Enable;
+    // M4_ENUM_DESC("CtrlDataType", "CtrlDataType_t", "CTRLDATATYPE_ENVLV")
+    CtrlDataType_t CtrlDataType;
+    // M4_ARRAY_TABLE_DESC("DrcGain", "array_table_ui", "none")
+    AdrcGain_t DrcGain;
+    // M4_ARRAY_TABLE_DESC("HiLight", "normal_ui_style")
+    HighLightV12_t HiLight;
+    // M4_STRUCT_DESC("LocalSetting", "normal_ui_style")
+    localV12Lite_t LocalSetting;
+    // M4_STRUCT_DESC("CompressSetting", "normal_ui_style")
+    Compress_t CompressSetting;
+    // M4_ARRAY_DESC("Scale_y", "u16", M4_SIZE(1,17),  M4_RANGE(0, 2048), "[0,2,20,76,193,381,631,772,919,1066,1211,1479,1700,1863,1968,2024,2048]", M4_DIGIT(0), M4_DYNAMIC(0))
+    int Scale_y[ADRC_Y_NUM];
+    // M4_NUMBER_DESC("ByPassThr", "f32", M4_RANGE(0,1), "0", M4_DIGIT(4))
+    float ByPassThr;
+    // M4_NUMBER_DESC("Edge_Weit", "f32",  M4_RANGE(0,1), "1",M4_DIGIT(3))
+    float Edge_Weit;
+    // M4_BOOL_DESC("OutPutLongFrame", "0")
+    bool OutPutLongFrame;
+    // M4_NUMBER_DESC("IIR_frame", "u8", M4_RANGE(1,1000), "2", M4_DIGIT(0))
+    int IIR_frame;
+    // M4_NUMBER_DESC("damp", "f32", M4_RANGE(0,1), "0.9", M4_DIGIT(3))
+    float damp;
+} CalibDbV2_Adrc_v12_lite_t;
+
+typedef struct CalibDbV2_drc_v12_lite_s {
+    // M4_STRUCT_DESC("DrcTuningPara", "normal_ui_style")
+    CalibDbV2_Adrc_v12_lite_t DrcTuningPara;
+} CalibDbV2_drc_v12_lite_t;
+
 #endif

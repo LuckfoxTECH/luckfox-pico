@@ -145,8 +145,7 @@ FT_Bitmap_Copy(FT_Library library, const FT_Bitmap *source, FT_Bitmap *target);
  *   converted to @FT_PIXEL_MODE_GRAY format (i.e., 8bpp).
  */
 FT_EXPORT(FT_Error)
-FT_Bitmap_Embolden(FT_Library library, FT_Bitmap *bitmap, FT_Pos xStrength,
-                   FT_Pos yStrength);
+FT_Bitmap_Embolden(FT_Library library, FT_Bitmap *bitmap, FT_Pos xStrength, FT_Pos yStrength);
 
 /**************************************************************************
  *
@@ -189,8 +188,7 @@ FT_Bitmap_Embolden(FT_Library library, FT_Bitmap *bitmap, FT_Pos xStrength,
  *   overlap.
  */
 FT_EXPORT(FT_Error)
-FT_Bitmap_Convert(FT_Library library, const FT_Bitmap *source,
-                  FT_Bitmap *target, FT_Int alignment);
+FT_Bitmap_Convert(FT_Library library, const FT_Bitmap *source, FT_Bitmap *target, FT_Int alignment);
 
 /**************************************************************************
  *
@@ -246,9 +244,8 @@ FT_Bitmap_Convert(FT_Library library, const FT_Bitmap *source,
  *   2.10
  */
 FT_EXPORT(FT_Error)
-FT_Bitmap_Blend(FT_Library library, const FT_Bitmap *source,
-                const FT_Vector source_offset, FT_Bitmap *target,
-                FT_Vector *atarget_offset, FT_Color color);
+FT_Bitmap_Blend(FT_Library library, const FT_Bitmap *source, const FT_Vector source_offset,
+                FT_Bitmap *target, FT_Vector *atarget_offset, FT_Color color);
 
 /**************************************************************************
  *

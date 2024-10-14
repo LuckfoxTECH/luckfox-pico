@@ -6,6 +6,7 @@
 
 #include <common.h>
 #include <malloc.h>
+#include <dm/device.h>
 
 /*
  * Script file example:
@@ -144,6 +145,8 @@ static int do_usb_update(cmd_tbl_t *cmdtp, int flag,
 			 int argc, char * const argv[])
 {
 	struct blk_desc *desc;
+	struct udevice *dev;
+	int devnum = -1;
 	int part_type;
 	char cmd[128];
 	char *buf;
@@ -151,9 +154,31 @@ static int do_usb_update(cmd_tbl_t *cmdtp, int flag,
 
 	printf("## retrieving usb_update.txt ...\n");
 
-	desc = blk_get_devnum_by_type(IF_TYPE_USB, 0);
-	if (!desc)
+	if (run_command("usb reset", 0))
 		return CMD_RET_FAILURE;
+
+	for (blk_first_device(IF_TYPE_USB, &dev);
+	     dev;
+	     blk_next_device(&dev)) {
+		desc = dev_get_uclass_platdata(dev);
+		if (desc->type == DEV_TYPE_UNKNOWN)
+			continue;
+
+		if (desc->lba > 0L && desc->blksz > 0L) {
+			devnum = desc->devnum;
+			break;
+		}
+	}
+	if (devnum < 0) {
+		printf("No available udisk\n");
+		return CMD_RET_FAILURE;
+	}
+
+	desc = blk_get_devnum_by_type(IF_TYPE_USB, devnum);
+	if (!desc) {
+		printf("No usb %d found\n", devnum);
+		return CMD_RET_FAILURE;
+	}
 
 	buf = memalign(ARCH_DMA_MINALIGN, SCRIPT_FILE_MAX_SIZE * 2);
 	if (!buf)
@@ -162,18 +187,15 @@ static int do_usb_update(cmd_tbl_t *cmdtp, int flag,
 	part_type = desc->part_type;
 	desc->part_type = PART_TYPE_DOS;
 
-	snprintf(cmd, sizeof(cmd), "usb reset");
+	printf("## scanning usb %d\n", devnum);
+	snprintf(cmd, sizeof(cmd), "fatload usb %d 0x%08lx usb_update.txt",
+		 devnum, (ulong)buf);
 	ret = run_command(cmd, 0);
-	if (!ret) {
-		snprintf(cmd, sizeof(cmd), "fatload usb 0 0x%08lx usb_update.txt", (ulong)buf);
-		ret = run_command(cmd, 0);
-	}
 	if (!ret) {
 		snprintf(cmd, sizeof(cmd), "script 0x%08lx", (ulong)buf);
 		ret = run_command(cmd, 0);
 	}
 	free(buf);
-
 	desc->part_type = part_type;
 
 	return ret;

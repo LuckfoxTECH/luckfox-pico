@@ -14,6 +14,30 @@
 #include "apollo.h"
 #include "sbus.h"
 #include "apollo_plat.h"
+
+
+
+#if (ATBM_WIFI_PLATFORM == PLATFORM_INGENICT31)
+
+#define PLATFORMINF	"ingenict31"
+extern int jzmmc_manual_detect(int index, int on);
+static int WL_REG_EN = 32+25;
+//extern	int	gpio_request(SDIO_WIFI_POWER, "sdio_wifi_power_on");
+//extern	int	gpio_direction_output(WL_REG_EN, 0);
+//extern	int	gpio_direction_output(WL_REG_EN, 1);
+#endif
+
+#if (ATBM_WIFI_PLATFORM == PLATFORM_INGENICT41)
+
+#define PLATFORMINF	"ingenict41"
+extern int jzmmc_manual_detect(int index, int on);
+static int WL_REG_EN = 32+25;
+//extern	int	gpio_request(SDIO_WIFI_POWER, "sdio_wifi_power_on");
+//extern	int	gpio_direction_output(WL_REG_EN, 0);
+//extern	int	gpio_direction_output(WL_REG_EN, 1);
+#endif
+
+
 #ifdef SDIO_BUS
 #ifndef CONFIG_ATBM_SDIO_MMC_ID 
 #define CONFIG_ATBM_SDIO_MMC_ID	"mmc0"
@@ -54,10 +78,17 @@
 #include <mach/sys_config.h>
 
 #endif
+#if (ATBM_WIFI_PLATFORM == PLATFORM_SUN8I)
+#define PLATFORMINF	"sun8i"
+
+#include <mach/sys_config.h>
+
+#endif
+
 #if (ATBM_WIFI_PLATFORM == 10)
 #include <linux/rfkill-wlan.h>
-//extern int rockchip_wifi_power(int on);
-//extern int rockchip_wifi_set_carddetect(int val);
+extern int rockchip_wifi_power(int on);
+extern int rockchip_wifi_set_carddetect(int val);
 #endif
 #if ((ATBM_WIFI_PLATFORM == PLATFORM_AMLOGIC_S805) || (ATBM_WIFI_PLATFORM == PLATFORM_AMLOGIC_905))
 
@@ -141,6 +172,42 @@ static int atbm_platform_power_ctrl(const struct atbm_platform_data *pdata,bool 
 	}
 	#endif //(ATBM_WIFI_PLATFORM == PLATFORM_XUNWEI) ||(ATBM_WIFI_PLATFORM == PLATFORM_FRIENDLY)
 
+#if (ATBM_WIFI_PLATFORM == PLATFORM_INGENICT31)
+	{
+		if(enabled){
+			atbm_printk_platform("[%s] reset altobeam wifi !\n",__func__);
+			
+			gpio_request(WL_REG_EN, "sdio_wifi_power_on");
+		
+			atbm_printk_platform("PLATFORM_INGENICT31 SDIO WIFI_RESET 0 \n");
+			gpio_direction_output(WL_REG_EN, 0);
+			msleep(300);
+			atbm_printk_platform("PLATFORM_INGENICT31 SDIO WIFI_RESET 1 \n");
+			gpio_direction_output(WL_REG_EN, 1);
+			msleep(100);
+		}
+	}
+#endif
+
+#if (ATBM_WIFI_PLATFORM == PLATFORM_INGENICT41)
+	{
+		if(enabled){
+			atbm_printk_platform("[%s] reset altobeam wifi !\n",__func__);
+			
+			gpio_request(WL_REG_EN, "sdio_wifi_power_on");
+		
+			atbm_printk_platform("PLATFORM_INGENICT41 SDIO WIFI_RESET 0 \n");
+			gpio_direction_output(WL_REG_EN, 0);
+			msleep(300);
+			atbm_printk_platform("PLATFORM_INGENICT41 SDIO WIFI_RESET 1 \n");
+			gpio_direction_output(WL_REG_EN, 1);
+			msleep(100);
+		}
+	}
+#endif
+
+
+
 	#if (ATBM_WIFI_PLATFORM == PLATFORM_SUN6I)
 	{
 		extern void wifi_pm_power(int on);
@@ -207,7 +274,7 @@ extern void extern_wifi_set_enable(int is_on);
 
 #if (ATBM_WIFI_PLATFORM == 10)
 	mdelay(100);
-    //rockchip_wifi_power(enabled);
+    rockchip_wifi_power(enabled);
 #endif
 
 #endif
@@ -218,6 +285,29 @@ static int atbm_platform_insert_crtl(const struct atbm_platform_data *pdata,bool
 {
 	int ret = 0;
 #ifdef SDIO_BUS
+
+#if (ATBM_WIFI_PLATFORM == PLATFORM_INGENICT31)
+	{
+
+		mdelay(100);
+		jzmmc_manual_detect(1, enabled);
+		atbm_printk_platform("============platform insert crtl====== enable=%d\n", enabled);
+
+	}
+#endif
+
+
+#if (ATBM_WIFI_PLATFORM == PLATFORM_INGENICT41)
+		{
+	
+			mdelay(100);
+			jzmmc_manual_detect(1, enabled);
+			atbm_printk_platform("============platform insert crtl====== enable=%d\n", enabled);
+	
+		}
+#endif
+
+
 	#if (ATBM_WIFI_PLATFORM == PLATFORM_XUNWEI)
 	{
 		int outValue;
@@ -275,7 +365,20 @@ static int atbm_platform_insert_crtl(const struct atbm_platform_data *pdata,bool
 	#endif
 #if (ATBM_WIFI_PLATFORM == 10)
      mdelay(100);
-     //rockchip_wifi_set_carddetect(enabled);
+     rockchip_wifi_set_carddetect(enabled);
+#endif
+#if (ATBM_WIFI_PLATFORM == PLATFORM_SUN8I)
+	{
+		extern void sunxi_mci_rescan_card(unsigned id, unsigned insert);
+		script_item_u val;
+		script_item_value_type_e type;
+		static int sdc_id = -1;
+		pdata = pdata;
+		type = script_get_item("wifi_para", "wifi_sdc_id", &val);
+		sdc_id = val.val;
+		atbm_printk_platform("scan scd_id(%d)\n",sdc_id);
+		sunxi_mci_rescan_card(sdc_id, enabled);
+	}
 #endif
 #endif
 	 atbm_printk_platform("[%s]:platform insert ctrl [%d]\n",platform,enabled);
@@ -395,6 +498,22 @@ struct atbm_platform_data platform_data = {
 	.clk_ctrl     = NULL,
 	.power_ctrl   = atbm_power_ctrl,
 	.insert_ctrl  = atbm_insert_crtl,
+#if(ATBM_WIFI_PLATFORM == PLATFORM_INGENICT31)
+		.power_ctrl = NULL,
+		//.irq_gpio = EXYNOS4_GPX2(4),
+		//.power_gpio	= EXYNOS4_GPC1(1),
+			.irq_gpio	= 60,
+		.power_gpio = GPIO_PC(12), 
+#endif
+#if(ATBM_WIFI_PLATFORM == PLATFORM_INGENICT41)
+	.power_ctrl = NULL,
+	//.irq_gpio	= EXYNOS4_GPX2(4),
+	//.power_gpio	= EXYNOS4_GPC1(1),
+    	.irq_gpio	= 60,
+	.power_gpio	= GPIO_PC(12), 
+#endif
+
+
 #if(ATBM_WIFI_PLATFORM == PLATFORM_XUNWEI)
 	.irq_gpio	= EXYNOS4_GPX2(4),
 	.power_gpio	= EXYNOS4_GPC1(1),
@@ -421,6 +540,7 @@ struct atbm_platform_data platform_data = {
 struct atbm_platform_data *atbm_get_platform_data(void)
 {
 	return &platform_data;
+
 }
 
 

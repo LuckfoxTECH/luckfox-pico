@@ -36,7 +36,13 @@ C_CYAN   = \e[36;1m
 C_WHITE  = \e[37;1m
 C_NORMAL = \033[0m
 
-RK_MEDIA_OPTS := -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+RK_MEDIA_OPTS := -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -ffunction-sections -fdata-sections
+ifeq ($(RK_BUILD_VERSION_TYPE),DEBUG)
+RK_MEDIA_OPTS += -O0
+else
+RK_MEDIA_OPTS += -Os
+endif
+
 RK_MEDIA_CROSS_CFLAGS += $(RK_MEDIA_OPTS)
 
 RK_MEDIA_TOP_DIR := $(MAKE_PARAM_DIR)
@@ -44,6 +50,12 @@ RK_MEDIA_OUTPUT := $(MAKE_PARAM_DIR)/out
 RK_MEDIA_NEED_INSTALL_ROOT_DIR_NAME := root
 
 ifeq ($(RK_MEDIA_CROSS),arm-rockchip830-linux-uclibcgnueabihf)
+RK_MEDIA_LIB_TYPE := uclibc
+RK_MEDIA_ARCH_TYPE := arm
+RK_MEDIA_CROSS_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard
+endif
+
+ifeq ($(RK_MEDIA_CROSS),arm-rockchip1050-linux-uclibcgnueabihf)
 RK_MEDIA_LIB_TYPE := uclibc
 RK_MEDIA_ARCH_TYPE := arm
 RK_MEDIA_CROSS_CFLAGS += -march=armv7-a -mfpu=neon -mfloat-abi=hard

@@ -138,28 +138,22 @@ FT_ERRORDEF_(Nested_DEFS, 0x89, "nested DEFS")
 FT_ERRORDEF_(Invalid_CodeRange, 0x8A, "invalid code range")
 FT_ERRORDEF_(Execution_Too_Long, 0x8B, "execution context too long")
 FT_ERRORDEF_(Too_Many_Function_Defs, 0x8C, "too many function definitions")
-FT_ERRORDEF_(Too_Many_Instruction_Defs, 0x8D,
-             "too many instruction definitions")
+FT_ERRORDEF_(Too_Many_Instruction_Defs, 0x8D, "too many instruction definitions")
 FT_ERRORDEF_(Table_Missing, 0x8E, "SFNT font table missing")
-FT_ERRORDEF_(Horiz_Header_Missing, 0x8F,
-             "horizontal header (hhea) table missing")
+FT_ERRORDEF_(Horiz_Header_Missing, 0x8F, "horizontal header (hhea) table missing")
 FT_ERRORDEF_(Locations_Missing, 0x90, "locations (loca) table missing")
 FT_ERRORDEF_(Name_Table_Missing, 0x91, "name table missing")
 FT_ERRORDEF_(CMap_Table_Missing, 0x92, "character map (cmap) table missing")
-FT_ERRORDEF_(Hmtx_Table_Missing, 0x93,
-             "horizontal metrics (hmtx) table missing")
+FT_ERRORDEF_(Hmtx_Table_Missing, 0x93, "horizontal metrics (hmtx) table missing")
 FT_ERRORDEF_(Post_Table_Missing, 0x94, "PostScript (post) table missing")
 FT_ERRORDEF_(Invalid_Horiz_Metrics, 0x95, "invalid horizontal metrics")
-FT_ERRORDEF_(Invalid_CharMap_Format, 0x96,
-             "invalid character map (cmap) format")
+FT_ERRORDEF_(Invalid_CharMap_Format, 0x96, "invalid character map (cmap) format")
 FT_ERRORDEF_(Invalid_PPem, 0x97, "invalid ppem value")
 FT_ERRORDEF_(Invalid_Vert_Metrics, 0x98, "invalid vertical metrics")
 FT_ERRORDEF_(Could_Not_Find_Context, 0x99, "could not find context")
-FT_ERRORDEF_(Invalid_Post_Table_Format, 0x9A,
-             "invalid PostScript (post) table format")
+FT_ERRORDEF_(Invalid_Post_Table_Format, 0x9A, "invalid PostScript (post) table format")
 FT_ERRORDEF_(Invalid_Post_Table, 0x9B, "invalid PostScript (post) table")
-FT_ERRORDEF_(DEF_In_Glyf_Bytecode, 0x9C,
-             "found FDEF or IDEF opcode in glyf bytecode")
+FT_ERRORDEF_(DEF_In_Glyf_Bytecode, 0x9C, "found FDEF or IDEF opcode in glyf bytecode")
 FT_ERRORDEF_(Missing_Bitmap, 0x9D, "missing bitmap in strike")
 
 /* CFF, CID, and Type 1 errors */
@@ -175,17 +169,14 @@ FT_ERRORDEF_(Glyph_Too_Big, 0xA4, "glyph too big for hinting")
 FT_ERRORDEF_(Missing_Startfont_Field, 0xB0, "`STARTFONT' field missing")
 FT_ERRORDEF_(Missing_Font_Field, 0xB1, "`FONT' field missing")
 FT_ERRORDEF_(Missing_Size_Field, 0xB2, "`SIZE' field missing")
-FT_ERRORDEF_(Missing_Fontboundingbox_Field, 0xB3,
-             "`FONTBOUNDINGBOX' field missing")
+FT_ERRORDEF_(Missing_Fontboundingbox_Field, 0xB3, "`FONTBOUNDINGBOX' field missing")
 FT_ERRORDEF_(Missing_Chars_Field, 0xB4, "`CHARS' field missing")
 FT_ERRORDEF_(Missing_Startchar_Field, 0xB5, "`STARTCHAR' field missing")
 FT_ERRORDEF_(Missing_Encoding_Field, 0xB6, "`ENCODING' field missing")
 FT_ERRORDEF_(Missing_Bbx_Field, 0xB7, "`BBX' field missing")
 FT_ERRORDEF_(Bbx_Too_Big, 0xB8, "`BBX' too big")
-FT_ERRORDEF_(Corrupted_Font_Header, 0xB9,
-             "Font header corrupted or missing fields")
-FT_ERRORDEF_(Corrupted_Font_Glyphs, 0xBA,
-             "Font glyphs corrupted or missing fields")
+FT_ERRORDEF_(Corrupted_Font_Header, 0xB9, "Font header corrupted or missing fields")
+FT_ERRORDEF_(Corrupted_Font_Glyphs, 0xBA, "Font glyphs corrupted or missing fields")
 
 /* */
 

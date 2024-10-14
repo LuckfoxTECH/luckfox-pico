@@ -36,6 +36,7 @@ typedef struct _rkTEST_AENC_CTX_S {
     RK_S32      s32LoopCount;
     RK_S32      s32ChnNum;
     RK_S32      s32SampleRate;
+    RK_U32      u32Bitrate;
     RK_S32      s32Channel;
     RK_S32      s32Format;
     char       *chCodecId;
@@ -56,12 +57,41 @@ static RK_S32 aenc_data_free(void *opaque) {
     return 0;
 }
 
+static RK_BOOL aenc_check_g726_bitrate(TEST_AENC_CTX_S *param) {
+    RK_U32 support[]  = {G726_BPS_16K, G726_BPS_24K, G726_BPS_32K, G726_BPS_40K};
+    for (RK_S32 i = 0; i < 4; i++) {
+        if (support[i] == param->u32Bitrate)
+            return RK_TRUE;
+    }
+
+    return RK_FALSE;
+}
+
+static RK_VOID aenc_set_g726_frameSize(TEST_AENC_CTX_S *param) {
+    if (param->u32Bitrate == G726_BPS_16K)
+        param->s32FrameSize = 8192;
+    else if (param->u32Bitrate == G726_BPS_24K)
+        param->s32FrameSize = 5460;
+    else if (param->u32Bitrate == G726_BPS_32K)
+        param->s32FrameSize = 4096;
+    else if (param->u32Bitrate == G726_BPS_40K)
+        param->s32FrameSize = 3276;
+    else {
+        RK_LOGW("G726:WARNNING input bitrate = %d not support, force bitrate = %d",
+            param->u32Bitrate, G726_BPS_32K);
+        param->u32Bitrate = G726_BPS_32K;
+        param->s32FrameSize = 4096;
+    }
+}
+
 static RK_U32 test_find_audio_enc_codec_id(TEST_AENC_CTX_S *params) {
     char *format = params->chCodecId;
    if (strstr(format, "mp2")) {
         return RK_AUDIO_ID_MP2;
     } else if (strstr(format, "mp3")) {
         return RK_AUDIO_ID_MP3;
+    } else if (strstr(format, "g726le")) {
+        return RK_AUDIO_ID_ADPCM_G726LE;
     } else if (strstr(format, "g726")) {
         return RK_AUDIO_ID_ADPCM_G726;
     } else if (strstr(format, "g711a")) {
@@ -108,7 +138,6 @@ static RK_U32 find_audio_frame_size(TEST_AENC_CTX_S *params) {
     return bytes*params->s32Channel;
 }
 
-
 static AENC_CHN_ATTR_S* aenc_create_chn_attr() {
     AENC_CHN_ATTR_S *pstChnAttr = reinterpret_cast<AENC_CHN_ATTR_S *>
                                         (malloc(sizeof(AENC_CHN_ATTR_S)));
@@ -118,15 +147,16 @@ static AENC_CHN_ATTR_S* aenc_create_chn_attr() {
 }
 
 static RK_S32 aenc_fill_codec_attr(AENC_CHN_ATTR_S *pstChnAttr,
-            RK_CODEC_ID_E  enCodecId, RK_U32 samplerate, RK_U32 channels,
+            RK_CODEC_ID_E  enCodecId, RK_U32 samplerate, RK_U32 channels, RK_U32 bitrate,
             AUDIO_BIT_WIDTH_E enBitwidth) {
     AENC_ATTR_CODEC_S *pstCodecAttr = &pstChnAttr->stCodecAttr;
 
-    pstCodecAttr->enType            = enCodecId;
-    pstCodecAttr->u32Channels       = channels;
-    pstCodecAttr->u32SampleRate     = samplerate;
-    pstCodecAttr->enBitwidth        = enBitwidth;
-    pstCodecAttr->pstResv           = RK_NULL;
+    pstCodecAttr->enType               = enCodecId;
+    pstCodecAttr->u32Channels          = channels;
+    pstCodecAttr->u32SampleRate        = samplerate;
+    pstCodecAttr->u32Bitrate           = bitrate;
+    pstCodecAttr->enBitwidth           = enBitwidth;
+    pstCodecAttr->pstResv              = RK_NULL;
     return 0;
 }
 
@@ -216,10 +246,21 @@ RK_S32 test_init_mpi_aenc(TEST_AENC_CTX_S *params) {
         return RK_FAILURE;
     }
 
+    if (codecId == RK_AUDIO_ID_ADPCM_G726 ||
+                codecId == RK_AUDIO_ID_ADPCM_G726LE) {
+        if (!aenc_check_g726_bitrate(params)) {
+            RK_LOGW("G726:WARNNING input bitrate = %d not support, force bitrate = %d",
+                params->u32Bitrate, G726_BPS_32K);
+            params->u32Bitrate = G726_BPS_32K;
+        }
+
+        aenc_set_g726_frameSize(params);
+    }
+
     params->pstChnAttr = aenc_create_chn_attr();
     pstChnAttr = params->pstChnAttr;
     aenc_fill_codec_attr(pstChnAttr, (RK_CODEC_ID_E)codecId,
-        params->s32SampleRate, params->s32Channel, (AUDIO_BIT_WIDTH_E)format);
+        params->s32SampleRate, params->s32Channel, params->u32Bitrate, (AUDIO_BIT_WIDTH_E)format);
 
     pstChnAttr->enType = (RK_CODEC_ID_E)codecId;
     pstChnAttr->u32BufCount = 4;
@@ -422,6 +463,7 @@ static void mpi_aenc_test_show_options(const TEST_AENC_CTX_S *ctx) {
     RK_PRINT("input channel          : %d\n", ctx->s32Channel);
     RK_PRINT("input format           : %d\n", ctx->s32Format);
     RK_PRINT("input codec name       : %s\n", ctx->chCodecId);
+    RK_PRINT("output bitrate         : %d\n", ctx->u32Bitrate);
 }
 
 int main(int argc, const char **argv) {
@@ -439,6 +481,7 @@ int main(int argc, const char **argv) {
     ctx->chCodecId       = RK_NULL;
     ctx->s32Format       = 16;
     ctx->s32FrameSize    = 1024;
+    ctx->u32Bitrate      = 0;
     ctx->s32ExtCodecHandle = -1;
 
     struct argparse_option options[] = {
@@ -452,6 +495,8 @@ int main(int argc, const char **argv) {
                     "the number of input stream channels. <required>", NULL, 0, 0),
         OPT_INTEGER('\0', "input_rate", &(ctx->s32SampleRate),
                     "the sample rate of input stream. <required>", NULL, 0, 0),
+        OPT_INTEGER('\0', "bitrate", &(ctx->u32Bitrate),
+                    "the bitrate of output stream. <required>", NULL, 0, 0),
         OPT_INTEGER('\0', "input_format", &(ctx->s32Format),
                     "the input format of input stream. <required>", NULL, 0, 0),
         OPT_STRING('o', "output", &(ctx->dstFilePath),

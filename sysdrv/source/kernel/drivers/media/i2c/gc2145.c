@@ -2483,9 +2483,7 @@ static int gc2145_g_frame_interval(struct v4l2_subdev *sd,
 {
 	struct gc2145 *gc2145 = to_gc2145(sd);
 
-	mutex_lock(&gc2145->lock);
 	fi->interval = gc2145->frame_size->max_fps;
-	mutex_unlock(&gc2145->lock);
 
 	return 0;
 }
@@ -2672,9 +2670,7 @@ static int gc2145_enum_frame_interval(struct v4l2_subdev *sd,
 	if (fie->index >= gc2145->cfg_num)
 		return -EINVAL;
 
-	if (fie->code != MEDIA_BUS_FMT_UYVY8_2X8)
-		return -EINVAL;
-
+	fie->code = MEDIA_BUS_FMT_UYVY8_2X8;
 	fie->width = gc2145->framesize_cfg[fie->index].width;
 	fie->height = gc2145->framesize_cfg[fie->index].height;
 	fie->interval = gc2145->framesize_cfg[fie->index].max_fps;

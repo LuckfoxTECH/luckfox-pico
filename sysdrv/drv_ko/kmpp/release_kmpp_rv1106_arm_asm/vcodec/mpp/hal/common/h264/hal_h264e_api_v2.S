@@ -322,19 +322,20 @@ hal_h264e_init:
 	.save {r4, r5, r6, lr}
 	.pad #16
 	mov	r5, r0
-	ldr	r4, .L88
+	ldr	r4, .L89
 	mov	r6, r1
 	cbnz	r4, .L87
-	movs	r1, #71
-	ldr	r3, .L88+4
+	movs	r1, #59
+	ldr	r3, .L89+4
 	str	r1, [sp]
-	ldr	r2, .L88+8
-	ldr	r0, .L88+12
+	ldr	r2, .L89+8
+	ldr	r0, .L89+12
 	bl	printk
 .L87:
 	ldr	r1, [r4, #8]
-	ldr	r0, .L88+4
+	ldr	r0, .L89+4
 	bl	mpp_osal_calloc
+	cbz	r0, .L88
 	ldr	r3, [r4, #16]
 	mov	r1, r6
 	strd	r4, r0, [r5]
@@ -343,9 +344,14 @@ hal_h264e_init:
 	@ sp needed
 	pop	{r4, r5, r6, lr}
 	bx	r3
-.L89:
-	.align	2
 .L88:
+	mvn	r0, #3
+	add	sp, sp, #16
+	@ sp needed
+	pop	{r4, r5, r6, pc}
+.L90:
+	.align	2
+.L89:
 	.word	hal_h264e_vepu540c
 	.word	.LANCHOR0+17
 	.word	.LC0
@@ -357,13 +363,13 @@ hal_h264e_init:
 	.section	.rodata
 	.align	2
 	.set	.LANCHOR0,. + 0
-	.type	__FUNCTION__.19341, %object
-	.size	__FUNCTION__.19341, 17
-__FUNCTION__.19341:
+	.type	__FUNCTION__.19417, %object
+	.size	__FUNCTION__.19417, 17
+__FUNCTION__.19417:
 	.ascii	"hal_h264e_deinit\000"
-	.type	__FUNCTION__.19331, %object
-	.size	__FUNCTION__.19331, 15
-__FUNCTION__.19331:
+	.type	__FUNCTION__.19407, %object
+	.size	__FUNCTION__.19407, 15
+__FUNCTION__.19407:
 	.ascii	"hal_h264e_init\000"
 	.type	hal_api_h264e_v2, %object
 	.size	hal_api_h264e_v2, 64

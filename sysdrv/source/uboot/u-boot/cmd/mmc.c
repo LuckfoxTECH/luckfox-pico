@@ -129,6 +129,7 @@ static int do_mmcinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 static int do_mmc_test_secure_storage(cmd_tbl_t *cmdtp,
 				      int flag, int argc, char * const argv[])
 {
+#ifdef CONFIG_MMC
 	struct mmc *mmc;
 
 	if (curr_device < 0) {
@@ -143,7 +144,8 @@ static int do_mmc_test_secure_storage(cmd_tbl_t *cmdtp,
 
 	mmc = init_mmc_device(curr_device, false);
 	if (!mmc)
-		return CMD_RET_FAILURE;
+		printf("No mmc device\n");
+#endif
 
 	int i, count = 100;
 

@@ -2675,20 +2675,77 @@
                [0]
             </extraDelay>
          </vcmConfig>
-            <zoomfocus_tbl index="1" type="struct" size="[1 1]">
-                <focusLength index="1" type="double" size="[1 8]">
-                    [12.03 14.06 16.62 19.88 24.08 29.52 36.52 45.61]
-                </focusLength>
-                <zoomPosition index="1" type="double" size="[1 8]">
-                    [0 1000 2000 3000 4000 5000 6000 7000]
-                </zoomPosition>
-                <focusInfPosition index="1" type="double" size="[1 8]">
-                    [2400 3400 5200 6000 6500 6200 5600 3000]
-                </focusInfPosition>
-                <focusMacroPosition index="1" type="double" size="[1 8]">
-                    [2700 4000 4800 5500 6200 7500 7500 6500]
-                </focusMacroPosition>
-            </zoomfocus_tbl>
+      <zoomfocus_tbl index="1" type="struct" size="[1 1]">
+        <WideModuleDeviation index="1" type="double" size="[1 1]">
+               [22]
+            </WideModuleDeviation>
+        <TeleModuleDeviation index="1" type="double" size="[1 1]">
+               [22]
+            </TeleModuleDeviation>
+        <ZoomMoveDot index="1" type="double" size="[1 1]">
+               [0]
+            </ZoomMoveDot>
+        <ZoomMoveStep index="1" type="double" size="[1 1]">
+               [10]
+            </ZoomMoveStep>
+        <focusLength index="1" type="double" size="[1 1]">
+                [0]
+            </focusLength>
+        <zoomPosition index="1" type="double" size="[1 1]">
+                [0]
+            </zoomPosition>
+        <focusPosition index="1" type="cell" size="[1 2]">
+          <cell index="1" type="struct" size="[1 1]">
+            <distance index="1" type="double" size="[1 1]">
+                    [1.5]
+                </distance>
+            <Position index="1" type="double" size="[1 1]">
+                    [0]
+                </Position>
+          </cell>
+          <cell index="7" type="struct" size="[1 1]">
+            <distance index="1" type="double" size="[1 1]">
+                    [-1]
+                </distance>
+            <Position index="1" type="double" size="[1 1]">
+                    [0]
+                </Position>
+          </cell>
+        </focusPosition>
+        <ZoomSearchTbl index="1" type="double" size="[1 1]">
+               [0]
+            </ZoomSearchTbl>
+        <FocusSearchPlusRange index="1" type="double" size="[1 1]">
+               [0]
+            </FocusSearchPlusRange>
+        <ZoomSearchRefCurveIdx index="1" type="double" size="[1 1]">
+               [0 ]
+            </ZoomSearchRefCurveIdx>
+        <FocusSearchMargin index="1" type="double" size="[1 1]">
+               [100 ]
+            </FocusSearchMargin>
+        <FocusSearchStage1Step index="1" type="double" size="[1 1]">
+               [1 ]
+            </FocusSearchStage1Step>
+        <searchZoomRange index="1" type="double" size="[1 1]">
+               [30 ]
+            </searchZoomRange>
+        <searchFocusRange index="1" type="double" size="[1 1]">
+               [30 ]
+            </searchFocusRange>
+        <searchEavg index="1" type="double" size="[1 1]">
+               [100 ]
+            </searchEavg>
+        <searchEmax index="1" type="double" size="[1 1]">
+               [100 ]
+            </searchEmax>
+        <IsRecZoomFocusPos index="1" type="double" size="[1 1]">
+               [0 ]
+            </IsRecZoomFocusPos>
+        <RecZoomFocusDir index="1" type="char" size="[1 1]">
+               [/userdata]
+            </RecZoomFocusDir>
+      </zoomfocus_tbl>
       </AF>
             <MERGE index="1" type="struct" size="[1 1]">
                 <EnvLv index="1" type="double" size="[1 13]">
@@ -37064,6 +37121,141 @@
 	      [-1639.6241691438624457 0.0003318682972133 -0.0000001476391906 0.0000000000874901]
 	 </distortion_coeff>
       </FEC>
+      <IS index= "1" type="struct" size="[1 1]">
+        <enable index="1" type="int" size="[1 1]">
+                    [0]
+                </enable>
+            <algo_type index="1" type="char" size="[1 15]">USE_ALGO_DIS</algo_type>
+        <eis index="1" type="struct" size="[1 1]">
+            <mode index="1" type="char" size="[1 15]">IMU_ONLY</mode>
+            <xml_path index="1" type="char" size="[1 21]">
+                    "/data/eis.xml"
+                </xml_path>
+            <camera_model_type index="1" type="int" size="[1 1]">
+                    [0]
+                </camera_model_type>
+            <camera_rate index="1" type="double" size="[1 1]">
+                    [30]
+                </camera_rate>
+            <imu_rate index="1" type="double" size="[1 1]">
+                    [1000]
+                </imu_rate>
+            <image_buffer_num index="1" type="int" size="[1 1]">
+                    [7]
+                </image_buffer_num>
+            <src_width index="1" type="int" size="[1 1]">
+                    [1296]
+                </src_width>
+            <src_height index="1" type="int" size="[1 1]">
+                    [968]
+                </src_height>
+            <dst_width index="1" type="int" size="[1 1]">
+                    [1296]
+                </dst_width>
+            <dst_height index="1" type="int" size="[1 1]">
+                    [968]
+                </dst_height>
+            <clip_ratio_x index="1" type="double" size="[1 1]">
+                    [90]
+                </clip_ratio_x>
+            <clip_ratio_y index="1" type="double" size="[1 1]">
+                    [0.1]
+                </clip_ratio_y>
+            <focal_length index="1" type="double" size="[1 2]">
+                    [821.634811495, 821.702833665]
+                </focal_length>
+            <light_center index="1" type="double" size="[1 2]">
+                    [628.013966215 456.82825842]
+                </light_center>
+            <distortion_coeff index="1" type="double" size="[1 4]">
+                    [-0.34710131 0.11879185 -0.00007207 0.00012455 -0.01960581]
+                </distortion_coeff>
+            <xi index="1" type="double" size="[1 1]">
+                    [0.0]
+                </xi>
+            <gbias_x index="1" type="double" size="[1 1]">
+                    [0.0]
+                </gbias_x>
+            <gbias_y index="1" type="double" size="[1 1]">
+                    [0.0]
+                </gbias_y>
+            <gbias_z index="1" type="double" size="[1 1]">
+                    [0.0]
+                </gbias_z>
+            <time_offset index="1" type="double" size="[1 1]">
+                    [-0.033]
+                </time_offset>
+            <sensor_axes_type index="1" type="int" size="[1 1]">
+                    [3]
+                </sensor_axes_type>
+            <save_objpts_path index="1" type="char" size="[1 100]">
+                    /data
+                </save_objpts_path>
+        </eis>
+        <dis index="1" type="struct" size="[1 1]">
+            <mode index="1" type="char" size="[1 15]">IMG_ONLY</mode>
+            <pdt_type index="1" type="int" size="[1 1]">
+                    [0]
+                </pdt_type>
+            <camera_steady index="1" type="int" size="[1 1]">
+                    [0]
+                </camera_steady>
+            <motion_level index="1" type="int" size="[1 1]">
+                    [1]
+                </motion_level>
+            <dis_algorithm index="1" type="int" size="[1 1]">
+                    [0]
+                </dis_algorithm>
+            <img_format index="1" type="int" size="[1 1]">
+                    [0]
+                </img_format>
+            <crop_ratio index="1" type="int" size="[1 1]">
+                    [80]
+                </crop_ratio>
+            <src_width index="1" type="int" size="[1 1]">
+                    [1296]
+                </src_width>
+            <src_height index="1" type="int" size="[1 1]">
+                    [968]
+                </src_height>
+            <src_stride index="1" type="int" size="[1 1]">
+                    [1296]
+                </src_stride>
+            <dst_width index="1" type="int" size="[1 1]">
+                    [1296]
+                </dst_width>
+            <dst_height index="1" type="int" size="[1 1]">
+                    [968]
+                </dst_height>
+            <is_scale index="1" type="int" size="[1 1]">
+                    [1]
+                </is_scale>
+            <img_pyr_num index="1" type="int" size="[1 1]">
+                    [3]
+                </img_pyr_num>
+            <mesh_type index="1" type="int" size="[1 1]">
+                    [2]
+                </mesh_type>
+            <fec_version index="1" type="int" size="[1 1]">
+                    [0]
+                </fec_version>
+            <dis_mode index="1" type="int" size="[1 1]">
+                    [2]
+                </dis_mode>
+            <moving_obj_lvl index="1" type="int" size="[1 1]">
+                    [0]
+                </moving_obj_lvl>
+            <rolling_shutter_coef index="1" type="int" size="[1 1]">
+                    [0]
+                </rolling_shutter_coef>
+            <horizontal_limit index="1" type="int" size="[1 1]">
+                    [512]
+                </horizontal_limit>
+            <vertical_imit index="1" type="int" size="[1 1]">
+                    [512]
+                </vertical_imit>
+        </dis>
+    </IS>
       <ORB index="1" type="struct" size="[1 1]">
           <enable index="1" type="double" size="[1 1]">
                [0]

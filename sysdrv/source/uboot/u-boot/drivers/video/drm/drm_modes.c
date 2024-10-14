@@ -60,6 +60,19 @@ struct drm_display_mode *drm_mode_create(void)
 }
 
 /**
+ * drm_mode_copy - copy the mode
+ * @dst: mode to overwrite
+ * @src: mode to copy
+ *
+ * Copy an existing mode into another mode, preserving the object id and
+ * list head of the destination mode.
+ */
+void drm_mode_copy(struct drm_display_mode *dst, const struct drm_display_mode *src)
+{
+	*dst = *src;
+}
+
+/**
  * drm_mode_destroy - remove a mode
  * @mode: mode to remove
  */
@@ -182,6 +195,45 @@ bool drm_mode_equal(const struct drm_display_mode *mode1,
 			      DRM_MODE_MATCH_FLAGS |
 			      DRM_MODE_MATCH_3D_FLAGS |
 			      DRM_MODE_MATCH_ASPECT_RATIO);
+}
+
+/**
+ * drm_display_mode_from_videomode - fill in @dmode using @vm,
+ * @vm: videomode structure to use as source
+ * @dmode: drm_display_mode structure to use as destination
+ *
+ * Fills out @dmode using the display mode specified in @vm.
+ */
+void drm_display_mode_from_videomode(const struct videomode *vm,
+				     struct drm_display_mode *dmode)
+{
+	dmode->hdisplay = vm->hactive;
+	dmode->hsync_start = dmode->hdisplay + vm->hfront_porch;
+	dmode->hsync_end = dmode->hsync_start + vm->hsync_len;
+	dmode->htotal = dmode->hsync_end + vm->hback_porch;
+
+	dmode->vdisplay = vm->vactive;
+	dmode->vsync_start = dmode->vdisplay + vm->vfront_porch;
+	dmode->vsync_end = dmode->vsync_start + vm->vsync_len;
+	dmode->vtotal = dmode->vsync_end + vm->vback_porch;
+
+	dmode->clock = vm->pixelclock / 1000;
+
+	dmode->flags = 0;
+	if (vm->flags & DISPLAY_FLAGS_HSYNC_HIGH)
+		dmode->flags |= DRM_MODE_FLAG_PHSYNC;
+	else if (vm->flags & DISPLAY_FLAGS_HSYNC_LOW)
+		dmode->flags |= DRM_MODE_FLAG_NHSYNC;
+	if (vm->flags & DISPLAY_FLAGS_VSYNC_HIGH)
+		dmode->flags |= DRM_MODE_FLAG_PVSYNC;
+	else if (vm->flags & DISPLAY_FLAGS_VSYNC_LOW)
+		dmode->flags |= DRM_MODE_FLAG_NVSYNC;
+	if (vm->flags & DISPLAY_FLAGS_INTERLACED)
+		dmode->flags |= DRM_MODE_FLAG_INTERLACE;
+	if (vm->flags & DISPLAY_FLAGS_DOUBLESCAN)
+		dmode->flags |= DRM_MODE_FLAG_DBLSCAN;
+	if (vm->flags & DISPLAY_FLAGS_DOUBLECLK)
+		dmode->flags |= DRM_MODE_FLAG_DBLCLK;
 }
 
 /**

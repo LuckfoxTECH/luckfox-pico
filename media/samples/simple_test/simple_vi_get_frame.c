@@ -2,12 +2,32 @@
 #include <errno.h>
 #include <pthread.h>
 #include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/poll.h>
 #include <time.h>
 #include <unistd.h>
 
-#include "sample_comm.h"
+#include "rk_debug.h"
+#include "rk_defines.h"
+#include "rk_mpi_adec.h"
+#include "rk_mpi_aenc.h"
+#include "rk_mpi_ai.h"
+#include "rk_mpi_ao.h"
+#include "rk_mpi_avs.h"
+#include "rk_mpi_cal.h"
+#include "rk_mpi_ivs.h"
+#include "rk_mpi_mb.h"
+#include "rk_mpi_rgn.h"
+#include "rk_mpi_sys.h"
+#include "rk_mpi_tde.h"
+#include "rk_mpi_vdec.h"
+#include "rk_mpi_venc.h"
+#include "rk_mpi_vi.h"
+#include "rk_mpi_vo.h"
+#include "rk_mpi_vpss.h"
 
 static RK_S32 g_s32FrameCnt = -1;
 static bool quit = false;
@@ -106,7 +126,7 @@ int vi_dev_init() {
 			return -1;
 		}
 		// 1-3.bind dev/pipe
-		stBindPipe.u32Num = pipeId;
+		stBindPipe.u32Num = 1;
 		stBindPipe.PipeId[0] = pipeId;
 		ret = RK_MPI_VI_SetDevBindPipe(devId, &stBindPipe);
 		if (ret != RK_SUCCESS) {
@@ -133,7 +153,7 @@ int vi_chn_init(int channelId, int width, int height) {
 	vi_chn_attr.stSize.u32Height = height;
 	vi_chn_attr.enPixelFormat = RK_FMT_YUV420SP;
 	vi_chn_attr.enCompressMode = COMPRESS_MODE_NONE; // COMPRESS_AFBC_16x16;
-	vi_chn_attr.u32Depth = 2;
+	vi_chn_attr.u32Depth = 2; //0, get fail, 1 - u32BufCount, can get, if bind to other device, must be < u32BufCount
 	ret = RK_MPI_VI_SetChnAttr(0, channelId, &vi_chn_attr);
 	ret |= RK_MPI_VI_EnableChn(0, channelId);
 	if (ret) {
@@ -163,6 +183,7 @@ int main(int argc, char *argv[]) {
 	int savefile = 0;
 	RK_S32 s32chnlId = 0;
 	int c;
+	int ret = -1;
 	VI_SAVE_FILE_INFO_S stDebugFile;
 
 	while ((c = getopt(argc, argv, optstr)) != -1) {
@@ -185,7 +206,7 @@ int main(int argc, char *argv[]) {
 		case '?':
 		default:
 			print_usage(argv[0]);
-			return 0;
+			return -1;
 		}
 	}
 
@@ -218,16 +239,16 @@ int main(int argc, char *argv[]) {
 	while (!quit) {
 		usleep(50000);
 	}
-	pthread_join(&main_thread, NULL);
+	pthread_join(main_thread, NULL);
 	s32Ret = RK_MPI_VI_DisableChn(0, s32chnlId);
 	RK_LOGE("RK_MPI_VI_DisableChn %x", s32Ret);
 
 	s32Ret = RK_MPI_VI_DisableDev(0);
 	RK_LOGE("RK_MPI_VI_DisableDev %x", s32Ret);
-
+	ret = 0;
 __FAILED:
 	RK_LOGE("test running exit:%d", s32Ret);
 	RK_MPI_SYS_Exit();
 
-	return 0;
+	return ret;
 }

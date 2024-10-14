@@ -271,6 +271,18 @@ int dev_count_phandle_with_args(struct udevice *dev, const char *list_name,
 int dev_read_addr_cells(struct udevice *dev);
 
 /**
+ * dev_remap_addr_index() - Get the indexed reg property of a device
+ *                               as a memory-mapped I/O pointer
+ *
+ * @dev: Device to read from
+ * @index: the 'reg' property can hold a list of <addr, size> pairs
+ *         and @index is used to select which one is required
+ *
+ * Return: pointer or NULL if not found
+ */
+void *dev_remap_addr_index(struct udevice *dev, int index);
+
+/**
  * dev_read_size_cells() - Get the number of size cells for a device's node
  *
  * This walks back up the tree to find the closest #size-cells property
@@ -586,6 +598,11 @@ static inline int dev_read_addr_cells(struct udevice *dev)
 {
 	/* NOTE: this call should walk up the parent stack */
 	return fdt_address_cells(gd->fdt_blob, dev_of_offset(dev));
+}
+
+static inline void *dev_remap_addr_index(struct udevice *dev, int index)
+{
+	return devfdt_remap_addr_index(dev, index);
 }
 
 static inline int dev_read_size_cells(struct udevice *dev)

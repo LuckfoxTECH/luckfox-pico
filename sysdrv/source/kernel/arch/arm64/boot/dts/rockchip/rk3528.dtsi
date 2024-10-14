@@ -52,6 +52,54 @@
 		spi2 = &sfc;
 	};
 
+	clocks {
+		compatible = "simple-bus";
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		xin24m: xin24m {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <24000000>;
+			clock-output-names = "xin24m";
+		};
+
+		mclkin_sai0: mclkin-sai0 {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <0>;
+			clock-output-names = "i2s0_mclkin";
+		};
+
+		mclkin_sai1: mclkin-sai1 {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <0>;
+			clock-output-names = "i2s1_mclkin";
+		};
+
+		mclkout_sai0: mclkout-sai0@ff340014 {
+			compatible = "rockchip,clk-out";
+			reg = <0 0xff340014 0 0x4>;
+			clocks = <&cru MCLK_SAI_I2S0>;
+			#clock-cells = <0>;
+			clock-output-names = "mclk_sai0_to_io";
+			rockchip,bit-shift = <1>;
+			rockchip,bit-set-to-disable;
+		};
+
+		mclkout_sai1: mclkout-sai1@ff320004 {
+			compatible = "rockchip,clk-out";
+			reg = <0 0xff320004 0 0x4>;
+			clocks = <&cru MCLK_SAI_I2S1>;
+			#clock-cells = <0>;
+			clock-output-names = "mclk_sai1_to_io";
+			rockchip,bit-shift = <14>;
+			rockchip,bit-set-to-disable;
+		};
+	};
+
 	cpus {
 		#address-cells = <2>;
 		#size-cells = <0>;
@@ -144,8 +192,8 @@
 		compatible = "operating-points-v2";
 		opp-shared;
 
-		nvmem-cells = <&cpu_leakage>;
-		nvmem-cell-names = "leakage";
+		nvmem-cells = <&cpu_leakage>, <&cpu_opp_info>;
+		nvmem-cell-names = "leakage", "opp-info";
 
 		rockchip,video-4k-freq = <1200000>;
 		rockchip,pvtm-voltage-sel = <
@@ -296,6 +344,11 @@
 		method = "smc";
 	};
 
+	rkvtunnel: rkvtunnel {
+		compatible = "rockchip,video-tunnel";
+		status = "disabled";
+	};
+
 	rockchip_suspend: rockchip-suspend {
 		compatible = "rockchip,pm-rk3528";
 		status = "disabled";
@@ -373,13 +426,6 @@
 			     <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
 			     <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
 			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>;
-	};
-
-	xin24m: xin24m {
-		compatible = "fixed-clock";
-		#clock-cells = <0>;
-		clock-frequency = <24000000>;
-		clock-output-names = "xin24m";
 	};
 
 	scmi_shmem: scmi-shmem@10f000 {
@@ -485,6 +531,8 @@
 			snps,dis-tx-ipgap-linecheck-quirk;
 			snps,xhci-trb-ent-quirk;
 			snps,dis_rxdet_inp3_quirk;
+			snps,parkmode-disable-hs-quirk;
+			snps,parkmode-disable-ss-quirk;
 			quirk-skip-phy-init;
 			status = "disabled";
 		};
@@ -882,8 +930,8 @@
 	gpu_opp_table: gpu-opp-table {
 		compatible = "operating-points-v2";
 
-		nvmem-cells = <&gpu_leakage>;
-		nvmem-cell-names = "leakage";
+		nvmem-cells = <&gpu_leakage>, <&gpu_opp_info>;
+		nvmem-cell-names = "leakage", "opp-info";
 
 		rockchip,pvtm-voltage-sel = <
 			0	820	0
@@ -968,6 +1016,7 @@
 		clocks = <&cru ACLK_RKVDEC>, <&cru HCLK_RKVDEC>, <&cru CLK_HEVC_CA_RKVDEC>;
 		clock-names = "aclk", "iface", "clk_hevc_cabac";
 		#iommu-cells = <0>;
+		rockchip,shootdown-entire;
 		status = "disabled";
 	};
 
@@ -1002,6 +1051,7 @@
 		clocks = <&cru ACLK_RKVENC>, <&cru HCLK_RKVENC>;
 		clock-names = "aclk", "iface";
 		#iommu-cells = <0>;
+		rockchip,shootdown-entire;
 		status = "disabled";
 	};
 
@@ -1036,6 +1086,7 @@
 		clock-names = "aclk", "iface";
 		clocks = <&cru ACLK_VPU>, <&cru HCLK_VPU>;
 		#iommu-cells = <0>;
+		rockchip,shootdown-entire;
 		status = "disabled";
 	};
 
@@ -1175,6 +1226,7 @@
 		clocks = <&cru ACLK_VDPP>, <&cru HCLK_VDPP>;
 		clock-names = "aclk", "iface";
 		#iommu-cells = <0>;
+		rockchip,shootdown-entire;
 		status = "disabled";
 	};
 
@@ -1229,6 +1281,7 @@
 		clock-names = "aclk", "iface";
 		clocks = <&cru ACLK_JPEG_DECODER>, <&cru HCLK_JPEG_DECODER>;
 		#iommu-cells = <0>;
+		rockchip,shootdown-entire;
 		status = "disabled";
 	};
 
@@ -1298,8 +1351,9 @@
 		clock-names = "iahb", "isfr", "cec";
 		reg-io-width = <4>;
 		rockchip,grf = <&grf>;
-		pinctrl-names = "default";
+		pinctrl-names = "default", "idle";
 		pinctrl-0 = <&hdmi_pins>;
+		pinctrl-1 = <&hdmi_pins_idle>;
 		phys = <&hdmiphy>;
 		phy-names = "hdmi";
 		#sound-dai-cells = <0>;
@@ -1330,8 +1384,8 @@
 		interrupts = <GIC_SPI 131 IRQ_TYPE_LEVEL_HIGH>;
 		#address-cells = <1>;
 		#size-cells = <0>;
-		clocks = <&cru CLK_SPI0>, <&cru PCLK_SPI0>;
-		clock-names = "spiclk", "apb_pclk";
+		clocks = <&cru CLK_SPI0>, <&cru PCLK_SPI0>, <&cru SCLK_IN_SPI0>;
+		clock-names = "spiclk", "apb_pclk", "sclk_in";
 		dmas = <&dmac 25>, <&dmac 24>;
 		dma-names = "tx", "rx";
 		pinctrl-names = "default";
@@ -1345,8 +1399,8 @@
 		interrupts = <GIC_SPI 132 IRQ_TYPE_LEVEL_HIGH>;
 		#address-cells = <1>;
 		#size-cells = <0>;
-		clocks = <&cru CLK_SPI1>, <&cru PCLK_SPI1>;
-		clock-names = "spiclk", "apb_pclk";
+		clocks = <&cru CLK_SPI1>, <&cru PCLK_SPI1>, <&cru SCLK_IN_SPI1>;
+		clock-names = "spiclk", "apb_pclk", "sclk_in";
 		dmas = <&dmac 31>, <&dmac 30>;
 		dma-names = "tx", "rx";
 		pinctrl-names = "default";
@@ -1979,10 +2033,10 @@
 		compatible = "rockchip,crypto-v4";
 		reg = <0x0 0xffc40000 0x0 0x2000>;
 		interrupts = <GIC_SPI 19 IRQ_TYPE_LEVEL_HIGH>;
-		clocks = <&cru ACLK_CRYPTO>, <&cru HCLK_CRYPTO>,
-			 <&cru CLK_CORE_CRYPTO>, <&cru CLK_PKA_CRYPTO>;
+		clocks = <&scmi_clk SCMI_ACLK_CRYPTO>, <&scmi_clk SCMI_HCLK_CRYPTO>,
+			 <&scmi_clk SCMI_CORE_CRYPTO>, <&scmi_clk SCMI_PKA_CRYPTO>;
 		clock-names = "aclk", "hclk", "sclk", "pka";
-		assigned-clocks = <&cru CLK_CORE_CRYPTO>, <&cru CLK_PKA_CRYPTO>;
+		assigned-clocks = <&scmi_clk SCMI_CORE_CRYPTO>, <&scmi_clk SCMI_PKA_CRYPTO>;
 		assigned-clock-rates = <300000000>, <300000000>;
 		resets = <&cru SRST_RESETN_CORE_CRYPTO>;
 		reset-names = "crypto-rst";
@@ -1993,7 +2047,7 @@
 		compatible = "rockchip,rkrng";
 		reg = <0x0 0xffc50000 0x0 0x200>;
 		interrupts = <GIC_SPI 23 IRQ_TYPE_LEVEL_HIGH>;
-		clocks = <&cru HCLK_TRNG_NS>;
+		clocks = <&scmi_clk SCMI_HCLK_TRNG>;
 		clock-names = "hclk_trng";
 		resets = <&cru SRST_HRESETN_TRNG_NS>;
 		reset-names = "reset";
@@ -2038,6 +2092,15 @@
 		};
 		macphy_txlevel: macphy-txlevel@2e {
 			reg = <0x2e 0x2>;
+		};
+		cpu_opp_info: cpu-opp-info@32 {
+			reg = <0x32 0x6>;
+		};
+		gpu_opp_info: gpu-opp-info@38 {
+			reg = <0x38 0x6>;
+		};
+		dmc_opp_info: dmc-opp-info@3e {
+			reg = <0x3e 0x6>;
 		};
 	};
 

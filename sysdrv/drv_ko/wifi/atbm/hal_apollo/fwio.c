@@ -372,10 +372,6 @@ static int atbm_fw_checksum(struct firmware_headr * hdr)
 #else
 #ifdef USB_BUS
 #include "firmware_usb.h"
-#ifdef SUPPORT_ATBM6012B
-#include "firmware_usb_6012b.h"
-#endif
-
 #endif
 #ifdef SDIO_BUS
 #include "firmware_sdio.h"
@@ -521,7 +517,11 @@ loadfw:
 				__func__, fw_path);
 			goto error;
 		}
-		BUG_ON(!firmware->data);
+	//	BUG_ON(!firmware->data);
+		if(!firmware->data){
+			atbm_printk_err("%s %d ,ERROR !!! firmware->data is NULL\n",__func__,__LINE__);
+			goto error;
+		}
 		if(*(int *)firmware->data == ALTOBEAM_WIFI_HDR_FLAG){
 			memcpy(&fw_altobeam.hdr,firmware->data,sizeof(struct firmware_headr));
 			if(atbm_fw_checksum(&fw_altobeam.hdr)==0){
@@ -560,30 +560,12 @@ loadfw:
 		}
 #else //USED_FW_FILE
 		{
-	
-			/*
-				 chip type select different fw
-			*/
-#ifdef SUPPORT_ATBM6012B
-	
-				if(priv->chip_version == ARES_6012B){//arsB 	
-					atbm_dbg(ATBM_APOLLO_DBG_ERROR,"used firmware_usb_6012b.h=\n");
-					fw_altobeam.hdr.iccm_len = sizeof(fw_code_6012b);
-					fw_altobeam.hdr.dccm_len = sizeof(fw_data_6012b);
-					
-					fw_altobeam.fw_iccm = &fw_code_6012b[0];
-					fw_altobeam.fw_dccm = &fw_data_6012b[0];
-				}else
-#endif
-
-			{
-					atbm_dbg(ATBM_APOLLO_DBG_ERROR,"used firmware.h=\n");
-					fw_altobeam.hdr.iccm_len = sizeof(fw_code);
-					fw_altobeam.hdr.dccm_len = sizeof(fw_data);
-					
-					fw_altobeam.fw_iccm = &fw_code[0];
-					fw_altobeam.fw_dccm = &fw_data[0];
-			}
+		atbm_dbg(ATBM_APOLLO_DBG_ERROR,"used firmware.h=\n");
+		fw_altobeam.hdr.iccm_len = sizeof(fw_code);
+		fw_altobeam.hdr.dccm_len = sizeof(fw_data);
+		
+		fw_altobeam.fw_iccm = &fw_code[0];
+		fw_altobeam.fw_dccm = &fw_data[0];
 		}
 #endif //USED_FW_FILE
 		atbm_set_firmare(&fw_altobeam);

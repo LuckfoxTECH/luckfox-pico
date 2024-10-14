@@ -129,8 +129,8 @@ FT_Stream_OpenGzip(FT_Stream stream, FT_Stream source);
  *   2.5.1
  */
 FT_EXPORT(FT_Error)
-FT_Gzip_Uncompress(FT_Memory memory, FT_Byte *output, FT_ULong *output_len,
-                   const FT_Byte *input, FT_ULong input_len);
+FT_Gzip_Uncompress(FT_Memory memory, FT_Byte *output, FT_ULong *output_len, const FT_Byte *input,
+                   FT_ULong input_len);
 
 /* */
 

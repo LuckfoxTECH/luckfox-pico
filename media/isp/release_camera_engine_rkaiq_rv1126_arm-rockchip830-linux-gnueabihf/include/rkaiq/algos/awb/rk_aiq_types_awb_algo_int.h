@@ -26,6 +26,7 @@
 #include "awb/rk_aiq_types_awb_algo.h"
 #include "RkAiqCalibDbTypes.h"
 
+
 typedef enum rk_aiq_wb_scene_e {
     RK_AIQ_WBCT_INCANDESCENT = 0,
     RK_AIQ_WBCT_FLUORESCENT,
@@ -35,6 +36,18 @@ typedef enum rk_aiq_wb_scene_e {
     RK_AIQ_WBCT_TWILIGHT,
     RK_AIQ_WBCT_SHADE
 } rk_aiq_wb_scene_t;
+
+typedef enum rk_aiq_wb_multiwinMode_e {
+    RK_AIQ_WB_WIN_MIN = -1,
+    RK_AIQ_WB_WIN_USELESS = 0,
+    RK_AIQ_WB_WIN_NONEWP = 1,
+    RK_AIQ_WB_WIN_MAX
+} rk_aiq_wb_multiwinMode_t;
+
+typedef struct rk_aiq_wb_multiwin_s {
+    unsigned short multiwindow[RK_AIQ_AWB_MULTIWINDOW_NUM][4];
+    rk_aiq_wb_multiwinMode_t   mode;
+} rk_aiq_wb_multiwin_t;
 
 typedef struct rk_aiq_wb_cct_s {
     float CCT;
@@ -105,6 +118,7 @@ typedef struct rk_aiq_wb_awb_attrib_s {
     CalibDb_Awb_gain_offset_cfg_t wbGainOffset;
     rk_aiq_wb_awb_damp_t dampFactor;
     float convergedVarTh;
+    rk_aiq_wb_multiwin_t multiwin;
 } rk_aiq_wb_awb_attrib_t;
 
 typedef enum rk_aiq_wb_op_mode_s {
@@ -134,6 +148,12 @@ typedef enum rk_aiq_wb_lock_state_s {
     RK_AIQ_WB_LOCK_MAX
 } rk_aiq_wb_lock_state_t;
 
+typedef enum awb_hardware_version_e
+{
+    AWB_HARDWARE_V200 = 0,
+    AWB_HARDWARE_V201 = 1,
+    AWB_HARDWARE_VMAX
+} awb_hardware_version_t;
 
 #endif
 

@@ -23,7 +23,10 @@ extern struct kobj_ns_type_operations net_ns_type_operations;
 static inline void skb_checksum_none_assert(struct sk_buff *skb)
 {
 #ifdef DEBUG
-	BUG_ON(skb->ip_summed != CHECKSUM_NONE);
+//	BUG_ON(skb->ip_summed != CHECKSUM_NONE);
+	if(skb->ip_summed != CHECKSUM_NONE){
+		atbm_printk_err("%s %d ,ERROR !!! skb->ip_summed(%x) != CHECKSUM_NONE\n",__func__,__LINE__,skb->ip_summed);
+	}
 #endif
 }
 

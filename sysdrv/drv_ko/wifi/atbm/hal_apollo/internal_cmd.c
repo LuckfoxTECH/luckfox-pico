@@ -70,6 +70,9 @@ static struct atbm_gpio_config atbm_gpio_table[]=
 	},
 };
 
+#define DCXO_TRIM_REG 0x1610100c //bit 5:0
+
+
 #define ATBM_WSM_ADAPTIVE		"set_adaptive"ATBM_SPACE_STR
 #define ATBM_WSM_TXPWR_DCXO		"set_txpwr_and_dcxo"ATBM_SPACE_STR
 #define ATBM_WSM_TXPWR			"set_txpower"ATBM_SPACE_STR
@@ -130,7 +133,7 @@ int str2mac(char *dst_mac, char *src_str)
 	
 	20220224 xiongmai_question
 */
-
+#if 0
 #include <linux/sched.h>
 #include <asm/siginfo.h>
 #include <linux/pid_namespace.h>
@@ -139,11 +142,7 @@ int str2mac(char *dst_mac, char *src_str)
 void send_signal(int sig_num,int user_pid)
 {
 	   struct task_struct *current_task = NULL;
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 10, 60))
-       struct kernel_siginfo info;
-#else
-	   struct siginfo info;
-#endif
+       struct siginfo info;
        int ret;
        
 
@@ -163,6 +162,79 @@ void send_signal(int sig_num,int user_pid)
                printk("error sending signal\n");
        }
 
+}
+
+#endif
+
+int DCXOCodeWrite(struct atbm_common *hw_priv,u8 data)
+{
+#ifndef SPI_BUS
+	u32 uiRegData;
+	atbm_direct_read_reg_32(hw_priv, DCXO_TRIM_REG, &uiRegData);
+	//hw_priv->sbus_ops->sbus_read_sync(hw_priv->sbus_priv,DCXO_TRIM_REG,&uiRegData,4);
+	uiRegData &= ~0x40003F;
+
+	uiRegData |= (((data&0x40)<<16)|(data&0x3f));
+	
+	atbm_direct_write_reg_32(hw_priv, DCXO_TRIM_REG, uiRegData);
+	//hw_priv->sbus_ops->sbus_write_sync(hw_priv->sbus_priv,DCXO_TRIM_REG,&uiRegData,4);
+#endif
+	return 0;
+}
+
+u8 DCXOCodeRead(struct atbm_common *hw_priv)
+{	
+#ifndef SPI_BUS
+
+	u32 uiRegData;
+	u8 dcxo;
+	u8 dcxo_hi,dcxo_low;
+
+	atbm_direct_read_reg_32(hw_priv, DCXO_TRIM_REG, &uiRegData);
+	//hw_priv->sbus_ops->sbus_read_sync(hw_priv->sbus_priv,DCXO_TRIM_REG,&uiRegData,4);//
+	dcxo_hi = (uiRegData>>22)&0x01;
+	dcxo_low = uiRegData&0x3f;
+	dcxo = (dcxo_hi << 6) + (dcxo_low&0x3f);
+	
+	return dcxo;
+#else
+	return 0;
+#endif
+}
+
+extern int atbm_direct_read_reg_32(struct atbm_common *hw_priv, u32 addr, u32 *val);
+extern int atbm_direct_write_reg_32(struct atbm_common *hw_priv, u32 addr, u32 val);
+extern struct etf_test_config etf_config;
+//get chip crystal type
+u32 GetChipCrystalType(struct atbm_common *hw_priv)
+{	
+#ifndef SPI_BUS
+	u32 pin_reg;
+	u32 pin_reg17400000;
+	
+	atbm_direct_read_reg_32(hw_priv, 0x17400000, &pin_reg17400000);
+	atbm_direct_write_reg_32(hw_priv, 0x17400000, pin_reg17400000 | BIT(8));
+	atbm_direct_read_reg_32(hw_priv, 0x17400000, &pin_reg17400000);
+	if (pin_reg17400000 & BIT(17))
+	{
+		etf_config.chip_crystal_type = 1;
+	}
+	atbm_direct_read_reg_32(hw_priv, 0x16101010, &pin_reg);
+	if (pin_reg & BIT(5))
+	{
+		etf_config.chip_crystal_type |= BIT(1);
+	}
+	if (pin_reg & BIT(27))
+	{
+		etf_config.chip_crystal_type |= BIT(2);
+	}
+	atbm_direct_write_reg_32(hw_priv, 0x17400000, pin_reg17400000);
+
+	atbm_printk_always("crystal:%d\n",etf_config.chip_crystal_type);
+	return pin_reg17400000;
+#else
+	return 0;
+#endif
 }
 
 int ieee80211_set_channel(struct wiphy *wiphy,
@@ -466,7 +538,12 @@ bool atbm_internal_cmd_stainfo(struct ieee80211_local *local,struct ieee80211_in
 	memset(&stainfo,0,sizeof(struct ieee80211_internal_sta_info));	
 	
 	WARN_ON(sta_req->sta_handle == NULL);
-	BUG_ON((sta_req->n_macs != 0)&&(sta_req->macs == NULL));
+	//BUG_ON((sta_req->n_macs != 0)&&(sta_req->macs == NULL));
+	if((sta_req->n_macs != 0)&&(sta_req->macs == NULL)){
+		atbm_printk_err("%s %d ,ERROR !!! (sta_req->n_macs != 0)&&(sta_req->macs == NULL)\n",__func__,__LINE__);
+		return false;
+	}
+
 	
 	atbm_common_hash_list_init(atbm_sta_mac_hlist,ATBM_COMMON_HASHENTRIES);
 
@@ -1390,8 +1467,11 @@ bool atbm_internal_channel_auto_select_results(struct ieee80211_sub_if_data *sda
 
 	for(i= 0;i<results->ignore_n_channels;i++){
 		
-		BUG_ON(results->ignore_channels == NULL);
-		
+		//BUG_ON(results->ignore_channels == NULL);
+		if(results->ignore_channels == NULL){
+			atbm_printk_err("%s %d ,ERROR !!! results->ignore_channels is NULL\n",__func__,__LINE__);
+			goto err;
+		}
 		if(ieee8011_channel_valid(&local->hw,results->ignore_channels[i]) == false){
 			goto err;
 		}
@@ -1403,7 +1483,11 @@ bool atbm_internal_channel_auto_select_results(struct ieee80211_sub_if_data *sda
 	if(results->n_channels){
 		memset(channel_mask,0,IEEE80211_ATBM_MAX_SCAN_CHANNEL_INDEX);
 		for(i = 0;i<results->n_channels;i++){
-			BUG_ON(results->channels == NULL);
+			//BUG_ON(results->channels == NULL);
+			if(results->channels == NULL){
+				atbm_printk_err("%s %d ,ERROR !!! results->channels is NULL\n",__func__,__LINE__);
+				goto err;
+			}
 			if(ieee8011_channel_valid(&local->hw,results->channels[i]) == false){
 				goto err;
 			}
@@ -1595,6 +1679,7 @@ bool atbm_internal_update_ap_conf(struct ieee80211_sub_if_data *sdata,
 
 	if(conf_req&&conf_req->channel){
 		if(ieee8011_channel_valid(&sdata->local->hw,(int)conf_req->channel) == false){
+			atbm_printk_err("atbm_internal_update_ap_conf,ieee8011_channel_valid \n");
 			goto err;
 		}
 	}
@@ -1886,3 +1971,641 @@ exit:
 	
 	return ret;
 }
+
+struct atbm_vendor_cfg_ie private_ie;
+
+
+int atbm_internal_recv_6441_vendor_ie(struct atbm_vendor_cfg_ie *recv_ie)
+{
+	
+//	if(recv_ie){
+	//	if(memcmp(recv_ie,&private_ie,sizeof(struct atbm_vendor_cfg_ie))){
+			memcpy(&private_ie,recv_ie,sizeof(struct atbm_vendor_cfg_ie));
+			return 0;
+	//	}
+//	}
+//	return -1;
+}
+struct atbm_vendor_cfg_ie * atbm_internal_get_6441_vendor_ie(void)
+{
+	struct atbm_vendor_cfg_ie ie;
+	memset(&ie,0,sizeof(struct atbm_vendor_cfg_ie));
+	if(memcmp(&ie,&private_ie,sizeof(struct atbm_vendor_cfg_ie)) == 0)
+		return NULL;
+
+	return &private_ie;
+
+
+}
+
+
+#include "country_code.h"
+#if CONFIG_CFG80211_INTERNAL_REGDB
+
+int atbm_set_country_code_to_cfg80211(struct ieee80211_local *local,char *country)
+{
+
+	int i = 0,found = 0;
+	if(!local || !country){
+		atbm_printk_err("%s %d : %s,%s\n",__func__,__LINE__,local==NULL?"local is NULL":" ",country?" ":"country is NULL");
+		return -1;
+	}
+	//country_code = atbm_country_code;
+	for(i = 0;memcmp(atbm_country_code[i],"00",2)!=0;i++){
+		if(memcmp(country,atbm_country_code[i],2) == 0){
+			found = 1;
+			break;	
+		}
+	}
+
+	if(found == 0){
+		atbm_printk_err("unknow country code (%c%c) \n",country[0],country[1]);
+		return -1;
+	}
+	
+	if(regulatory_hint(local->hw.wiphy,country) != 0){
+		atbm_printk_err("not set country code to cfg80211\n");
+		return -1;
+	}
+	
+	memcpy(local->country_code,country,2);
+	return 0;
+}
+#endif
+
+u32 MyRand(void)
+{
+	u32 random_num = 0;
+	u32 randseed = 0;	
+
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 0, 0))
+	randseed = ktime_get_seconds();
+#else
+	struct timex txc;
+	do_gettimeofday(&(txc.time));
+	//randseed = jiffies;
+	randseed = txc.time.tv_sec;
+#endif
+	random_num = randseed * 1103515245 + 12345;
+	return ((random_num/65536)%32768);
+}
+
+int MacStringToHex(char *mac, u8  *umac)
+{
+	int i = 0, j = 0;
+	unsigned char d = 0;
+	char ch = 0,buffer[12] = {0};
+
+	if(mac)
+		memcpy(buffer, mac, strlen(mac));
+
+    for (i=0;i<12;i++)
+    {
+        ch = buffer[i];
+
+        if (ch >= '0' && ch <= '9')
+        {
+            d = (d<<4) | (ch - '0');
+        }
+        else if (ch >= 'a' && ch <= 'f')
+        {
+            d = (d<<4) | (ch - 'a' + 10);
+        }
+        else if (ch >= 'A' && ch <= 'F')
+        {
+            d = (d<<4) | (ch - 'A' + 10);
+        }
+		if((i%2 == 1)){
+			umac[j++] = d;
+			d = 0;
+		}
+    }
+
+    return 0;
+}
+
+extern u8 ETF_bStartTx;
+extern u8 ETF_bStartRx;
+extern u8 ucWriteEfuseFlag;
+extern int atbm_test_rx_cnt;
+extern int txevm_total;
+extern u32 chipversion;
+extern struct rxstatus_signed gRxs_s;
+char ch_and_type[20];
+extern int wsm_start_tx(struct atbm_common *hw_priv, struct ieee80211_vif *vif);
+extern int wsm_stop_tx(struct atbm_common *hw_priv);
+extern int wsm_start_tx_v2(struct atbm_common *hw_priv, struct ieee80211_vif *vif );
+#define CHIP_VERSION_REG 0x0acc017c //chip version reg address
+
+
+#define DCXO_CODE_MINI		0//24//0
+#define DCXO_CODE_MAX		127//38//63
+extern  u8 CodeStart;
+extern u8 CodeEnd;
+extern struct etf_test_config etf_config;
+
+//config etf test arguments by config_param.txt
+void etf_PT_test_config(char *param)
+{
+	int Freq = 0;
+	int txEvm = 0;
+	int rxEvm = 0;
+	int rxEvmthreshold = 0;
+	int txEvmthreshold = 0;
+	int Txpwrmax = 0;
+	int Txpwrmin = 0;
+	int Rxpwrmax = 0;
+	int Rxpwrmin = 0;
+	int rssifilter = 0;
+	int cableloss = 0;
+	int default_dcxo = 0;
+	int noFreqCali = 0;
+	char mac[12] = {0};
+	int dcxo_max_min = 0;
+	
+	memset(&etf_config, 0, sizeof(struct etf_test_config));
+
+	if(strlen(param) != 0)
+	{
+		atbm_printk_always("<USE CONFIG FILE>\n");
+		atbm_printk_always("param:%s\n", param);
+		sscanf(param, "cfg:%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s", 
+			&Freq, &txEvm, &rxEvm, &txEvmthreshold,&rxEvmthreshold,&Txpwrmax, 
+			&Txpwrmin, &Rxpwrmax, &Rxpwrmin, &rssifilter, &cableloss, &default_dcxo,&noFreqCali, &dcxo_max_min, mac);
+		etf_config.freq_ppm = Freq;
+		etf_config.txevm = (txEvm?txEvm:65536); //txevm filter
+		etf_config.rxevm = (rxEvm?rxEvm:65536); //rxevm filter
+		etf_config.txevmthreshold = txEvmthreshold;
+		etf_config.rxevmthreshold = rxEvmthreshold;
+		etf_config.txpwrmax = Txpwrmax;
+		etf_config.txpwrmin = Txpwrmin;
+		etf_config.rxpwrmax = Rxpwrmax;
+		etf_config.rxpwrmin = Rxpwrmin;
+		etf_config.rssifilter = rssifilter;
+		etf_config.cableloss = (cableloss?cableloss:30)*4;	
+		etf_config.default_dcxo = default_dcxo;
+		etf_config.noFfreqCaliFalg = noFreqCali;
+		dcxo_max_min &= 0xffff;
+		etf_config.dcxo_code_min = dcxo_max_min & 0xff;
+		etf_config.dcxo_code_max = (dcxo_max_min >> 8) & 0xff;
+
+		if(etf_config.dcxo_code_min < DCXO_CODE_MAX)
+			CodeStart = etf_config.dcxo_code_min;
+		else
+			CodeStart = DCXO_CODE_MINI;
+		if((etf_config.dcxo_code_max > DCXO_CODE_MINI) && (etf_config.dcxo_code_max <= DCXO_CODE_MAX))
+			CodeEnd = etf_config.dcxo_code_max;
+		else
+			CodeEnd = DCXO_CODE_MAX;
+		
+		if(strlen(mac) == 12){
+			etf_config.writemacflag = 1;
+			MacStringToHex(mac, etf_config.writemac);
+		}
+	}
+	else
+	{
+		etf_config.freq_ppm = 7000;
+		etf_config.rxevm = (rxEvm?rxEvm:65536);
+		etf_config.rssifilter = -100;
+		etf_config.txevm = (txEvm?txEvm:65536);
+		etf_config.txevmthreshold = 400;
+		etf_config.rxevmthreshold = 400;
+		etf_config.cableloss = 30*4;
+		CodeStart = DCXO_CODE_MINI;
+		CodeEnd = DCXO_CODE_MAX;
+	}
+
+	etf_config.featureid = MyRand();
+	atbm_printk_always("featureid:%d\n", etf_config.featureid);
+	atbm_printk_always("Freq:%d,txEvm:%d,rxEvm:%d,txevmthreshold:%d,rxevmthreshold:%d,Txpwrmax:%d,Txpwrmin:%d,Rxpwrmax:%d,Rxpwrmin:%d,rssifilter:%d,cableloss:%d,default_dcxo:%d,noFreqCali:%d",
+		etf_config.freq_ppm,etf_config.txevm,etf_config.rxevm,etf_config.txevmthreshold,etf_config.rxevmthreshold,
+		etf_config.txpwrmax,etf_config.txpwrmin,etf_config.rxpwrmax,
+		etf_config.rxpwrmin,etf_config.rssifilter,etf_config.cableloss,etf_config.default_dcxo,
+		etf_config.noFfreqCaliFalg);
+	atbm_printk_always("dcxomin:%d,dcxomax:%d", etf_config.dcxo_code_min, etf_config.dcxo_code_max);
+	if(strlen(mac) == 12){
+		atbm_printk_always("WRITE MAC:%02X%02X%02X%02X%02X%02X\n", 
+					etf_config.writemac[0],etf_config.writemac[1],etf_config.writemac[2],
+					etf_config.writemac[3],etf_config.writemac[4],etf_config.writemac[5]);
+		}
+	atbm_printk_always("\n");
+}
+//get chip version funciton
+u32 GetChipVersion(struct atbm_common *hw_priv)
+{	
+#ifndef SPI_BUS
+	u32 uiRegData;
+	atbm_direct_read_reg_32(hw_priv, CHIP_VERSION_REG, &uiRegData);
+	//hw_priv->sbus_ops->sbus_read_sync(hw_priv->sbus_priv,CHIP_VERSION_REG,&uiRegData,4);	
+	
+	return uiRegData;
+#else
+	return 0;
+#endif
+}
+
+int atbm_internal_start_tx(struct atbm_common *hw_priv,start_tx_param_t *tx_param)
+{
+	int i = 0,flag = 0;
+	u32 rate;
+	int etf_v2 = 0;
+	u8 ucDbgPrintOpenFlag = 1;
+	struct atbm_vif *vif;
+	//char threshold_param[100] = {0};
+	int channel;
+	int band_value;
+	int is_40M;
+	int len;
+	int greedfiled;
+	
+	memset(&gRxs_s, 0, sizeof(struct rxstatus_signed));
+
+	chipversion = GetChipVersion(hw_priv);
+	atbm_printk_wext("chipversion:0x%x\n", chipversion);
+	if(ETF_bStartTx || ETF_bStartRx){
+		
+		if(ETF_bStartTx){
+			atbm_internal_stop_tx(hw_priv);
+			msleep(500);
+		}else{
+			atbm_printk_err("Error! already start_tx, please stop_rx first!\n");
+			return 0;
+		}
+		
+	}
+	
+	channel = tx_param->channel;
+	band_value = tx_param->rate;
+	is_40M = tx_param->is_40M;
+	len = tx_param->pktlen;
+	greedfiled = tx_param->greedfiled;
+	
+	//check rate 
+		switch(band_value){
+			case 10: rate = WSM_TRANSMIT_RATE_1;
+			break;
+			case 20: rate = WSM_TRANSMIT_RATE_2;
+			break;
+			case 55: rate = WSM_TRANSMIT_RATE_5;
+			break;
+			case 110: rate = WSM_TRANSMIT_RATE_11;
+			break;
+			case 60: rate = WSM_TRANSMIT_RATE_6;
+			break;
+			case 90: rate = WSM_TRANSMIT_RATE_9;
+			break;
+			case 120: rate = WSM_TRANSMIT_RATE_12;
+			break;
+			case 180: rate = WSM_TRANSMIT_RATE_18;
+			break;
+			case 240: rate = WSM_TRANSMIT_RATE_24;
+			break;
+			case 360: rate = WSM_TRANSMIT_RATE_36;
+			break;
+			case 480: rate = WSM_TRANSMIT_RATE_48;
+			break;
+			case 540: rate = WSM_TRANSMIT_RATE_54;
+			break;
+			case 65: rate = WSM_TRANSMIT_RATE_HT_6;
+			break;
+			case 130: rate = WSM_TRANSMIT_RATE_HT_13;
+			break;
+			case 195: rate = WSM_TRANSMIT_RATE_HT_19;
+			break;
+			case 260: rate = WSM_TRANSMIT_RATE_HT_26;
+			break;
+			case 390: rate = WSM_TRANSMIT_RATE_HT_39;
+			break;
+			case 520: rate = WSM_TRANSMIT_RATE_HT_52;
+			break;
+			case 585: rate = WSM_TRANSMIT_RATE_HT_58;
+			break;
+			case 650: rate = WSM_TRANSMIT_RATE_HT_65;
+			break;
+			default:
+				atbm_printk_err("invalid rate!\n");
+				return -EINVAL;
+				
+		}
+
+	if((is_40M == 1 )&& (rate < WSM_TRANSMIT_RATE_HT_6)){
+		atbm_printk_err("invalid 40M rate\n");
+		return -EINVAL;
+	}	
+	if((is_40M == 1 )&& ((channel < 3)||(channel > 11))){
+		atbm_printk_err("invalid 40M rate,channel value range:3~11\n");
+		return -EINVAL;
+	}
+
+	if((is_40M == 1 )&&(hw_priv->chip_version == ARES_6012B) ){
+		atbm_printk_err("invalid 40M rate,current chip is not support HT40!!\n");
+		return -EINVAL;
+
+	}
+
+	
+	if(len == 99999){
+		ucWriteEfuseFlag = 1;
+		etf_v2 = 1;	
+		len = hw_priv->etf_len = 1000; 
+	}else if(len == 99998)
+	{
+		ucWriteEfuseFlag = 0;
+		etf_v2 = 1;	
+		len = hw_priv->etf_len = 1000; 
+	}
+	//Prevent USB from being unplugged suddenly in product testing
+	//11b 100% duty cycle
+	if((rate <= WSM_TRANSMIT_RATE_11)&&(len == 0))
+	{
+		len = 1000;
+		if(is_40M == 1){
+			is_40M = NL80211_CHAN_HT40PLUS;//
+			channel -= 2;
+		}
+
+		hw_priv->etf_channel = channel;
+		hw_priv->etf_channel_type = is_40M;
+		hw_priv->etf_rate = rate;
+		hw_priv->etf_len = len; 
+		hw_priv->etf_greedfiled = greedfiled;
+		
+		atbm_for_each_vif(hw_priv,vif,i){
+			if((vif != NULL)){
+				atbm_printk_wext("*******\n");
+				down(&hw_priv->scan.lock);
+				WARN_ON(wsm_write_mib(hw_priv, WSM_MIB_ID_DBG_PRINT_TO_HOST,
+					&ucDbgPrintOpenFlag, sizeof(ucDbgPrintOpenFlag), vif->if_id));
+				mutex_lock(&hw_priv->conf_mutex);				
+				ETF_bStartTx = 1;
+				mutex_unlock(&hw_priv->conf_mutex);
+				if(wsm_start_tx(hw_priv, vif->vif) != 0){
+					up(&hw_priv->scan.lock);
+					atbm_printk_err("%s:%d,wsm_start_tx error\n", __func__, __LINE__);
+					goto _exit;
+				}
+				msleep(1000);
+				wsm_oper_unlock(hw_priv);
+				wsm_stop_tx(hw_priv);
+				wsm_stop_scan(hw_priv,i);
+				if(atbm_hw_cancel_delayed_work(&hw_priv->scan.timeout,true))
+					atbm_scan_timeout(&hw_priv->scan.timeout.work);
+				//up(&hw_priv->scan.lock);
+				msleep(1000);
+				hw_priv->etf_rate = 5;
+				if(wsm_start_tx(hw_priv, vif->vif) != 0){
+					up(&hw_priv->scan.lock);
+					atbm_printk_err("%s:%d,wsm_start_tx error\n", __func__, __LINE__);
+					goto _exit;
+				}
+			}
+			break;
+		}
+	}
+	else{
+		//check len
+		if(len < 200 || len > 1024){
+			atbm_printk_err("len:%d\n", len);
+			atbm_printk_err("invalid len!\n");
+			
+			return -EINVAL;
+		}
+		if(is_40M == 1){
+			is_40M = NL80211_CHAN_HT40PLUS;//
+			channel -= 2;
+		}
+
+		atbm_printk_wext("NL80211_CHAN_HT40PLUS:%d\n", NL80211_CHAN_HT40PLUS);
+
+		//printk("%d, %d, %d, %d\n", channel, rate, len, is_40M);
+		hw_priv->etf_channel = channel;
+		hw_priv->etf_channel_type = is_40M;
+		hw_priv->etf_rate = rate;
+		hw_priv->etf_len = len; 
+		hw_priv->etf_greedfiled = greedfiled;
+		
+		atbm_for_each_vif(hw_priv,vif,i){
+			if((vif != NULL)){
+				atbm_printk_wext("*******\n");
+
+				down(&hw_priv->scan.lock);
+		
+				if(!etf_v2)
+				{
+					WARN_ON(wsm_write_mib(hw_priv, WSM_MIB_ID_DBG_PRINT_TO_HOST,
+						&ucDbgPrintOpenFlag, sizeof(ucDbgPrintOpenFlag), vif->if_id));
+				}
+				mutex_lock(&hw_priv->conf_mutex);
+				
+				if(etf_v2){
+					atbm_test_rx_cnt = 0;
+					txevm_total = 0;
+					if(etf_v2)
+					{
+						hw_priv->bStartTx = 1;
+						hw_priv->bStartTxWantCancel = 1;
+						hw_priv->etf_test_v2 =1;
+					}
+					if(tx_param->threshold_param)
+						etf_PT_test_config(tx_param->threshold_param);
+					else
+						atbm_printk_err("ERROR !!!!!!! tx_param->threshold_param is NULL!!!!");
+					if(chipversion == 0x49)
+						GetChipCrystalType(hw_priv);
+				
+					if(wsm_start_tx_v2(hw_priv, vif->vif) != 0)
+					{
+						up(&hw_priv->scan.lock);
+						atbm_printk_err("%s:%d,wsm_start_tx_v2 error\n", __func__, __LINE__);
+					}
+				}
+				else
+				{
+					ETF_bStartTx = 1;
+					if(wsm_start_tx(hw_priv, vif->vif) != 0)
+					{
+						up(&hw_priv->scan.lock);
+						atbm_printk_err("%s:%d,wsm_start_tx error\n", __func__, __LINE__);
+					}
+				}
+				mutex_unlock(&hw_priv->conf_mutex);
+				break;
+			}
+		}
+	}
+_exit:
+	return 0;
+
+}
+
+
+int atbm_internal_stop_tx(struct atbm_common *hw_priv)
+{
+	int i = 0;
+	struct atbm_vif *vif;
+	
+	msleep(500);
+	if(0 == ETF_bStartTx){
+		atbm_printk_err("please start start_rx first,then stop_rx\n");
+		return -EINVAL;
+	}
+
+	mutex_lock(&hw_priv->conf_mutex);
+	ETF_bStartTx = 0;
+	mutex_unlock(&hw_priv->conf_mutex);
+	//./iwpriv wlan0 fwdbg 0
+	
+	atbm_for_each_vif(hw_priv,vif,i){
+		if((vif != NULL)){
+			
+//			wsm_oper_unlock(hw_priv);
+			wsm_stop_tx(hw_priv);
+			wsm_stop_scan(hw_priv,i);
+			if(atbm_hw_cancel_delayed_work(&hw_priv->scan.timeout,true))
+				atbm_scan_timeout(&hw_priv->scan.timeout.work);
+			if (unlikely(down_trylock(&hw_priv->scan.lock))){
+			}
+			up(&hw_priv->scan.lock);
+			break;
+		}
+	}
+	
+	//printk("%s %d\n", __FUNCTION__, __LINE__)
+	return 0;
+}
+
+int atbm_internal_start_rx(struct atbm_common *hw_priv,int channel,int is_40M)
+{	
+	int i = 0;
+	char cmd[20] = "monitor 1 ";
+	u8 ucDbgPrintOpenFlag = 1;
+	struct atbm_vif *vif;
+
+		
+	if(ETF_bStartTx || ETF_bStartRx){
+			if(ETF_bStartRx){
+				atbm_printk_err("start rx : %s ,stop now and change chan[%d],is_40M[%d]\n",ch_and_type,channel,is_40M);
+				atbm_internal_stop_rx(hw_priv,NULL);
+				msleep(500);
+			}else{
+				atbm_printk_err("Error! already ETF_bStartRx, please stop_tx first!\n");
+				return 0;
+			}
+		}
+	
+	if((is_40M == 1 )&& ((channel == 1)||(channel > 11))){
+	
+		atbm_printk_err("invalid 40M rate\n");
+		return -EINVAL;
+	}
+	if((is_40M == 1 )&&(hw_priv->chip_version == ARES_6012B) ){
+		atbm_printk_err("invalid 40M rate,current chip is not support HT40!!\n");
+	
+		return -EINVAL;
+	}
+	
+	atbm_for_each_vif(hw_priv,vif,i){
+		if (vif != NULL)
+		{
+			WARN_ON(wsm_write_mib(hw_priv, WSM_MIB_ID_DBG_PRINT_TO_HOST,
+				&ucDbgPrintOpenFlag, sizeof(ucDbgPrintOpenFlag), vif->if_id));
+			break;
+		}
+	}
+	sprintf(cmd,"monitor 1 %d %d",channel,is_40M);
+	memset(ch_and_type, 0, 20);
+	//memcpy(ch_and_type, extra, wrqu->data.length);
+	sprintf(ch_and_type,"%d %d",channel,is_40M);
+//	memcpy(cmd+10, extra, wrqu->data.length);
+	
+	atbm_printk_err("CMD:%s\n", cmd);
+	i = 0;
+	atbm_for_each_vif(hw_priv,vif,i){
+		if (vif != NULL)
+		{
+			ETF_bStartRx = 1;
+			
+			WARN_ON(wsm_write_mib(hw_priv, WSM_MIB_ID_FW_CMD,
+				cmd, strlen(cmd)+1, vif->if_id));
+			break;
+		}
+	}	
+	return 0;
+}
+
+int atbm_internal_stop_rx(struct atbm_common *hw_priv,fixed_freq_rx_data *rx_data)
+{
+	int i = 0;
+	int ret = 0;
+	char cmd[20] = "monitor 0 ";
+	u8 ucDbgPrintOpenFlag = 0;
+	u32 rx_status[3] = {0,0,0};
+	u8 *status = NULL;
+	int len = 0;
+	struct atbm_vif *vif;
+	if((0 == ETF_bStartRx) || (NULL == ch_and_type)){
+		atbm_printk_err("please start start_rx first,then stop_rx\n");
+		return -EINVAL;
+	}
+	
+	ETF_bStartRx = 0;
+	
+	ret = wsm_read_shmem(hw_priv,(u32)RX_STATUS_ADDR,rx_status,sizeof(rx_status));
+
+	if(ret != 0){
+		ret = -EINVAL;
+		goto exit;
+	}
+	if(rx_data){
+		if(rx_data->status_data == NULL){
+			status = atbm_kzalloc(512,GFP_KERNEL);
+		}else
+			status = rx_data->status_data;
+	}else{
+		status = atbm_kzalloc(512,GFP_KERNEL);
+	}
+	
+	if(status == NULL){
+		ret = -ENOMEM;
+		goto exit;
+	}
+	memset(status,0,512);
+	
+	len = scnprintf(status,512,"rxSuccess:%d, FcsErr:%d, PlcpErr:%d\n",
+	rx_status[0]-rx_status[1],rx_status[1],rx_status[2]);
+	if(rx_data){
+		memcpy(rx_data->status_data,status,512);
+		rx_data->len = len;
+	}
+	memcpy(cmd+10, ch_and_type, strlen(ch_and_type));
+	//printk("cmd %s\n", cmd);
+	atbm_printk_always("%s:%s\n",__func__,status);
+	i = 0;
+	atbm_for_each_vif(hw_priv,vif,i){
+		if (vif != NULL)
+		{
+			WARN_ON(wsm_write_mib(hw_priv, WSM_MIB_ID_FW_CMD,
+				cmd, 13, vif->if_id));
+			break;
+		}
+	}
+
+	atbm_for_each_vif(hw_priv,vif,i){
+		if (vif != NULL)
+		{
+			WARN_ON(wsm_write_mib(hw_priv, WSM_MIB_ID_DBG_PRINT_TO_HOST,
+				&ucDbgPrintOpenFlag, sizeof(ucDbgPrintOpenFlag), vif->if_id));
+			break;
+		}
+	}
+	ret = 0;
+exit:
+	if(rx_data == NULL && status){
+		atbm_printk_err("%s : release status! \n",__func__);
+		atbm_kfree(status);
+	}
+	return ret;
+}
+
+

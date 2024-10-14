@@ -412,12 +412,14 @@ static bool ieee80211_need_brigde(struct ieee80211_local *local)
 		rcu_read_unlock();
 #endif  // (LINUX_VERSION_CODE <= KERNEL_VERSION(2, 6, 35))
 
-		if(br_port)
+		if(br_port){
 			n_brports++;
+			break;
+		}
 	}	
 	rcu_read_unlock();
 
-	return n_brports>=2?true:false;
+	return n_brports>0?true:false;
 }
 #endif
 static int ieee80211_brigde_network_find_and_replace(struct ieee80211_sub_if_data *sdata,
@@ -831,9 +833,9 @@ struct ieee80211_sub_if_data *ieee80211_brigde_sdata_check(struct ieee80211_loca
 	struct ieee80211_sub_if_data *sta_sdata = NULL;
 	struct ieee80211_sub_if_data *temp_sdata = NULL;
 	struct NETWIFI_S_BRIDGE *br0_priv = NULL;
-	
+
 	rcu_read_lock();
-	
+
 	if(memcmp(ehdr->h_dest,ehdr->h_source,ETH_ALEN)){
 		goto exit_rcu;
 	}

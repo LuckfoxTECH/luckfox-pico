@@ -48,16 +48,16 @@ jpege_proc_show:
 	str	r3, [sp]
 	ldr	r3, .L2+32
 	bl	seq_printf
-	ldr	r3, [r4, #588]
+	ldr	r3, [r4, #612]
 	mov	r2, r6
 	ldr	r1, .L2+36
 	mov	r0, r5
 	str	r3, [sp, #16]
-	ldr	r3, [r4, #584]
+	ldr	r3, [r4, #608]
 	str	r3, [sp, #12]
-	ldr	r3, [r4, #580]
+	ldr	r3, [r4, #604]
 	str	r3, [sp, #8]
-	ldr	r3, [r4, #576]
+	ldr	r3, [r4, #600]
 	str	r3, [sp, #4]
 	ldr	r3, [r4, #16]
 	str	r3, [sp]
@@ -501,22 +501,22 @@ jpege_proc_hal:
 	mov	r0, r9
 	bl	mpp_frame_get_offset_y
 	str	r0, [r4, #48]
-	ldr	r3, [r5, #576]
+	ldr	r3, [r5, #600]
 	str	r3, [r4, #52]
-	ldr	r3, [r5, #580]
+	ldr	r3, [r5, #604]
 	str	r3, [r4, #56]
-	ldr	r3, [r5, #588]
+	ldr	r3, [r5, #612]
 	str	r3, [r4, #60]
-	ldr	r3, [r5, #584]
+	ldr	r3, [r5, #608]
 	str	r3, [r4, #64]
-	ldr	r3, [r5, #592]
+	ldr	r3, [r5, #616]
 	str	r3, [r4, #68]
-	ldr	r3, [r5, #596]
+	ldr	r3, [r5, #620]
 	str	r3, [r4, #72]
 	movs	r3, #0
 	strd	r3, r3, [r4, #136]
 	str	r3, [r4, #132]
-	ldr	r2, [r5, #3404]
+	ldr	r2, [r5, #3432]
 	cbz	r2, .L66
 	ldr	r3, [r5, #16]
 	cmp	r2, #2
@@ -524,7 +524,7 @@ jpege_proc_hal:
 	asr	r9, r3, #4
 	bne	.L67
 	ldr	r1, [r5, #12]
-	ldr	r3, [r5, #3408]
+	ldr	r3, [r5, #3436]
 	adds	r1, r1, #15
 	asrs	r1, r1, #4
 	mul	r2, r1, r9
@@ -615,26 +615,26 @@ jpege_deinit_v2:
 	ldr	r0, .L109+8
 	bl	printk
 .L89:
-	ldr	r1, [r4, #592]
+	ldr	r1, [r4, #616]
 	cbz	r1, .L90
 	ldr	r0, .L109+12
 	bl	mpp_osal_free
 .L90:
-	ldr	r1, [r4, #596]
+	ldr	r1, [r4, #620]
 	movs	r5, #0
-	str	r5, [r4, #592]
+	str	r5, [r4, #616]
 	cbz	r1, .L91
 	ldr	r0, .L109+12
 	bl	mpp_osal_free
 .L91:
-	ldr	r1, [r4, #600]
-	str	r5, [r4, #596]
+	ldr	r1, [r4, #624]
+	str	r5, [r4, #620]
 	cbz	r1, .L92
 	ldr	r0, .L109+12
 	bl	mpp_osal_free
 .L92:
 	movs	r3, #0
-	str	r3, [r4, #600]
+	str	r3, [r4, #624]
 	ldr	r3, [r7]
 	lsls	r3, r3, #31
 	bpl	.L93
@@ -694,7 +694,7 @@ jpege_init_v2:
 	str	r2, [r3, #108]
 	movs	r2, #10
 	strd	r0, r1, [r3, #144]
-	str	r2, [r3, #576]
+	str	r2, [r3, #600]
 	ldr	r3, [r6]
 	lsls	r3, r3, #31
 	bpl	.L113
@@ -733,7 +733,7 @@ _copy_from_user.constprop.1:
 	bic	r3, r3, #31
 	ldr	r3, [r3, #8]
 	.syntax unified
-@ 157 "./include/linux/uaccess.h" 1
+@ 157 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/include/linux/uaccess.h" 1
 	.syntax unified
 adds r2, r1, #64; sbcscc r2, r2, r3; movcc r3, #0
 @ 0 "" 2
@@ -1154,31 +1154,31 @@ jpege_proc_cfg:
 	str	r3, [r5, #8]
 	mov	r4, r0
 .L209:
-	ldr	r3, [r5, #572]
+	ldr	r3, [r5, #596]
 	cbz	r3, .L210
 	add	r2, r7, #104
-	add	r1, r5, #572
-	add	r0, r7, #572
+	add	r1, r5, #596
+	add	r0, r7, #596
 	bl	jpege_proc_jpeg_cfg
 	movs	r3, #0
-	str	r3, [r5, #572]
+	str	r3, [r5, #596]
 	orrs	r4, r4, r0
 .L210:
-	ldr	r3, [r5, #3400]
+	ldr	r3, [r5, #3428]
 	cbz	r3, .L202
 	lsls	r1, r3, #31
 	itttt	mi
-	ldrmi	r2, [r5, #3404]
-	strmi	r2, [r7, #3404]
-	ldrmi	r2, [r5, #3408]
-	strmi	r2, [r7, #3408]
+	ldrmi	r2, [r5, #3432]
+	strmi	r2, [r7, #3432]
+	ldrmi	r2, [r5, #3436]
+	strmi	r2, [r7, #3436]
 	lsls	r2, r3, #30
 	itt	mi
-	ldrmi	r3, [r5, #3408]
-	strmi	r3, [r7, #3408]
+	ldrmi	r3, [r5, #3436]
+	strmi	r3, [r7, #3436]
 	movs	r3, #0
-	str	r3, [r7, #3400]
-	str	r3, [r5, #3400]
+	str	r3, [r7, #3428]
+	str	r3, [r5, #3428]
 .L202:
 	ldr	r3, [r6]
 	lsls	r3, r3, #31
@@ -1203,7 +1203,7 @@ jpege_proc_cfg:
 .L205:
 	add	r2, r7, #104
 	adds	r1, r5, #4
-	add	r0, r7, #572
+	add	r0, r7, #596
 	bl	jpege_proc_jpeg_cfg
 	b	.L236
 .L238:
@@ -1226,45 +1226,45 @@ jpege_proc_cfg:
 	.section	.rodata
 	.align	2
 	.set	.LANCHOR0,. + 0
-	.type	__FUNCTION__.25965, %object
-	.size	__FUNCTION__.25965, 20
-__FUNCTION__.25965:
+	.type	__FUNCTION__.26071, %object
+	.size	__FUNCTION__.26071, 20
+__FUNCTION__.26071:
 	.ascii	"jpege_proc_prep_cfg\000"
-	.type	__func__.25969, %object
-	.size	__func__.25969, 20
-__func__.25969:
+	.type	__func__.26075, %object
+	.size	__func__.26075, 20
+__func__.26075:
 	.ascii	"jpege_proc_prep_cfg\000"
-	.type	__func__.26069, %object
-	.size	__func__.26069, 17
-__func__.26069:
+	.type	__func__.26175, %object
+	.size	__func__.26175, 17
+__func__.26175:
 	.ascii	"jpege_add_Prefix\000"
-	.type	__func__.26048, %object
-	.size	__func__.26048, 15
-__func__.26048:
+	.type	__func__.26154, %object
+	.size	__func__.26154, 15
+__func__.26154:
 	.ascii	"jpege_proc_hal\000"
-	.type	__func__.25957, %object
-	.size	__func__.25957, 16
-__func__.25957:
+	.type	__func__.26063, %object
+	.size	__func__.26063, 16
+__func__.26063:
 	.ascii	"jpege_deinit_v2\000"
-	.type	__FUNCTION__.25958, %object
-	.size	__FUNCTION__.25958, 16
-__FUNCTION__.25958:
+	.type	__FUNCTION__.26064, %object
+	.size	__FUNCTION__.26064, 16
+__FUNCTION__.26064:
 	.ascii	"jpege_deinit_v2\000"
-	.type	__func__.25946, %object
-	.size	__func__.25946, 14
-__func__.25946:
+	.type	__func__.26052, %object
+	.size	__func__.26052, 14
+__func__.26052:
 	.ascii	"jpege_init_v2\000"
-	.type	__func__.25995, %object
-	.size	__func__.25995, 20
-__func__.25995:
+	.type	__func__.26101, %object
+	.size	__func__.26101, 20
+__func__.26101:
 	.ascii	"jpege_proc_jpeg_cfg\000"
-	.type	__FUNCTION__.25980, %object
-	.size	__FUNCTION__.25980, 24
-__FUNCTION__.25980:
+	.type	__FUNCTION__.26086, %object
+	.size	__FUNCTION__.26086, 24
+__FUNCTION__.26086:
 	.ascii	"jpege_gen_qt_by_qfactor\000"
-	.type	__func__.25981, %object
-	.size	__func__.25981, 24
-__func__.25981:
+	.type	__func__.26087, %object
+	.size	__func__.26087, 24
+__func__.26087:
 	.ascii	"jpege_gen_qt_by_qfactor\000"
 	.type	jpege_luma_quantizer, %object
 	.size	jpege_luma_quantizer, 64
@@ -1400,13 +1400,13 @@ jpege_chroma_quantizer:
 	.byte	99
 	.byte	99
 	.byte	99
-	.type	__FUNCTION__.25996, %object
-	.size	__FUNCTION__.25996, 20
-__FUNCTION__.25996:
+	.type	__FUNCTION__.26102, %object
+	.size	__FUNCTION__.26102, 20
+__FUNCTION__.26102:
 	.ascii	"jpege_proc_jpeg_cfg\000"
-	.type	__func__.26011, %object
-	.size	__func__.26011, 15
-__func__.26011:
+	.type	__func__.26117, %object
+	.size	__func__.26117, 15
+__func__.26117:
 	.ascii	"jpege_proc_cfg\000"
 	.space	3
 	.type	api_jpege, %object
@@ -1443,7 +1443,7 @@ jpege_debug:
 .LC2:
 	.ascii	"ID\000"
 .LC3:
-	.ascii	"%7s%10s%10s%10s%10s%10s%10s\012\000"
+	.ascii	"%7s|%10s|%10s|%10s|%10s|%10s|%10s\012\000"
 .LC4:
 	.ascii	"qfmin\000"
 .LC5:
@@ -1455,7 +1455,7 @@ jpege_debug:
 .LC8:
 	.ascii	"Height\000"
 .LC9:
-	.ascii	"%7d%10u%10u%10u%10u%10u%10u\012\000"
+	.ascii	"%7d|%10u|%10u|%10u|%10u|%10u|%10u\012\000"
 .LC10:
 	.ascii	"change\000"
 .LC11:

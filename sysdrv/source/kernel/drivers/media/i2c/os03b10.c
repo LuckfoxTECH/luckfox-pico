@@ -146,6 +146,7 @@ struct os03b10 {
 	struct v4l2_ctrl	*pixel_rate;
 	struct v4l2_ctrl	*link_freq;
 	struct mutex		mutex;
+	struct v4l2_fract	cur_fps;
 	bool			streaming;
 	bool			power_on;
 	const struct os03b10_mode *cur_mode;
@@ -154,12 +155,152 @@ struct os03b10 {
 	const char		*module_facing;
 	const char		*module_name;
 	const char		*len_name;
+	u32			cur_vts;
 	bool			has_init_exp;
+	bool			is_thunderboot;
+	bool			is_first_streamoff;
 	struct preisp_hdrae_exp_s init_hdrae_exp;
 	u8			flip;
 };
 
 #define to_os03b10(sd) container_of(sd, struct os03b10, subdev)
+
+/*
+ * Xclk 24Mhz
+ * max_framerate 60fps
+ * mipi_datarate per lane 270Mbps, 2lane
+ * raw 10
+ * 1152X648_2x2_binning
+ */
+static const struct regval os03b10_linear10bit_1152x648_regs[] = {
+	{0xfd, 0x00},
+	{0x20, 0x00},
+	{REG_DELAY, 0x05},
+	{0xfd, 0x00},
+	{0xfd, 0x00},
+	{0x36, 0x01},
+	{0xfd, 0x00},
+	{0x2e, 0x2d},
+	{0x2f, 0x01},
+	{0x30, 0x02},
+	{0x31, 0x90},
+	{0x41, 0x12},
+	{0x36, 0x00},
+	{0xfd, 0x00},
+	{0xfd, 0x00},
+	{0x44, 0x40},
+	{0x38, 0x21},
+	{0x45, 0x04},
+	{0xfd, 0x01},
+	{0x03, 0x00},
+	{0x04, 0x04},
+	{0x06, 0x00},
+	{0x24, 0xff},
+	{0x01, 0x01},
+	{0x18, 0x2f},
+	{0x1a, 0x06},
+	{0x19, 0x58},
+	{0x1b, 0x3c},
+	{0x2e, 0x03},
+	{0x2f, 0x02},
+	{0x30, 0x5f},
+	{0x3c, 0xca},
+	{0x31, 0x0c},
+	{0xfd, 0x03},
+	{0x01, 0x0e},
+	{0xfd, 0x01},
+	{0x51, 0x0e},
+	{0x52, 0x04},
+	{0x57, 0x0b},
+	{0x5a, 0xdd},
+	{0x66, 0xd0},
+	{0x6e, 0x26},
+	{0x71, 0x80},
+	{0x73, 0x2b},
+	{0xb8, 0x1c},
+	{0xb9, 0x22},
+	{0xba, 0x22},
+	{0xd0, 0x21},
+	{0xd2, 0x8f},
+	{0xd3, 0x1a},
+	{0xd4, 0x20},
+	{0xd5, 0x20},
+	{0xfd, 0x01},
+	{0xbd, 0x00},
+	{0xd7, 0xad},
+	{0xd8, 0xef},
+	{0xe8, 0x0a},
+	{0xe9, 0x05},
+	{0xea, 0x08},
+	{0xeb, 0x07},
+	{0xfd, 0x03},
+	{0x00, 0x53},
+	{0x03, 0xcd},
+	{0x06, 0x07},
+	{0x07, 0x78},
+	{0x08, 0x36},
+	{0x09, 0x28},
+	{0x0a, 0x0d},
+	{0x0b, 0x06},
+	{0x0f, 0x13},
+	{0xfd, 0x01},
+	{0x1d, 0x08},
+	{0x1e, 0x18},
+	{0x1f, 0x30},
+	{0x20, 0x5c},
+	{0xbc, 0x00},
+	{0xfd, 0x03},
+	{0x02, 0x00},
+	{0x05, 0x18},
+	{0xfd, 0x02},
+	{0x5e, 0x22},
+	{0x34, 0x80},
+	{0xa0, 0x00},
+	{0xa1, 0x02},
+	{0xa2, 0x02},
+	{0xa3, 0x88},
+	{0xa4, 0x00},
+	{0xa5, 0x02},
+	{0xa6, 0x04},
+	{0xa7, 0x80},
+	{0xfd, 0x01},
+	{0xf0, 0x40},
+	{0xf1, 0x40},
+	{0xf2, 0x40},
+	{0xf3, 0x40},
+	{0xfa, 0x5c},
+	{0xfb, 0x6b},
+	{0xf6, 0x00},
+	{0xf7, 0xc0},
+	{0xfc, 0x00},
+	{0xfe, 0xc0},
+	{0xff, 0xcc},
+	{0xc4, 0x70},
+	{0xc5, 0x70},
+	{0xc6, 0x70},
+	{0xc7, 0x70},
+	{0xfd, 0x01},
+	{0xb1, 0x01},
+	{0xce, 0x5c},
+	{0x8e, 0x04},
+	{0x8f, 0x80},
+	{0x90, 0x02},
+	{0x91, 0x88},
+	{0x92, 0x19},
+	{0x94, 0x44},
+	{0x95, 0x44},
+	{0x98, 0x55},
+	{0x9d, 0x03},
+	{0x9e, 0x5f},
+	{0xa1, 0x01},
+	{0xa4, 0x13},
+	{0xa5, 0xff},
+	{0xa6, 0xff},
+	{0xb1, 0x03},
+	{0x01, 0x02},
+	{0x14, 0x03},
+	{REG_NULL, 0x00},
+};
 
 static const struct regval os03b10_linear10bit_2304x1296_regs[] = {
 	{0xfd, 0x00},
@@ -302,6 +443,21 @@ static const struct os03b10_mode supported_modes[] = {
 		.hdr_mode = NO_HDR,
 		.vc[PAD0] = V4L2_MBUS_CSI2_CHANNEL_0,
 	},
+	{
+		.bus_fmt = MEDIA_BUS_FMT_SBGGR10_1X10,
+		.width = 1152,
+		.height = 648,
+		.max_fps = {
+			.numerator = 10000,
+			.denominator = 600000,
+		},
+		.exp_def = 0x044c,
+		.hts_def = 0x054c,
+		.vts_def = 0x0297,
+		.reg_list = os03b10_linear10bit_1152x648_regs,
+		.hdr_mode = NO_HDR,
+		.vc[PAD0] = V4L2_MBUS_CSI2_CHANNEL_0,
+	},
 };
 
 static const s64 link_freq_menu_items[] = {
@@ -420,8 +576,6 @@ static int os03b10_set_fmt(struct v4l2_subdev *sd,
 	struct os03b10 *os03b10 = to_os03b10(sd);
 	const struct os03b10_mode *mode;
 	s64 h_blank, vblank_def;
-	u64 dst_link_freq = 0;
-	u64 dst_pixel_rate = 0;
 
 	mutex_lock(&os03b10->mutex);
 
@@ -447,16 +601,7 @@ static int os03b10_set_fmt(struct v4l2_subdev *sd,
 		__v4l2_ctrl_modify_range(os03b10->vblank, vblank_def,
 					 OS03B10_VTS_MAX - mode->height,
 					 1, vblank_def);
-		if (mode->hdr_mode == NO_HDR) {
-			if (mode->bus_fmt == MEDIA_BUS_FMT_SBGGR10_1X10) {
-				dst_link_freq = 0;
-				dst_pixel_rate = PIXEL_RATE_WITH_270M;
-			}
-		}
-		__v4l2_ctrl_s_ctrl_int64(os03b10->pixel_rate,
-					 dst_pixel_rate);
-		__v4l2_ctrl_s_ctrl(os03b10->link_freq,
-					   dst_link_freq);
+		os03b10->cur_fps = mode->max_fps;
 	}
 
 	mutex_unlock(&os03b10->mutex);
@@ -533,9 +678,10 @@ static int os03b10_g_frame_interval(struct v4l2_subdev *sd,
 	struct os03b10 *os03b10 = to_os03b10(sd);
 	const struct os03b10_mode *mode = os03b10->cur_mode;
 
-	mutex_lock(&os03b10->mutex);
-	fi->interval = mode->max_fps;
-	mutex_unlock(&os03b10->mutex);
+	if (os03b10->streaming)
+		fi->interval = os03b10->cur_fps;
+	else
+		fi->interval = mode->max_fps;
 
 	return 0;
 }
@@ -677,28 +823,28 @@ static long os03b10_compat_ioctl32(struct v4l2_subdev *sd,
 static int __os03b10_start_stream(struct os03b10 *os03b10)
 {
 	int ret = 0;
-
-	ret |= os03b10_write_array(os03b10->client, os03b10->cur_mode->reg_list);
-	if (ret) {
-		dev_err(&os03b10->client->dev,
-			"write array failed in start stream\n");
-		return ret;
-	}
-
-	/* In case these controls are set before streaming */
-	ret = __v4l2_ctrl_handler_setup(&os03b10->ctrl_handler);
-	if (ret)
-		return ret;
-	if (os03b10->has_init_exp && os03b10->cur_mode->hdr_mode != NO_HDR) {
-		ret = os03b10_ioctl(&os03b10->subdev, PREISP_CMD_SET_HDRAE_EXP,
-				    &os03b10->init_hdrae_exp);
+	if (!os03b10->is_thunderboot) {
+		ret |= os03b10_write_array(os03b10->client, os03b10->cur_mode->reg_list);
 		if (ret) {
 			dev_err(&os03b10->client->dev,
-				"init exp fail in hdr mode\n");
+				"write array failed in start stream\n");
 			return ret;
 		}
-	}
 
+		/* In case these controls are set before streaming */
+		ret = __v4l2_ctrl_handler_setup(&os03b10->ctrl_handler);
+		if (ret)
+			return ret;
+		if (os03b10->has_init_exp && os03b10->cur_mode->hdr_mode != NO_HDR) {
+			ret = os03b10_ioctl(&os03b10->subdev, PREISP_CMD_SET_HDRAE_EXP,
+					    &os03b10->init_hdrae_exp);
+			if (ret) {
+				dev_err(&os03b10->client->dev,
+					"init exp fail in hdr mode\n");
+				return ret;
+			}
+		}
+	}
 	ret |= os03b10_write_reg(os03b10->client, OS03B10_REG_PAGE_SELECT, 0x01);
 	ret |= os03b10_write_reg(os03b10->client, OS03B10_REG_CTRL_MODE,
 				 OS03B10_MODE_STREAMING);
@@ -709,10 +855,15 @@ static int __os03b10_start_stream(struct os03b10 *os03b10)
 static int __os03b10_stop_stream(struct os03b10 *os03b10)
 {
 	os03b10->has_init_exp = false;
+	if (os03b10->is_thunderboot) {
+		os03b10->is_first_streamoff = true;
+		pm_runtime_put(&os03b10->client->dev);
+	}
 	return os03b10_write_reg(os03b10->client, OS03B10_REG_CTRL_MODE,
 				 OS03B10_MODE_SW_STANDBY);
 }
 
+static int __os03b10_power_on(struct os03b10 *os03b10);
 static int os03b10_s_stream(struct v4l2_subdev *sd, int on)
 {
 	struct os03b10 *os03b10 = to_os03b10(sd);
@@ -725,6 +876,10 @@ static int os03b10_s_stream(struct v4l2_subdev *sd, int on)
 		goto unlock_and_return;
 
 	if (on) {
+		if (os03b10->is_thunderboot && rkisp_tb_get_state() == RKISP_TB_NG) {
+			os03b10->is_thunderboot = false;
+			__os03b10_power_on(os03b10);
+		}
 		ret = pm_runtime_get_sync(&client->dev);
 		if (ret < 0) {
 			pm_runtime_put_noidle(&client->dev);
@@ -768,11 +923,17 @@ static int os03b10_s_power(struct v4l2_subdev *sd, int on)
 			pm_runtime_put_noidle(&client->dev);
 			goto unlock_and_return;
 		}
-
-		ret |= os03b10_write_reg(os03b10->client,
-					 OS03B10_REG_SOFTWARE_RESET,
-					 OS03B10_SOFTWARE_RESET_VAL);
-		usleep_range(100, 200);
+		if (!os03b10->is_thunderboot) {
+			ret |= os03b10_write_reg(os03b10->client,
+						 OS03B10_REG_SOFTWARE_RESET,
+						 OS03B10_SOFTWARE_RESET_VAL);
+			if (ret) {
+				v4l2_err(sd, "could not set init registers\n");
+				pm_runtime_put_noidle(&client->dev);
+				goto unlock_and_return;
+			}
+			usleep_range(100, 200);
+		}
 
 		os03b10->power_on = true;
 	} else {
@@ -807,6 +968,9 @@ static int __os03b10_power_on(struct os03b10 *os03b10)
 		dev_err(dev, "Failed to enable xvclk\n");
 		return ret;
 	}
+
+	if (os03b10->is_thunderboot)
+		return 0;
 
 	if (!IS_ERR(os03b10->pwdn_gpio))
 		gpiod_direction_output(os03b10->pwdn_gpio, 0);
@@ -844,6 +1008,15 @@ static void __os03b10_power_off(struct os03b10 *os03b10)
 {
 	int ret;
 	struct device *dev = &os03b10->client->dev;
+
+	if (os03b10->is_thunderboot) {
+		if (os03b10->is_first_streamoff) {
+			os03b10->is_thunderboot = false;
+			os03b10->is_first_streamoff = false;
+		} else {
+			return;
+		}
+	}
 
 	if (!IS_ERR(os03b10->pwdn_gpio))
 		gpiod_direction_output(os03b10->pwdn_gpio, 0);
@@ -990,6 +1163,14 @@ static void os03b10_get_gain_reg(u32 total_gain, u32 *again, u32 *dgain)
 	}
 }
 
+static void os03b10_modify_fps_info(struct os03b10 *os03b10)
+{
+	const struct os03b10_mode *mode = os03b10->cur_mode;
+
+	os03b10->cur_fps.denominator = mode->max_fps.denominator * mode->vts_def /
+				       os03b10->cur_vts;
+}
+
 static int os03b10_set_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct os03b10 *os03b10 = container_of(ctrl->handler,
@@ -1059,6 +1240,9 @@ static int os03b10_set_ctrl(struct v4l2_ctrl *ctrl)
 					 ctrl->val & 0xFF);
 		ret |= os03b10_write_reg(os03b10->client,
 					 OS03B10_REG_RESTART, 0x01);
+		os03b10->cur_vts = ctrl->val + os03b10->cur_mode->height;
+		if (os03b10->cur_vts != os03b10->cur_mode->vts_def)
+			os03b10_modify_fps_info(os03b10);
 		dev_dbg(&client->dev, "set vblank 0x%x\n", ctrl->val);
 		break;
 	case V4L2_CID_TEST_PATTERN:
@@ -1121,11 +1305,10 @@ static int os03b10_initialize_controls(struct os03b10 *os03b10)
 {
 	const struct os03b10_mode *mode;
 	struct v4l2_ctrl_handler *handler;
+	struct v4l2_ctrl *ctrl;
 	s64 exposure_max, vblank_def;
 	u32 h_blank;
 	int ret;
-	u64 dst_link_freq = 0;
-	u64 dst_pixel_rate = 0;
 
 	handler = &os03b10->ctrl_handler;
 	mode = os03b10->cur_mode;
@@ -1134,41 +1317,35 @@ static int os03b10_initialize_controls(struct os03b10 *os03b10)
 		return ret;
 	handler->lock = &os03b10->mutex;
 
-	os03b10->link_freq = v4l2_ctrl_new_int_menu(handler, NULL,
-						    V4L2_CID_LINK_FREQ,
-						    1, 0,
-						    link_freq_menu_items);
+	ctrl = v4l2_ctrl_new_int_menu(handler, NULL,
+				      V4L2_CID_LINK_FREQ,
+				      0, 0,
+				      link_freq_menu_items);
+	if (ctrl)
+		ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 
-	if (os03b10->cur_mode->bus_fmt == MEDIA_BUS_FMT_SBGGR10_1X10) {
-		dst_link_freq = 0;
-		dst_pixel_rate = PIXEL_RATE_WITH_270M;
-	}
-	/* pixel rate = link frequency * 2 * lanes / BITS_PER_SAMPLE */
-	os03b10->pixel_rate = v4l2_ctrl_new_std(handler, NULL,
-						V4L2_CID_PIXEL_RATE,
-						0, PIXEL_RATE_WITH_270M,
-						1, dst_pixel_rate);
-
-	__v4l2_ctrl_s_ctrl(os03b10->link_freq, dst_link_freq);
+	v4l2_ctrl_new_std(handler, NULL,
+			  V4L2_CID_PIXEL_RATE,
+			  0, PIXEL_RATE_WITH_270M,
+			  1, PIXEL_RATE_WITH_270M);
 
 	h_blank = mode->hts_def - mode->width;
 	os03b10->hblank = v4l2_ctrl_new_std(handler, NULL, V4L2_CID_HBLANK,
 					    h_blank, h_blank, 1, h_blank);
+
 	if (os03b10->hblank)
 		os03b10->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 
-	vblank_def = 0;
+	vblank_def = mode->vts_def - mode->height;
 	os03b10->vblank = v4l2_ctrl_new_std(handler, &os03b10_ctrl_ops,
 					    V4L2_CID_VBLANK, vblank_def,
 					    OS03B10_VTS_MAX - mode->height,
 					    1, vblank_def);
-
 	exposure_max = mode->vts_def - 9;
 	os03b10->exposure = v4l2_ctrl_new_std(handler, &os03b10_ctrl_ops,
 					      V4L2_CID_EXPOSURE, OS03B10_EXPOSURE_MIN,
 					      exposure_max, OS03B10_EXPOSURE_STEP,
 					      mode->exp_def);
-
 	os03b10->anal_gain = v4l2_ctrl_new_std(handler, &os03b10_ctrl_ops,
 					       V4L2_CID_ANALOGUE_GAIN, OS03B10_GAIN_MIN,
 					       OS03B10_GAIN_MAX, OS03B10_GAIN_STEP,
@@ -1177,8 +1354,6 @@ static int os03b10_initialize_controls(struct os03b10 *os03b10)
 	v4l2_ctrl_new_std(handler, &os03b10_ctrl_ops, V4L2_CID_HFLIP, 0, 1, 1, 0);
 
 	v4l2_ctrl_new_std(handler, &os03b10_ctrl_ops, V4L2_CID_VFLIP, 0, 1, 1, 0);
-
-	os03b10->flip = 0;
 
 	if (handler->error) {
 		ret = handler->error;
@@ -1189,6 +1364,7 @@ static int os03b10_initialize_controls(struct os03b10 *os03b10)
 
 	os03b10->subdev.ctrl_handler = handler;
 	os03b10->has_init_exp = false;
+	os03b10->cur_fps = mode->max_fps;
 
 	return 0;
 
@@ -1205,6 +1381,11 @@ static int os03b10_check_sensor_id(struct os03b10 *os03b10,
 	u8 id_h = 0, id_l = 0;
 	u32 id = 0;
 	int ret;
+
+	if (os03b10->is_thunderboot) {
+		dev_info(dev, "Enable thunderboot mode, skip sensor id check\n");
+		return 0;
+	}
 
 	ret = os03b10_read_reg(client, OS03B10_REG_CHIP_ID_H, &id_h);
 	ret |= os03b10_read_reg(client, OS03B10_REG_CHIP_ID_L, &id_l);
@@ -1275,6 +1456,10 @@ static int os03b10_probe(struct i2c_client *client,
 			break;
 		}
 	}
+	if (i == ARRAY_SIZE(supported_modes))
+		os03b10->cur_mode = &supported_modes[0];
+
+	os03b10->is_thunderboot = IS_ENABLED(CONFIG_VIDEO_ROCKCHIP_THUNDER_BOOT_ISP);
 	os03b10->client = client;
 
 	os03b10->xvclk = devm_clk_get(dev, "xvclk");
@@ -1283,11 +1468,13 @@ static int os03b10_probe(struct i2c_client *client,
 		return -EINVAL;
 	}
 
-	os03b10->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_ASIS);
+	os03b10->reset_gpio = devm_gpiod_get(dev, "reset",
+		os03b10->is_thunderboot ? GPIOD_ASIS : GPIOD_OUT_LOW);
 	if (IS_ERR(os03b10->reset_gpio))
 		dev_warn(dev, "Failed to get reset-gpios\n");
 
-	os03b10->pwdn_gpio = devm_gpiod_get(dev, "pwdn", GPIOD_ASIS);
+	os03b10->pwdn_gpio = devm_gpiod_get(dev, "pwdn",
+		os03b10->is_thunderboot ? GPIOD_ASIS : GPIOD_OUT_LOW);
 	if (IS_ERR(os03b10->pwdn_gpio))
 		dev_warn(dev, "Failed to get pwdn-gpios\n");
 
@@ -1359,7 +1546,10 @@ static int os03b10_probe(struct i2c_client *client,
 
 	pm_runtime_set_active(dev);
 	pm_runtime_enable(dev);
-	pm_runtime_idle(dev);
+	if (os03b10->is_thunderboot)
+		pm_runtime_get_sync(dev);
+	else
+		pm_runtime_idle(dev);
 
 	return 0;
 

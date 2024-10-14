@@ -19,7 +19,7 @@ PKG_NAME_EXPAT := expat-2.4.1
 
 PKG_BIN := out
 
-PKG_CONF_OPTS += $(SYSDRV_OPTS) -Os
+PKG_CONF_OPTS += $(SYSDRV_OPTS) -Os $(SYSDRV_CROSS_CFLAGS)
 
 ifeq ($(PKG_USE_THUMB2),YES)
 PKG_CONF_OPTS += -mthumb -Wa,-mimplicit-it=thumb -mthumb-interwork

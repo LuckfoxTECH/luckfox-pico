@@ -1,0 +1,202 @@
+/******************************************************************************
+ *
+ *  Copyright (C) 2014 Google, Inc.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
+#ifndef __BT_CONFIG_H__
+#define __BT_CONFIG_H__
+
+#include "rtconfig.h"
+
+#ifdef BT_ENABLED
+    #define CONFIG_BT_ENABLED
+#endif
+
+#ifdef BTDM_CONTROLLER_MODE_BR_EDR_ONLY
+    #define CONFIG_BTDM_CONTROLLER_MODE_BR_EDR_ONLY
+#endif
+
+#ifdef BTDM_CONTROLLER_MODE_BLE_ONLY
+    #define CONFIG_BTDM_CONTROLLER_MODE_BLE_ONLY
+#endif
+
+#ifdef BTDM_CONTROLLER_BLE_MAX_CONN_EFF
+    #define CONFIG_BTDM_CONTROLLER_BLE_MAX_CONN_EFF     BTDM_CONTROLLER_BLE_MAX_CONN_EFF
+#endif
+
+#ifdef BTDM_CONTROLLER_BR_EDR_MAX_ACL_CONN_EFF
+    #define CONFIG_BTDM_CONTROLLER_BR_EDR_MAX_ACL_CONN_EFF  BTDM_CONTROLLER_BR_EDR_MAX_ACL_CONN_EFF
+#endif
+
+#ifdef BTDM_CONTROLLER_BR_EDR_MAX_SYNC_CONN_EFF
+    #define CONFIG_BTDM_CONTROLLER_BR_EDR_MAX_SYNC_CONN_EFF  BTDM_CONTROLLER_BR_EDR_MAX_SYNC_CONN_EFF
+#endif
+
+#ifdef BTDM_CONTROLLER_HCI_MODE_UART_H4
+    #define CONFIG_BTDM_CONTROLLER_HCI_MODE_UART_H4
+#endif
+
+#ifdef BT_HCI_UART_BAUDRATE
+    #define CONFIG_BT_HCI_UART_BAUDRATE    BT_HCI_UART_BAUDRATE
+#endif
+
+#ifdef BTDM_MODEM_SLEEP_MODE_ORIG_VALUE
+    #define CONFIG_BTDM_MODEM_SLEEP_MODE_ORIG
+#endif
+
+#ifdef BTDM_MODEM_SLEEP_MODE_EVED_VALUE
+    #define CONFIG_BTDM_MODEM_SLEEP_MODE_EVED
+#endif
+
+#ifdef BTDM_LPCLK_SEL_MAIN_XTAL
+    #define CONFIG_BTDM_LPCLK_SEL_MAIN_XTAL
+#endif
+
+#ifdef BTDM_LPCLK_SEL_EXT_32K_XTAL
+    #define CONFIG_BTDM_LPCLK_SEL_EXT_32K_XTAL
+#endif
+
+#ifdef SCAN_DUPLICATE_TYPE
+    #define CONFIG_BSCAN_DUPLICATE_TYPE   SCAN_DUPLICATE_TYPE
+#endif
+
+#ifdef DUPLICATE_SCAN_CACHE_SIZE_VALUE
+    #define CONFIG_DUPLICATE_SCAN_CACHE_SIZE   DUPLICATE_SCAN_CACHE_SIZE_VALUE
+#endif
+
+#ifdef BLE_MESH_SCAN_DUPLICATE_EN
+    #define CONFIG_BLE_MESH_SCAN_DUPLICATE_EN
+#endif
+
+#ifdef MESH_DUPLICATE_SCAN_CACHE_SIZE_VALUE
+    #define CONFIG_MESH_DUPLICATE_SCAN_CACHE_SIZE   MESH_DUPLICATE_SCAN_CACHE_SIZE_VALUE
+#endif
+
+#ifdef BTDM_CONTROLLER_FULL_SCAN_SUPPORTED
+    #define CONFIG_BTDM_CONTROLLER_FULL_SCAN_SUPPORTED
+#endif
+
+#ifdef BLE_ADV_REPORT_FLOW_CONTROL_SUPPORTED
+    #define CONFIG_BLE_ADV_REPORT_FLOW_CONTROL_SUPPORTED
+#endif
+
+#ifdef BLE_ADV_REPORT_FLOW_CONTROL_NUM_VALUE
+    #define CONFIG_BLE_ADV_REPORT_FLOW_CONTROL_NUM   BLE_ADV_REPORT_FLOW_CONTROL_NUM_VALUE
+#endif
+
+#ifdef BLE_ADV_REPORT_DISCARD_THRSHOLD_VALUE
+    #define CONFIG_BLE_ADV_REPORT_DISCARD_THRSHOLD   BLE_ADV_REPORT_DISCARD_THRSHOLD_VALUE
+#endif
+
+#ifdef BTC_TASK_STACK_SIZE_VALUE
+    #define CONFIG_BTC_TASK_STACK_SIZE   BTC_TASK_STACK_SIZE_VALUE
+#endif
+
+#ifdef BTU_TASK_STACK_SIZE_VALUE
+    #define CONFIG_BTU_TASK_STACK_SIZE   BTU_TASK_STACK_SIZE_VALUE
+#endif
+
+#ifdef BLUEDROID_MEM_DEBUG
+    #define CONFIG_BLUEDROID_MEM_DEBUG
+#endif
+
+#ifdef CLASSIC_BT_ENABLED
+    #define CONFIG_CLASSIC_BT_ENABLED
+#endif
+
+#ifdef A2DP_ENABLE
+    #define CONFIG_A2DP_ENABLE
+#endif
+
+#ifdef A2DP_SINK_TASK_STACK_SIZE
+    #define CONFIG_A2DP_SINK_TASK_STACK_SIZE   A2DP_SINK_TASK_STACK_SIZE
+#endif
+
+#ifdef A2DP_SOURCE_TASK_STACK_SIZE
+    #define CONFIG_A2DP_SOURCE_TASK_STACK_SIZE   A2DP_SOURCE_TASK_STACK_SIZE
+#endif
+
+#ifdef BT_SPP_ENABLED
+    #define CONFIG_BT_SPP_ENABLED
+#endif
+
+#ifdef HFP_CLIENT_ENABLE
+    #define CONFIG_HFP_CLIENT_ENABLE
+#endif
+
+#ifdef HFP_AUDIO_DATA_PATH_HCI
+    #define CONFIG_HFP_AUDIO_DATA_PATH_HCI
+#endif
+
+#ifdef BT_SSP_ENABLED
+    #define CONFIG_BT_SSP_ENABLED
+#endif
+
+#ifdef GATTS_ENABLE
+    #define CONFIG_GATTS_ENABLE
+#endif
+
+#ifdef GATTS_SEND_SERVICE_CHANGE_MODE_VALUE
+    #define CONFIG_GATTS_SEND_SERVICE_CHANGE_MODE   GATTS_SEND_SERVICE_CHANGE_MODE_VALUE
+#endif
+
+#ifdef GATTC_ENABLE
+    #define CONFIG_GATTC_ENABLE
+#endif
+
+#ifdef GATTC_CACHE_NVS_FLASH
+    #define CONFIG_GATTC_CACHE_NVS_FLASH
+#endif
+
+#ifdef SMP_SLAVE_CON_PARAMS_UPD_ENABLE
+    #define CONFIG_SMP_SLAVE_CON_PARAMS_UPD_ENABLE
+    #undef  SMP_SLAVE_CON_PARAMS_UPD_ENABLE
+#endif
+
+#ifdef BT_STACK_NO_LOG
+    #define CONFIG_BT_STACK_NO_LOG
+#endif
+
+#ifdef BT_ALLOCATION_FROM_SPIRAM_FIRST
+    #define CONFIG_BT_ALLOCATION_FROM_SPIRAM_FIRST
+#endif
+
+#ifdef BT_BLE_DYNAMIC_ENV_MEMORY
+    #define CONFIG_BT_BLE_DYNAMIC_ENV_MEMORY
+#endif
+
+#ifdef BLE_HOST_QUEUE_CONGESTION_CHECK
+    #define CONFIG_BLE_HOST_QUEUE_CONGESTION_CHECK
+#endif
+
+#ifdef SMP_ENABLE
+    #define CONFIG_SMP_ENABLE
+#endif
+
+#ifdef BLE_ACTIVE_SCAN_REPORT_ADV_SCAN_RSP_INDIVIDUALLY
+    #define CONFIG_BLE_ACTIVE_SCAN_REPORT_ADV_SCAN_RSP_INDIVIDUALLY
+#endif
+
+#ifdef BLE_ESTABLISH_LINK_CONNECTION_TIMEOUT_VALUE
+    #define CONFIG_BLE_ESTABLISH_LINK_CONNECTION_TIMEOUT    BLE_ESTABLISH_LINK_CONNECTION_TIMEOUT_VALUE
+#endif
+
+#ifndef BLE_ENABLED
+    #define BLE_INCLUDED FALSE
+#endif
+
+#endif /* __BT_CONFIG_H__ */
+

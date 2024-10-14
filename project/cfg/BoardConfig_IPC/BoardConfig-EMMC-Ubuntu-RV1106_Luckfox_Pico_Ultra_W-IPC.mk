@@ -3,7 +3,7 @@
 #################################################
 # 	Board Config
 #################################################
-
+export LF_ORIGIN_BOARD_CONFIG=BoardConfig-EMMC-Ubuntu-RV1106_Luckfox_Pico_Ultra_W-IPC.mk
 # Target CHIP
 export RK_CHIP=rv1106
 
@@ -82,7 +82,6 @@ export RK_MISC=wipe_all-misc.img
 
 # Uboot defconfig
 export RK_UBOOT_DEFCONFIG=luckfox_rv1106_uboot_defconfig
-
 
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_defconfig

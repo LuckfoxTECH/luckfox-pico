@@ -47,7 +47,7 @@ std::string create_fireware_location() {
 nlohmann::json device_info_get() {
   nlohmann::json device_info;
   nlohmann::json tmp_json;
-  char *tmp = new char[20];
+  char *tmp = new char[256];
 
   rk_system_get_deivce_name(&tmp);
   tmp_json.emplace("id", 0);
@@ -192,7 +192,7 @@ int device_info_set(nlohmann::json param) {
 nlohmann::json user_info_get() {
   nlohmann::json user_info;
   nlohmann::json tmp_json;
-  char *tmp = new char[20];
+  char *tmp = new char[256];
   int value;
   int user_num;
 

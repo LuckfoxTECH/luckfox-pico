@@ -773,6 +773,10 @@ static ulong rk3399_vop_set_clk(struct rk3399_cru *cru, ulong clk_id, u32 hz)
 		     ACLK_VOP_PLL_SEL_MASK | ACLK_VOP_DIV_CON_MASK,
 		     ACLK_VOP_PLL_SEL_GPLL << ACLK_VOP_PLL_SEL_SHIFT |
 		     (div - 1) << ACLK_VOP_DIV_CON_SHIFT);
+	rk_clrsetreg(&cru->clksel_con[42],
+		     ACLK_VOP_PLL_SEL_MASK | ACLK_VOP_DIV_CON_MASK,
+		     ACLK_VOP_PLL_SEL_GPLL << ACLK_VOP_PLL_SEL_SHIFT |
+		     (div - 1) << ACLK_VOP_DIV_CON_SHIFT);
 
 	if (readl(dclkreg_addr) & DCLK_VOP_PLL_SEL_MASK) {
 		if (pll_para_config(hz, &cpll_config))

@@ -26,13 +26,8 @@
 //MEMO: rkisp2-config.h/rkisp3-config.h -> ISP2X_LSC_DATA_TBL_SIZE is 290
 #define LSC_DATA_TBL_SIZE           289
 
-#if defined(ISP_HW_V30) || defined(ISP_HW_V32)
 #define LSC_GRAD_TBL_SIZE           16
 #define LSC_SIZE_TBL_SIZE           16
-#else
-#define LSC_GRAD_TBL_SIZE           8
-#define LSC_SIZE_TBL_SIZE           8
-#endif
 
 RKAIQ_BEGIN_DECLARE
 

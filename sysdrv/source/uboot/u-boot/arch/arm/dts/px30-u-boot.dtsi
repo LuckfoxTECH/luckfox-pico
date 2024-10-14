@@ -14,6 +14,13 @@
 		u-boot,spl-boot-order = &emmc, &sdmmc;
 		stdout-path = &uart2;
 	};
+
+	secure-otp@ff110000 {
+		compatible = "rockchip,px30-secure-otp";
+		reg = <0x0 0xff110000 0x0 0x4000>;
+		secure_conf = <0xff11C008>;
+		mask_addr = <0xff2d0000>;
+	};
 };
 
 &psci {

@@ -7,7 +7,7 @@ export AIQ_BUILD_SYSROOT=libc
 export AIQ_BUILD_ARCH=arm
 TOOLCHAIN_FILE=$(pwd)/../../cmake/toolchains/gcc.cmake
 OUTPUT=$(pwd)/output/${AIQ_BUILD_ARCH}
-SOURCE_PATH=$$(pwd)/../../
+SOURCE_PATH=$(pwd)/../../
 
 mkdir -p $OUTPUT
 pushd $OUTPUT

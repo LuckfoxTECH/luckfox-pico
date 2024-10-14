@@ -1,0 +1,19 @@
+# RT-Thread building script for component
+Import('RTT_ROOT')
+Import('rtconfig')
+
+from building import *
+
+cwd = GetCurrentDir()
+src = Glob('*.c')
+CPPPATH = [cwd]
+
+group = DefineGroup('touch', src, depend = ['RT_USING_TOUCH_GTXX'], CPPPATH = CPPPATH)
+
+list = os.listdir(cwd)
+for d in list:
+    path = os.path.join(cwd, d)
+    if os.path.isfile(os.path.join(path, 'SConscript')):
+        group = group + SConscript(os.path.join(d, 'SConscript'))
+
+Return('group')

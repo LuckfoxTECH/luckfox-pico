@@ -12,7 +12,7 @@
  * Development of this driver has been sponsored by Glyn:
  *    http://www.glyn.com/Products/Displays
  */
-#define DEBUG
+
 #include <linux/debugfs.h>
 #include <linux/delay.h>
 #include <linux/gpio/consumer.h>
@@ -832,10 +832,8 @@ static int edt_ft5x06_ts_identify(struct i2c_client *client,
 	error = edt_ft5x06_ts_readwrite(client, 1, "\xBB",
 					EDT_NAME_LEN - 1, rdbuf);
 	if (error)
-	{
-		dev_dbg(&client->dev, "edt_ft5x06_ts_read_write xBB failed\n");
-		//return error;
-	}
+		return error;
+
 	/* Probe content for something consistent.
 	 * M06 starts with a response byte, M12 gives the data directly.
 	 * M09/Generic does not provide model number information.
@@ -883,19 +881,15 @@ static int edt_ft5x06_ts_identify(struct i2c_client *client,
 		error = edt_ft5x06_ts_readwrite(client, 1, "\xA6",
 						2, rdbuf);
 		if (error)
-		{
-			dev_dbg(&client->dev, "edt_ft5x06_ts_read_write XA6 failed\n");
 			return error;
-		}
+
 		strlcpy(fw_version, rdbuf, 2);
 
 		error = edt_ft5x06_ts_readwrite(client, 1, "\xA8",
 						1, rdbuf);
 		if (error)
-		{
-			dev_dbg(&client->dev, "edt_ft5x06_ts_read_write xA8 failed\n");
 			return error;
-		}
+
 		/* This "model identification" is not exact. Unfortunately
 		 * not all firmwares for the ft5x06 put useful values in
 		 * the identification registers.
@@ -923,10 +917,7 @@ static int edt_ft5x06_ts_identify(struct i2c_client *client,
 			error = edt_ft5x06_ts_readwrite(client, 1, "\x53",
 							1, rdbuf);
 			if (error)
-			{
-				dev_dbg(&client->dev, "edt_ft5x06_ts_read_write x53 failed\n");
 				return error;
-			}
 			strlcpy(fw_version, rdbuf, 1);
 			snprintf(model_name, EDT_NAME_LEN,
 				 "EVERVISION-FT5726NEi");
@@ -1164,8 +1155,7 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
 	}
 
 	if (tsdata->reset_gpio) {
-		//usleep_range(5000, 6000);
-		usleep_range(6000, 7000);
+		usleep_range(5000, 6000);
 		gpiod_set_value_cansleep(tsdata->reset_gpio, 0);
 		msleep(300);
 	}
@@ -1184,8 +1174,7 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
 	error = edt_ft5x06_ts_identify(client, tsdata, fw_version);
 	if (error) {
 		dev_err(&client->dev, "touchscreen probe failed\n");
-		dev_err(&client->dev, "error = %d\n",error);
-//		return error;
+		return error;
 	}
 
 	/*

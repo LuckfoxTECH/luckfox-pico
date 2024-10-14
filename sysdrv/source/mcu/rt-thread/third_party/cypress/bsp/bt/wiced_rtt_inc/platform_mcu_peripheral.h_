@@ -1,0 +1,15 @@
+/*
+ * $ Copyright Cypress Semiconductor $
+ */
+
+/** @file
+ * Defines STM32F2xx common peripheral structures, macros, constants and declares STM32F2xx peripheral API
+ */
+#pragma once
+
+typedef struct
+{
+    void * useless;
+} platform_i2s_t;
+
+

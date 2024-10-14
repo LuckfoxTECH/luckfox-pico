@@ -117,7 +117,7 @@ static void generic_gpio_handle_irq(int irq, void *data __always_unused)
 			h_pin = pin - 16;
 			if (ilr_h & (1 << h_pin)) {
 				unmasked = 1;
-				gpio_irq_unmask(bank->regbase, offset_to_bit(h_pin));
+				gpio_irq_unmask(bank->regbase, offset_to_bit(pin));
 			}
 		}
 		__generic_gpio_handle_irq(gpio_irq + pin);

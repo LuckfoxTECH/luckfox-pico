@@ -30,3 +30,7 @@
 	};
 };
 
+&hw_decompress {
+	u-boot,dm-spl;
+	status = "okay";
+};

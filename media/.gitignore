@@ -1,33 +1,36 @@
 */build
 */out
-alsa-lib/alsa-lib-1.1.5/
-out/
+#alsa-lib/alsa-lib-1.1.5/
+#avs
+#cfg
+#common_algorithm/common_algorithm/
+#isp/camera_engine_rkaiq
+#iva
+#ive
+#libdrm/libdrm-2.4.89/
+#libv4l/argp-standalone-1.3/
+#libv4l/v4l-utils-1.16.5/
+#lvgl
+#mali/
+#mpp/mpp/
+#npu
+#npu/rknpu/
+#npu/rknpu2/
+#npu/rockface/
+#npu/rockx/
 out
-# avs
-# cfg
-# common_algorithm/common_algorithm/
-# isp/camera_engine_rkaiq
-# iva
-# ive
-# libdrm/libdrm-2.4.89/
-# libv4l/argp-standalone-1.3/
-# libv4l/v4l-utils-1.16.5/
-# lvgl
-# mali/
-# mpp/mpp/
-# npu
-# npu/rknpu/
-# npu/rknpu2/
-# npu/rockface/
-# npu/rockx/
-# rga/rga/
-# rkadk/
-# rkadk/rkadk
-# rkfsmk/
-# rkfsmk/rkfsmk
-# rkmedia
-# rkmedia/rkmedia
-# rockit/rockit/
-# samples
-# security/librkcrypto
-# sysutils
+#rga/rga/
+#rkadk/
+#rkadk/rkadk
+#rkfsmk/
+#rkfsmk/rkfsmk
+#rkmedia
+#rkmedia/rkmedia
+#rkpostisp
+#rockauto/
+#rockit/rockit/
+#samples
+#security/bin/
+#security/librkcrypto
+#security/rk_tee_user/
+#sysutils

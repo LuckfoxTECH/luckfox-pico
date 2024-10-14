@@ -36,12 +36,22 @@
 #define AWB_UV_RANGE_SLOVE_FRACTION 10
 #define AWB_UV_RANGE_SLOVE_SINTER 9
 
+#if RKAIQ_HAVE_AWB_V32LT
+typedef enum rk_aiq_down_scale_mode_e {
+    RK_AIQ_AWB_DS_INVALIED = -1,
+    RK_AIQ_AWB_DS_4X4 = 0,
+    RK_AIQ_AWB_DS_8X8 = 1,
+    RK_AIQ_AWB_DS_16X8 = 2,
+    RK_AIQ_AWB_DS_MAX
+} rk_aiq_down_scale_mode_t;
+#else
 typedef enum rk_aiq_down_scale_mode_e {
     RK_AIQ_AWB_DS_INVALIED = -1,
     RK_AIQ_AWB_DS_4X4 = 0,
     RK_AIQ_AWB_DS_8X8 = 1,
     RK_AIQ_AWB_DS_MAX
-} rk_aiq_down_scale_mode_t;//cxf333 repeat
+} rk_aiq_down_scale_mode_t;
+#endif
 
 typedef struct rk_aiq_rgb2xy_para_s {
     unsigned short pseudoLuminanceWeight[3];

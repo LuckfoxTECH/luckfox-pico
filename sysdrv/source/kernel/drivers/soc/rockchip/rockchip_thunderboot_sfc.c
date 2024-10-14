@@ -50,7 +50,7 @@ static int rk_tb_sfc_thread(void *p)
 
 	ret = readl_poll_timeout(regs + SFC_SR, status,
 				 !(status & SFC_BUSY), 100,
-				 1000 * USEC_PER_MSEC);
+				 5000 * USEC_PER_MSEC);
 	if (ret) {
 		dev_err(dev, "Wait for SFC idle timeout!\n");
 		goto out;

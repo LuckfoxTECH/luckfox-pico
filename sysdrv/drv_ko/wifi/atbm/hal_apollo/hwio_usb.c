@@ -11,7 +11,11 @@ int atbm_ep0_read(struct atbm_common *hw_priv, u32 addr,
 				void *buf, u32 buf_len)
 {
 
-	BUG_ON(!hw_priv->sbus_ops);
+	//BUG_ON(!hw_priv->sbus_ops);
+			if(!hw_priv->sbus_ops){
+				atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+				return -1;
+			}
 	return hw_priv->sbus_ops->sbus_read_sync(hw_priv->sbus_priv,
 						  addr,
 						  buf, buf_len);
@@ -22,7 +26,11 @@ int atbm_ep0_write(struct atbm_common *hw_priv, u32 addr,
 {
 	//printk("__atbm_reg_write sdio_reg_addr_17bit 0x%x,addr_sdio 0x%x,len %d,buf_id %d\n",sdio_reg_addr_17bit,addr_sdio,buf_len,buf_id);
 
-	BUG_ON(!hw_priv->sbus_ops);
+	//BUG_ON(!hw_priv->sbus_ops);
+			if(!hw_priv->sbus_ops){
+				atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+				return -1;
+			}
 	return hw_priv->sbus_ops->sbus_write_sync(hw_priv->sbus_priv,
 						addr,buf, buf_len);
 }

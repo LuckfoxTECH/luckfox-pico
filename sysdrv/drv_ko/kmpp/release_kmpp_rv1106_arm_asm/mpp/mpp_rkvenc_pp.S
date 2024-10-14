@@ -53,12 +53,12 @@ vepu_pp_result:
 	@ frame_needed = 0, uses_anonymous_args = 0
 	push	{r3, r4, r5, r6, r7, lr}
 	.save {r3, r4, r5, r6, r7, lr}
-	add	r4, r1, #3712
-	add	r7, r1, #2864
+	addw	r4, r1, #3736
+	addw	r7, r1, #2888
 	mov	r6, r1
 	movs	r5, #0
 .L3:
-	ldr	r3, [r6, #3700]
+	ldr	r3, [r6, #3724]
 	adds	r4, r4, #20
 	cmp	r3, r5
 	bhi	.L4
@@ -89,10 +89,10 @@ mpp_read:
 	ldr	r3, [r0, #60]
 	add	r3, r3, r1
 	.syntax unified
-@ 113 "./arch/arm/include/asm/io.h" 1
+@ 113 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/io.h" 1
 	ldr r4, [r3]
 @ 0 "" 2
-@ 717 "drivers/kmpp/mpp/mpp_common.h" 1
+@ 747 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/drivers/kmpp/mpp/mpp_common.h" 1
 	dsb 
 @ 0 "" 2
 	.thumb
@@ -143,7 +143,7 @@ mpp_write_relaxed:
 	ldr	r1, [r6, #60]
 	add	r1, r1, r4
 	.syntax unified
-@ 95 "./arch/arm/include/asm/io.h" 1
+@ 95 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/io.h" 1
 	str r5, [r1]
 @ 0 "" 2
 	.thumb
@@ -183,7 +183,7 @@ mpp_write:
 	bl	printk
 .L20:
 	.syntax unified
-@ 696 "drivers/kmpp/mpp/mpp_common.h" 1
+@ 726 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/drivers/kmpp/mpp/mpp_common.h" 1
 	dsb st
 @ 0 "" 2
 	.thumb
@@ -192,7 +192,7 @@ mpp_write:
 	ldr	r1, [r6, #60]
 	add	r1, r1, r4
 	.syntax unified
-@ 95 "./arch/arm/include/asm/io.h" 1
+@ 95 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/io.h" 1
 	str r5, [r1]
 @ 0 "" 2
 	.thumb
@@ -246,8 +246,8 @@ vepu_pp_set_freq:
 	@ frame_needed = 0, uses_anonymous_args = 0
 	push	{r3, lr}
 	.save {r3, lr}
-	adds	r0, r0, #132
-	ldr	r1, [r1, #2316]
+	adds	r0, r0, #152
+	ldr	r1, [r1, #2340]
 	bl	mpp_clk_set_rate
 	movs	r0, #0
 	pop	{r3, pc}
@@ -292,7 +292,7 @@ vepu_pp_init:
 	@ frame_needed = 0, uses_anonymous_args = 0
 	push	{r3, r4, r5, lr}
 	.save {r3, r4, r5, lr}
-	add	r5, r0, #132
+	add	r5, r0, #152
 	ldr	r3, [r0, #104]
 	mov	r4, r0
 	ldr	r2, .L46
@@ -301,17 +301,17 @@ vepu_pp_init:
 	str	r3, [r0, #64]
 	bl	mpp_get_clk_info
 	cbz	r0, .L36
-	movw	r2, #519
+	movw	r2, #517
 	ldr	r1, .L46+4
 	ldr	r0, .L46+8
 	bl	printk
 .L36:
 	ldr	r2, .L46+12
-	add	r1, r4, #160
+	add	r1, r4, #180
 	mov	r0, r4
 	bl	mpp_get_clk_info
 	cbz	r0, .L37
-	movw	r2, #522
+	mov	r2, #520
 	ldr	r1, .L46+4
 	ldr	r0, .L46+16
 	bl	printk
@@ -324,9 +324,9 @@ vepu_pp_init:
 	movs	r1, #0
 	mov	r0, r4
 	bl	mpp_reset_control_get
-	str	r0, [r4, #216]
+	str	r0, [r4, #236]
 	cbnz	r0, .L38
-	mov	r2, #528
+	movw	r2, #526
 	ldr	r1, .L46+4
 	ldr	r0, .L46+28
 	bl	printk
@@ -335,9 +335,9 @@ vepu_pp_init:
 	movs	r1, #1
 	mov	r0, r4
 	bl	mpp_reset_control_get
-	str	r0, [r4, #220]
+	str	r0, [r4, #240]
 	cbnz	r0, .L39
-	movw	r2, #531
+	movw	r2, #529
 	ldr	r1, .L46+4
 	ldr	r0, .L46+36
 	bl	printk
@@ -405,15 +405,19 @@ vepu_pp_probe:
 	mov	r0, r5
 	bl	_dev_info
 	mov	r2, #3520
-	movs	r1, #228
+	movs	r1, #248
 	mov	r0, r5
 	bl	devm_kmalloc
 	mov	r4, r0
 	cmp	r0, #0
 	beq	.L59
-	ldr	r1, [r6, #372]
 	str	r0, [r6, #80]
-	cbz	r1, .L54
+	mov	r0, r5
+	bl	mpp_dev_of_node
+	cbz	r0, .L54
+	mov	r0, r5
+	bl	mpp_dev_of_node
+	mov	r1, r0
 	ldr	r0, .L64+4
 	bl	of_match_node
 	cbz	r0, .L54
@@ -495,12 +499,12 @@ vepu_pp_finish:
 	ldr	r2, [r4]
 	lsls	r2, r2, #26
 	bpl	.L67
-	mov	r2, #430
+	mov	r2, #428
 	ldr	r1, .L77+4
 	ldr	r0, .L77+8
 	bl	printk
 .L67:
-	addw	r6, r6, #2860
+	addw	r6, r6, #2884
 	mov	r5, #2048
 	movw	r7, #2072
 .L68:
@@ -514,7 +518,7 @@ vepu_pp_finish:
 	ldr	r3, [r4]
 	lsls	r3, r3, #26
 	bpl	.L69
-	movw	r2, #435
+	movw	r2, #433
 	ldr	r1, .L77+4
 	ldr	r0, .L77+12
 	bl	printk
@@ -540,7 +544,7 @@ vepu_pp_run:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
-	ldr	r3, .L102
+	ldr	r3, .L98
 	push	{r4, r5, r6, r7, r8, lr}
 	.save {r4, r5, r6, r7, r8, lr}
 	mov	r4, r0
@@ -549,9 +553,9 @@ vepu_pp_run:
 	mov	r8, r3
 	tst	r2, #32
 	beq	.L80
-	movw	r2, #357
-	ldr	r1, .L102+4
-	ldr	r0, .L102+8
+	movw	r2, #355
+	ldr	r1, .L98+4
+	ldr	r0, .L98+8
 	bl	printk
 .L80:
 	movs	r2, #63
@@ -583,119 +587,115 @@ vepu_pp_run:
 	movs	r1, #96
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2844]
+	ldr	r2, [r5, #2868]
 	mov	r1, #268
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2848]
+	ldr	r2, [r5, #2872]
 	mov	r1, #272
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2852]
+	ldr	r2, [r5, #2876]
 	mov	r1, #276
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2816]
+	ldr	r2, [r5, #2840]
 	movs	r1, #60
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2820]
+	ldr	r2, [r5, #2844]
 	movs	r1, #64
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2824]
+	ldr	r2, [r5, #2848]
 	movs	r1, #68
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2828]
+	ldr	r2, [r5, #2852]
 	movs	r1, #72
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2832]
+	ldr	r2, [r5, #2856]
 	movs	r1, #76
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2836]
+	ldr	r2, [r5, #2860]
 	movs	r1, #80
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2840]
+	ldr	r2, [r5, #2864]
 	movs	r1, #84
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2320]
+	ldr	r2, [r5, #2344]
 	movs	r1, #52
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2324]
+	ldr	r2, [r5, #2348]
 	movs	r1, #56
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2328]
+	ldr	r2, [r5, #2352]
 	mov	r1, #256
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2332]
+	ldr	r2, [r5, #2356]
 	mov	r1, #260
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2336]
+	ldr	r2, [r5, #2360]
 	mov	r1, #264
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2340]
+	ldr	r2, [r5, #2364]
 	mov	r1, #280
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2344]
+	ldr	r2, [r5, #2368]
 	mov	r1, #284
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r3, [r5, #2364]
-	lsls	r7, r3, #31
+	ldr	r3, [r5, #2388]
+	lsls	r6, r3, #31
 	bmi	.L81
 .L85:
-	ldr	r3, [r5, #2420]
-	lsls	r6, r3, #31
+	ldr	r3, [r5, #2444]
+	lsls	r0, r3, #31
 	bmi	.L82
 .L83:
-	ldr	r3, [r5, #2448]
-	lsls	r0, r3, #31
-	bpl	.L87
-	ldr	r2, [r5, #2860]
+	ldr	r2, [r5, #2884]
 	mov	r1, #1024
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2448]
+	ldr	r2, [r5, #2472]
 	movw	r1, #1028
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2452]
+	ldr	r2, [r5, #2476]
 	mov	r1, #1032
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2456]
+	ldr	r2, [r5, #2480]
 	movw	r1, #1036
 	mov	r0, r4
 	bl	mpp_write_relaxed
-.L87:
-	ldr	r2, [r5, #2460]
+	ldr	r2, [r5, #2484]
 	lsls	r1, r2, #31
-	bpl	.L89
+	bpl	.L87
 	mov	r1, #1280
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2464]
+	ldr	r2, [r5, #2488]
 	movw	r1, #1284
 	mov	r0, r4
 	bl	mpp_write_relaxed
-	ldr	r2, [r5, #2468]
+	ldr	r2, [r5, #2492]
 	mov	r1, #1288
 	mov	r0, r4
 	bl	mpp_write_relaxed
-.L89:
+.L87:
 	.syntax unified
-@ 372 "drivers/kmpp/mpp/mpp_rkvenc_pp.c" 1
+@ 370 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/drivers/kmpp/mpp/mpp_rkvenc_pp.c" 1
 	dsb st
 @ 0 "" 2
 	.thumb
@@ -707,19 +707,19 @@ vepu_pp_run:
 	bl	mpp_write
 	ldr	r3, [r8]
 	lsls	r3, r3, #26
-	bpl	.L90
-	mov	r2, #376
-	ldr	r1, .L102+4
-	ldr	r0, .L102+12
+	bpl	.L89
+	mov	r2, #374
+	ldr	r1, .L98+4
+	ldr	r0, .L98+12
 	bl	printk
-.L90:
+.L89:
 	movs	r0, #0
 	pop	{r4, r5, r6, r7, r8, pc}
 .L81:
-	ldr	r2, [r5, #2856]
+	ldr	r2, [r5, #2880]
 	mov	r1, #512
 	mov	r0, r4
-	addw	r7, r5, #2360
+	add	r7, r5, #2384
 	bl	mpp_write_relaxed
 	mov	r6, #516
 .L84:
@@ -732,7 +732,7 @@ vepu_pp_run:
 	bne	.L84
 	b	.L85
 .L82:
-	add	r7, r5, #2416
+	addw	r7, r5, #2440
 	mov	r6, #768
 .L88:
 	mov	r1, r6
@@ -743,9 +743,9 @@ vepu_pp_run:
 	cmp	r6, #796
 	bne	.L88
 	b	.L83
-.L103:
+.L99:
 	.align	2
-.L102:
+.L98:
 	.word	mpp_dev_debug
 	.word	.LANCHOR0+423
 	.word	.LC15
@@ -765,22 +765,22 @@ vepu_pp_alloc_task:
 	push	{r3, r4, r5, r6, r7, r8, r9, r10, fp, lr}
 	.save {r3, r4, r5, r6, r7, r8, r9, r10, fp, lr}
 	mov	r7, r1
-	ldr	r6, .L129
+	ldr	r6, .L125
 	mov	r5, r0
 	ldr	r3, [r6]
 	lsls	r1, r3, #26
-	bpl	.L105
+	bpl	.L101
 	movs	r2, #235
-	ldr	r1, .L129+4
-	ldr	r0, .L129+8
+	ldr	r1, .L125+4
+	ldr	r0, .L125+8
 	bl	printk
-.L105:
-	ldr	r3, .L129+12
+.L101:
+	ldr	r3, .L125+12
 	mov	r1, #3520
 	ldr	r0, [r3, #48]
 	bl	kmem_cache_alloc
 	mov	r4, r0
-	cbz	r0, .L104
+	cbz	r0, .L100
 	mov	r1, r0
 	mov	r0, r5
 	bl	mpp_task_init
@@ -789,56 +789,56 @@ vepu_pp_alloc_task:
 	movw	r8, #513
 	mov	r9, #20
 	movw	r10, #514
-.L107:
+.L103:
 	ldr	r3, [r7, #48]
 	cmp	fp, r3
-	bcc	.L112
+	bcc	.L108
 	ldr	r3, [r6]
 	lsls	r2, r3, #22
-	bpl	.L113
-	ldr	r2, [r4, #3700]
-	ldr	r1, [r4, #3376]
-	ldr	r0, .L129+16
+	bpl	.L109
+	ldr	r2, [r4, #3724]
+	ldr	r1, [r4, #3400]
+	ldr	r0, .L125+16
 	bl	printk
-.L113:
+.L109:
 	movs	r3, #3
-	str	r3, [r4, #2316]
+	str	r3, [r4, #2340]
 	ldr	r3, [r6]
 	lsls	r3, r3, #26
-	bpl	.L104
+	bpl	.L100
 	movs	r2, #249
-	ldr	r1, .L129+4
-	ldr	r0, .L129+20
+	ldr	r1, .L125+4
+	ldr	r0, .L125+20
 	bl	printk
-.L104:
+.L100:
 	mov	r0, r4
 	pop	{r3, r4, r5, r6, r7, r8, r9, r10, fp, pc}
-.L112:
+.L108:
 	ldr	r2, [r5, #8]
-	cbz	r2, .L108
+	cbz	r2, .L104
 	ldr	r3, [r5]
 	cmp	r3, r8
-	beq	.L109
+	beq	.L105
 	cmp	r3, r10
-	beq	.L110
+	beq	.L106
 	cmp	r3, #512
-	bne	.L108
+	bne	.L104
 	ldr	r1, [r5, #16]
-	add	r0, r4, #2320
+	addw	r0, r4, #2344
 	bl	memcpy
-.L108:
+.L104:
 	add	fp, fp, #1
 	adds	r5, r5, #20
-	b	.L107
-.L109:
-	ldr	r3, [r4, #3700]
+	b	.L103
+.L105:
+	ldr	r3, [r4, #3724]
 	add	lr, r5, #16
 	adds	r2, r3, #1
-	str	r2, [r4, #3700]
+	str	r2, [r4, #3724]
 	mla	r3, r9, r3, r4
 	mov	r2, r5
-	addw	r3, r3, #3704
-.L111:
+	add	r3, r3, #3728
+.L107:
 	ldr	r0, [r2]	@ unaligned
 	adds	r2, r2, #8
 	ldr	r1, [r2, #-4]	@ unaligned
@@ -846,18 +846,18 @@ vepu_pp_alloc_task:
 	mov	ip, r3
 	stmia	ip!, {r0, r1}
 	mov	r3, ip
-	bne	.L111
+	bne	.L107
 	ldr	r0, [r2]	@ unaligned
 	str	r0, [ip]
-	b	.L108
-.L110:
+	b	.L104
+.L106:
 	mov	r1, r5
-	addw	r0, r4, #2888
+	add	r0, r4, #2912
 	bl	mpp_extract_reg_offset_info
-	b	.L108
-.L130:
+	b	.L104
+.L126:
 	.align	2
-.L129:
+.L125:
 	.word	mpp_dev_debug
 	.word	.LANCHOR0+435
 	.word	.LC15
@@ -881,14 +881,14 @@ vepu_pp_shutdown:
 	.save {r3, r4, r5, r6, r7, lr}
 	add	r5, r0, #16
 	ldr	r4, [r0, #80]
-	ldr	r1, .L142
+	ldr	r1, .L138
 	mov	r0, r5
 	bl	_dev_info
 	ldr	r3, [r4, #104]
 	add	r2, r3, #84
 	pld	[r2]
 	.syntax unified
-@ 223 "./arch/arm/include/asm/atomic.h" 1
+@ 223 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_add
 1:	ldrex	r1, [r2]
 	add	r1, r1, #1
@@ -899,35 +899,34 @@ vepu_pp_shutdown:
 	.thumb
 	.syntax unified
 	bl	ktime_get
-	ldr	r3, .L142+4
+	ldr	r3, .L138+4
 	adds	r6, r0, r3
 	mov	r3, #0
 	adc	r7, r1, r3
-	bl	_cond_resched
-.L137:
+.L133:
 	ldr	r3, [r4, #80]
-	cbz	r3, .L131
+	cbz	r3, .L127
 	bl	ktime_get
 	cmp	r6, r0
 	sbcs	r3, r7, r1
-	bge	.L134
+	bge	.L130
 	ldr	r3, [r4, #80]
-	cbnz	r3, .L141
-.L131:
+	cbnz	r3, .L137
+.L127:
 	pop	{r3, r4, r5, r6, r7, pc}
-.L134:
+.L130:
 	movw	r1, #20000
 	movw	r0, #5001
 	bl	usleep_range
-	b	.L137
-.L141:
+	b	.L133
+.L137:
 	mov	r0, r5
-	ldr	r1, .L142+8
+	ldr	r1, .L138+8
 	pop	{r3, r4, r5, r6, r7, lr}
 	b	_dev_err
-.L143:
+.L139:
 	.align	2
-.L142:
+.L138:
 	.word	.LC18
 	.word	200000000
 	.word	.LC19
@@ -947,18 +946,18 @@ vepu_pp_clk_on:
 	push	{r4, lr}
 	.save {r4, lr}
 	mov	r4, r0
-	ldr	r0, [r0, #132]
-	cbz	r0, .L145
+	ldr	r0, [r0, #152]
+	cbz	r0, .L141
 	bl	clk_prepare_enable
-.L145:
-	ldr	r0, [r4, #160]
-	cbz	r0, .L146
+.L141:
+	ldr	r0, [r4, #180]
+	cbz	r0, .L142
 	bl	clk_prepare_enable
-.L146:
-	ldr	r0, [r4, #188]
-	cbz	r0, .L147
+.L142:
+	ldr	r0, [r4, #208]
+	cbz	r0, .L143
 	bl	clk_prepare_enable
-.L147:
+.L143:
 	movs	r0, #0
 	pop	{r4, pc}
 	.fnend
@@ -976,27 +975,27 @@ vepu_pp_clk_off:
 	push	{r3, r4, r5, lr}
 	.save {r3, r4, r5, lr}
 	mov	r4, r0
-	ldr	r5, [r0, #132]
-	cbz	r5, .L158
+	ldr	r5, [r0, #152]
+	cbz	r5, .L154
 	mov	r0, r5
 	bl	clk_disable
 	mov	r0, r5
 	bl	clk_unprepare
-.L158:
-	ldr	r5, [r4, #160]
-	cbz	r5, .L159
+.L154:
+	ldr	r5, [r4, #180]
+	cbz	r5, .L155
 	mov	r0, r5
 	bl	clk_disable
 	mov	r0, r5
 	bl	clk_unprepare
-.L159:
-	ldr	r4, [r4, #188]
-	cbz	r4, .L160
+.L155:
+	ldr	r4, [r4, #208]
+	cbz	r4, .L156
 	mov	r0, r4
 	bl	clk_disable
 	mov	r0, r4
 	bl	clk_unprepare
-.L160:
+.L156:
 	movs	r0, #0
 	pop	{r3, r4, r5, pc}
 	.fnend
@@ -1014,44 +1013,44 @@ vepu_pp_reset:
 	push	{r4, lr}
 	.save {r4, lr}
 	mov	r4, r0
-	ldr	r0, [r0, #216]
-	cbz	r0, .L172
-	ldr	r3, [r4, #220]
-	cbz	r3, .L172
-	ldr	r3, [r4, #224]
-	cbz	r3, .L172
+	ldr	r0, [r0, #236]
+	cbz	r0, .L168
+	ldr	r3, [r4, #240]
+	cbz	r3, .L168
+	ldr	r3, [r4, #244]
+	cbz	r3, .L168
 	bl	reset_control_assert
-	ldr	r0, [r4, #220]
-	cbz	r0, .L174
+	ldr	r0, [r4, #240]
+	cbz	r0, .L170
 	bl	reset_control_assert
-.L174:
-	ldr	r0, [r4, #224]
-	cbz	r0, .L175
+.L170:
+	ldr	r0, [r4, #244]
+	cbz	r0, .L171
 	bl	reset_control_assert
-.L175:
-	ldr	r3, .L199
-	ldr	r0, .L199+4
+.L171:
+	ldr	r3, .L195
+	ldr	r0, .L195+4
 	ldr	r3, [r3, #4]
 	blx	r3
-	ldr	r0, [r4, #216]
-	cbz	r0, .L176
-	bl	reset_control_deassert
-.L176:
-	ldr	r0, [r4, #220]
-	cbz	r0, .L177
-	bl	reset_control_deassert
-.L177:
-	ldr	r0, [r4, #224]
+	ldr	r0, [r4, #236]
 	cbz	r0, .L172
 	bl	reset_control_deassert
 .L172:
+	ldr	r0, [r4, #240]
+	cbz	r0, .L173
+	bl	reset_control_deassert
+.L173:
+	ldr	r0, [r4, #244]
+	cbz	r0, .L168
+	bl	reset_control_deassert
+.L168:
 	movs	r0, #0
 	pop	{r4, pc}
-.L200:
+.L196:
 	.align	2
-.L199:
+.L195:
 	.word	arm_delay_ops
-	.word	3221225
+	.word	1073740
 	.fnend
 	.size	vepu_pp_reset, .-vepu_pp_reset
 	.align	1
@@ -1068,34 +1067,34 @@ vepu_pp_isr:
 	.save {r4, r5, r6, lr}
 	mov	r4, r0
 	ldr	r5, [r0, #88]
-	cbnz	r5, .L202
-	ldr	r1, .L215
+	cbnz	r5, .L198
+	ldr	r1, .L211
 	ldr	r0, [r0]
 	bl	_dev_err
-.L203:
+.L199:
 	movs	r0, #1
 	pop	{r4, r5, r6, pc}
-.L202:
-	ldr	r6, .L215+4
+.L198:
+	ldr	r6, .L211+4
 	mov	r0, r5
 	bl	mpp_time_diff
 	ldr	r1, [r4, #52]
 	movs	r3, #0
 	str	r3, [r4, #88]
 	ldr	r2, [r6]
-	str	r1, [r5, #3372]
+	str	r1, [r5, #3396]
 	lsls	r2, r2, #29
-	bpl	.L204
-	ldr	r0, .L215+8
+	bpl	.L200
+	ldr	r0, .L211+8
 	bl	printk
-.L204:
-	ldr	r3, [r5, #3372]
+.L200:
+	ldr	r3, [r5, #3396]
 	tst	r3, #28
-	beq	.L205
+	beq	.L201
 	add	r3, r4, #72
 	pld	[r3]
 	.syntax unified
-@ 223 "./arch/arm/include/asm/atomic.h" 1
+@ 223 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_add
 1:	ldrex	r2, [r3]
 	add	r2, r2, #1
@@ -1105,21 +1104,21 @@ vepu_pp_isr:
 @ 0 "" 2
 	.thumb
 	.syntax unified
-.L205:
+.L201:
 	mov	r1, r5
 	ldr	r0, [r5]
 	bl	mpp_task_finish
 	ldr	r3, [r6]
 	lsls	r3, r3, #26
-	bpl	.L203
-	mov	r2, #416
-	ldr	r1, .L215+12
-	ldr	r0, .L215+16
+	bpl	.L199
+	mov	r2, #414
+	ldr	r1, .L211+12
+	ldr	r0, .L211+16
 	bl	printk
-	b	.L203
-.L216:
+	b	.L199
+.L212:
 	.align	2
-.L215:
+.L211:
 	.word	.LC20
 	.word	mpp_dev_debug
 	.word	.LC21
@@ -1131,9 +1130,9 @@ vepu_pp_isr:
 	.section	.rodata
 	.align	2
 	.set	.LANCHOR0,. + 0
-	.type	__func__.38986, %object
-	.size	__func__.38986, 13
-__func__.38986:
+	.type	__func__.39087, %object
+	.size	__func__.39087, 13
+__func__.39087:
 	.ascii	"vepu_pp_init\000"
 	.space	3
 	.type	mpp_vepu_pp_match, %object
@@ -1144,21 +1143,21 @@ mpp_vepu_pp_match:
 	.space	102
 	.word	vepu_pp_data
 	.space	196
-	.type	__func__.38940, %object
-	.size	__func__.38940, 15
-__func__.38940:
+	.type	__func__.39041, %object
+	.size	__func__.39041, 15
+__func__.39041:
 	.ascii	"vepu_pp_finish\000"
-	.type	__func__.38900, %object
-	.size	__func__.38900, 12
-__func__.38900:
+	.type	__func__.39001, %object
+	.size	__func__.39001, 12
+__func__.39001:
 	.ascii	"vepu_pp_run\000"
-	.type	__func__.38852, %object
-	.size	__func__.38852, 19
-__func__.38852:
+	.type	__func__.38953, %object
+	.size	__func__.38953, 19
+__func__.38953:
 	.ascii	"vepu_pp_alloc_task\000"
-	.type	__func__.38925, %object
-	.size	__func__.38925, 12
-__func__.38925:
+	.type	__func__.39026, %object
+	.size	__func__.39026, 12
+__func__.39026:
 	.ascii	"vepu_pp_isr\000"
 	.space	2
 	.type	vepu_pp_data, %object

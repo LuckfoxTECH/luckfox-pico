@@ -25,11 +25,11 @@
  */
 
 typedef struct RandomState {
-  unsigned long magic;
-  unsigned long a;
-  unsigned long m;
-  unsigned long q; /* m div a */
-  unsigned long r; /* m mod a */
-  unsigned long check;
-  unsigned long seed;
+    unsigned long magic;
+    unsigned long a;
+    unsigned long m;
+    unsigned long q;		/* m div a */
+    unsigned long r;		/* m mod a */
+    unsigned long check;
+    unsigned long seed;
 } RandomState;

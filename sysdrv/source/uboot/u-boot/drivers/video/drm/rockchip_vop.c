@@ -20,6 +20,7 @@
 #include <dm/device.h>
 #include <dm/read.h>
 #include <syscon.h>
+#include <regmap.h>
 
 #include "rockchip_display.h"
 #include "rockchip_crtc.h"
@@ -39,21 +40,43 @@ static inline void set_vop_mcu_rs(struct vop *vop, int v)
 		VOP_CTRL_SET(vop, mcu_rs, v);
 }
 
-static int to_vop_csc_mode(int csc_mode)
+static enum vop_csc_format to_vop_csc_mode(enum drm_color_encoding color_encoding,
+					   enum drm_color_range color_range)
 {
-	switch (csc_mode) {
-	case V4L2_COLORSPACE_SMPTE170M:
-		return CSC_BT601L;
-	case V4L2_COLORSPACE_REC709:
-	case V4L2_COLORSPACE_DEFAULT:
-		return CSC_BT709L;
-	case V4L2_COLORSPACE_JPEG:
-		return CSC_BT601F;
-	case V4L2_COLORSPACE_BT2020:
-		return CSC_BT2020;
+	bool full_range = color_range == DRM_COLOR_YCBCR_FULL_RANGE ? 1 : 0;
+	enum vop_csc_format csc_mode = CSC_BT709L;
+
+	switch (color_encoding) {
+	case DRM_COLOR_YCBCR_BT601:
+		if (full_range)
+			csc_mode = CSC_BT601F;
+		else
+			csc_mode = CSC_BT601L;
+		break;
+
+	case DRM_COLOR_YCBCR_BT709:
+		if (full_range) {
+			csc_mode = CSC_BT601F;
+			printf("Unsupported bt709f at 10bit csc depth, use bt601f instead\n");
+		} else {
+			csc_mode = CSC_BT709L;
+		}
+		break;
+
+	case DRM_COLOR_YCBCR_BT2020:
+		if (full_range) {
+			csc_mode = CSC_BT601F;
+			printf("Unsupported bt2020f at 10bit csc depth, use bt601f instead\n");
+		} else {
+			csc_mode = CSC_BT2020L;
+		}
+		break;
+
 	default:
-		return CSC_BT709L;
+		printf("Unsuport color_encoding:%d\n", color_encoding);
 	}
+
+	return csc_mode;
 }
 
 static bool is_yuv_output(uint32_t bus_format)
@@ -92,6 +115,19 @@ static bool is_uv_swap(uint32_t bus_format, uint32_t output_mode)
 	     bus_format == MEDIA_BUS_FMT_YUV10_1X30) &&
 	    (output_mode == ROCKCHIP_OUT_MODE_AAAA ||
 	     output_mode == ROCKCHIP_OUT_MODE_P888))
+		return true;
+	else
+		return false;
+}
+
+static bool is_rb_swap(uint32_t bus_format, uint32_t output_mode)
+{
+	/*
+	 * The default component order of serial rgb3x8 formats
+	 * is BGR. So it is needed to enable RB swap.
+	 */
+	if (bus_format == MEDIA_BUS_FMT_RGB888_3X8 ||
+	    bus_format == MEDIA_BUS_FMT_RGB888_DUMMY_4X8)
 		return true;
 	else
 		return false;
@@ -194,10 +230,35 @@ static void vop_post_config(struct display_state *state, struct vop *vop)
 	}
 }
 
-static void vop_mcu_mode(struct display_state *state, struct vop *vop)
+static void vop_mcu_bypass_mode_setup(struct display_state *state, struct vop *vop)
+{
+	/*
+	 * If mcu_hold_mode is 1, set 1 to mcu_frame_st will
+	 * refresh one frame from ddr. So mcu_frame_st is needed
+	 * to be initialized as 0.
+	 */
+	VOP_CTRL_SET(vop, mcu_frame_st, 0);
+	VOP_CTRL_SET(vop, mcu_clk_sel, 1);
+	VOP_CTRL_SET(vop, mcu_type, 1);
+
+	VOP_CTRL_SET(vop, mcu_hold_mode, 1);
+	VOP_CTRL_SET(vop, mcu_pix_total, 53);
+	VOP_CTRL_SET(vop, mcu_cs_pst, 6);
+	VOP_CTRL_SET(vop, mcu_cs_pend, 48);
+	VOP_CTRL_SET(vop, mcu_rw_pst, 12);
+	VOP_CTRL_SET(vop, mcu_rw_pend, 30);
+}
+
+static void vop_mcu_mode_setup(struct display_state *state, struct vop *vop)
 {
 	struct crtc_state *crtc_state = &state->crtc_state;
 
+	/*
+	 * If mcu_hold_mode is 1, set 1 to mcu_frame_st will
+	 * refresh one frame from ddr. So mcu_frame_st is needed
+	 * to be initialized as 0.
+	 */
+	VOP_CTRL_SET(vop, mcu_frame_st, 0);
 	VOP_CTRL_SET(vop, mcu_clk_sel, 1);
 	VOP_CTRL_SET(vop, mcu_type, 1);
 
@@ -226,6 +287,7 @@ static int rockchip_vop_init(struct display_state *state)
 	const struct rockchip_crtc *crtc = crtc_state->crtc;
 	const struct vop_data *vop_data = crtc->data;
 	struct vop *vop;
+	struct regmap *map;
 	u16 hsync_len = mode->crtc_hsync_end - mode->crtc_hsync_start;
 	u16 hdisplay = mode->crtc_hdisplay;
 	u16 htotal = mode->crtc_htotal;
@@ -236,12 +298,12 @@ static int rockchip_vop_init(struct display_state *state)
 	u16 vsync_len = mode->crtc_vsync_end - mode->crtc_vsync_start;
 	u16 vact_st = mode->crtc_vtotal - mode->crtc_vsync_start;
 	u16 vact_end = vact_st + vdisplay;
-	struct clk dclk;
 	u32 val, act_end;
 	int ret;
 	bool yuv_overlay = false, post_r2y_en = false, post_y2r_en = false;
 	u16 post_csc_mode;
 	bool dclk_inv;
+	char output_type_name[30] = {0};
 
 	vop = malloc(sizeof(*vop));
 	if (!vop)
@@ -249,34 +311,50 @@ static int rockchip_vop_init(struct display_state *state)
 	memset(vop, 0, sizeof(*vop));
 
 	crtc_state->private = vop;
+	vop->data = vop_data;
 	vop->regs = dev_read_addr_ptr(crtc_state->dev);
 	vop->regsbak = malloc(vop_data->reg_len);
 	vop->win = vop_data->win;
 	vop->win_offset = vop_data->win_offset;
 	vop->ctrl = vop_data->ctrl;
-	vop->grf = syscon_get_first_range(ROCKCHIP_SYSCON_GRF);
-	if (vop->grf <= 0)
-		printf("%s: Get syscon grf failed (ret=%p)\n",
-		      __func__, vop->grf);
 
-	vop->grf_ctrl = vop_data->grf_ctrl;
+	map = syscon_regmap_lookup_by_phandle(crtc_state->dev, "rockchip,grf");
+	if (!IS_ERR_OR_NULL(map)) {
+		vop->grf_ctrl = regmap_get_range(map, 0);
+		if (vop->grf_ctrl <= 0)
+			printf("%s: Get syscon grf failed (ret=%p)\n", __func__, vop->grf_ctrl);
+	}
+	map = syscon_regmap_lookup_by_phandle(crtc_state->dev, "rockchip,vo0-grf");
+	if (!IS_ERR_OR_NULL(map)) {
+		vop->vo0_grf_ctrl = regmap_get_range(map, 0);
+		if (vop->vo0_grf_ctrl <= 0)
+			printf("%s: Get syscon vo0_grf failed (ret=%p)\n", __func__, vop->vo0_grf_ctrl);
+	}
+
 	vop->line_flag = vop_data->line_flag;
 	vop->csc_table = vop_data->csc_table;
 	vop->win_csc = vop_data->win_csc;
 	vop->version = vop_data->version;
+
+	printf("VOP:0x%8p update mode to: %dx%d%s%d, type:%s\n",
+	       vop->regs, mode->crtc_hdisplay, mode->vdisplay,
+	       mode->flags & DRM_MODE_FLAG_INTERLACE ? "i" : "p",
+	       mode->vrefresh,
+	       rockchip_get_output_if_name(conn_state->output_if, output_type_name));
 
 	/* Process 'assigned-{clocks/clock-parents/clock-rates}' properties */
 	ret = clk_set_defaults(crtc_state->dev);
 	if (ret)
 		debug("%s clk_set_defaults failed %d\n", __func__, ret);
 
-	ret = clk_get_by_name(crtc_state->dev, "dclk_vop", &dclk);
+	ret = clk_get_by_name(crtc_state->dev, "dclk_vop", &crtc_state->dclk);
 	if (!ret)
-		ret = clk_set_rate(&dclk, mode->clock * 1000);
+		ret = clk_set_rate(&crtc_state->dclk, mode->crtc_clock * 1000);
 	if (IS_ERR_VALUE(ret)) {
 		printf("%s: Failed to set dclk: ret=%d\n", __func__, ret);
 		return ret;
 	}
+	printf("VOP:0x%8p set crtc_clock to %dKHz, get %dHz\n", vop->regs, mode->crtc_clock, ret);
 
 	memcpy(vop->regsbak, vop->regs, vop_data->reg_len);
 
@@ -298,7 +376,12 @@ static int rockchip_vop_init(struct display_state *state)
 	VOP_CTRL_SET(vop, win_channel[2], 0x56);
 	VOP_CTRL_SET(vop, dsp_blank, 0);
 
-	dclk_inv = (mode->flags & DRM_MODE_FLAG_PPIXDATA) ? 0 : 1;
+	if (vop->version == VOP_VERSION(2, 0xd)) {
+		VOP_GRF_SET(vop, grf_ctrl, grf_vopl_sel, 1);
+		VOP_CTRL_SET(vop, enable, 1);
+	}
+
+	dclk_inv = (conn_state->bus_flags & DRM_BUS_FLAG_PIXDATA_DRIVE_NEGEDGE) ? 1 : 0;
 	/* For improving signal quality, dclk need to be inverted by default on rv1106. */
 	if ((VOP_MAJOR(vop->version) == 2 && VOP_MINOR(vop->version) == 12))
 		dclk_inv = !dclk_inv;
@@ -317,20 +400,34 @@ static int rockchip_vop_init(struct display_state *state)
 		VOP_CTRL_SET(vop, lvds_en, 1);
 		VOP_CTRL_SET(vop, lvds_pin_pol, val);
 		VOP_CTRL_SET(vop, lvds_dclk_pol, dclk_inv);
-		if (!IS_ERR_OR_NULL(vop->grf))
-			VOP_GRF_SET(vop, grf_dclk_inv, dclk_inv);
+		if (!IS_ERR_OR_NULL(vop->grf_ctrl))
+			VOP_GRF_SET(vop, grf_ctrl, grf_dclk_inv, dclk_inv);
 		break;
 	case DRM_MODE_CONNECTOR_eDP:
 		VOP_CTRL_SET(vop, edp_en, 1);
 		VOP_CTRL_SET(vop, edp_pin_pol, val);
 		VOP_CTRL_SET(vop, edp_dclk_pol, dclk_inv);
+		VOP_CTRL_SET(vop, inf_out_en, 1);
+		VOP_CTRL_SET(vop, out_dresetn, 1);
+		VOP_GRF_SET(vop, vo0_grf_ctrl, grf_edp_ch_sel, 1);
 		break;
 	case DRM_MODE_CONNECTOR_HDMIA:
 		VOP_CTRL_SET(vop, hdmi_en, 1);
 		VOP_CTRL_SET(vop, hdmi_pin_pol, val);
 		VOP_CTRL_SET(vop, hdmi_dclk_pol, 1);
+		VOP_CTRL_SET(vop, inf_out_en, 1);
+		VOP_CTRL_SET(vop, out_dresetn, 1);
+		VOP_GRF_SET(vop, vo0_grf_ctrl, grf_hdmi_ch_sel, 1);
+		VOP_GRF_SET(vop, vo0_grf_ctrl, grf_hdmi_pin_pol, val);
+		VOP_GRF_SET(vop, vo0_grf_ctrl, grf_hdmi_1to4_en, 1);
 		break;
 	case DRM_MODE_CONNECTOR_DSI:
+		/*
+		 * RK3576 DSI CTRL hsync/vsync polarity is positive and can't update,
+		 * so set VOP hsync/vsync polarity as positive by default.
+		 */
+		if (vop->version == VOP_VERSION(2, 0xd))
+			val = BIT(HSYNC_POSITIVE) | BIT(VSYNC_POSITIVE);
 		VOP_CTRL_SET(vop, mipi_en, 1);
 		VOP_CTRL_SET(vop, mipi_pin_pol, val);
 		VOP_CTRL_SET(vop, mipi_dclk_pol, dclk_inv);
@@ -339,6 +436,12 @@ static int rockchip_vop_init(struct display_state *state)
 		VOP_CTRL_SET(vop, data01_swap,
 			!!(conn_state->output_flags & ROCKCHIP_OUTPUT_DATA_SWAP) ||
 			crtc_state->dual_channel_swap);
+		VOP_CTRL_SET(vop, inf_out_en, 1);
+		VOP_CTRL_SET(vop, out_dresetn, 1);
+		VOP_GRF_SET(vop, vo0_grf_ctrl, grf_mipi_ch_sel, 1);
+		VOP_GRF_SET(vop, vo0_grf_ctrl, grf_mipi_mode, 0);
+		VOP_GRF_SET(vop, vo0_grf_ctrl, grf_mipi_pin_pol, val);
+		VOP_GRF_SET(vop, vo0_grf_ctrl, grf_mipi_1to4_en, 1);
 		break;
 	case DRM_MODE_CONNECTOR_DisplayPort:
 		VOP_CTRL_SET(vop, dp_dclk_pol, 0);
@@ -403,10 +506,20 @@ static int rockchip_vop_init(struct display_state *state)
 	VOP_CTRL_SET(vop, hdmi_dclk_out_en,
 		     conn_state->output_mode == ROCKCHIP_OUT_MODE_YUV420 ? 1 : 0);
 
-	if (is_uv_swap(conn_state->bus_format, conn_state->output_mode))
-		VOP_CTRL_SET(vop, dsp_data_swap, DSP_RB_SWAP);
+	if (is_uv_swap(conn_state->bus_format, conn_state->output_mode) ||
+	    is_rb_swap(conn_state->bus_format, conn_state->output_mode))
+		VOP_CTRL_SET(vop, dsp_rb_swap, 1);
 	else
 		VOP_CTRL_SET(vop, dsp_data_swap, 0);
+
+	/*
+	 * For RK3576 vopl, rg_swap and rb_swap need to be enabled in
+	 * YUV444 bus_format.
+	 */
+	if (VOP_MAJOR(vop->version) == 2 && VOP_MINOR(vop->version) == 0xd) {
+		if (conn_state->bus_format == MEDIA_BUS_FMT_YUV8_1X24)
+			VOP_CTRL_SET(vop, dsp_data_swap, DSP_RG_SWAP | DSP_RB_SWAP);
+	}
 
 	VOP_CTRL_SET(vop, out_mode, conn_state->output_mode);
 
@@ -428,7 +541,7 @@ static int rockchip_vop_init(struct display_state *state)
 	}
 
 	crtc_state->yuv_overlay = yuv_overlay;
-	post_csc_mode = to_vop_csc_mode(conn_state->color_space);
+	post_csc_mode = to_vop_csc_mode(conn_state->color_encoding, conn_state->color_range);
 	VOP_CTRL_SET(vop, bcsh_r2y_en, post_r2y_en);
 	VOP_CTRL_SET(vop, bcsh_y2r_en, post_y2r_en);
 	VOP_CTRL_SET(vop, bcsh_r2y_csc_mode, post_csc_mode);
@@ -438,6 +551,8 @@ static int rockchip_vop_init(struct display_state *state)
 	 * Background color is 10bit depth if vop version >= 3.5
 	 */
 	if (!is_yuv_output(conn_state->bus_format))
+		val = 0;
+	else if (vop->version == VOP_VERSION(2, 0xd))
 		val = 0;
 	else if (VOP_MAJOR(vop->version) == 3 &&
 		 VOP_MINOR(vop->version) >= 5)
@@ -480,7 +595,7 @@ static int rockchip_vop_init(struct display_state *state)
 	VOP_LINE_FLAG_SET(vop, line_flag_num[1],
 			  act_end - us_to_vertical_line(mode, 1000));
 	if (state->crtc_state.mcu_timing.mcu_pix_total > 0)
-		vop_mcu_mode(state, vop);
+		vop_mcu_mode_setup(state, vop);
 	vop_cfg_done(vop);
 
 	return 0;
@@ -643,20 +758,21 @@ static int rockchip_vop_setup_csc_table(struct display_state *state)
 	if (!vop->csc_table || !crtc_state->yuv_overlay)
 		return 0;
 	/* todo: only implement r2y*/
-	switch (conn_state->color_space) {
-	case V4L2_COLORSPACE_SMPTE170M:
-		csc_table = vop->csc_table->r2y_bt601_12_235;
+	switch (conn_state->color_encoding) {
+	case DRM_COLOR_YCBCR_BT601:
+		if (conn_state->color_range == DRM_COLOR_YCBCR_LIMITED_RANGE)
+			csc_table = vop->csc_table->r2y_bt601_12_235; /* bt601 limit */
+		else
+			csc_table = vop->csc_table->r2y_bt601; /* bt601 full */
 		break;
-	case V4L2_COLORSPACE_REC709:
-	case V4L2_COLORSPACE_DEFAULT:
-	case V4L2_COLORSPACE_JPEG:
+	case DRM_COLOR_YCBCR_BT709:
 		csc_table = vop->csc_table->r2y_bt709;
 		break;
-	case V4L2_COLORSPACE_BT2020:
+	case DRM_COLOR_YCBCR_BT2020:
 		csc_table = vop->csc_table->r2y_bt2020;
 		break;
 	default:
-		csc_table = vop->csc_table->r2y_bt601;
+		csc_table = vop->csc_table->r2y_bt601; /* bt601 full */
 		break;
 	}
 
@@ -690,6 +806,10 @@ static int rockchip_vop_set_plane(struct display_state *state)
 		return -EINVAL;
 	}
 
+	if ((vop->version == VOP_VERSION(2, 2) || vop->version == VOP_VERSION(2, 0xd)) &&
+	    (mode->flags & DRM_MODE_FLAG_INTERLACE))
+		crtc_h = crtc_h / 2;
+
 	act_info = (src_h - 1) << 16;
 	act_info |= (src_w - 1) & 0xffff;
 
@@ -698,6 +818,9 @@ static int rockchip_vop_set_plane(struct display_state *state)
 
 	dsp_stx = crtc_x + mode->crtc_htotal - mode->crtc_hsync_start;
 	dsp_sty = crtc_y + mode->crtc_vtotal - mode->crtc_vsync_start;
+	if ((vop->version == VOP_VERSION(2, 2) || vop->version == VOP_VERSION(2, 0xd)) &&
+	    (mode->flags & DRM_MODE_FLAG_INTERLACE))
+		dsp_sty = crtc_y / 2 + mode->crtc_vtotal - mode->crtc_vsync_start;
 	dsp_st = dsp_sty << 16 | (dsp_stx & 0xffff);
 	/*
 	 * vop full need to treats rgb888 as bgr888 so we reverse the rb swap to workaround
@@ -818,11 +941,28 @@ static int rockchip_vop_fixup_dts(struct display_state *state, void *blob)
 	return 0;
 }
 
-static int rockchip_vop_send_mcu_cmd(struct display_state *state,
-				     u32 type, u32 value)
+static int rockchip_vop_send_mcu_cmd(struct display_state *state, u32 type, u32 value)
 {
 	struct crtc_state *crtc_state = &state->crtc_state;
+	struct connector_state *conn_state = &state->conn_state;
+	struct drm_display_mode *mode = &conn_state->mode;
 	struct vop *vop = crtc_state->private;
+	int ret;
+
+	if (vop->version == VOP_VERSION(2, 0xd)) {
+		/*
+		 * 1.set mcu bypass mode timing.
+		 * 2.set dclk rate to 150M.
+		 */
+		if ((type == MCU_SETBYPASS) && value) {
+			vop_mcu_bypass_mode_setup(state, vop);
+			ret = clk_set_rate(&crtc_state->dclk, 150000000);
+			if (IS_ERR_VALUE(ret)) {
+				printf("%s: Failed to set dclk: ret=%d\n", __func__, ret);
+				return ret;
+			}
+		}
+	}
 
 	if (vop) {
 		switch (type) {
@@ -840,6 +980,21 @@ static int rockchip_vop_send_mcu_cmd(struct display_state *state,
 			break;
 		default:
 			break;
+		}
+	}
+
+	if (vop->version == VOP_VERSION(2, 0xd)) {
+		/*
+		 * 1.restore mcu data mode timing.
+		 * 2.restore dclk rate to crtc_clock.
+		 */
+		if ((type == MCU_SETBYPASS) && !value) {
+			vop_mcu_mode_setup(state, vop);
+			ret = clk_set_rate(&crtc_state->dclk, mode->crtc_clock * 1000);
+			if (IS_ERR_VALUE(ret)) {
+				printf("%s: Failed to set dclk: ret=%d\n", __func__, ret);
+				return ret;
+			}
 		}
 	}
 
@@ -888,6 +1043,21 @@ static int rockchip_vop_plane_check(struct display_state *state)
 	return 0;
 }
 
+static int rockchip_vop_mode_fixup(struct display_state *state)
+{
+	struct crtc_state *crtc_state = &state->crtc_state;
+	struct connector_state *conn_state = &state->conn_state;
+	struct drm_display_mode *mode = &conn_state->mode;
+
+	drm_mode_set_crtcinfo(mode, CRTC_INTERLACE_HALVE_V | CRTC_STEREO_DOUBLE);
+
+	mode->crtc_clock *= rockchip_drm_get_cycles_per_pixel(conn_state->bus_format);
+	if (crtc_state->mcu_timing.mcu_pix_total)
+		mode->crtc_clock *= crtc_state->mcu_timing.mcu_pix_total + 1;
+
+	return 0;
+}
+
 const struct rockchip_crtc_funcs rockchip_vop_funcs = {
 	.preinit = rockchip_vop_preinit,
 	.init = rockchip_vop_init,
@@ -899,4 +1069,5 @@ const struct rockchip_crtc_funcs rockchip_vop_funcs = {
 	.send_mcu_cmd = rockchip_vop_send_mcu_cmd,
 	.mode_valid = rockchip_vop_mode_valid,
 	.plane_check = rockchip_vop_plane_check,
+	.mode_fixup = rockchip_vop_mode_fixup,
 };

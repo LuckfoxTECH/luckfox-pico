@@ -21,26 +21,25 @@
 #ifndef SRC_RT_TASK_APP_GRAPH_RTAIGRAPH_H_
 #define SRC_RT_TASK_APP_GRAPH_RTAIGRAPH_H_
 
-#include "RTTaskGraph.h"
 #include "rt_header.h"
+#include "RTTaskGraph.h"
 
 class RTAIGraph : public RTTaskGraph {
-public:
-  explicit RTAIGraph(const char *tagName);
-  ~RTAIGraph();
+ public:
+    explicit RTAIGraph(const char* tagName);
+    ~RTAIGraph();
 
-  RT_RET prepare();
-  RT_RET start();
-  RT_RET stop();
+    RT_RET prepare();
+    RT_RET start();
+    RT_RET stop();
 
-  RT_RET preload(RtMetaData *meta);
-  RT_RET recognize(RTMediaBuffer *buffer);
-  RT_RET
-  observeOutputStream(std::function<RT_RET(RTMediaBuffer *)> streamCallback);
+    RT_RET preload(RtMetaData *meta);
+    RT_RET recognize(RTMediaBuffer *buffer);
+    RT_RET observeOutputStream(std::function<RT_RET(RTMediaBuffer *)> streamCallback);
 
-private:
-  RT_RET initialize(const char *tagName);
-  RT_RET deinitialize();
+ private:
+    RT_RET initialize(const char* tagName);
+    RT_RET deinitialize();
 };
 
-#endif // SRC_RT_TASK_APP_GRAPH_RTAIGRAPH_H_
+#endif  // SRC_RT_TASK_APP_GRAPH_RTAIGRAPH_H_

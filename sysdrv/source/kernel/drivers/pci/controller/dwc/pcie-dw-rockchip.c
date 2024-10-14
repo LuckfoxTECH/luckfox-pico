@@ -40,7 +40,6 @@
 #include <linux/signal.h>
 #include <linux/types.h>
 #include <linux/uaccess.h>
-#include <linux/version.h>
 #include <linux/pci-epf.h>
 
 #include "pcie-designware.h"
@@ -181,7 +180,6 @@ struct rk_pcie {
 	bool				supports_clkreq;
 	struct regulator		*vpcie3v3;
 	struct irq_domain		*irq_domain;
-	int				legacy_parent_irq;
 	raw_spinlock_t			intx_lock;
 	u16				aspm;
 	u32				l1ss_ctl1;
@@ -817,10 +815,13 @@ static int rk_pcie_establish_link(struct dw_pcie *pci)
 			 * more for Gen switch.
 			 */
 			msleep(50);
-			dev_info(pci->dev, "PCIe Link up, LTSSM is 0x%x\n",
-				 rk_pcie_readl_apb(rk_pcie, PCIE_CLIENT_LTSSM_STATUS));
-			rk_pcie_debug_dump(rk_pcie);
-			return 0;
+			/* In case link drop after linkup, double check it */
+			if (dw_pcie_link_up(pci)) {
+				dev_info(pci->dev, "PCIe Link up, LTSSM is 0x%x\n",
+					 rk_pcie_readl_apb(rk_pcie, PCIE_CLIENT_LTSSM_STATUS));
+				rk_pcie_debug_dump(rk_pcie);
+				return 0;
+			}
 		}
 
 		dev_info_ratelimited(pci->dev, "PCIe Linking... LTSSM is 0x%x\n",
@@ -853,7 +854,7 @@ static int rk_pcie_init_dma_trx(struct rk_pcie *rk_pcie)
 		goto out;
 	}
 
-	rk_pcie->dma_obj = pcie_dw_dmatest_register(rk_pcie->pci, true);
+	rk_pcie->dma_obj = pcie_dw_dmatest_register(rk_pcie->pci->dev, true);
 	if (IS_ERR(rk_pcie->dma_obj)) {
 		dev_err(rk_pcie->pci->dev, "failed to prepare dmatest\n");
 		return -EINVAL;
@@ -1319,8 +1320,8 @@ static int rk_pcie_phy_init(struct rk_pcie *rk_pcie)
 	}
 
 	if (rk_pcie->bifurcation)
-		ret = phy_set_mode_ext(rk_pcie->phy, rk_pcie->phy_mode,
-				       PHY_MODE_PCIE_BIFURCATION);
+		phy_set_mode_ext(rk_pcie->phy, rk_pcie->phy_mode,
+				 PHY_MODE_PCIE_BIFURCATION);
 
 	ret = phy_init(rk_pcie->phy);
 	if (ret < 0) {
@@ -1543,6 +1544,10 @@ static const struct of_device_id rk_pcie_of_match[] = {
 		.data = &rk3528_pcie_rc_of_data,
 	},
 	{
+		.compatible = "rockchip,rk3562-pcie",
+		.data = &rk3528_pcie_rc_of_data,
+	},
+	{
 		.compatible = "rockchip,rk3568-pcie",
 		.data = &rk_pcie_rc_of_data,
 	},
@@ -1633,42 +1638,12 @@ static void rk_pcie_legacy_irq_unmask(struct irq_data *d)
 	raw_spin_unlock_irqrestore(&rk_pcie->intx_lock, flags);
 }
 
-#ifdef CONFIG_SMP
-static int rk_pcie_irq_set_affinity(struct irq_data *d,
-				    const struct cpumask *mask_val,
-				    bool force)
-{
-	unsigned int cpu;
-	struct rk_pcie *priv = irq_data_get_irq_chip_data(d);
-
-	if (!force)
-		cpu = cpumask_any_and(mask_val, cpu_online_mask);
-	else
-		cpu = cpumask_first(mask_val);
-
-	if (cpu >= nr_cpu_ids)
-		return -EINVAL;
-
-#if defined(MODULE) && (LINUX_VERSION_CODE < KERNEL_VERSION(5, 14, 0))
-	irq_set_affinity_hint(priv->legacy_parent_irq, cpumask_of(cpu));
-#else
-	irq_set_affinity(priv->legacy_parent_irq, cpumask_of(cpu));
-#endif
-	irq_data_update_effective_affinity(d, cpumask_of(cpu));
-
-	return IRQ_SET_MASK_OK_DONE;
-}
-#endif
-
 static struct irq_chip rk_pcie_legacy_irq_chip = {
 	.name		= "rk-pcie-legacy-int",
 	.irq_enable	= rk_pcie_legacy_irq_unmask,
 	.irq_disable	= rk_pcie_legacy_irq_mask,
 	.irq_mask	= rk_pcie_legacy_irq_mask,
 	.irq_unmask	= rk_pcie_legacy_irq_unmask,
-#ifdef CONFIG_SMP
-	.irq_set_affinity = rk_pcie_irq_set_affinity,
-#endif
 	.flags		= IRQCHIP_SKIP_SET_WAKE | IRQCHIP_MASK_ON_SUSPEND,
 };
 
@@ -2055,15 +2030,14 @@ retry_regulator:
 	if (!ret) {
 		irq = platform_get_irq_byname(pdev, "legacy");
 		if (irq >= 0) {
-			rk_pcie->legacy_parent_irq = irq;
 			irq_set_chained_handler_and_data(irq, rk_pcie_legacy_int_handler,
 							 rk_pcie);
 			/* Unmask all legacy interrupt from INTA~INTD  */
 			rk_pcie_writel_apb(rk_pcie, PCIE_CLIENT_INTR_MASK_LEGACY,
 					   UNMASK_ALL_LEGACY_INT);
+		} else {
+			dev_info(dev, "missing legacy IRQ resource\n");
 		}
-
-		dev_info(dev, "missing legacy IRQ resource\n");
 	}
 
 	/* Set PCIe mode */
@@ -2107,7 +2081,7 @@ retry_regulator:
 	ret = rk_pcie_init_dma_trx(rk_pcie);
 	if (ret) {
 		dev_err(dev, "failed to add dma extension\n");
-		return ret;
+		goto remove_irq_domain;
 	}
 
 	if (rk_pcie->dma_obj) {
@@ -2181,6 +2155,7 @@ static int rk_pcie_probe(struct platform_device *pdev)
 	return rk_pcie_really_probe(pdev);
 }
 
+#ifdef CONFIG_PCIEASPM
 static void rk_pcie_downstream_dev_to_d0(struct rk_pcie *rk_pcie, bool enable)
 {
 	struct pcie_port *pp = &rk_pcie->pci->pp;
@@ -2244,6 +2219,7 @@ static void rk_pcie_downstream_dev_to_d0(struct rk_pcie *rk_pcie, bool enable)
 		}
 	}
 }
+#endif
 
 static int __maybe_unused rockchip_dw_pcie_suspend(struct device *dev)
 {
@@ -2427,17 +2403,14 @@ err:
 	return ret;
 }
 
+#ifdef CONFIG_PCIEASPM
 static int rockchip_dw_pcie_prepare(struct device *dev)
 {
 	struct rk_pcie *rk_pcie = dev_get_drvdata(dev);
-	u32 val;
 
-	val = rk_pcie_readl_apb(rk_pcie, PCIE_CLIENT_LTSSM_STATUS);
-	if ((val & S_MAX) != S_L0) {
-		dw_pcie_dbi_ro_wr_en(rk_pcie->pci);
-		rk_pcie_downstream_dev_to_d0(rk_pcie, false);
-		dw_pcie_dbi_ro_wr_dis(rk_pcie->pci);
-	}
+	dw_pcie_dbi_ro_wr_en(rk_pcie->pci);
+	rk_pcie_downstream_dev_to_d0(rk_pcie, false);
+	dw_pcie_dbi_ro_wr_dis(rk_pcie->pci);
 
 	return 0;
 }
@@ -2450,10 +2423,13 @@ static void rockchip_dw_pcie_complete(struct device *dev)
 	rk_pcie_downstream_dev_to_d0(rk_pcie, true);
 	dw_pcie_dbi_ro_wr_dis(rk_pcie->pci);
 }
+#endif
 
 static const struct dev_pm_ops rockchip_dw_pcie_pm_ops = {
+#ifdef CONFIG_PCIEASPM
 	.prepare = rockchip_dw_pcie_prepare,
 	.complete = rockchip_dw_pcie_complete,
+#endif
 	SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(rockchip_dw_pcie_suspend,
 				      rockchip_dw_pcie_resume)
 };

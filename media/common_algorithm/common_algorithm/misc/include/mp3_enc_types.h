@@ -1,5 +1,5 @@
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef MP3_ENC_TYPES_H
+#define MP3_ENC_TYPES_H
 
 #include <stdio.h>
 #include <time.h>
@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdint.h>
 
 #define MPEG2_5 0
 #define MPEG2   2
@@ -22,7 +23,9 @@
 #define LAYER_1 3
 #define samp_per_frame  1152
 #define samp_per_frame2 576
+#ifndef PI
 #define PI              3.14159265358979
+#endif
 #define HAN_SIZE        512
 #define SBLIMIT         32
 
@@ -54,10 +57,10 @@ typedef struct
     int  psyc;
     int  emph;
     int  padding;
-    long samples_per_frame;
-    long bits_per_frame;
-    long bits_per_slot;
-    long total_frames;
+    int32_t samples_per_frame;
+    int32_t bits_per_frame;
+    int32_t bits_per_slot;
+    int32_t total_frames;
     int  bitrate_index;
     int  samplerate;
     int  samplerate_index;
@@ -81,14 +84,14 @@ typedef struct
 
 typedef struct
 {
-    long          remainder;
-    long          bytes_per_frame;
-    long          lag;
+    int32_t          remainder;
+    int32_t          bytes_per_frame;
+    int32_t          lag;
     int           mean_bits;
     int           sideinfo_len;
 } mp3_info;
 
-#define HUFFBITS unsigned long int
+#define HUFFBITS uint32_t
 #define HTN     34
 #define MXOFF   250
 
@@ -149,9 +152,9 @@ typedef struct
     unsigned char main_[main_size];  /* main data buffer (length always less than this)实测68*/
     bs_t bs;
     int l3_enc[2][2][samp_per_frame2];
-    long mdct_freq[2][2][samp_per_frame2];
+    int32_t mdct_freq[2][2][samp_per_frame2];
     L3_side_info_t side_info;
-    long l3_sb_sample[2][3][18][SBLIMIT];
+    int32_t l3_sb_sample[2][3][18][SBLIMIT];
     int main_data_begin;
     int wr;
     int rd;
@@ -176,27 +179,27 @@ void Mp3EncodeDeinit(mp3_enc *mp3);
 /* l3loop.c */
 
 /* layer3.c */
-long L3_compress(mp3_enc *mp3, int len, unsigned char **ppOutBuf);
+int32_t L3_compress(mp3_enc *mp3, int len, unsigned char **ppOutBuf);
 
 /* coder.c */
-void L3_window_filter_subband(mp3_enc *mp3, unsigned long **buffer, long s[SBLIMIT],
+void L3_window_filter_subband(mp3_enc *mp3, uint32_t **buffer, int32_t s[SBLIMIT],
                               int k);
 #if 1
 void L3_iteration_loop(mp3_enc *mp3) ;
 void L3_mdct_sub(mp3_enc *mp3);
 #else
-void L3_iteration_loop(long            mdct_freq_org[1][1][samp_per_frame2],
+void L3_iteration_loop(int32_t            mdct_freq_org[1][1][samp_per_frame2],
                        L3_side_info_t *side_info,
                        int             l3_enc[1][1][samp_per_frame2],
                        int             mean_bits);
-void L3_mdct_sub(mp3_enc *mp3, long sb_sample[2][3][18][SBLIMIT],
-                 long mdct_freq[2][2][samp_per_frame2]);
+void L3_mdct_sub(mp3_enc *mp3, int32_t sb_sample[2][3][18][SBLIMIT],
+                 int32_t mdct_freq[2][2][samp_per_frame2]);
 
 #endif
 /* utils.c */
-long mul(int x, int y);
-long muls(int x, int y);
-long mulr(int x, int y);
-long mulsr(int x, int y);
+int32_t mul(int x, int y);
+int32_t muls(int x, int y);
+int32_t mulr(int x, int y);
+int32_t mulsr(int x, int y);
 
 #endif

@@ -8,6 +8,10 @@
 #define _ROCKCHIP_COMMON_H_
 #include <linux/sizes.h>
 
+#ifndef CFG_CPUID_OFFSET
+#define CFG_CPUID_OFFSET		0x7
+#endif
+
 #define COUNTER_FREQUENCY               24000000
 
 #if CONFIG_IS_ENABLED(TINY_FRAMEWORK) && !defined(CONFIG_ARM64)
@@ -181,5 +185,10 @@
 #define CONFIG_DISPLAY_BOARDINFO_LATE
 #define CONFIG_SYS_AUTOLOAD	"no"
 #define CONFIG_SPL_LOAD_FIT_ADDRESS		0x2000000
+
+/* Why? There is D-Cache coherent on share memory between U-Boot and OP-TEE. */
+#if defined(CONFIG_SYS_DCACHE_OFF) && defined(CONFIG_OPTEE_CLIENT)
+"ERROR: Please disable CONFIG_OPTEE_CLIENT when #define CONFIG_SYS_DCACHE_OFF !"
+#endif
 
 #endif /* _ROCKCHIP_COMMON_H_ */

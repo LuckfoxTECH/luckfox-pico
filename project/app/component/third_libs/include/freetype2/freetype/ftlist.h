@@ -255,8 +255,7 @@ typedef void (*FT_List_Destructor)(FT_Memory memory, void *data, void *user);
  *   @FT_List_Insert have been dynamically allocated.
  */
 FT_EXPORT(void)
-FT_List_Finalize(FT_List list, FT_List_Destructor destroy, FT_Memory memory,
-                 void *user);
+FT_List_Finalize(FT_List list, FT_List_Destructor destroy, FT_Memory memory, void *user);
 
 /* */
 

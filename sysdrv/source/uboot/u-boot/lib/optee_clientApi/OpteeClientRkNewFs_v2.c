@@ -1384,7 +1384,6 @@ int tee_supp_rk_fs_process_v2(size_t num_params,
 	case OPTEE_MRF_CLOSE:
 		debug(">>>>>>> [%d] OPTEE_MRF_CLOSE!\n", rkss_step++);
 		ret = ree_fs_new_close(num_params, params);
-		rkss_storage_write();
 		break;
 	case OPTEE_MRF_READ:
 		debug(">>>>>>> [%d] OPTEE_MRF_READ!\n", rkss_step++);
@@ -1401,12 +1400,10 @@ int tee_supp_rk_fs_process_v2(size_t num_params,
 	case OPTEE_MRF_REMOVE:
 		debug(">>>>>>> [%d] OPTEE_MRF_REMOVE!\n", rkss_step++);
 		ret = ree_fs_new_remove(num_params, params);
-		rkss_storage_write();
 		break;
 	case OPTEE_MRF_RENAME:
 		debug(">>>>>>> [%d] OPTEE_MRF_RENAME!\n", rkss_step++);
 		ret = ree_fs_new_rename(num_params, params);
-		rkss_storage_write();
 		break;
 	case OPTEE_MRF_OPENDIR:
 		debug(">>>>>>> [%d] OPTEE_MRF_OPENDIR!\n", rkss_step++);
@@ -1424,5 +1421,6 @@ int tee_supp_rk_fs_process_v2(size_t num_params,
 		ret = TEEC_ERROR_BAD_PARAMETERS;
 		break;
 	}
+	rkss_storage_write();
 	return ret;
 }

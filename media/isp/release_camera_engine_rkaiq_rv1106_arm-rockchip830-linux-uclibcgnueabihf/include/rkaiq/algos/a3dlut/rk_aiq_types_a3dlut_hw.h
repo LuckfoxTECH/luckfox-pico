@@ -20,16 +20,21 @@
 #ifndef _RK_AIQ_TYPES_A3DLUT_HW_H_
 #define _RK_AIQ_TYPES_A3DLUT_HW_H_
 #include "rk_aiq_comm.h"
-
+#define LUT3D_LUT_GRID_NUM 9
+#define LUT3D_LUT_WSIZE   (LUT3D_LUT_GRID_NUM*LUT3D_LUT_GRID_NUM*LUT3D_LUT_GRID_NUM)
 RKAIQ_BEGIN_DECLARE
+
+typedef struct rk_aiq_lut3d_hw_tbl_s {
+    unsigned short look_up_table_r[LUT3D_LUT_WSIZE];//10bit
+    unsigned short look_up_table_g[LUT3D_LUT_WSIZE];//12bit
+    unsigned short look_up_table_b[LUT3D_LUT_WSIZE];//10bit
+} rk_aiq_lut3d_hw_tbl_t;
 
 typedef struct rk_aiq_lut3d_cfg_s {
     bool enable;
     bool bypass_en;//bypass_en = ! enable
     unsigned int lut3d_lut_wsize;
-    unsigned short look_up_table_r[729];//10bit
-    unsigned short look_up_table_g[729];//12bit
-    unsigned short look_up_table_b[729];//10bit
+    rk_aiq_lut3d_hw_tbl_t tbl;
 } rk_aiq_lut3d_cfg_t;
 
 RKAIQ_END_DECLARE

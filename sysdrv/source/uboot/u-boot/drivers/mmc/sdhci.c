@@ -178,6 +178,7 @@ static int sdhci_send_command(struct mmc *mmc, struct mmc_cmd *cmd,
 			} else {
 				puts("timeout.\n");
 				/* remove timeout return error and try to send command */
+				break;
 			}
 		}
 		time++;
@@ -313,6 +314,29 @@ static int sdhci_send_command(struct mmc *mmc, struct mmc_cmd *cmd,
 		return -ECOMM;
 }
 
+void sdhci_enable_clk(struct sdhci_host *host, u16 clk)
+{
+	unsigned int timeout;
+
+	clk |= SDHCI_CLOCK_INT_EN;
+	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
+
+	/* Wait max 20 ms */
+	timeout = 20;
+	while (!((clk = sdhci_readw(host, SDHCI_CLOCK_CONTROL))
+		& SDHCI_CLOCK_INT_STABLE)) {
+		if (timeout == 0) {
+			printf("%s: Internal clock never stabilised.\n",
+			       __func__);
+			return;
+		}
+		timeout--;
+		udelay(1000);
+	}
+	clk |= SDHCI_CLOCK_CARD_EN;
+	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
+}
+
 int sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
 {
 	unsigned int div, clk = 0, timeout;
@@ -379,23 +403,8 @@ int sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
 	clk |= (div & SDHCI_DIV_MASK) << SDHCI_DIVIDER_SHIFT;
 	clk |= ((div & SDHCI_DIV_HI_MASK) >> SDHCI_DIV_MASK_LEN)
 		<< SDHCI_DIVIDER_HI_SHIFT;
-	clk |= SDHCI_CLOCK_INT_EN;
-	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
 
-	/* Wait max 20 ms */
-	timeout = 20;
-	while (!((clk = sdhci_readw(host, SDHCI_CLOCK_CONTROL))
-		& SDHCI_CLOCK_INT_STABLE)) {
-		if (timeout == 0) {
-			printf("%s: Internal clock never stabilised.\n",
-			       __func__);
-			return -EBUSY;
-		}
-		timeout--;
-		udelay(1000);
-	}
-	clk |= SDHCI_CLOCK_CARD_EN;
-	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
+	sdhci_enable_clk(host, clk);
 
 	host->clock = clock;
 	return 0;
@@ -643,7 +652,6 @@ static int sdhci_execute_tuning(struct mmc *mmc, u32 opcode)
 {
 #endif
 	struct sdhci_host *host = mmc->priv;
-	int ret;
 	u16 ctrl;
 
 	/*
@@ -671,12 +679,7 @@ static int sdhci_execute_tuning(struct mmc *mmc, u32 opcode)
 	ctrl |= SDHCI_CTRL_EXEC_TUNING;
 	sdhci_writew(host, ctrl, SDHCI_HOST_CONTROL2);
 
-	ret = __sdhci_execute_tuning(host, opcode);
-	
-	if (!ret && host->ops && host->ops->execute_tuning_end)
-		host->ops->execute_tuning_end(host);
-
-	return ret;
+	return __sdhci_execute_tuning(host, opcode);
 }
 
 #ifdef CONFIG_DM_MMC

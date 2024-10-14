@@ -314,9 +314,7 @@ VOID IPC_APP_Net_Status_cb(IN CONST BYTE_T stat) {
 		s_mqtt_status = 1;
 		break;
 	}
-	default: {
-		break;
-	}
+	default: { break; }
 	}
 }
 
@@ -624,7 +622,7 @@ OPERATE_RET TUYA_APP_Init_Ring_Buffer(VOID) {
 				param.bitrate = s_media_info.audio_sample[E_IPC_STREAM_AUDIO_MAIN] *
 				                s_media_info.audio_databits[E_IPC_STREAM_AUDIO_MAIN] / 1024;
 				param.fps = s_media_info.audio_fps[E_IPC_STREAM_AUDIO_MAIN];
-				param.max_buffer_seconds = 0;
+				param.max_buffer_seconds = 2;
 				param.requestKeyFrameCB = NULL;
 				LOG_DEBUG("audio_sample %d, audio_databits %d, audio_fps %d",
 				          s_media_info.audio_sample[E_IPC_STREAM_AUDIO_MAIN],
@@ -634,7 +632,7 @@ OPERATE_RET TUYA_APP_Init_Ring_Buffer(VOID) {
 			} else {
 				param.bitrate = s_media_info.video_bitrate[ringbuffer_stream_type];
 				param.fps = s_media_info.video_fps[ringbuffer_stream_type];
-				param.max_buffer_seconds = 0;
+				param.max_buffer_seconds = 2;
 				param.requestKeyFrameCB = NULL;
 				LOG_DEBUG("video_bitrate %d, video_fps %d",
 				          s_media_info.video_bitrate[ringbuffer_stream_type],

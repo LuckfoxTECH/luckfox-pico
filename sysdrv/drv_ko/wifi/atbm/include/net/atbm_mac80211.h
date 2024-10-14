@@ -52,8 +52,11 @@ struct cfg80211_scan_info{
 };
 #define atbm_notify_scan_done(__local,__scan_request,__abort) \
 do {			\
-	BUG_ON(__local==NULL);			\
-	cfg80211_scan_done(__scan_request,__abort);				\
+	if(__local==NULL){	\
+		atbm_printk_err("%s %d ,ERROR !!! __local is NULL\n",__func__,__LINE__); \
+	}else{ \
+		cfg80211_scan_done(__scan_request,__abort);				\
+	} \
 }while(0)
 #endif
 
@@ -4923,8 +4926,13 @@ static inline void atbm_timer_handle(unsigned long data)
 #else
 	struct atbm_timer_list *atbm_timer = (struct atbm_timer_list *)data;
 #endif
-	BUG_ON(atbm_timer->function == NULL);
-	atbm_timer->function(atbm_timer->data);
+	//BUG_ON(atbm_timer->function == NULL);
+	
+	if(atbm_timer->function == NULL){
+		//atbm_printk_err("%s %d ,ERROR !!! atbm_timer->function is NULL\n",__func__,__LINE__);
+		WARN_ON(1);
+	}else	
+		atbm_timer->function(atbm_timer->data);
 }
 
 static inline void atbm_init_timer(struct atbm_timer_list *atbm_timer)
@@ -5193,51 +5201,30 @@ static inline u8 ieee80211_rssi_weight(s8 signal)
 #define ATBM_MAX_SCAN_PRIVATE_IE_LEN				(255-4)
 #define ATBM_MAX_SCAN_CHANNEL						(14+4)
 
-//0
-
-//1
 #define ATBM_PRINTK_MASK_ERR			BIT(0)
 #define ATBM_PRINTK_MASK_WARN			BIT(1)
 #define ATBM_PRINTK_MASK_INIT			BIT(2)
 #define ATBM_PRINTK_MASK_EXIT			BIT(3)
+#define ATBM_PRINTK_MASK_BUS			BIT(4)
 #define ATBM_PRINTK_MASK_SCAN			BIT(5)
-#define ATBM_PRINTK_MASK_LMAC			BIT(8)
-#define ATBM_PRINTK_MASK_WEXT			BIT(13)
-#define ATBM_PRINTK_MASK_PM				BIT(16)
-
-//2
 #define ATBM_PRINTK_MASK_P2P			BIT(6)
 #define ATBM_PRINTK_MASK_MGMT			BIT(7)
+#define ATBM_PRINTK_MASK_LMAC			BIT(8)
+#define ATBM_PRINTK_MASK_AGG			BIT(9)
 #define ATBM_PRINTK_MASK_AP				BIT(10)
 #define ATBM_PRINTK_MASK_STA			BIT(11)
-#define ATBM_PRINTK_MASK_CFG80211		BIT(19)
-#define ATBM_PRINTK_MASK_PLATFROM		BIT(17)
-
-//3
-#define ATBM_PRINTK_MASK_BH				BIT(18)
+#define ATBM_PRINTK_MASK_SMARTCONFIG	BIT(12)
+#define ATBM_PRINTK_MASK_WEXT			BIT(13)
 #define ATBM_PRINTK_MASK_TX				BIT(14)
 #define ATBM_PRINTK_MASK_RX				BIT(15)
-#define ATBM_PRINTK_MASK_AGG			BIT(9)
-#define ATBM_PRINTK_MASK_WSM			BIT(21)
-
-//4
-#define ATBM_PRINTK_MASK_BUS			BIT(4)
+#define ATBM_PRINTK_MASK_PM				BIT(16)
+#define ATBM_PRINTK_MASK_PLATFROM		BIT(17)
+#define ATBM_PRINTK_MASK_BH				BIT(18)
+#define ATBM_PRINTK_MASK_CFG80211		BIT(19)
 #define ATBM_PRINTK_MASK_DEBUG			BIT(20)
-#define ATBM_PRINTK_MASK_SMARTCONFIG	BIT(12)
 
-#define ATBM_PRINTK_LEVEL1	(ATBM_PRINTK_MASK_ERR|ATBM_PRINTK_MASK_WARN|ATBM_PRINTK_MASK_INIT| \
-									ATBM_PRINTK_MASK_EXIT|ATBM_PRINTK_MASK_SCAN|ATBM_PRINTK_MASK_LMAC| \
-									ATBM_PRINTK_MASK_PM | ATBM_PRINTK_MASK_WEXT)
-#define ATBM_PRINTK_LEVEL2	(ATBM_PRINTK_LEVEL1 | ATBM_PRINTK_MASK_P2P | ATBM_PRINTK_MASK_MGMT | ATBM_PRINTK_MASK_AP | \
-									ATBM_PRINTK_MASK_STA | ATBM_PRINTK_MASK_CFG80211 | ATBM_PRINTK_MASK_PLATFROM)
-										
-#define ATBM_PRINTK_LEVEL3	(ATBM_PRINTK_LEVEL2 | ATBM_PRINTK_MASK_BH | ATBM_PRINTK_MASK_TX | ATBM_PRINTK_MASK_RX | \
-									ATBM_PRINTK_MASK_AGG | ATBM_PRINTK_MASK_WSM)
-#define ATBM_PRINTK_LEVEL4	(ATBM_PRINTK_LEVEL3 | ATBM_PRINTK_MASK_BUS | ATBM_PRINTK_MASK_DEBUG | ATBM_PRINTK_MASK_SMARTCONFIG)
-
-
-#define ATBM_PRINTK_DEFAULT_MASK ATBM_PRINTK_LEVEL1
-
+#define ATBM_PRINTK_DEFAULT_MASK	(ATBM_PRINTK_MASK_ERR|ATBM_PRINTK_MASK_WARN|ATBM_PRINTK_MASK_INIT|ATBM_PRINTK_MASK_WEXT| \
+									ATBM_PRINTK_MASK_EXIT|ATBM_PRINTK_MASK_SCAN|ATBM_PRINTK_MASK_LMAC|ATBM_PRINTK_MASK_PM)
 extern const char *atbm_log;
 
 #ifdef CONFIG_ATBM_MOULE_FS
@@ -5275,10 +5262,7 @@ extern u32 atbm_printk_mask;
 #define atbm_printk_platform(...)	atbm_printk(ATBM_PRINTK_MASK_PLATFROM,__VA_ARGS__)
 #define atbm_printk_bh(...)			atbm_printk(ATBM_PRINTK_MASK_BH,__VA_ARGS__)
 #define atbm_printk_cfg(...)		atbm_printk(ATBM_PRINTK_MASK_CFG80211,__VA_ARGS__)
-#define atbm_printk_wsm(...)		atbm_printk(ATBM_PRINTK_MASK_WSM,__VA_ARGS__)
-
 #define atbm_printk_debug(...)		atbm_printk(ATBM_PRINTK_MASK_DEBUG,__VA_ARGS__)
-								
 #define atbm_printk_always(fmt,arg...)		printk(KERN_ERR "%s" fmt,atbm_log,##arg)
 
 

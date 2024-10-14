@@ -20,7 +20,10 @@
 
 #include "abayer2dnr2/rk_aiq_uapi_abayer2dnr_int_v2.h"
 
+#ifndef RK_AIQ_SYS_CTX_T
+#define RK_AIQ_SYS_CTX_T
 typedef struct rk_aiq_sys_ctx_s rk_aiq_sys_ctx_t;
+#endif
 
 RKAIQ_BEGIN_DECLARE
 
@@ -36,6 +39,8 @@ rk_aiq_user_api2_abayer2dnrV2_SetStrength(const rk_aiq_sys_ctx_t* sys_ctx, rk_ai
 XCamReturn
 rk_aiq_user_api2_abayer2dnrV2_GetStrength(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_bayer2dnr_strength_v2_t *pStrength);
 
+XCamReturn
+rk_aiq_user_api2_abayer2dnrV2_GetInfo(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_bayer2dnr_info_v2_t *pInfo);
 
 
 

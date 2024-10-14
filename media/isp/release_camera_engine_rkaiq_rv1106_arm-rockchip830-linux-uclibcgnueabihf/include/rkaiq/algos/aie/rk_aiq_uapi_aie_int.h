@@ -4,12 +4,7 @@
 #include "base/xcam_common.h"
 #include "rk_aiq_algo_des.h"
 #include "rk_aiq_types_aie_algo.h"
-
-typedef struct aie_attrib_s {
-    rk_aiq_uapi_sync_t sync;
-
-    rk_aiq_ie_effect_t mode;
-} aie_attrib_t;
+#include "aie_uapi_head.h"
 
 // need_sync means the implementation should consider
 // the thread synchronization

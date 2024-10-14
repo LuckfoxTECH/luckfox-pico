@@ -675,17 +675,17 @@ h265e_slice_init:
 	ldr	r0, .L143+12
 	bl	printk
 .L123:
-	ldr	r3, [r8, #756]
+	ldr	r3, [r8, #784]
 	clz	r3, r3
 	lsrs	r3, r3, #5
 	strb	r3, [r4]
-	ldr	r3, [r8, #760]
+	ldr	r3, [r8, #788]
 	clz	r3, r3
 	lsrs	r3, r3, #5
 	strb	r3, [r4, #1]
-	ldr	r3, [r8, #784]
+	ldr	r3, [r8, #812]
 	str	r3, [r4, #336]
-	ldr	r3, [r8, #732]
+	ldr	r3, [r8, #756]
 	strb	r3, [r4, #13]
 	movs	r3, #1
 	strb	r3, [r4, #2]
@@ -694,9 +694,9 @@ h265e_slice_init:
 	ldr	r3, [r4, #376]
 	ldrb	r3, [r3, #2]	@ zero_extendqisi2
 	cbz	r3, .L124
-	ldr	r3, [r8, #748]
+	ldr	r3, [r8, #772]
 	str	r3, [r4, #48]
-	ldr	r3, [r8, #752]
+	ldr	r3, [r8, #776]
 	str	r3, [r4, #52]
 .L124:
 	movw	r3, #19000
@@ -966,29 +966,29 @@ get_num_rps_cur_templist:
 	.size	get_num_rps_cur_templist, .-get_num_rps_cur_templist
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__func__.9504, %object
-	.size	__func__.9504, 12
-__func__.9504:
+	.type	__func__.9557, %object
+	.size	__func__.9557, 12
+__func__.9557:
 	.ascii	"get_ref_pic\000"
-	.type	__func__.9518, %object
-	.size	__func__.9518, 15
-__func__.9518:
+	.type	__func__.9571, %object
+	.size	__func__.9571, 15
+__func__.9571:
 	.ascii	"get_lt_ref_pic\000"
-	.type	__func__.9541, %object
-	.size	__func__.9541, 25
-__func__.9541:
+	.type	__func__.9594, %object
+	.size	__func__.9594, 25
+__func__.9594:
 	.ascii	"h265e_slice_set_ref_list\000"
-	.type	__FUNCTION__.9560, %object
-	.size	__FUNCTION__.9560, 25
-__FUNCTION__.9560:
+	.type	__FUNCTION__.9613, %object
+	.size	__FUNCTION__.9613, 25
+__FUNCTION__.9613:
 	.ascii	"h265e_slice_set_ref_list\000"
-	.type	__func__.9589, %object
-	.size	__func__.9589, 29
-__func__.9589:
+	.type	__func__.9642, %object
+	.size	__func__.9642, 29
+__func__.9642:
 	.ascii	"h265e_slice_set_ref_poc_list\000"
-	.type	__func__.9607, %object
-	.size	__func__.9607, 17
-__func__.9607:
+	.type	__func__.9660, %object
+	.size	__func__.9660, 17
+__func__.9660:
 	.ascii	"h265e_slice_init\000"
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:

@@ -27,33 +27,22 @@ config ATBM_WEXT
   
 if ATBM_MENUCONFIG || ATBM_APOLLO
 choice
-    prompt "select which atbm Wi-Fi product  will be used:ATBM601x,ATBM602x,ATBM603x,ATBM604x,default:ATBM602x"
+    prompt "select which atbm Wi-Fi product  will be used:ATBM602x,ATBM603x,ATBM604x,default:ATBM603x"
     default ATBM603x
     depends on ATBM_MENUCONFIG || ATBM_APOLLO
     help
-     Here,you must make sure which atbm Wi-Fi product you will want to use,ATBM601x,ATBM602x,ATBM603x,ATBM604x
-config ATBM601x
-    bool "ATBM601x chip"
-    depends on ATBM_MENUCONFIG || ATBM_APOLLO
-    help
-     we will use ATBM601x chip
+     Here,you must make sure which atbm Wi-Fi product you will want to use,ATBM602x,ATBM603x,ATBM604x
+
 config ATBM602x
     bool "ATBM602x chip"
     depends on ATBM_MENUCONFIG || ATBM_APOLLO
     help
      we will use ATBM602x chip
 config ATBM603x
-    bool "ATBM603x chip"
+    bool "ATBM603x&ATBM6012B chip"
     depends on ATBM_MENUCONFIG || ATBM_APOLLO
     help
-     we will use ATBM603x chip
-
-config ATBM6012B_COMB
-	bool "ATBM6012B chip"
-	depends on  (ATBM_MENUCONFIG || ATBM_APOLLO) && ATBM603x && ATBM_USB_BUS
-	help
-		ATBM603X Compatible with the ATBM6012B
-
+     we will use ATBM603x chip and ATBM6012B
 config ATBM6041
     bool "ATBM6041 chip"
     depends on ATBM_MENUCONFIG || ATBM_HERA
@@ -188,7 +177,7 @@ config ATBM_FUNC_P2P_ENABLE
     default n
 config ATBM_FUNC_SW_ENC
     bool "enable sw enc function"
-    default y
+    default n
 config ATBM_FUNC_DEV_CTRL_API
     bool "enabel dev_ctrl api"
     default y
@@ -201,7 +190,7 @@ config ATBM_FUNC_SMARTCONFIG
 config ATBM_FUNC_DRV_LOADER_FAST
 	bool "Enable loader driver fast function"
 	depends on ATBM_USB_BUS
-	default y
+	default n
 config ATBM_FUNC_PRIVE_IE
 	bool "Enable iwpriv some prive func"
 	default n
@@ -249,6 +238,7 @@ config ATBM_SDIO_MMCx
     default "mmc0"
     help
      set which mmc will be used
+     
 config ATBM_APOLLO_USE_GPIO_IRQ
     bool "Use GPIO interrupt"
     depends on (ATBM_MENUCONFIG || ATBM_APOLLO) && ATBM_SDIO_BUS
@@ -256,13 +246,6 @@ config ATBM_APOLLO_USE_GPIO_IRQ
     help
      Say Y here if you want to include GPIO IRQ support instead of SDIO IRQ.
      if unsure, say N.
-config ATBM_APOLLO_WAPI_SUPPORT
-    bool "WAPI support"
-    depends on ATBM_MENUCONFIG || ATBM_APOLLO
-    default n
-    help
-     Say Y if your compat-wireless support WAPI.
-     If unsure, say N.
 
 config ATBM_APOLLO_SUPPORT_SGI
     bool "Use short GI support"

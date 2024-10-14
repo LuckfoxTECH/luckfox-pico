@@ -4,28 +4,21 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 #include <common.h>
-#include <adc.h>
-#include <android_ab.h>
-#include <android_bootloader.h>
-#include <android_image.h>
 #include <boot_rkimg.h>
 #include <bmp_layout.h>
 #include <malloc.h>
-#include <asm/io.h>
 #include <asm/unaligned.h>
-#include <dm/ofnode.h>
+#include <linux/libfdt.h>
 #include <linux/list.h>
-#include <asm/arch/fit.h>
-#include <asm/arch/uimage.h>
 #include <asm/arch/resource_img.h>
+#include <asm/arch/uimage.h>
+#include <asm/arch/fit.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
 #define PART_RESOURCE			"resource"
 #define RESOURCE_MAGIC			"RSCE"
 #define RESOURCE_MAGIC_SIZE		4
-#define RESOURCE_VERSION		0
-#define CONTENT_VERSION			0
 #define ENTRY_TAG			"ENTR"
 #define ENTRY_TAG_SIZE			4
 #define MAX_FILE_NAME_LEN		220
@@ -70,7 +63,7 @@ DECLARE_GLOBAL_DATA_PTR;
  */
 
 /**
- * struct resource_image_header
+ * struct resource_img_hdr
  *
  * @magic: should be "RSCE"
  * @version: resource image version, current is 0
@@ -80,7 +73,6 @@ DECLARE_GLOBAL_DATA_PTR;
  * @e_blks: the size(by block) of the entry in the contents
  * @e_num: numbers of the entrys.
  */
-
 struct resource_img_hdr {
 	char		magic[4];
 	uint16_t	version;
@@ -96,499 +88,406 @@ struct resource_entry {
 	char		name[MAX_FILE_NAME_LEN];
 	char		hash[MAX_HASH_LEN];
 	uint32_t	hash_size;
-	uint32_t	f_offset;	/* Sector offset */
-	uint32_t	f_size;		/* Bytes */
+	uint32_t	blk_offset;
+	uint32_t	size;		/* in byte */
 };
 
-LIST_HEAD(entrys_head);
-LIST_HEAD(entrys_dtbs_head);
+LIST_HEAD(entry_head);
 
-__weak int board_resource_dtb_accepted(char *dtb_name)
+static int resource_check_header(struct resource_img_hdr *hdr)
 {
-	return 1;
+	return memcmp(RESOURCE_MAGIC, hdr->magic, RESOURCE_MAGIC_SIZE);
 }
 
-int resource_image_check_header(void *rsce_hdr)
+static void resource_dump(struct resource_file *f)
 {
-	struct resource_img_hdr *hdr = rsce_hdr;
-	int ret;
-
-	ret = memcmp(RESOURCE_MAGIC, hdr->magic, RESOURCE_MAGIC_SIZE);
-	if (ret) {
-		debug("bad resource image magic: %s\n",
-		      hdr->magic ? hdr->magic : "none");
-		ret = -EINVAL;
-	}
-
-	debug("resource image header:\n");
-	debug("magic:%s\n", hdr->magic);
-	debug("version:%d\n", hdr->version);
-	debug("c_version:%d\n", hdr->c_version);
-	debug("blks:%d\n", hdr->blks);
-	debug("c_offset:%d\n", hdr->c_offset);
-	debug("e_blks:%d\n", hdr->e_blks);
-	debug("e_num:%d\n", hdr->e_nums);
-
-	return ret;
+	printf("%s\n", f->name);
+	printf("  blk_start:  0x%08lx\n", (ulong)f->blk_start);
+	printf("  blk_offset: 0x%08lx\n", (ulong)f->blk_offset);
+	printf("  size:       0x%08x\n", f->size);
+	printf("  in_ram:     %d\n", f->in_ram);
+	printf("  hash_size:  %d\n\n", f->hash_size);
 }
 
-static int add_file_to_list(struct resource_entry *entry, int rsce_base, bool ram)
+static int resource_add_file(const char *name, u32 size,
+			     u32 blk_start,  u32 blk_offset,
+			     char *hash, u32 hash_size,
+			     bool in_ram)
 {
-	struct resource_file *file;
-
-	if (memcmp(entry->tag, ENTRY_TAG, ENTRY_TAG_SIZE)) {
-		debug("invalid entry tag\n");
-		return -ENOENT;
-	}
-
-	file = malloc(sizeof(*file));
-	if (!file) {
-		debug("out of memory\n");
-		return -ENOMEM;
-	}
-
-	strcpy(file->name, entry->name);
-	file->rsce_base = rsce_base;
-	file->f_offset = entry->f_offset;
-	file->f_size = entry->f_size;
-	file->hash_size = entry->hash_size;
-	file->ram = ram;
-	memcpy(file->hash, entry->hash, entry->hash_size);
-	INIT_LIST_HEAD(&file->dtbs);
-	list_add_tail(&file->link, &entrys_head);
-	if (strstr(file->name, DTB_SUFFIX) && board_resource_dtb_accepted(file->name))
-		list_add_tail(&file->dtbs, &entrys_dtbs_head);
-	debug("ENTRY: addr: %p, name: %18s, base: 0x%08x, offset: 0x%08x, size: 0x%08x\n",
-	      entry, file->name, file->rsce_base, file->f_offset, file->f_size);
-
-	return 0;
-}
-
-int resource_replace_entry(const char *f_name, uint32_t base,
-			   uint32_t f_offset, uint32_t f_size)
-{
-	struct resource_entry *entry;
-	struct resource_file *file;
+	struct resource_file *f;
 	struct list_head *node;
+	bool _new = true;
 
-	if (!f_name || !f_size)
-		return -EINVAL;
-
-	entry = calloc(1, sizeof(*entry));
-	if (!entry)
-		return -ENOMEM;
-
-	strcpy(entry->tag, ENTRY_TAG);
-	strcpy(entry->name, f_name);
-	entry->f_offset = f_offset;
-	entry->f_size = f_size;
-	entry->hash_size = 0;
-
-	/* Delete exist entry, then add this new */
-	list_for_each(node, &entrys_head) {
-		file = list_entry(node, struct resource_file, link);
-		if (!strcmp(file->name, entry->name)) {
-			list_del(&file->link);
-			list_del(&file->dtbs);
-			free(file);
+	/* old one ? */
+	list_for_each(node, &entry_head) {
+		f = list_entry(node, struct resource_file, link);
+		if (!strcmp(f->name, name)) {
+			_new = false;
 			break;
 		}
 	}
 
-	add_file_to_list(entry, base, false);
-	free(entry);
+	if (_new) {
+		f = calloc(1, sizeof(*f));
+		if (!f)
+			return -ENOMEM;
+
+		list_add_tail(&f->link, &entry_head);
+	}
+
+	strcpy(f->name, name);
+	f->size       = size;
+	f->in_ram     = in_ram;
+	f->blk_start  = blk_start;
+	f->blk_offset = blk_offset;
+	f->hash_size  = hash_size;
+	memcpy(f->hash, hash, hash_size);
+#ifdef DEBUG
+	resource_dump(f);
+#endif
+	return 0;
+}
+
+static int resource_setup_list(struct blk_desc *desc, ulong blk_start,
+			       void *resc_hdr, bool in_ram)
+{
+	struct resource_img_hdr *hdr = resc_hdr;
+	struct resource_entry *et;
+	u32 i, stride;
+	void *pos;
+
+	pos = (void *)hdr + hdr->c_offset * desc->blksz;
+	stride = hdr->e_blks * desc->blksz;
+
+	for (i = 0; i < hdr->e_nums; i++) {
+		et = pos + (i * stride);
+		if (memcmp(et->tag, ENTRY_TAG, ENTRY_TAG_SIZE))
+			continue;
+
+		resource_add_file(et->name, et->size,
+				  blk_start, et->blk_offset,
+				  et->hash, et->hash_size, in_ram);
+	}
 
 	return 0;
 }
 
-int resource_create_ram_list(struct blk_desc *dev_desc, void *rsce_hdr)
+int resource_setup_ram_list(struct blk_desc *desc, void *hdr)
 {
-	struct resource_img_hdr *hdr = rsce_hdr;
-	struct resource_entry *entry;
-	int e_num, size;
-	void *data;
-	int ret = 0;
+	if (!desc)
+		return -ENODEV;
 
-	if (resource_image_check_header(hdr)) {
-		ret = -EINVAL;
-		goto out;
+	if (resource_check_header(hdr)) {
+		printf("RESC: invalid\n");
+		return -EINVAL;
 	}
 
-	list_del_init(&entrys_head);
-	list_del_init(&entrys_dtbs_head);
-	data = (void *)((ulong)hdr + hdr->c_offset * dev_desc->blksz);
-	for (e_num = 0; e_num < hdr->e_nums; e_num++) {
-		size = e_num * hdr->e_blks * dev_desc->blksz;
-		entry = (struct resource_entry *)(data + size);
-		add_file_to_list(entry, (ulong)hdr, true);
+	/* @blk_start: set as 'hdr' point addr, to be used in byte */
+	return resource_setup_list(desc, (ulong)hdr, hdr, true);
+}
+
+#ifdef CONFIG_ANDROID_BOOT_IMAGE
+/*
+ * Add logo.bmp and logo_kernel.bmp from "logo" parititon
+ *
+ * Provide a "logo" partition for user to store logo.bmp and
+ * logo_kernel.bmp, so that the user can update them from
+ * kernel or user-space dynamically.
+ *
+ * "logo" partition layout, do not change order:
+ *
+ *   |----------------------| 0x00
+ *   | raw logo.bmp	    |
+ *   |----------------------| -> 512-byte aligned
+ *   | raw logo_kernel.bmp  |
+ *   |----------------------|
+ *
+ * N: the sector count of logo.bmp
+ *
+ * How to generate:
+ * 	cat logo.bmp > logo.img && truncate -s %512 logo.img && cat logo_kernel.bmp >> logo.img
+ */
+static int resource_setup_logo_bmp(struct blk_desc *desc)
+{
+	struct bmp_header *header;
+	const char *name[] = { "logo.bmp", "logo_kernel.bmp" };
+	disk_partition_t part;
+	u32 blk_offset = 0;
+	u32 filesz;
+	int ret, i;
+
+	if (part_get_info_by_name(desc, PART_LOGO, &part) < 0)
+		return 0;
+
+	header = memalign(ARCH_DMA_MINALIGN, desc->blksz);
+	if (!header)
+		return -ENOMEM;
+
+	for (i = 0; i < ARRAY_SIZE(name); i++) {
+		if (blk_dread(desc, part.start + blk_offset, 1, header) != 1) {
+			ret = -EIO;
+			break;
+		}
+
+		if (header->signature[0] != 'B' || header->signature[1] != 'M') {
+			ret = -EINVAL;
+			break;
+		}
+
+		filesz = get_unaligned_le32(&header->file_size);
+		ret = resource_add_file(name[i], filesz, part.start, blk_offset,
+					NULL, 0, false);
+		if (ret)
+			break;
+
+		/* move to next file */
+		blk_offset += DIV_ROUND_UP(filesz, desc->blksz);
+
+		printf("LOGO: %s\n", name[i]);
+
 	}
-out:
-	resource_read_logo_bmps();
+
+	free(header);
 
 	return ret;
 }
 
-static int resource_create_list(struct blk_desc *dev_desc, int rsce_base)
+static int resource_setup_blk_list(struct blk_desc *desc, ulong blk_start)
 {
 	struct resource_img_hdr *hdr;
-	struct resource_entry *entry;
-	int blknum, e_num;
-	void *data = NULL;
+	int blk_cnt;
 	int ret = 0;
-	int size;
+	void *buf;
 
-	hdr = memalign(ARCH_DMA_MINALIGN, dev_desc->blksz);
+	hdr = memalign(ARCH_DMA_MINALIGN, desc->blksz);
 	if (!hdr)
 		return -ENOMEM;
 
-	if (blk_dread(dev_desc, rsce_base, 1, hdr) != 1) {
-		printf("Failed to read resource hdr\n");
+	if (blk_dread(desc, blk_start, 1, hdr) != 1) {
 		ret = -EIO;
-		goto err;
+		goto out;
 	}
 
-	if (resource_image_check_header(hdr)) {
+	if (resource_check_header(hdr)) {
+		printf("RESC: invalid\n");
 		if (fdt_check_header(hdr)) {
-			printf("No valid resource or dtb file\n");
 			ret = -EINVAL;
-			goto err;
+			goto out;
 		} else {
-			free(hdr);
-			return resource_replace_entry(DEFAULT_DTB_FILE, rsce_base,
-						      0, fdt_totalsize(hdr));
+			/* this is a dtb file */
+			printf("RESC: this is dtb\n");
+			ret = resource_add_file(DEFAULT_DTB_FILE,
+						fdt_totalsize(hdr),
+						blk_start, 0, NULL, 0, false);
+			goto out;
 		}
 	}
 
-	blknum = hdr->e_blks * hdr->e_nums;
-	data = memalign(ARCH_DMA_MINALIGN, blknum * dev_desc->blksz);
-	if (!data) {
+	blk_cnt = hdr->e_blks * hdr->e_nums;
+	hdr = realloc(hdr, (1 + blk_cnt) * desc->blksz);
+	if (!hdr) {
 		ret = -ENOMEM;
-		goto err;
+		goto out;
 	}
 
-	if (blk_dread(dev_desc, rsce_base + hdr->c_offset,
-		      blknum, data) != blknum) {
-		printf("Failed to read resource entries\n");
+	buf = (void *)hdr + desc->blksz;
+	if (blk_dread(desc, blk_start + hdr->c_offset, blk_cnt, buf) != blk_cnt) {
 		ret = -EIO;
-		goto err;
+		goto out;
 	}
 
-	/*
-	 * Add all file into resource file list, and load what we want from
-	 * storage when we really need it.
-	 */
-	for (e_num = 0; e_num < hdr->e_nums; e_num++) {
-		size = e_num * hdr->e_blks * dev_desc->blksz;
-		entry = (struct resource_entry *)(data + size);
-		add_file_to_list(entry, rsce_base, false);
-	}
-
-err:
-	if (data)
-		free(data);
-	if (hdr)
-		free(hdr);
-
-	resource_read_logo_bmps();
+	resource_setup_list(desc, blk_start, hdr, false);
+	resource_setup_logo_bmp(desc);
+out:
+	free(hdr);
 
 	return ret;
 }
 
-static int read_dtb_from_android(struct blk_desc *dev_desc,
-				 struct andr_img_hdr *hdr,
-				 ulong rsce_base)
+static int resource_init(struct blk_desc *desc,
+			 disk_partition_t *part,
+			 ulong blk_offset)
 {
-	ulong dtb_offset = 0;
-	ulong dtb_size = 0;
+	printf("RESC: '%s', blk@0x%08lx\n", part->name, part->start + blk_offset);
 
-	if (!hdr || hdr->header_version <= 1) {
-		return 0;
-	} else if (hdr->header_version == 2) {
-		dtb_offset += hdr->page_size;
-		dtb_offset += ALIGN(hdr->kernel_size, hdr->page_size);
-		dtb_offset += ALIGN(hdr->ramdisk_size, hdr->page_size);
-		dtb_offset += ALIGN(hdr->recovery_dtbo_size, hdr->page_size) +
-			      ALIGN(hdr->second_size, hdr->page_size);
-		dtb_size = hdr->dtb_size;
-	} else if (hdr->header_version >= 3) {
-		ulong vendor_boot_hdr_size = (hdr->header_version == 3) ?
-			VENDOR_BOOT_HDRv3_SIZE : VENDOR_BOOT_HDRv4_SIZE;
+#ifdef CONFIG_ANDROID_AVB
+	char hdr[512];
+	ulong resc_buf = 0;
+	int ret;
 
-		dtb_offset += ALIGN(vendor_boot_hdr_size,
-				    hdr->vendor_page_size) +
-			      ALIGN(hdr->vendor_ramdisk_size,
-				    hdr->vendor_page_size);
-		dtb_size = hdr->dtb_size;
+	if (blk_dread(desc, part->start, 1, hdr) != 1)
+		return -EIO;
+
+	/* only handle android boot/recovery.img and resource.img, ignore fit */
+	if (!android_image_check_header((void *)hdr) ||
+	    !resource_check_header((void *)hdr)) {
+		ret = android_image_verify_resource((const char *)part->name, &resc_buf);
+		if (ret) {
+			printf("RESC: '%s', avb verify fail: %d\n", part->name, ret);
+			return ret;
+		}
+
+		/*
+		 * unlock=0: resc_buf is valid and file was already full load in ram.
+		 * unlock=1: resc_buf is 0.
+		 */
+		if (resc_buf && !resource_check_header((void *)resc_buf))
+			return resource_setup_ram_list(desc, (void *)resc_buf);
 	}
+#endif
 
-	if (!dtb_size)
-		return 0;
+	return resource_setup_blk_list(desc, part->start + blk_offset);
+}
 
-	/*
-	 * boot_img_hdr_v234 feature.
-	 *
-	 * If dtb position is present, replace the old with new one if
-	 * we don't need to verify DTB hash from resource.img file entry.
-	 */
-	dtb_offset = DIV_ROUND_UP(dtb_offset, dev_desc->blksz);
-	env_update("bootargs", "androidboot.dtb_idx=0");
+static int resource_default(struct blk_desc *desc,
+			    disk_partition_t *out_part,
+			    ulong *out_blk_offset)
+{
+	disk_partition_t part;
+
+	if (part_get_info_by_name(desc, PART_RESOURCE, &part) < 0)
+		return -ENODEV;
+
+	*out_part = part;
+	*out_blk_offset = 0;
 
 	return 0;
 }
+#endif
 
-static int get_resource_base_sector(struct blk_desc *dev_desc,
-				    struct andr_img_hdr **ret_hdr)
+static int resource_scan(void)
 {
+	struct blk_desc *desc = rockchip_get_bootdev();
+	__maybe_unused int ret;
+
+	if (!desc) {
+		printf("RESC: No bootdev\n");
+		return -ENODEV;
+	}
+
+	if (!list_empty(&entry_head))
+		return 0;
+
+#ifdef CONFIG_ROCKCHIP_FIT_IMAGE
+	ret = fit_image_init_resource(desc);
+	if (!ret || ret != -EAGAIN)
+		return ret;
+#endif
+#ifdef CONFIG_ROCKCHIP_UIMAGE
+	ret = uimage_init_resource(desc);
+	if (!ret || ret != -EAGAIN)
+		return ret;
+#endif
+#ifdef CONFIG_ANDROID_BOOT_IMAGE
 	disk_partition_t part;
-	int rsce_base = 0;
-#ifdef CONFIG_ANDROID_BOOT_IMAGE
-	struct andr_img_hdr *hdr;
-	u32 os_ver = 0, os_lvl;
-	const char *part_boot = PART_BOOT;
+	ulong blk_offset;
+	char hdr[512];
+	char name[32];
 
-	/*
-	 * Anyway, we must read android hdr firstly from boot/recovery partition
-	 * to get the 'os_version' for android_bcb_msg_sector_offset(), in order
-	 * to confirm BCB message offset of *MISC* partition.
-	 */
-#ifdef CONFIG_ANDROID_AB
-	part_boot = ab_can_find_recovery_part() ? PART_RECOVERY : PART_BOOT;
-#endif
+	/* partition priority: boot/recovery > resource */
+	if (!android_image_init_resource(desc, &part, &blk_offset)) {
+		if (blk_dread(desc, part.start + blk_offset, 1, hdr) != 1)
+			return -EIO;
 
-	if (part_get_info_by_name(dev_desc, part_boot, &part) < 0)
-		goto resource_part;
+		if (resource_check_header((void *)hdr)) {
+			strcpy(name, (char *)part.name);
+			if (resource_default(desc, &part, &blk_offset))
+				return -ENOENT;
 
-	hdr = populate_andr_img_hdr(dev_desc, &part);
-	if (hdr) {
-		os_ver = hdr->os_version >> 11;
-		os_lvl = hdr->os_version & ((1U << 11) - 1);
-		if (os_ver)
-			gd->bd->bi_andr_version = hdr->os_version;
-	}
-
-#ifndef CONFIG_ANDROID_AB
-	/* Get boot mode from misc and read if recovery mode */
-	if (rockchip_get_boot_mode() == BOOT_MODE_RECOVERY) {
-		if (hdr)
-			free(hdr);
-
-		if (part_get_info_by_name(dev_desc, PART_RECOVERY, &part) < 0)
-			goto resource_part;
-
-		hdr = populate_andr_img_hdr(dev_desc, &part);
-		if (!hdr)
-			goto resource_part;
-	}
-#endif
-	/* If Android v012, getting resource from second position ! */
-	if (hdr) {
-		if (os_ver)
-			printf("Android %u.%u, Build %u.%u, v%d\n",
-			       (os_ver >> 14) & 0x7F, (os_ver >> 7) & 0x7F,
-			       (os_lvl >> 4) + 2000, os_lvl & 0x0F,
-			       hdr->header_version);
-		*ret_hdr = hdr;
-		if (hdr->header_version < 3) {
-			rsce_base = part.start * dev_desc->blksz;
-			rsce_base += hdr->page_size;
-			rsce_base += ALIGN(hdr->kernel_size, hdr->page_size);
-			rsce_base += ALIGN(hdr->ramdisk_size, hdr->page_size);
-			rsce_base = DIV_ROUND_UP(rsce_base, dev_desc->blksz);
-			goto finish;
+			printf("RESC: '%s' -> '%s'\n", name, part.name);
 		}
-	}
-resource_part:
-#endif
-	/* resource partition */
-	if (part_get_info_by_name(dev_desc, PART_RESOURCE, &part) < 0) {
-		printf("No resource partition\n");
-		return -ENODEV;
 	} else {
-		rsce_base = part.start;
+		if (resource_default(desc, &part, &blk_offset))
+			return -ENOENT;
 	}
-#ifdef CONFIG_ANDROID_BOOT_IMAGE
-finish:
+
+	/* now, 'part' can be boot/recovery/resource */
+	return resource_init(desc, &part, blk_offset);
 #endif
-	printf("Found DTB in %s part\n", part.name);
-
-	return rsce_base;
+	return -ENOENT;
 }
 
-/*
- * There are: logo/battery pictures and dtb file in the resource image by default.
- *
- * This function does:
- *
- * 1. Get resource image base sector from: boot/recovery(AOSP) > resource(RK)
- * 2. Create resource files list(addition: add logo bmps)
- * 3. Add dtb from android v2 dtb pos, override the old one from resource file
- */
-int resource_init_list(void)
+static struct resource_file *resource_get_file(const char *name)
 {
-	struct andr_img_hdr *hdr = NULL;
-	struct blk_desc *dev_desc;
-	int rsce_base;
-
-	dev_desc = rockchip_get_bootdev();
-	if (!dev_desc) {
-		printf("No dev_desc!\n");
-		return -ENODEV;
-	}
-
-	rsce_base = get_resource_base_sector(dev_desc, &hdr);
-	if (rsce_base > 0) {
-		if (resource_create_list(dev_desc, rsce_base))
-			printf("Failed to create resource list\n");
-	}
-
-	/* override the resource dtb with android dtb if need */
-	return read_dtb_from_android(dev_desc, hdr, rsce_base);
-}
-
-int resource_is_empty(void)
-{
-	return list_empty(&entrys_head);
-}
-
-static struct resource_file *get_file_info(const char *name)
-{
-	struct resource_file *file;
+	struct resource_file *f;
 	struct list_head *node;
 
-	if (list_empty(&entrys_head)) {
-		if (resource_init_list())
-			return NULL;
-	}
+	if (resource_scan())
+		return NULL;
 
-	list_for_each(node, &entrys_head) {
-		file = list_entry(node, struct resource_file, link);
-		if (!strcmp(file->name, name))
-			return file;
+	list_for_each(node, &entry_head) {
+		f = list_entry(node, struct resource_file, link);
+		if (!strcmp(f->name, name))
+			return f;
 	}
 
 	return NULL;
 }
 
-/*
- * read file from resource partition
- * @buf: destination buf to store file data;
- * @name: file name
- * @offset: blocks offset in the file, 1 block = 512 bytes
- * @len: the size(by bytes) of file to read.
- */
-int rockchip_read_resource_file(void *buf, const char *name, int offset, int len)
+int rockchip_read_resource_file(void *buf, const char *name, int blk_offset, int len)
 {
-	struct resource_file *file;
-	struct blk_desc *dev_desc;
-	int ret = 0;
-	int blks;
-	ulong src;
+	struct blk_desc *desc = rockchip_get_bootdev();
+	struct resource_file *f;
+	int blk_cnt;
+	ulong pos;
 
-	file = get_file_info(name);
-	if (!file) {
-		printf("No file: %s\n", name);
+	if (!desc)
+		return -ENODEV;
+
+	f = resource_get_file(name);
+	if (!f) {
+		printf("No resource file: %s\n", name);
 		return -ENOENT;
 	}
 
-	dev_desc = rockchip_get_bootdev();
-	if (!dev_desc) {
-		printf("No dev_desc!\n");
-		return -ENODEV;
-	}
+	if (len <= 0 || len > f->size)
+		len = f->size;
 
-	if (len <= 0 || len > file->f_size)
-		len = file->f_size;
-
-	if (file->ram) {
-		src = file->rsce_base +
-			(file->f_offset + offset) * dev_desc->blksz;
-		memcpy(buf, (char *)src, len);
-		ret = len;
+	if (f->in_ram) {
+		pos = f->blk_start + (f->blk_offset + blk_offset) * desc->blksz;
+		memcpy(buf, (char *)pos, len);
 	} else {
-		blks = DIV_ROUND_UP(len, dev_desc->blksz);
-		ret = blk_dread(dev_desc,
-				file->rsce_base + file->f_offset + offset,
-				blks, buf);
-		ret = (ret != blks) ? -EIO : len;
+		blk_cnt = DIV_ROUND_UP(len, desc->blksz);
+		if (blk_dread(desc,
+			      f->blk_start + f->blk_offset + blk_offset,
+			      blk_cnt, buf) != blk_cnt)
+			len = -EIO;
 	}
 
-	return ret;
+	return len;
 }
 
-static struct resource_file *get_default_dtb(void)
-{
-	struct resource_file *target_file = NULL;
-	struct resource_file *file;
-	struct list_head *node;
-	int num = 0;
-
-	if (list_empty(&entrys_head)) {
-		if (resource_init_list())
-			return NULL;
-	}
-
-	list_for_each(node, &entrys_dtbs_head) {
-		num++;
-		file = list_entry(node, struct resource_file, dtbs);
-		if (strcmp(file->name, DEFAULT_DTB_FILE))
-			target_file = file;
-	}
-
-	/*
-	 * two possible case:
-	 *	case 1. rk-kernel.dtb only
-	 *	case 2. targe_file(s) + rk-kernel.dtb(maybe they are the same),
-	 *		use (last)target_file as result one.
-	 */
-	if (num > 2)
-		printf("Error: find duplicate(%d) dtbs\n", num);
-
-	return target_file ? : get_file_info(DEFAULT_DTB_FILE);
-}
+extern struct resource_file *resource_read_hwid_dtb(void);
 
 int rockchip_read_resource_dtb(void *fdt_addr, char **hash, int *hash_size)
 {
-	struct resource_file *file = NULL;
+	struct resource_file *f = NULL;
 	int ret;
 
 #ifdef CONFIG_ROCKCHIP_HWID_DTB
-	file = resource_read_hwid_dtb();
-#endif
-	/* If no dtb matches hardware id(GPIO/ADC), use the default */
-	if (!file)
-		file = get_default_dtb();
+	if (resource_scan())
+		return -ENOENT;
 
-	if (!file)
+	f = resource_read_hwid_dtb();
+#endif
+	/* If no dtb match hardware id(GPIO/ADC), use the default */
+	if (!f)
+		f = resource_get_file(DEFAULT_DTB_FILE);
+
+	if (!f)
 		return -ENODEV;
 
-	ret = rockchip_read_resource_file(fdt_addr, file->name, 0, 0);
+	ret = rockchip_read_resource_file(fdt_addr, f->name, 0, 0);
 	if (ret < 0)
 		return ret;
 
 	if (fdt_check_header(fdt_addr))
 		return -EBADF;
 
-	*hash = file->hash;
-	*hash_size = file->hash_size;
-	printf("DTB: %s\n", file->name);
+	*hash = f->hash;
+	*hash_size = f->hash_size;
 
-	return 0;
-}
-
-int resource_traverse_init_list(void)
-{
-	if (!resource_is_empty())
-		return 0;
-
-#ifdef CONFIG_ROCKCHIP_FIT_IMAGE
-	if (!fit_image_init_resource())
-		return 0;
-#endif
-#ifdef CONFIG_ROCKCHIP_UIMAGE
-	if (!uimage_init_resource())
-		return 0;
-#endif
-	/* Android image is default supported within resource core */
+	printf("DTB: %s\n", f->name);
 
 	return 0;
 }
@@ -596,30 +495,20 @@ int resource_traverse_init_list(void)
 static int do_dump_resource(cmd_tbl_t *cmdtp, int flag,
 			    int argc, char *const argv[])
 {
-	struct resource_file *file;
+	struct resource_file *f;
 	struct list_head *node;
 
-	printf("Resources:\n");
-	list_for_each(node, &entrys_head) {
-		file = list_entry(node, struct resource_file, link);
-		printf("	%s: 0x%08x(sector), 0x%08x(bytes)\n",
-		       file->name, file->rsce_base + file->f_offset, file->f_size);
+	list_for_each(node, &entry_head) {
+		f = list_entry(node, struct resource_file, link);
+		resource_dump(f);
 	}
 
-#ifdef CONFIG_ROCKCHIP_HWID_DTB
-	printf("DTBs:\n");
-	list_for_each(node, &entrys_dtbs_head) {
-		file = list_entry(node, struct resource_file, dtbs);
-		printf("	%s: 0x%08x(sector),0x%08x(bytes)\n",
-		       file->name, file->rsce_base + file->f_offset, file->f_size);
-	}
-#endif
 	return 0;
 }
 
 U_BOOT_CMD(
 	dump_resource, 1, 1, do_dump_resource,
-	"dump resource list",
+	"dump resource files",
 	""
 );
 

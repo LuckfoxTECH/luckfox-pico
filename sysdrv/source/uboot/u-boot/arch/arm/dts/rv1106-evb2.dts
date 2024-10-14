@@ -7,6 +7,7 @@
 
 #include "rv1106.dtsi"
 #include "rv1106-u-boot.dtsi"
+#include <dt-bindings/input/input.h>
 
 / {
 	model = "Rockchip RV1106 EVB2 Board";
@@ -15,6 +16,29 @@
 	chosen {
 		stdout-path = &uart2;
 		u-boot,spl-boot-order = &spi_nor, &emmc;
+	};
+
+	adc-keys {
+		compatible = "adc-keys";
+		io-channels = <&saradc 0>;
+		io-channel-names = "buttons";
+		keyup-threshold-microvolt = <893000>;
+		u-boot,dm-spl;
+		status = "okay";
+
+		volumeup-key {
+			u-boot,dm-spl;
+			linux,code = <KEY_VOLUMEUP>;
+			label = "volume up";
+			press-threshold-microvolt = <339589>;
+		};
+
+		volumedown-key {
+			u-boot,dm-spl;
+			linux,code = <KEY_VOLUMEDOWN>;
+			label = "volume down";
+			press-threshold-microvolt = <17578>;
+		};
 	};
 };
 
@@ -61,6 +85,11 @@
 &rng {
 	/delete-property/ u-boot,dm-spl;
 	status = "disabled";
+};
+
+&saradc {
+	u-boot,dm-spl;
+	status = "okay";
 };
 
 &sdmmc {

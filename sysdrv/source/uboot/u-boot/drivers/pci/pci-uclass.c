@@ -947,7 +947,6 @@ static int pci_bridge_write_config(struct udevice *bus, pci_dev_t bdf,
 static int skip_to_next_device(struct udevice *bus, struct udevice **devp)
 {
 	struct udevice *dev;
-	int ret = 0;
 
 	/*
 	 * Scan through all the PCI controllers. On x86 there will only be one
@@ -959,9 +958,7 @@ static int skip_to_next_device(struct udevice *bus, struct udevice **devp)
 			*devp = dev;
 			return 0;
 		}
-		ret = uclass_next_device(&bus);
-		if (ret)
-			return ret;
+		uclass_next_device(&bus);
 	} while (bus);
 
 	return 0;
@@ -971,7 +968,6 @@ int pci_find_next_device(struct udevice **devp)
 {
 	struct udevice *child = *devp;
 	struct udevice *bus = child->parent;
-	int ret;
 
 	/* First try all the siblings */
 	*devp = NULL;
@@ -984,9 +980,7 @@ int pci_find_next_device(struct udevice **devp)
 	}
 
 	/* We ran out of siblings. Try the next bus */
-	ret = uclass_next_device(&bus);
-	if (ret)
-		return ret;
+	uclass_next_device(&bus);
 
 	return bus ? skip_to_next_device(bus, devp) : 0;
 }
@@ -994,12 +988,9 @@ int pci_find_next_device(struct udevice **devp)
 int pci_find_first_device(struct udevice **devp)
 {
 	struct udevice *bus;
-	int ret;
 
 	*devp = NULL;
-	ret = uclass_first_device(UCLASS_PCI, &bus);
-	if (ret)
-		return ret;
+	uclass_first_device(UCLASS_PCI, &bus);
 
 	return skip_to_next_device(bus, devp);
 }

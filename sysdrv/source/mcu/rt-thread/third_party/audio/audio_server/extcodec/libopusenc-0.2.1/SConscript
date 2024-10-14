@@ -1,0 +1,20 @@
+# RT-Thread building script for bridge
+
+import os
+from building import *
+
+cwd = GetCurrentDir()
+
+src  = Glob('*.c') \
+       + Glob('src/*.c') \
+       + Glob('examples/opusenc_example.c')
+
+CPPPATH = [cwd] \
+          + [cwd + '/include'] \
+          + [cwd + '/src']
+
+LOCAL_CCFLAGS = ' -DRANDOM_PREFIX=libopusenc -DOUTSIDE_SPEEX'
+
+group = DefineGroup('opusenc', src, depend = ['RT_USING_LIB_OPUSENC'], CPPPATH = CPPPATH, LOCAL_CCFLAGS = LOCAL_CCFLAGS)
+
+Return('group')

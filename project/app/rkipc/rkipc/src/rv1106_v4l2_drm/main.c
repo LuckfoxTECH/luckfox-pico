@@ -170,6 +170,7 @@ static void *get_vi_send_vo(void *arg) {
 #define FMT_NUM_PLANES 1
 int main(int argc, char **argv) {
 	LOG_INFO("main begin\n");
+	rkipc_version_dump();
 	signal(SIGINT, sig_proc);
 	int ret;
 

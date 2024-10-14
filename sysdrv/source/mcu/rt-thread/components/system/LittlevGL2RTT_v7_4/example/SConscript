@@ -1,0 +1,26 @@
+from building import * 
+import rtconfig
+
+# get current dir path
+cwd = GetCurrentDir()
+
+# init src and inc vars
+src = []
+inc = []
+
+# add LittlevGL2RTT common include
+inc = inc + [cwd]
+
+# add LittlevGL2RTT basic code
+src = Glob('*.c')
+
+LOCAL_CCFLAGS = ''
+
+if rtconfig.CROSS_TOOL == 'gcc':
+    LOCAL_CCFLAGS += ' -std=c99'
+elif rtconfig.CROSS_TOOL == 'keil':
+    LOCAL_CCFLAGS += ' --c99 --gnu -g -W'
+
+group = DefineGroup('LittlevGL2RTT_Demo', src, depend = ['RT_LV_USING_DEMO'], CPPPATH = inc, LOCAL_CCFLAGS = LOCAL_CCFLAGS)
+
+Return('group')

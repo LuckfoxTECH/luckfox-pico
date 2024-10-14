@@ -15,14 +15,14 @@ int rkwifi_cli(int argc, char *argv[])
 	int tmp_argc = 1;
 	int socket_fd = 0;
 	int ret = 0;
-	int i = 0;
 
 	memset(command, 0, sizeof(command));
 	sprintf(command, "%s", argv[tmp_argc++]);
 
 	while (tmp_argc < argc)
 	{
-		sprintf(command, "%s %s", command, argv[tmp_argc++]);
+		strcat(command, " ");
+		strcat(command, argv[tmp_argc++]);
 	}
 
 	socket_fd = socket(AF_UNIX, SOCK_STREAM, 0);

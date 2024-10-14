@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<flash_device>
+  <exe>$PROJ_DIR$\FlashRK2108.out</exe>
+  <page>256</page>
+  <block>256 0x1000</block>
+  <flash_base>0x18000000</flash_base>
+  <macro>$PROJ_DIR$\FlashRK2108.mac</macro>
+  <online>1</online>
+  <aggregate>1</aggregate>
+  <args_doc>Programming parallelism is selected by the following arguments:
+  "--x8"  8  bits programming parallelism
+  "--x16" 16 bits programming parallelism
+  "--x32" 32 bits programming parallelism
+  "--x64" 64 bits programming parallelism
+  The different programming modes makes certain requirements on the supply voltage to the 
+  flash controller, see ST's flash programming manual for details. 
+  If no mode is selected, x16 parallelism is chosen.
+  
+  "--skip_erase" -Don't erase blocks that read empty.</args_doc>
+</flash_device>

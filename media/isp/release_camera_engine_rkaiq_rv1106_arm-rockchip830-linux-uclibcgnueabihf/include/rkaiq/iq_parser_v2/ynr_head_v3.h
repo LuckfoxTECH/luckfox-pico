@@ -29,12 +29,16 @@ RKAIQ_BEGIN_DECLARE
 typedef struct CalibDbV2_YnrV3_C_Set_ISO_s {
     // M4_NUMBER_MARK_DESC("iso", "f32", M4_RANGE(50, 204800), "50", M4_DIGIT(1), "index2")
     float iso;
-    // M4_ARRAY_DESC("sigma_curve", "f32", M4_SIZE(1,5), M4_RANGE(-65535.0, 65535), "0.0", M4_DIGIT(6), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("sigma_curve", "f32", M4_SIZE(1,5), M4_RANGE(-65535.0, 65535), "0.0", M4_DIGIT(20), M4_DYNAMIC(0))
     double sigma_curve[5];
     // M4_NUMBER_DESC("ynr_lci", "f32", M4_RANGE(0.0, 2.0), "0.5", M4_DIGIT(3))
     float ynr_lci;
     // M4_NUMBER_DESC("ynr_hci", "f32", M4_RANGE(0.0, 2.0), "0.5", M4_DIGIT(3))
     float ynr_hci;
+    // M4_ARRAY_DESC("lumaPoint", "s16", M4_SIZE(1,17), M4_RANGE(0,1024), "[0,64,128,192,256,320,384,448,512,576,640,704,768,832,896,960,1024]", M4_DIGIT(0), M4_DYNAMIC(0))
+    int16_t lumaPoint[17];
+    // M4_ARRAY_DESC("sigma", "f32", M4_SIZE(1,17), M4_RANGE(0, 4095), "[32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32]", M4_DIGIT(3), M4_DYNAMIC(0))
+    float sigma[17];
 
 } CalibDbV2_YnrV3_C_Set_ISO_t;
 
@@ -49,6 +53,8 @@ typedef struct CalibDbV2_YnrV3_C_Set_s {
 } CalibDbV2_YnrV3_C_Set_t;
 
 typedef struct CalibDbV2_YnrV3_Calib_s {
+    //M4_BOOL_DESC("sigma_use_point", "0")
+    bool sigma_use_point;
     // M4_STRUCT_LIST_DESC("Setting", M4_SIZE_DYNAMIC, "double_index_list")
     CalibDbV2_YnrV3_C_Set_t *Setting;
     int Setting_len;

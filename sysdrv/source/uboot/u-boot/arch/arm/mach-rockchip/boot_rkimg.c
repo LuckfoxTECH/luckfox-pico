@@ -19,6 +19,8 @@
 #include <key.h>
 #include <mmc.h>
 #include <malloc.h>
+#include <mp_boot.h>
+#include <mtd_blk.h>
 #include <nvme.h>
 #include <scsi.h>
 #include <stdlib.h>
@@ -63,7 +65,7 @@ static int bootdev_init(const char *devtype, const char *devnum)
 			return -ENODEV;
 	}
 #endif
-#if defined(CONFIG_SCSI) && defined(CONFIG_CMD_SCSI) && defined(CONFIG_AHCI)
+#if defined(CONFIG_SCSI) && defined(CONFIG_CMD_SCSI) && (defined(CONFIG_AHCI) || defined(CONFIG_UFS))
 	if (!strcmp("scsi", devtype)) {
 		if (scsi_scan(true))
 			return -ENODEV;
@@ -91,6 +93,10 @@ static void boot_devtype_init(void)
 
 	if (done)
 		return;
+
+#ifdef CONFIG_MP_BOOT
+	mpb_post(0);
+#endif
 
 	/* configuration */
 	if (!param_parse_assign_bootdev(&devtype, &devnum)) {
@@ -269,6 +275,9 @@ struct blk_desc *rockchip_get_bootdev(void)
 
 	printf("PartType: %s\n", part_get_type(dev_desc));
 
+#ifdef CONFIG_MTD_BLK
+	mtd_blk_map_partitions(dev_desc);
+#endif
 	return dev_desc;
 }
 
@@ -304,6 +313,8 @@ __weak int rockchip_dnl_key_pressed(void)
 	}
 
 	ret = adc_channel_single_shot("saradc", channel, &val);
+	if (ret)
+		ret = adc_channel_single_shot("adc", channel, &val);
 	if (ret) {
 		printf("%s: Failed to read saradc, ret=%d\n", __func__, ret);
 		return 0;
@@ -386,57 +397,17 @@ out:
 #if defined(CONFIG_USING_KERNEL_DTB) || defined(CONFIG_CMD_BOOTM) || \
     defined(CONFIG_CMD_BOOTZ) || defined(CONFIG_CMD_BOOTI)
 #ifdef CONFIG_ROCKCHIP_DTB_VERIFY
-#ifdef CONFIG_DM_CRYPTO
-static int crypto_csum(u32 cap, char *input, u32 input_len, u8 *output)
-{
-	sha_context csha_ctx;
-	struct udevice *dev;
-
-	dev = crypto_get_device(cap);
-	if (!dev) {
-		printf("Can't find expected crypto device\n");
-		return -ENODEV;
-	}
-
-	csha_ctx.algo = cap;
-	csha_ctx.length = input_len;
-	crypto_sha_csum(dev, &csha_ctx, (char *)input,
-			input_len, output);
-
-	return 0;
-}
-
 static int fdt_check_hash(void *fdt_addr, u32 fdt_size,
 			  char *hash_cmp, u32 hash_size)
 {
 	uchar hash[32];
-
-	if (!hash_size)
-		return 0;
-
-	if (hash_size == 20)
-		crypto_csum(CRYPTO_SHA1, fdt_addr, fdt_size, hash);
-	else if (hash_size == 32)
-		crypto_csum(CRYPTO_SHA256, fdt_addr, fdt_size, hash);
-	else
-		return -EINVAL;
-
-	printf("HASH(c): ");
-	if (memcmp(hash, hash_cmp, hash_size)) {
-		printf("error\n");
-		return -EBADF;
-	}
-
-	printf("OK\n");
-
-	return 0;
-}
-
+#ifdef CONFIG_ARMV8_CRYPTO
+	char *engine = "ce";
+#elif defined(CONFIG_DM_CRYPTO)
+	char *engine = "c";
 #else
-static int fdt_check_hash(void *fdt_addr, u32 fdt_size,
-			  char *hash_cmp, u32 hash_size)
-{
-	uchar hash[32];
+	char *engine = "s";
+#endif
 
 	if (!hash_size)
 		return 0;
@@ -448,7 +419,7 @@ static int fdt_check_hash(void *fdt_addr, u32 fdt_size,
 	else
 		return -EINVAL;
 
-	printf("HASH(s): ");
+	printf("HASH(%s): ", engine);
 	if (memcmp(hash, hash_cmp, hash_size)) {
 		printf("error\n");
 		return -EBADF;
@@ -458,7 +429,6 @@ static int fdt_check_hash(void *fdt_addr, u32 fdt_size,
 
 	return 0;
 }
-#endif
 #endif	/* CONFIG_ROCKCHIP_DTB_VERIFY */
 
 #if defined(CONFIG_ROCKCHIP_EARLY_DISTRO_DTB)
@@ -512,7 +482,7 @@ enum {
 	LOCATE_END,
 };
 
-static int rkimg_traverse_read_dtb(void *fdt, int where)
+static int dtb_scan(void *fdt, int where)
 {
 	if (where == LOCATE_DISTRO) {
 #ifdef CONFIG_ROCKCHIP_EARLY_DISTRO_DTB
@@ -557,19 +527,13 @@ int rockchip_read_dtb_file(void *fdt)
 	int locate, ret;
 	int size;
 
-	/* init resource list */
-#ifdef CONFIG_ROCKCHIP_RESOURCE_IMAGE
-	resource_traverse_init_list();
-#endif
-
-	/* traverse location */
 	for (locate = 0; locate < LOCATE_END; locate++) {
-		ret = rkimg_traverse_read_dtb(fdt, locate);
+		ret = dtb_scan(fdt, locate);
 		if (!ret)
 			break;
 	}
 	if (ret) {
-		printf("No find valid DTB, ret=%d\n", ret);
+		printf("No valid DTB, ret=%d\n", ret);
 		return ret;
 	}
 
@@ -608,7 +572,7 @@ int rockchip_ram_read_dtb_file(void *img, void *fdt)
 		offset = hdr->page_size + ALIGN(hdr->kernel_size, hdr->page_size) +
 			ALIGN(hdr->ramdisk_size, hdr->page_size);
 #ifdef CONFIG_ROCKCHIP_RESOURCE_IMAGE
-		ret = resource_create_ram_list(dev_desc, (void *)hdr + offset);
+		ret = resource_setup_ram_list(dev_desc, (void *)hdr + offset);
 		if (ret)
 			return ret;
 
@@ -650,9 +614,9 @@ int rockchip_ram_read_dtb_file(void *img, void *fdt)
 		if (!dev_desc)
 			return -ENODEV;
 
-		ret = resource_create_ram_list(dev_desc, (void *)data);
+		ret = resource_setup_ram_list(dev_desc, (void *)data);
 		if (ret) {
-			printf("resource_create_ram_list fail, ret=%d\n", ret);
+			printf("resource_setup_ram_list fail, ret=%d\n", ret);
 			return ret;
 		}
 

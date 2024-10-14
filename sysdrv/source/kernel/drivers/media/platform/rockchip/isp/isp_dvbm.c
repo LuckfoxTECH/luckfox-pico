@@ -55,6 +55,7 @@ int rkisp_dvbm_init(struct rkisp_stream *stream)
 	dvbm_cfg.cbuf_top = dvbm_cfg.cbuf_bot + (width * wrap_line / 2);
 	dvbm_cfg.cbuf_lstd = width;
 	dvbm_cfg.cbuf_fstd = dvbm_cfg.ybuf_fstd / 2;
+	dvbm_cfg.chan_id = dev->dev_id;
 
 	rk_dvbm_ctrl(g_dvbm, DVBM_ISP_SET_CFG, &dvbm_cfg);
 	rk_dvbm_link(g_dvbm);

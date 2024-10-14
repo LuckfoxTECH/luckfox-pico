@@ -31,6 +31,15 @@
 #define CONFIG_FASTBOOT_MBR_NAME "mbr"
 #endif
 
+#ifndef CONFIG_FASTBOOT_IDBLOCK_NAME
+#define CONFIG_FASTBOOT_IDBLOCK_NAME "idblock"
+#endif
+
+#define CONFIG_FASTBOOT_MMC_BLOCK_SIZE 512
+#define CONFIG_FASTBOOT_IDBLOCK_SECTOR 64
+/* idblock sector：64 ~ 64 + 5 * 1024(512K for each MiniloadAll.bin) */
+#define CONFIG_FASTBOOT_IDBLOCK_SECTOR_SIZE 5184
+
 #define BOOT_PARTITION_NAME "boot"
 #define FASTBOOT_MAX_BLK_WRITE 16384
 static ulong timer;
@@ -363,6 +372,14 @@ void fb_mmc_flash_write(const char *cmd, void *download_buffer,
 	}
 #endif
 
+	if (strcmp(cmd, CONFIG_FASTBOOT_IDBLOCK_NAME) == 0) {
+		printf("%s: updating IDBLOCK\n", __func__);
+		info.blksz = CONFIG_FASTBOOT_MMC_BLOCK_SIZE;
+		info.start = CONFIG_FASTBOOT_IDBLOCK_SECTOR;
+		info.size = CONFIG_FASTBOOT_IDBLOCK_SECTOR_SIZE;
+		goto download;
+	}
+
 #ifdef CONFIG_ANDROID_BOOT_IMAGE
 	if (strncasecmp(cmd, "zimage", 6) == 0) {
 		fb_mmc_update_zimage(dev_desc, download_buffer, download_bytes, response);
@@ -376,6 +393,7 @@ void fb_mmc_flash_write(const char *cmd, void *download_buffer,
 		return;
 	}
 
+download:
 	if (is_sparse_image(download_buffer)) {
 		struct fb_mmc_sparse sparse_priv;
 		struct sparse_storage sparse;

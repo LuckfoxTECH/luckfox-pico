@@ -26,8 +26,11 @@ void ieee80211_ht_cap_ie_to_sta_ht_cap(struct ieee80211_supported_band *sband,
 	u8 ampdu_info, tx_mcs_set_cap;
 	int i, max_tx_streams;
 
-	BUG_ON(!ht_cap);
-
+	//BUG_ON(!ht_cap);
+	if(!ht_cap){
+		atbm_printk_err("%s %d ,ERROR !!! ht_cap is NULL\n",__func__,__LINE__);
+		return;
+	}
 	memset(ht_cap, 0, sizeof(*ht_cap));
 
 	if (!ht_cap_ie || !sband->ht_cap.ht_supported)

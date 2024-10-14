@@ -25,27 +25,39 @@
 #include "rt_header.h"
 
 class RTStreamInfo {
-public:
-  RTStreamInfo() {
-    mStreamType = "none";
-    mStreamName = "none";
-  }
-  ~RTStreamInfo() {}
+ public:
+    RTStreamInfo() {
+        mStreamType = "none";
+        mStreamName = "none";
+    }
+    ~RTStreamInfo() {}
 
-  void setStreamType(std::string streamType) { mStreamType = streamType; }
-  std::string streamType() { return mStreamType; }
+    void setStreamType(std::string streamType) {
+        mStreamType = streamType;
+    }
+    std::string streamType() {
+        return mStreamType;
+    }
 
-  void setStreamName(std::string streamName) { mStreamName = streamName; }
-  std::string streamName() { return mStreamName; }
+    void setStreamName(std::string streamName) {
+        mStreamName = streamName;
+    }
+    std::string streamName() {
+        return mStreamName;
+    }
 
-  void setStreamId(INT32 streamId) { mStreamId = streamId; }
+    void setStreamId(INT32 streamId) {
+        mStreamId = streamId;
+    }
 
-  INT32 streamId() { return mStreamId; }
+    INT32 streamId() {
+        return mStreamId;
+    }
 
-private:
-  std::string mStreamType;
-  std::string mStreamName;
-  INT32 mStreamId = -1;
+ private:
+    std::string mStreamType;
+    std::string mStreamName;
+    INT32 mStreamId = -1;
 };
 
-#endif // SRC_RT_TASK_TASK_GRAPH_RTSTREAMINFO_H_
+#endif  // SRC_RT_TASK_TASK_GRAPH_RTSTREAMINFO_H_

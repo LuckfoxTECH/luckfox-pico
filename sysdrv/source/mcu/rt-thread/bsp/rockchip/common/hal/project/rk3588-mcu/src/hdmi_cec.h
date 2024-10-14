@@ -1,0 +1,71 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/*
+ * Copyright (c) 2022 Rockchip Electronics Co., Ltd.
+ */
+
+#ifndef HAL_CEC_H__
+#define HAL_CEC_H__
+
+//#define HDMI_CEC_WKUP
+//#define CEC_M0
+
+#define TIMER_NS_0 0xFEAE0000
+
+#define HDMI1_CEC    ((struct BUS_IOC_REG *) (BUS_IOC_BASE))
+#define HDMI0_CEC    ((struct BUS_IOC_REG *) (BUS_IOC_BASE))
+#define HDMI0_CEC_M1 ((struct PMU2_IOC_REG *) PMU2_IOC_BASE)
+
+#define START_BIT_STATUS 0x0101
+#define DATA_BIT_STATUS  0x0202
+#define LISTEN_STATUS    0x0303
+
+#define BIT_START_LOWLEVEL_PERIOD_MIN 3500
+#define BIT_START_LOWLEVEL_PERIOD_NOR 3700
+#define BIT_START_LOWLEVEL_PERIOD_MAX 3900
+
+#define BIT_START_HIGHLEVEL_PERIOD_MIN 4300
+#define BIT_START_HIGHLEVEL_PERIOD_NOR 4500
+#define BIT_START_HIGHLEVEL_PERIOD_MAX 4700
+
+#define BIT_0_LOWLEVEL_PERIOD_MIN 1300
+#define BIT_0_LOWLEVEL_PERIOD_NOR 1500
+#define BIT_0_LOWLEVEL_PERIOD_MAX 1700
+
+#define BIT_0_HIGHLEVEL_PERIOD_MIN 2050
+#define BIT_0_HIGHLEVEL_PERIOD_NOR 2400
+#define BIT_0_HIGHLEVEL_PERIOD_MAX 2750
+
+#define BIT_1_LOWLEVEL_PERIOD_MIN 400
+#define BIT_1_LOWLEVEL_PERIOD_NOR 600
+#define BIT_1_LOWLEVEL_PERIOD_MAX 800
+
+#define BIT_1_HIGHLEVEL_PERIOD_MIN 2050
+#define BIT_1_HIGHLEVEL_PERIOD_NOR 2400
+#define BIT_1_HIGHLEVEL_PERIOD_MAX 2750
+
+#define BLUETOOTH_WAKE_UP_PRRIOD_MIN 180000
+#define BLUETOOTH_WAKE_UP_PRRIOD_NOR 200000
+#define BLUETOOTH_WAKE_UP_PRRIOD_MAX 220000
+
+#define MBOX_CMD  0x10
+#define MBOX_DATA 0x20
+
+enum {
+    BIT_0      = 0,
+    BIT_1      = 1,
+    BIT_START  = 2,
+    BIT_UNKOWN = 5
+};
+
+//#define DEBUG
+
+#ifdef DEBUG
+#define CECDBG(format, ...) \
+                printf(format, ## __VA_ARGS__)
+#else
+#define CECDBG(format, ...)
+#endif
+
+int HAL_CEC_Init(void);
+
+#endif

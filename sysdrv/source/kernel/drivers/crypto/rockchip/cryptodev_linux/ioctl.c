@@ -131,6 +131,8 @@ crypto_create_session(struct fcrypt *fcr, struct session_op *sop)
 		return -EINVAL;
 	}
 
+	memset(&keys, 0x00, sizeof(keys));
+
 	switch (sop->cipher) {
 	case 0:
 		break;
@@ -322,8 +324,9 @@ crypto_create_session(struct fcrypt *fcr, struct session_op *sop)
 		goto session_error;
 	}
 
-	/* Non-multithreaded can only create one session */
-	if (!rk_cryptodev_multi_thread(NULL) &&
+	/* Non-multithreaded can only create one session for hash */
+	if (ses_new->hdata.init &&
+	    !rk_cryptodev_multi_thread(NULL) &&
 	    !atomic_dec_and_test(&cryptodev_sess)) {
 		atomic_inc(&cryptodev_sess);
 		ddebug(2, "Non-multithreaded can only create one session. sess = %d",
@@ -377,6 +380,14 @@ crypto_destroy_session(struct csession *ses_ptr)
 		mutex_lock(&ses_ptr->sem);
 	}
 	ddebug(2, "Removed session 0x%08X", ses_ptr->sid);
+
+	/* Non-multithreaded can only create one session for hash */
+	if (ses_ptr->hdata.init &&
+	    !rk_cryptodev_multi_thread(NULL)) {
+		atomic_inc(&cryptodev_sess);
+		ddebug(2, "Release cryptodev_sess = %d", atomic_read(&cryptodev_sess));
+	}
+
 	cryptodev_cipher_deinit(&ses_ptr->cdata);
 	cryptodev_hash_deinit(&ses_ptr->hdata);
 	ddebug(2, "freeing space for %d user pages", ses_ptr->array_size);
@@ -385,12 +396,6 @@ crypto_destroy_session(struct csession *ses_ptr)
 	mutex_unlock(&ses_ptr->sem);
 	mutex_destroy(&ses_ptr->sem);
 	kfree(ses_ptr);
-
-	/* Non-multithreaded can only create one session */
-	if (!rk_cryptodev_multi_thread(NULL)) {
-		atomic_inc(&cryptodev_sess);
-		ddebug(2, "Release cryptodev_sess = %d", atomic_read(&cryptodev_sess));
-	}
 }
 
 /* Look up a session by ID and remove. */
@@ -565,26 +570,12 @@ static void cryptask_routine(struct work_struct *work)
 }
 
 /* ====== /dev/crypto ====== */
-static atomic_t cryptodev_node = ATOMIC_INIT(1);
-
 static int
 cryptodev_open(struct inode *inode, struct file *filp)
 {
 	struct todo_list_item *tmp, *tmp_next;
 	struct crypt_priv *pcr;
 	int i;
-
-	/* Non-multithreaded can only be opened once */
-	if (!rk_cryptodev_multi_thread(NULL) &&
-	    !atomic_dec_and_test(&cryptodev_node)) {
-		atomic_inc(&cryptodev_node);
-		ddebug(2, "Non-multithreaded can only be opened once. node = %d",
-		       atomic_read(&cryptodev_node));
-		return -EBUSY;
-	}
-
-	/* make sure sess == 1 after open */
-	atomic_set(&cryptodev_sess, 1);
 
 	pcr = kzalloc(sizeof(*pcr), GFP_KERNEL);
 	if (!pcr)
@@ -643,12 +634,6 @@ cryptodev_release(struct inode *inode, struct file *filp)
 
 	if (!pcr)
 		return 0;
-
-	/* Non-multithreaded can only be opened once */
-	if (!rk_cryptodev_multi_thread(NULL)) {
-		atomic_inc(&cryptodev_node);
-		ddebug(2, "Release cryptodev_node = %d", atomic_read(&cryptodev_node));
-	}
 
 	cancel_work_sync(&pcr->cryptask);
 

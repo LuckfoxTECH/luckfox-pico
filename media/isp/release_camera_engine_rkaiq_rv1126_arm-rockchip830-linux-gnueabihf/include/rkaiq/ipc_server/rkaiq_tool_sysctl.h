@@ -23,6 +23,8 @@ int getAwbCCT(rk_aiq_sys_ctx_t* ctx, char* data);
 int queryWBInfo(rk_aiq_sys_ctx_t* ctx, char* data);
 int setAcpAttrib(rk_aiq_sys_ctx_t* ctx, char* data);
 int getAcpAttrib(rk_aiq_sys_ctx_t* ctx, char* data);
+int setAInrAttrib(rk_aiq_sys_ctx_t* ctx, char* data);
+int getAInrAttrib(rk_aiq_sys_ctx_t* ctx, char* data);
 int enumStaticMetas(rk_aiq_sys_ctx_t* ctx, char* data);
 #endif
 

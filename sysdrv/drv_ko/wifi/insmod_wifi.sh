@@ -28,6 +28,29 @@ if [ "${1}"x = "y"x ]; then
 	exit 0
 fi
 
+#AIC8800DW
+cat /sys/bus/sdio/devices/*/uevent | grep "8800"
+if [ $? -eq 0 ]; then
+	insmod cfg80211.ko
+	insmod aic_load_fw.ko aic_fw_path=/oem/usr/ko/
+	insmod aic8800_fdrv.ko
+	insmod bcmdhd.ko
+fi
+
+#AP6XXX
+cat /sys/bus/sdio/devices/*/uevent | grep -i "02d0"
+if [ $? -eq 0 ]; then
+	insmod cfg80211.ko
+	insmod bcmdhd.ko
+fi
+
+#rtl8723ds
+cat /sys/bus/sdio/devices/*/uevent | grep "024C:D723"
+if [ $? -eq 0 ]; then
+	insmod cfg80211.ko
+	insmod 8723ds.ko
+fi
+
 #rtl8189fs
 cat /sys/bus/sdio/devices/*/uevent | grep "024C:F179"
 if [ $? -eq 0 ]; then
@@ -40,6 +63,13 @@ cat /sys/bus/usb/devices/*/uevent | grep "bda\/f179"
 if [ $? -eq 0 ]; then
 	insmod cfg80211.ko
 	insmod 8188fu.ko
+fi
+
+#ssv6115
+cat /sys/bus/usb/devices/*/uevent | grep "8065\/6011"
+if [ $? -eq 0 ]; then
+	insmod cfg80211.ko
+	insmod ssv6115.ko
 fi
 
 #ssv6x5x

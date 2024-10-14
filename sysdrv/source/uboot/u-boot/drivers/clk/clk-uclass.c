@@ -237,10 +237,11 @@ int clk_set_defaults(struct udevice *dev)
 {
 	int ret;
 
+#ifndef CONFIG_SPL_BUILD
 	/* If this is running pre-reloc state, don't take any action. */
 	if (!(gd->flags & GD_FLG_RELOC))
 		return 0;
-
+#endif
 	debug("%s(%s)\n", __func__, dev_read_name(dev));
 
 	ret = clk_set_default_parents(dev);

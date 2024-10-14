@@ -1,0 +1,29 @@
+import rtconfig
+Import('RTT_ROOT')
+
+from building import *
+
+cwd = GetCurrentDir()
+rpmsg_lite_lib = cwd + '/lib'
+
+#add source files
+src = Glob(rpmsg_lite_lib + '/common/*.c')
+src += Glob(rpmsg_lite_lib + '/rpmsg_lite/*.c')
+src += Glob(rpmsg_lite_lib + '/rpmsg_lite/porting/environment/rpmsg_env_rt-thread.c')
+src += Glob(rpmsg_lite_lib + '/virtio/*.c')
+
+#add include path
+path = [rpmsg_lite_lib + '/include/',
+        rpmsg_lite_lib + '/include/environment/rt-thread/']
+
+if GetDepend(['BSP_RK3308']):
+    src += Glob(rpmsg_lite_lib + '/rpmsg_lite/porting/platform/RK3308/*.c')
+    path += [rpmsg_lite_lib + '/include/platform/RK3308/']
+
+if GetDepend(['BSP_RK3568']):
+    src += Glob(rpmsg_lite_lib + '/rpmsg_lite/porting/platform/RK3568/*.c')
+    path += [rpmsg_lite_lib + '/include/platform/RK3568/']
+
+group = DefineGroup('rpmsg-lite', src, depend = ['RT_USING_RPMSG_LITE'], CPPPATH = path)
+
+Return('group')

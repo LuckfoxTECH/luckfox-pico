@@ -22,13 +22,16 @@ extern "C" {
 #endif
 
 #include "rkadk_common.h"
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
-typedef RKADK_VOID (*RKADK_DEMUXER_READ_PACKET_CALLBACK_FN)(
-    RKADK_MW_PTR pHandle);
+
+#define DEMUXER_TYPE_ACTIVE RKADK_TRUE
+#define DEMUXER_TYPE_PASSIVE RKADK_FALSE
+
+typedef RKADK_VOID (*RKADK_DEMUXER_READ_PACKET_CALLBACK_FN)(RKADK_MW_PTR pHandle);
 
 typedef struct {
   RKADK_DEMUXER_READ_PACKET_CALLBACK_FN pfnReadVideoPacketCallback;
@@ -37,26 +40,30 @@ typedef struct {
 
 typedef struct {
   RKADK_VOID *ptr;
-  RKADK_BOOL videoEnableFlag;
-  RKADK_BOOL audioEnableFlag;
+  RKADK_BOOL  readModeFlag;
+  RKADK_BOOL  videoEnableFlag;
+  RKADK_BOOL  audioEnableFlag;
+  const char *transport;
+  RKADK_U32 u32IoTimeout;
 } RKADK_DEMUXER_INPUT_S;
 
 typedef struct {
-  RKADK_S32 totalTime;
+  RKADK_S32   totalTime;
   RKADK_CHAR *pVideoCodec;
-  RKADK_S32 videoWidth;
-  RKADK_S32 videoHeigh;
-  RKADK_S8 VideoFormat;
-  RKADK_S32 videoTimeBaseNum;
-  RKADK_S32 videoTimeBaseDen;
-  RKADK_S64 videoFirstPTS;
+  RKADK_S32   videoWidth;
+  RKADK_S32   videoHeigh;
+  RKADK_S8    VideoFormat;
+  RKADK_S32   videoTimeBaseNum;
+  RKADK_S32   videoTimeBaseDen;
+  RKADK_S32   videoAvgFrameRate;
+  RKADK_S64   videoFirstPTS;
   RKADK_CHAR *pAudioCodec;
-  RKADK_S32 audioChannels;
-  RKADK_S32 audioSampleRate;
-  RKADK_S8 audioFormat;
-  RKADK_S64 audioFirstPTS;
-  RKADK_S32 audioTimeBaseNum;
-  RKADK_S32 audioTimeBaseDen;
+  RKADK_S32   audioChannels;
+  RKADK_S32   audioSampleRate;
+  RKADK_S8    audioFormat;
+  RKADK_S64   audioFirstPTS;
+  RKADK_S32   audioTimeBaseNum;
+  RKADK_S32   audioTimeBaseDen;
   RKADK_DEMUXER_READ_PACKET_CALLBACK_S pstReadPacketCallback;
 } RKADK_DEMUXER_PARAM_S;
 
@@ -68,8 +75,7 @@ typedef struct {
  * @return others failure
  */
 
-RKADK_S32 RKADK_DEMUXER_Create(RKADK_MW_PTR *demuxerCfg,
-                               RKADK_DEMUXER_INPUT_S *demuxerParam);
+RKADK_S32 RKADK_DEMUXER_Create(RKADK_MW_PTR *demuxerCfg, RKADK_DEMUXER_INPUT_S *demuxerParam);
 
 /**
  * @brief destory a demuxer.
@@ -86,17 +92,16 @@ RKADK_VOID RKADK_DEMUXER_Destroy(RKADK_MW_PTR *demuxerCfg);
  * @return others failure
  */
 
-RKADK_S32 RKADK_DEMUXER_GetParam(RKADK_MW_PTR demuxerCfg,
-                                 const RKADK_CHAR *inputName,
-                                 RKADK_DEMUXER_PARAM_S *demuxerParam);
+RKADK_S32 RKADK_DEMUXER_GetParam(RKADK_MW_PTR demuxerCfg, const RKADK_CHAR *inputName, RKADK_DEMUXER_PARAM_S *demuxerParam);
 
 /**
  * @brief start demuxer
  * @param[in]demuxerCfg : pointer of demuxerCfg
+ * @param[in]startPts : start pts of demuxer
  * @return 0 success
  * @return others failure
  */
-RKADK_S32 RKADK_DEMUXER_ReadPacketStart(RKADK_MW_PTR demuxerCfg);
+RKADK_S32 RKADK_DEMUXER_ReadPacketStart(RKADK_MW_PTR demuxerCfg, RKADK_S64 startPts);
 
 /**
  * @brief stop demuxer
@@ -105,6 +110,42 @@ RKADK_S32 RKADK_DEMUXER_ReadPacketStart(RKADK_MW_PTR demuxerCfg);
  * @return others failure
  */
 RKADK_S32 RKADK_DEMUXER_ReadPacketStop(RKADK_MW_PTR demuxerCfg);
+
+/**
+ * @brief actively read one video packet
+ * @param[in]demuxerCfg : pointer of demuxerCfg
+ * @param[in]outputPacket : pointer of output packet
+ * @return 0 success
+ * @return others failure
+ */
+RKADK_S32 RKADK_DEMUXER_ReadOneVideoPacket(RKADK_MW_PTR demuxerCfg, void *outputPacket);
+
+/**
+ * @brief actively read one audio packet
+ * @param[in]demuxerCfg : pointer of demuxerCfg
+ * @param[in]outputPacket : pointer of output packet
+ * @return 0 success
+ * @return others failure
+ */
+RKADK_S32 RKADK_DEMUXER_ReadOneAudioPacket(RKADK_MW_PTR demuxerCfg, void *outputPacket);
+
+/**
+ * @brief read video duration
+ * @param[in]demuxerCfg : pointer of demuxerCfg
+ * @param[in]duration : pointer of duration
+ * @return 0 success
+ * @return others failure
+ */
+RKADK_S32 RKADK_DEMUXER_ReadVideoDuration(RKADK_MW_PTR demuxerCfg, RKADK_S64 *duration);
+
+/**
+ * @brief read audio duration
+ * @param[in]demuxerCfg : pointer of demuxerCfg
+ * @param[in]duration : pointer of duration
+ * @return 0 success
+ * @return others failure
+ */
+RKADK_S32 RKADK_DEMUXER_ReadAudioDuration(RKADK_MW_PTR demuxerCfg, RKADK_S64 *duration);
 
 #ifdef __cplusplus
 }

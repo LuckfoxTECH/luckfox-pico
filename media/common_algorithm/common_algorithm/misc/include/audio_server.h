@@ -4,6 +4,8 @@
  * Copyright (c) 2020 Rockchip Electronics Co., Ltd
  */
 
+#include <stdint.h>
+
 #ifndef _AUDIO_SERVER_H_
 #define _AUDIO_SERVER_H_
 
@@ -482,7 +484,7 @@ typedef struct record_cfg
     int samplerate;
     int bits;
     int channels;
-    long duration;
+    int32_t duration;
 
     int freq_t;
 } record_cfg_t;
@@ -525,7 +527,7 @@ typedef struct media_sdk_msg
  */
 uint32_t player_get_target_and_seek(char *file_name);
 uint32_t player_get_target(player_handle_t self, char *file_name);
-void player_set_seek(long offset);
+void player_set_seek(int32_t offset);
 int player_init(void);
 int player_list_decoder(void);
 int player_register_decoder(const char *type, play_decoder_t *decoder);
@@ -728,13 +730,13 @@ typedef struct
     short lastSampleRight;
 } SRCState;
 
-long resample_48to16_4ch_init(SRCState_4ch *pSRC, unsigned long ulInputRate,
-                              unsigned long ulOutputRate);
+int32_t resample_48to16_4ch_init(SRCState_4ch *pSRC, uint32_t ulInputRate,
+                              uint32_t ulOutputRate);
 void resample_48to16_4ch_process(SRCState_4ch *pSRC, ssrc_type *psInData, ssrc_type *psOutData,
-                                 long lNumInputSamples, long *plNumOutputSamples);
-int SRCInit(SRCState *pSRC, unsigned long ulInputRate,
-            unsigned long ulOutputRate);
-long SRCFilter(SRCState *pSRC, short *psLeft, short *psRight,
-               long lNumSamples);
+                                 int32_t lNumInputSamples, int32_t *plNumOutputSamples);
+int SRCInit(SRCState *pSRC, uint32_t ulInputRate,
+            uint32_t ulOutputRate);
+int32_t SRCFilter(SRCState *pSRC, short *psLeft, short *psRight,
+               int32_t lNumSamples);
 
 #endif

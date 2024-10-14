@@ -41,7 +41,7 @@ const static struct memblk_attr plat_mem_attr[MEM_MAX] = {
 	MEM_DEFINE(ANDROID,	F_HOFC | F_OFC | F_KMEM_CAN_OVERLAP),
 	MEM_DEFINE(FDT,		F_OFC),
 	MEM_DEFINE(FDT_DTBO,	F_OFC),
-	MEM_DEFINE_1(SHM,	F_NONE, "ramoops"),
+	MEM_DEFINE_2(SHM,	F_NONE, "ramoops", "minidump"),
 	MEM_DEFINE_2(RAMDISK,	F_OFC,  "boot", "recovery"),
 	MEM_DEFINE(UNCOMP_KERNEL,F_IGNORE_INVISIBLE),
 	MEM_DEFINE(FIT_USER,	F_OFC | F_KMEM_CAN_OVERLAP),

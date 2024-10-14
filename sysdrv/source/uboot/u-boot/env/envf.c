@@ -24,11 +24,13 @@ DECLARE_GLOBAL_DATA_PTR;
 #define BLK_CNT(desc, sz)	((sz) / (desc)->blksz)
 #define ENVF_MAX		64
 
+/*
+ * env_dev maybe: boot-device, sdcard.
+ *
+ * env_size/offset/offset_redund should be updated when env_dev changed.
+ */
+static u32 env_dev;
 static ulong env_size, env_offset, env_offset_redund;
-
-#if CONFIG_IS_ENABLED(ENV_PARTITION)
-static const char *part_type[] = { "mtdparts", "blkdevparts", };
-#endif
 
 /*
  * In case of env and env-backup partitions are too large that exceeds the limit
@@ -44,16 +46,6 @@ static const char *envf_list[ENVF_MAX];
 #endif
 
 #ifdef CONFIG_DM_MMC
-static int pmbr_part_valid(struct partition *part)
-{
-	if (part->sys_ind == EFI_PMBR_OSTYPE_EFI_GPT &&
-		get_unaligned_le32(&part->start_sect) == 1UL) {
-		return 1;
-	}
-
-	return 0;
-}
-
 static int is_pmbr_valid(legacy_mbr * mbr)
 {
 	int i = 0;
@@ -62,10 +54,10 @@ static int is_pmbr_valid(legacy_mbr * mbr)
 		return 0;
 
 	for (i = 0; i < 4; i++) {
-		if (pmbr_part_valid(&mbr->partition_record[i])) {
+		if (mbr->partition_record[i].sys_ind == 0xc)
 			return 1;
-		}
 	}
+
 	return 0;
 }
 
@@ -79,12 +71,15 @@ static int can_find_pmbr(struct blk_desc *dev_desc)
 		return 0;
 	}
 
-	return -1;
+	return 1;
 }
 #endif
 
 static void envf_init_location(struct blk_desc *desc)
 {
+	if (env_dev == ((desc->if_type << 8) | desc->devnum))
+		return;
+
 	/* eMMC (default) */
 	env_size = CONFIG_ENV_SIZE;
 	env_offset = CONFIG_ENV_OFFSET;
@@ -109,6 +104,8 @@ static void envf_init_location(struct blk_desc *desc)
 #endif
 	if (env_offset == env_offset_redund)
 		env_offset_redund = 0;
+
+	env_dev = (desc->if_type << 8) | desc->devnum;
 }
 
 static int env_read(struct blk_desc *desc, u32 offset, u32 size, env_t **envp)
@@ -182,6 +179,12 @@ static const char *env_get_string(env_t *env, u32 size, const char *str)
 	const char *dp;
 	u32 env_size;
 
+#if CONFIG_IS_ENABLED(FIT_SIGNATURE)
+	/* Do nothing, ignore 'sys_bootargs' from env.img */
+	if (!strcmp(str, "sys_bootargs"))
+		return NULL;
+#endif
+
 	dp = (const char *)env->data;
 	env_size = size - ENV_HEADER_SIZE;
 	do {
@@ -204,15 +207,13 @@ static const char *env_get_string(env_t *env, u32 size, const char *str)
 	return NULL;
 }
 
-char *envf_get_part_table(struct blk_desc *desc)
+char *envf_get(struct blk_desc *desc, const char *name)
 {
 	const char *list = NULL;
-	env_t *env;
+	static env_t *env; /* static */
 
-	if (!desc)
-		goto out;
-
-	env = envf_read(desc);
+	if (!env)
+		env = envf_read(desc);
 	if (!env)
 		goto out;
 
@@ -221,13 +222,9 @@ char *envf_get_part_table(struct blk_desc *desc)
 		ENVF_MSG("Backup  0x%08lx - 0x%08lx\n",
 			 env_offset_redund, env_offset_redund + env_size);
 
-	list = env_get_string(env, env_size, part_type[0]);
+	list = env_get_string(env, env_size, name);
 	if (!list)
-		list = env_get_string(env, env_size, part_type[1]);
-	if (!list)
-		ENVF_MSG("Unavailable env part table\n");
-	else
-		ENVF_MSG("OK\n");
+		ENVF_DBG("Unavailable env %s\n", name);
 out:
 	return (char *)list;
 }
@@ -248,7 +245,7 @@ static int envf_init_vars(void)
 		if (!strcmp(p, "bootargs")) {
 			printf("%s\n", EMSG_ARGS);
 			run_command("download", 0);
-#ifdef CONFIG_FIT_SIGNATURE
+#if CONFIG_IS_ENABLED(FIT_SIGNATURE)
 		} else if (!strcmp(p, "sys_bootargs")) {
 			/* Do nothing, ignore 'sys_bootargs' from env.img */
 #endif
@@ -302,6 +299,8 @@ static int envf_save(void)
 		printf("dev desc null!\n");
 		return -EINVAL;
 	}
+
+	envf_init_location(desc);
 
 	res = (char *)env->data;
 	len = hexport_r(&env_htab, '\0', H_MATCH_KEY | H_MATCH_IDENT,

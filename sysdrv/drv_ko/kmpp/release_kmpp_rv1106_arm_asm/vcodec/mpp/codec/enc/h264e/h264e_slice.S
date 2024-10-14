@@ -49,31 +49,31 @@ h264e_slice_update:
 	.fnstart
 	@ args = 4, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, lr}
-	.save {r4, r5, r6, lr}
-	ldr	r5, [sp, #16]
-	ldr	r6, [r2, #60]
-	ldrb	r4, [r5, #16]	@ zero_extendqisi2
-	str	r6, [r0]
-	ldr	r6, [r2, #64]
+	push	{r4, r5, r6, r7, lr}
+	.save {r4, r5, r6, r7, lr}
+	ldr	r6, [sp, #20]
+	ldr	r5, [r2, #60]
+	ldrb	r4, [r6, #16]	@ zero_extendqisi2
+	str	r5, [r0]
+	ldr	r5, [r2, #64]
 	ubfx	r4, r4, #5, #1
-	str	r6, [r0, #4]
-	ldr	r6, [r2, #52]
-	str	r6, [r0, #8]
-	ldr	r6, [r2, #40]
-	adds	r6, r6, #4
-	str	r6, [r0, #16]
-	ldr	r6, [r2, #48]
-	adds	r6, r6, #4
-	str	r6, [r0, #20]
-	ldr	r6, [r1, #604]
-	str	r6, [r0, #12]
+	str	r5, [r0, #4]
+	ldr	r5, [r2, #52]
+	str	r5, [r0, #8]
+	ldr	r5, [r2, #40]
+	adds	r5, r5, #4
+	str	r5, [r0, #16]
+	ldr	r5, [r2, #48]
+	adds	r5, r5, #4
+	str	r5, [r0, #20]
+	ldr	r7, [r1, #628]
+	str	r7, [r0, #12]
 	ldr	r2, [r2, #44]
 	str	r2, [r0, #24]
 	ldr	r3, [r3, #36]
 	str	r3, [r0, #28]
-	ldrb	r3, [r5, #16]	@ zero_extendqisi2
-	lsls	r6, r3, #25
+	ldrb	r3, [r6, #16]	@ zero_extendqisi2
+	lsls	r7, r3, #25
 	bmi	.L12
 	cmp	r4, #0
 	ite	ne
@@ -94,19 +94,19 @@ h264e_slice_update:
 	movne	r2, #2
 	str	r3, [r0, #52]
 	str	r2, [r0, #44]
-	ldr	r2, [r5, #24]
+	ldr	r2, [r6, #24]
 	str	r3, [r0, #64]
 	strd	r2, r3, [r0, #56]
-	ldr	r3, [r1, #604]
+	ldr	r3, [r1, #628]
 	cbz	r3, .L16
-	ldr	r3, [r1, #608]
+	ldr	r3, [r1, #632]
 .L6:
 	str	r3, [r0, #68]
-	ldr	r3, [r1, #632]
+	ldr	r3, [r1, #656]
 	str	r3, [r0, #72]
-	ldr	r3, [r1, #636]
+	ldr	r3, [r1, #660]
 	str	r3, [r0, #76]
-	ldr	r3, [r1, #640]
+	ldr	r3, [r1, #664]
 	str	r4, [r0, #96]
 	str	r3, [r0, #80]
 	cbz	r4, .L8
@@ -118,18 +118,21 @@ h264e_slice_update:
 	movhi	r3, #0
 	str	r3, [r0, #104]
 .L8:
-	ldr	r3, [r5, #32]
-	movs	r2, #1
-	str	r3, [r0, #108]
+	movs	r3, #1
+	ldr	r2, [r6, #32]
+	lsl	r5, r3, r5
+	subs	r5, r5, #1
+	ands	r5, r5, r2
+	strd	r5, r3, [r0, #108]
 	movs	r3, #0
-	strd	r2, r3, [r0, #112]
+	str	r3, [r0, #116]
 	cbz	r4, .L11
-	ldrb	r4, [r5, #16]	@ zero_extendqisi2
+	ldrb	r4, [r6, #16]	@ zero_extendqisi2
 	lsrs	r4, r4, #7
 .L11:
 	str	r4, [r0, #120]
 	movs	r0, #0
-	pop	{r4, r5, r6, pc}
+	pop	{r4, r5, r6, r7, pc}
 .L12:
 	movs	r3, #0
 	b	.L3
@@ -427,13 +430,13 @@ h264e_marking_rd_op:
 	.size	h264e_marking_rd_op, .-h264e_marking_rd_op
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__func__.9739, %object
-	.size	__func__.9739, 20
-__func__.9739:
+	.type	__func__.9819, %object
+	.size	__func__.9819, 20
+__func__.9819:
 	.ascii	"h264e_reorder_wr_op\000"
-	.type	__func__.9760, %object
-	.size	__func__.9760, 20
-__func__.9760:
+	.type	__func__.9840, %object
+	.size	__func__.9840, 20
+__func__.9840:
 	.ascii	"h264e_marking_wr_op\000"
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:

@@ -7,7 +7,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *    notice, this list of conditions and the following disclaimer. 
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -53,17 +53,18 @@
 #define __AES_CCM_H__
 #include "aes_core.h"
 
-#ifdef __cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
 /*
 int rk_aes_cfb_op(const unsigned char *in, unsigned char *out,
-        unsigned long length, const unsigned char *key, const int key_len,
+        unsigned long length, const unsigned char *key, const int key_len, 
         unsigned char *ivec, const int enc)
 */
 int rk_aes_ccm_encrypt(struct aes_ae_in *in, struct aes_ae_out *out, int enc);
 
-#ifdef __cplusplus
+
+#ifdef  __cplusplus
 }
 #endif
 

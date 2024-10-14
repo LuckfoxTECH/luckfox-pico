@@ -151,6 +151,8 @@ enum {
 #define LINK_WAIT_MAX_IATU_RETRIES	5
 #define LINK_WAIT_IATU			10000
 
+#define PCIE_TYPE0_HDR_DBI2_OFFSET      0x100000
+
 static int rk_pcie_read(void __iomem *addr, int size, u32 *val)
 {
 	if ((uintptr_t)addr & (size - 1)) {
@@ -304,6 +306,10 @@ static void rk_pcie_setup_host(struct rk_pcie *rk_pcie)
 	val = readl(rk_pcie->dbi_base + PCIE_LINK_WIDTH_SPEED_CONTROL);
 	val |= PORT_LOGIC_SPEED_CHANGE;
 	writel(val, rk_pcie->dbi_base + PCIE_LINK_WIDTH_SPEED_CONTROL);
+
+	/* Disable BAR0 BAR1 */
+	writel(0, rk_pcie->dbi_base + PCIE_TYPE0_HDR_DBI2_OFFSET + 0x10 + 0 * 4);
+	writel(0, rk_pcie->dbi_base + PCIE_TYPE0_HDR_DBI2_OFFSET + 0x10 + 1 * 4);
 
 	rk_pcie_dbi_write_enable(rk_pcie, false);
 }
@@ -461,7 +467,6 @@ static int rockchip_pcie_wr_conf(struct udevice *bus, pci_dev_t bdf,
 	debug("PCIE CFG write: (b,d,f)=(%2d,%2d,%2d)\n",
 	      PCI_BUS(bdf), PCI_DEV(bdf), PCI_FUNC(bdf));
 	debug("(addr,val)=(0x%04x, 0x%08lx)\n", offset, value);
-
 	if (!rk_pcie_addr_valid(bdf, pcie->first_busno)) {
 		debug("- out of range\n");
 		return 0;
@@ -805,8 +810,9 @@ static const struct dm_pci_ops rockchip_pcie_ops = {
 
 static const struct udevice_id rockchip_pcie_ids[] = {
 	{ .compatible = "rockchip,rk3528-pcie" },
+	{ .compatible = "rockchip,rk3562-pcie" },
 	{ .compatible = "rockchip,rk3568-pcie" },
-	{ .compatible = "rockchip,rk3588-pcie" },
+	{ .compatible = "rockchip,rk3576-pcie" },
 	{ }
 };
 

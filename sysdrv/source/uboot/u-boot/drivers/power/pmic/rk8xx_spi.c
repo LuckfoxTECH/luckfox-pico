@@ -14,47 +14,8 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#define RK806_CHIP_NAME			0x5A
-#define RK806_CHIP_VER			0x5B
-#define RK806_HW_VER			0x21
-#define HW_DUAL_PMIC			0x28
-#define HW_SINGLE_PMIC			0xe8
-
-#define RK806_CMD_READ			0
-#define RK806_CMD_WRITE			BIT(7)
-#define RK806_CMD_CRC_EN		BIT(6)
-#define RK806_CMD_CRC_DIS		0
-#define RK806_CMD_LEN_MSK		0x0f
-#define RK806_REG_H			0x00
-
-#define RK806_SYS_CFG1			0x5f
-#define RK806_PWRCTRL_CONFIG0		0x62
-#define RK806_PWRCTRL_CONFIG1		0x63
-#define RK806_VSEL_CTR_SEL0		0x64
-#define RK806_DVS_CTR_SEL4		0x6e
-#define RK806_SYS_CFG3			0x72
-#define RK806_PWRON_KEY			0x76
-#define RK806_INT_STS0			0x77
-#define RK806_INT_MSK0			0x78
-#define RK806_INT_STS1			0x79
-#define RK806_INT_MSK1			0x7A
-#define RK806_GPIO_INT_CONFIG		0x7B
-#define RK806_ON_SOURCE			0xf4
-#define RK806_OFF_SOURCE		0xf5
-
-#define RK806_IRQ_PWRON_FALL_MSK	BIT(0)
-#define RK806_IRQ_PWRON_RISE_MSK	BIT(1)
-#define RK806_DEV_OFF			BIT(0)
-#define RK806_RST_MODE1			0x01
-#define RK806_RST_MODE2			0x02
-#define RK806_PWRCTRL_FUN_MSK		0x88
-#define RK806_VSEL_CTRL_MSK		0xcc
-#define RK806_VSEL_PWRCTRL1		0x11
-#define RK806_ENABLE_PWRCTRL		0x04
-#define VERSION_AB			0x01
-
 #if CONFIG_IS_ENABLED(IRQ)
-/* RK805 */
+/* RK806 */
 static const struct virq_reg rk806_irqs[] = {
 	[RK8XX_IRQ_PWRON_FALL] = {
 		.mask = RK806_IRQ_PWRON_FALL_MSK,
@@ -78,9 +39,9 @@ static struct virq_chip rk806_irq_chip = {
 #endif
 
 static const struct pmic_child_info pmic_children_info[] = {
-	{ .prefix = "DCDC", .driver = "rk8xx_spi_buck"},
-	{ .prefix = "NLDO", .driver = "rk8xx_spi_ldo"},
-	{ .prefix = "PLDO", .driver = "rk8xx_spi_pldo"},
+	{ .prefix = "DCDC", .driver = "rk8xx_buck"},
+	{ .prefix = "NLDO", .driver = "rk8xx_ldo"},
+	{ .prefix = "PLDO", .driver = "rk8xx_pldo"},
 	{ },
 };
 
@@ -212,7 +173,7 @@ static int rk8xx_spi_ofdata_to_platdata(struct udevice *dev)
 	}
 
 	rk8xx->irq = phandle_gpio_to_irq(phandle, interrupt);
-	if (rk8xx->irq < 0)
+	if (rk8xx->irq < 0 && rk8xx->irq != -EBUSY)
 		printf("Failed to request rk8xx irq, ret=%d\n", rk8xx->irq);
 
 	return 0;
@@ -318,19 +279,19 @@ static int rk8xx_spi_probe(struct udevice *dev)
 		}
 	}
 
-	if ((lsb & 0x0f) == VERSION_AB) {
+	if ((lsb & RK806_VERSION_MSK) == RK806_VERSION_AB) {
 		ret = rk806_spi_read(dev, RK806_SYS_CFG1, &value, 1);
 		if (ret) {
 			dev_err(dev, "rk806 RK806_SYS_CFG1 read error: %d\n", ret);
 			return ret;
 		}
-		value |= 0x80;
+		value |= RK806_ABNORDET_EN;
 		rk806_spi_write(dev, RK806_SYS_CFG1, &value, 1);
 	}
 
 	if (priv->rst_fun) {
 		rk806_spi_read(dev, RK806_SYS_CFG3, &value, 1);
-		value &= 0x3f;
+		value &= RK806_RESET_FUN_CLR;
 		if (priv->rst_fun == RK806_RST_MODE1) {
 			value |= (RK806_RST_MODE1 << 6);
 			rk806_spi_write(dev, RK806_SYS_CFG3, &value, 1);
@@ -388,7 +349,7 @@ static int rk806_suspend(struct udevice *dev)
 	if (ret)
 		return ret;
 
-	for (i = RK806_VSEL_CTR_SEL0; i <= 0x6e; i++) {
+	for (i = RK806_VSEL_CTR_SEL0; i <= RK806_DVS_CTR_SEL4; i++) {
 		ret = rk806_spi_read(dev, i, &val, 1);
 		if (ret)
 			return ret;

@@ -172,8 +172,7 @@ typedef void (*FT_Module_Destructor)(FT_Module module);
  *   name ::
  *     The name of the interface in the module.
  */
-typedef FT_Module_Interface (*FT_Module_Requester)(FT_Module module,
-                                                   const char *name);
+typedef FT_Module_Interface (*FT_Module_Requester)(FT_Module module, const char *name);
 
 /**************************************************************************
  *
@@ -217,17 +216,17 @@ typedef FT_Module_Interface (*FT_Module_Requester)(FT_Module module,
  *     The interface requesting function.
  */
 typedef struct FT_Module_Class_ {
-  FT_ULong module_flags;
-  FT_Long module_size;
-  const FT_String *module_name;
-  FT_Fixed module_version;
-  FT_Fixed module_requires;
+	FT_ULong module_flags;
+	FT_Long module_size;
+	const FT_String *module_name;
+	FT_Fixed module_version;
+	FT_Fixed module_requires;
 
-  const void *module_interface;
+	const void *module_interface;
 
-  FT_Module_Constructor module_init;
-  FT_Module_Destructor module_done;
-  FT_Module_Requester get_interface;
+	FT_Module_Constructor module_init;
+	FT_Module_Destructor module_done;
+	FT_Module_Requester get_interface;
 
 } FT_Module_Class;
 
@@ -365,8 +364,8 @@ FT_Remove_Module(FT_Library library, FT_Module module);
  *
  */
 FT_EXPORT(FT_Error)
-FT_Property_Set(FT_Library library, const FT_String *module_name,
-                const FT_String *property_name, const void *value);
+FT_Property_Set(FT_Library library, const FT_String *module_name, const FT_String *property_name,
+                const void *value);
 
 /**************************************************************************
  *
@@ -425,8 +424,8 @@ FT_Property_Set(FT_Library library, const FT_String *module_name,
  *
  */
 FT_EXPORT(FT_Error)
-FT_Property_Get(FT_Library library, const FT_String *module_name,
-                const FT_String *property_name, void *value);
+FT_Property_Get(FT_Library library, const FT_String *module_name, const FT_String *property_name,
+                void *value);
 
 /**************************************************************************
  *
@@ -638,8 +637,7 @@ typedef FT_Error (*FT_DebugHook_Func)(void *arg);
  *   TrueType interpreter) is defined.
  */
 FT_EXPORT(void)
-FT_Set_Debug_Hook(FT_Library library, FT_UInt hook_index,
-                  FT_DebugHook_Func debug_hook);
+FT_Set_Debug_Hook(FT_Library library, FT_UInt hook_index, FT_DebugHook_Func debug_hook);
 
 /**************************************************************************
  *
@@ -702,9 +700,9 @@ FT_Add_Default_Modules(FT_Library library);
  *
  */
 typedef enum FT_TrueTypeEngineType_ {
-  FT_TRUETYPE_ENGINE_TYPE_NONE = 0,
-  FT_TRUETYPE_ENGINE_TYPE_UNPATENTED,
-  FT_TRUETYPE_ENGINE_TYPE_PATENTED
+	FT_TRUETYPE_ENGINE_TYPE_NONE = 0,
+	FT_TRUETYPE_ENGINE_TYPE_UNPATENTED,
+	FT_TRUETYPE_ENGINE_TYPE_PATENTED
 
 } FT_TrueTypeEngineType;
 

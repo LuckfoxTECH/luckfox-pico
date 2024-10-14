@@ -18,7 +18,7 @@
 #ifndef _RK_AIQ_USER_API2_AGAINV2_H_
 #define _RK_AIQ_USER_API2_AGAINV2_H_
 
-#include "again2/rk_aiq_uapi_again_int_v2.h"
+#include "again2/rk_aiq_types_again_algo_int_v2.h"
 
 #ifndef RK_AIQ_SYS_CTX_T
 #define RK_AIQ_SYS_CTX_T
@@ -36,6 +36,9 @@ rk_aiq_user_api2_againV2_GetAttrib(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_gain_
 XCamReturn
 rk_aiq_user_api2_againV2_GetInfo(const rk_aiq_sys_ctx_t* sys_ctx, rk_aiq_gain_info_v2_t* pInfo);
 
+XCamReturn
+rk_aiq_user_api2_againV2_WriteInput(const rk_aiq_sys_ctx_t* sys_ctx, const rk_aiq_uapiV2_again_wrtIn_attr_t* attr,
+                                 bool need_sync);
 RKAIQ_END_DECLARE
 
 #endif

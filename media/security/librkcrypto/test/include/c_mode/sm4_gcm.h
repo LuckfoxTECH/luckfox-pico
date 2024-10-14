@@ -7,7 +7,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *    notice, this list of conditions and the following disclaimer. 
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -53,14 +53,13 @@
 #define __SM4_GCM_H__
 #include "sm4_core.h"
 
-#ifdef __cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
 
-int rk_sm4_gcm_encrypt(struct sm4_ae_in *in, struct sm4_ae_out *out,
-                       const int enc);
+int rk_sm4_gcm_encrypt(struct sm4_ae_in *in, struct sm4_ae_out *out, const int enc);
 
-#ifdef __cplusplus
+#ifdef  __cplusplus
 }
 #endif
 

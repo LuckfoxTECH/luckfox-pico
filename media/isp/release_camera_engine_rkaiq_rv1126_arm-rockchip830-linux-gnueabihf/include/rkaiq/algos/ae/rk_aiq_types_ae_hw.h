@@ -262,8 +262,16 @@ typedef struct {
 } RkAiqDCIrisParam_t;
 
 typedef struct {
+    int        target; //iris target value, range = 0-1024
+    bool       update;
+    int        adc; //get feedback adc value
+    int        zoomPos;  //get zoom position value
+} RkAiqHDCIrisParam_t;
+
+typedef struct {
     RkAiqPIrisParam_t   PIris;
     RkAiqDCIrisParam_t  DCIris;
+    RkAiqHDCIrisParam_t HDCIris;
 } RkAiqIrisParamComb_t;
 
 typedef struct RKAiqAecExpInfo_s {

@@ -332,6 +332,45 @@ struct clk;
 #define RK3528_GLB_SRST_FST		0xc08
 #define RK3528_GLB_SRST_SND		0xc0c
 
+#define RK3562_PMU0_CRU_BASE		0x10000
+#define RK3562_PMU1_CRU_BASE		0x18000
+#define RK3562_DDR_CRU_BASE		0x20000
+#define RK3562_SUBDDR_CRU_BASE		0x28000
+#define RK3562_PERI_CRU_BASE		0x30000
+
+#define RK3562_PLL_CON(x)		RK2928_PLL_CON(x)
+#define RK3562_PMU1_PLL_CON(x)		((x) * 0x4 + RK3562_PMU1_CRU_BASE + 0x40)
+#define RK3562_SUBDDR_PLL_CON(x)	((x) * 0x4 + RK3562_SUBDDR_CRU_BASE + 0x20)
+#define RK3562_MODE_CON			0x600
+#define RK3562_PMU1_MODE_CON		(RK3562_PMU1_CRU_BASE + 0x380)
+#define RK3562_SUBDDR_MODE_CON		(RK3562_SUBDDR_CRU_BASE + 0x380)
+#define RK3562_CLKSEL_CON(x)		((x) * 0x4 + 0x100)
+#define RK3562_CLKGATE_CON(x)		((x) * 0x4 + 0x300)
+#define RK3562_SOFTRST_CON(x)		((x) * 0x4 + 0x400)
+#define RK3562_DDR_CLKSEL_CON(x)	((x) * 0x4 + RK3562_DDR_CRU_BASE + 0x100)
+#define RK3562_DDR_CLKGATE_CON(x)	((x) * 0x4 + RK3562_DDR_CRU_BASE + 0x180)
+#define RK3562_DDR_SOFTRST_CON(x)	((x) * 0x4 + RK3562_DDR_CRU_BASE + 0x200)
+#define RK3562_SUBDDR_CLKSEL_CON(x)	((x) * 0x4 + RK3562_SUBDDR_CRU_BASE + 0x100)
+#define RK3562_SUBDDR_CLKGATE_CON(x)	((x) * 0x4 + RK3562_SUBDDR_CRU_BASE + 0x180)
+#define RK3562_SUBDDR_SOFTRST_CON(x)	((x) * 0x4 + RK3562_SUBDDR_CRU_BASE + 0x200)
+#define RK3562_PERI_CLKSEL_CON(x)	((x) * 0x4 + RK3562_PERI_CRU_BASE + 0x100)
+#define RK3562_PERI_CLKGATE_CON(x)	((x) * 0x4 + RK3562_PERI_CRU_BASE + 0x300)
+#define RK3562_PERI_SOFTRST_CON(x)	((x) * 0x4 + RK3562_PERI_CRU_BASE + 0x400)
+#define RK3562_PMU0_CLKSEL_CON(x)	((x) * 0x4 + RK3562_PMU0_CRU_BASE + 0x100)
+#define RK3562_PMU0_CLKGATE_CON(x)	((x) * 0x4 + RK3562_PMU0_CRU_BASE + 0x180)
+#define RK3562_PMU0_SOFTRST_CON(x)	((x) * 0x4 + RK3562_PMU0_CRU_BASE + 0x200)
+#define RK3562_PMU1_CLKSEL_CON(x)	((x) * 0x4 + RK3562_PMU1_CRU_BASE + 0x100)
+#define RK3562_PMU1_CLKGATE_CON(x)	((x) * 0x4 + RK3562_PMU1_CRU_BASE + 0x180)
+#define RK3562_PMU1_SOFTRST_CON(x)	((x) * 0x4 + RK3562_PMU1_CRU_BASE + 0x200)
+#define RK3562_GLB_SRST_FST		0x614
+#define RK3562_GLB_SRST_SND		0x618
+#define RK3562_GLB_RST_CON		0x61c
+#define RK3562_GLB_RST_ST		0x620
+#define RK3562_SDMMC0_CON0		0x624
+#define RK3562_SDMMC0_CON1		0x628
+#define RK3562_SDMMC1_CON0		0x62c
+#define RK3562_SDMMC1_CON1		0x630
+
 #define RK3568_PLL_CON(x)		RK2928_PLL_CON(x)
 #define RK3568_MODE_CON0		0xc0
 #define RK3568_MISC_CON0		0xc4
@@ -539,6 +578,7 @@ struct rockchip_pll_clock {
 #define ROCKCHIP_PLL_SYNC_RATE		BIT(0)
 /* normal mode only. now only for pll_rk3036, pll_rk3328 type */
 #define ROCKCHIP_PLL_FIXED_MODE		BIT(1)
+#define ROCKCHIP_PLL_ALLOW_POWER_DOWN	BIT(2)
 
 #define PLL(_type, _id, _name, _pnames, _flags, _con, _mode, _mshift,	\
 		_lshift, _pflags, _rtable)				\
@@ -626,10 +666,8 @@ struct clk *rockchip_clk_register_mmc(const char *name,
 /*
  * DDRCLK flags, including method of setting the rate
  * ROCKCHIP_DDRCLK_SIP: use SIP call to bl31 to change ddrclk rate.
- * ROCKCHIP_DDRCLK_SCPI: use SCPI APIs to let mcu change ddrclk rate.
  */
 #define ROCKCHIP_DDRCLK_SIP		BIT(0)
-#define ROCKCHIP_DDRCLK_SCPI		0x02
 #define ROCKCHIP_DDRCLK_SIP_V2		0x03
 
 #ifdef CONFIG_ROCKCHIP_DDRCLK

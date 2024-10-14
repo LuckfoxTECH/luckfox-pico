@@ -10,21 +10,23 @@
 #endif
 #define LOG_TAG "param.c"
 
+#define MAX_SECTION_KEYS 1024
+
 char g_ini_path_[256];
 dictionary *g_ini_d_;
 static pthread_mutex_t g_param_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int rk_param_dump() {
 	const char *section_name;
-	const char *keys[32];
+	const char *keys[MAX_SECTION_KEYS];
 	int section_keys;
 	int section_num = iniparser_getnsec(g_ini_d_);
 	LOG_DEBUG("section_num is %d\n", section_num);
 
 	for (int i = 0; i < section_num; i++) {
 		section_name = iniparser_getsecname(g_ini_d_, i);
-		LOG_DEBUG("section_name is %s\n", section_name);
 		section_keys = iniparser_getsecnkeys(g_ini_d_, section_name);
+		LOG_DEBUG("section_name is %s, section_keys is %d\n", section_name, section_keys);
 		for (int j = 0; j < section_keys; j++) {
 			iniparser_getseckeys(g_ini_d_, section_name, keys);
 			LOG_DEBUG("%s = %s\n", keys[j], iniparser_getstring(g_ini_d_, keys[j], ""));
@@ -54,6 +56,15 @@ int rk_param_get_int(const char *entry, int default_val) {
 	int ret;
 	pthread_mutex_lock(&g_param_mutex);
 	ret = iniparser_getint(g_ini_d_, entry, default_val);
+	pthread_mutex_unlock(&g_param_mutex);
+
+	return ret;
+}
+
+int rk_param_get_double(const char *entry, double default_val) {
+	int ret;
+	pthread_mutex_lock(&g_param_mutex);
+	ret = iniparser_getdouble(g_ini_d_, entry, default_val);
 	pthread_mutex_unlock(&g_param_mutex);
 
 	return ret;

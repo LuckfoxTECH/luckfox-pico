@@ -25,34 +25,37 @@
 #include <memory>
 #include <vector>
 
-#include "RTStreamInfo.h"
-#include "RTTaskNodeContext.h"
 #include "rt_header.h"
 #include "rt_metadata.h"
+#include "RTStreamInfo.h"
+#include "RTTaskNodeContext.h"
 
 class RTTaskNodeContextManager {
-public:
-  RTTaskNodeContextManager() {}
-  virtual ~RTTaskNodeContextManager() {}
+ public:
+    RTTaskNodeContextManager() {}
+    virtual ~RTTaskNodeContextManager() {}
 
-  RT_RET initialize(std::string nodeName, INT32 nodeId,
-                    std::vector<RTStreamInfo *> *inputInfo,
-                    std::vector<RTStreamInfo *> *outputInfo,
-                    bool isParallelRunning);
+    RT_RET initialize(
+        std::string nodeName,
+        INT32 nodeId,
+        std::vector<RTStreamInfo *> *inputInfo,
+        std::vector<RTStreamInfo *> *outputInfo,
+        bool isParallelRunning);
 
-  RT_RET prepareForRun(RtMetaData *options);
-  RT_RET cleanupAfterRun();
+    RT_RET prepareForRun(RtMetaData *options);
+    RT_RET cleanupAfterRun();
 
-  RTTaskNodeContext *getDefaultNodeContext() const;
+    RTTaskNodeContext *getDefaultNodeContext() const;
 
-private:
-  std::unique_ptr<RTTaskNodeContext> mDefaultContext;
-  std::vector<RTStreamInfo *> *mInputInfos;
-  std::vector<RTStreamInfo *> *mOutputInfos;
-  bool mParallelRunning;
-  RtMetaData *mOptions;
-  std::string mNodeName;
-  INT32 mNodeId;
+ private:
+    std::unique_ptr<RTTaskNodeContext> mDefaultContext;
+    std::vector<RTStreamInfo *> *mInputInfos;
+    std::vector<RTStreamInfo *> *mOutputInfos;
+    bool        mParallelRunning;
+    RtMetaData* mOptions;
+    std::string mNodeName;
+    INT32       mNodeId;
 };
 
-#endif // SRC_RT_TASK_TASK_GRAPH_RTTASKNODECONTEXTMANAGER_H_
+#endif  // SRC_RT_TASK_TASK_GRAPH_RTTASKNODECONTEXTMANAGER_H_
+

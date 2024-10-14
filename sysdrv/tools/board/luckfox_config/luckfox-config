@@ -58,7 +58,7 @@ function luckfox_config_init() {
 			luckfox_pico_pro_max_pin_diagram_file
 		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico" ]; then
 			luckfox_pico_pin_diagram_file
-		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Mini A" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Mini B" ]; then
+		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Mini A" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Mini B" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Mini" ]; then
 			luckfox_pico_mini_pin_diagram_file
 		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra W" ]; then
 			luckfox_pico_ultra_pin_diagram_file
@@ -405,8 +405,8 @@ function luckfox_pico_mini_pin_diagram_file() {
           - FIQtty_RX     - GPIO1_B3 |       | GPIO0_A4 -             - PWM1_M0
  PWM2_M2  - SPI0_M0_CS0   - GPIO1_C0 |       | GPIO1_C7 -             - PWM11_M1
  PWM4_M2  - SPI0_M0_CLK   - GPIO1_C1 |       | GPIO1_C6 -             - PWM10_M1
- PWM5_M2  - SPI0_M0_MOSI  - GPIO1_C2 |       | GPIO1_D3 -             - PWM11_M2
- PWM6_M2  - SPI0_M0_MISO  - GPIO1_C3 |       | GPIO1_D2 -             - PWM0_M1
+ PWM5_M2  - SPI0_M0_MOSI  - GPIO1_C2 |       | GPIO1_D3 - I2C3_M1_SCL - PWM11_M2
+ PWM6_M2  - SPI0_M0_MISO  - GPIO1_C3 |       | GPIO1_D2 - I2C3_M1_SDA - PWM0_M1
  PWM8_M1  - UART4_M1_RX   - GPIO1_C4 |       | GPIO1_D1 - UART3_M1_RX - PWM10_M2
  PWM9_M1  - UART4_M1_TX   - GPIO1_C5 |       | GPIO1_D0 - UART3_M1_TX - PWM3_M2
                                      + - + - +
@@ -432,25 +432,24 @@ function luckfox_pico_ultra_pin_diagram_file() {
                                             GND |       | GPIO1_D2 - UART5_M1_RX - I2C3_M1_SDA- PWM0_M1
                                                 + - + - +
                                                 + - + - +
-                                            SYS |       | 1V8
-                                            GND |       | GND
-                                            3V3 |       | GPIO4_C0
-                                            GND |       | GPIO4_C1
- PWM8_M1 -               UART4_M1_RX - GPIO1_C4 |       | GND
- PWM9_M1 -               UART4_M1_TX - GPIO1_C5 |       | MICBIAS
-         - I2C4_M0_SCL - UART1_M1_RTS- GPIO2_A1 |       | MIC1P
-         - I2C4_M0_SDA - UART1_M1_CTS- GPIO2_A0 |       | MIC1N
-                         UART1_M1_RX - GPIO2_A5 |       | GND
-                         UART1_M1_TX - GPIO2_A4 |       | GPIO1_C7 -             -             - PWM11_M1
-                                       GPIO2_A2 |       | GPIO2_B0 - UART0_M1_RX - I2C1_M1_SCL - PWM5_M1
-                                       GPIO2_A3 |       | GPIO2_B1 - UART0_M1_TX - I2C1_M1_SDA - PWM6_M1
-                                            GND |       | GND
+         -             -             -      SYS |       | 1V8      -             -             -
+         -             -             -      GND |       | GND      -             -             -
+         -             -             -      3V3 |       | GPIO4_C0 -             -             -
+         -             -             -      GND |       | GPIO4_C1 -             -             -
+ PWM8_M1 -             - UART4_M1_RX - GPIO1_C4 |       | GND      -             -             -
+ PWM9_M1 -             - UART4_M1_TX - GPIO1_C5 |       | MICBIAS  -             -             -
+         - I2C4_M0_SCL - UART1_M1_RTS- GPIO2_A1 |       | MIC1P    -             -             -
+         - I2C4_M0_SDA - UART1_M1_CTS- GPIO2_A0 |       | MIC1N    -             -             -
+         -             - UART1_M1_RX - GPIO2_A5 |       | GND      -             -             -
+         -             - UART1_M1_TX - GPIO2_A4 |       | GPIO1_C7 -             -             - PWM11_M1
+         -             -             - GPIO2_A2 |       | GPIO2_B0 - UART0_M1_RX - I2C1_M1_SCL - PWM5_M1
+         -             -             - GPIO2_A3 |       | GPIO2_B1 - UART0_M1_TX - I2C1_M1_SDA - PWM6_M1
+         -             -             -      GND |       | GND      -             -             -
                                                 + - + - +
 EOF
 }
 
 # ------------------- Pin Diagram Handle ---------------------
-
 function luckfox_check_pin_diagram() {
 	local device_node
 	local left_group=()
@@ -2490,7 +2489,7 @@ function luckfox_USB() {
 	while true; do
 		option=$(dialog --title "USB Mode Config" \
 			--menu "Choose an option" 10 30 3 \
-			1 "peripheral" \
+			1 "device" \
 			2 "host" \
 			2>&1 >/dev/tty)
 		case $option in
@@ -2687,14 +2686,19 @@ function luckfox_SDMMC() {
 # ---------------------- RUN -------------------------
 if [ "$1" == "load" ]; then
 	LF_GUI_ENABLE=0
-	rm $LUCKFOX_PIN_DIAGRAM_FILE
+	if [ -f $LUCKFOX_PIN_DIAGRAM_FILE ]; then
+		rm $LUCKFOX_PIN_DIAGRAM_FILE
+	fi
 	luckfox_config_init
 	luckfox_load_cfg
 	echo "Complete configuration loading"
 elif [ "$1" == "show" ]; then
 	luckfox_config_init
 	cat $LUCKFOX_PIN_DIAGRAM_FILE
+elif [ "$1" == "update" ]; then
+	luckfox_update_fdt
 elif [ "$1" == "rgb_switch" ]; then
+	# for Luckfox Pico Ultra Boot Key
 	luckfox_config_init
 	LF_GUI_ENABLE=0
 	if [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra W" ]; then
@@ -2710,7 +2714,7 @@ elif [ "$1" == "rgb_switch" ]; then
 				"18" "16" \
 				"2" "2" \
 				"0" "0" \
-				"0" "0"
+				"0" "1"
 		elif [ "$(luckfox_get_pin_cfg "RGB_HACTIVE")" == "720" ]; then
 			# 720 -> 480
 			echo "****************************************************"

@@ -14,7 +14,7 @@ nlohmann::json audio_get_param(int stream_id) {
   nlohmann::json param;
   param.emplace("id", stream_id);
 
-  char *tmp = new char[20];
+  char *tmp = new char[256];
 
   int value = 0;
 

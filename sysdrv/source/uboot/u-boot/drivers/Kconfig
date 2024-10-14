@@ -102,6 +102,8 @@ source "drivers/tpm/Kconfig"
 
 source "drivers/usb/Kconfig"
 
+source "drivers/ufs/Kconfig"
+
 source "drivers/video/Kconfig"
 
 source "drivers/watchdog/Kconfig"

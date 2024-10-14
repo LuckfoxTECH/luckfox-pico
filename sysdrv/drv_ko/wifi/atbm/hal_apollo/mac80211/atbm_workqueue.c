@@ -438,8 +438,13 @@ static void atbm_workqueue_process_works(struct atbm_workqueue_struct *wq)
 		atbm_wk_go_running(work);
 		spin_unlock_irqrestore(&wq->lock, flags);
 		atbm_printk_debug("%s in\n",work->name);
-		BUG_ON(work->func == NULL);
-		work->func(work);
+		//BUG_ON(work->func == NULL);
+		
+		if(work->func == NULL){
+			atbm_printk_err("%s %d ,ERROR !!! work->func is NULL\n",__func__,__LINE__);
+			//return;
+		}else
+			work->func(work);
 		atbm_printk_debug("%s out\n",work->name);
 		spin_lock_irqsave(&wq->lock, flags);
 		atbm_wk_out_running(work);
@@ -506,7 +511,11 @@ static bool _ieee80211_atbm_queue_work(struct atbm_workqueue_struct *wq,struct a
 }
 static void _ieee80211_atbm_clear_pending_work(struct atbm_workqueue_struct *wq,struct atbm_work_struct *work)
 {
-	BUG_ON(wq == NULL);
+	//BUG_ON(wq == NULL);
+	if(wq == NULL || work == NULL){
+		atbm_printk_err("%s %d ,ERROR !!! wq is NULL\n",__func__,__LINE__);
+		return;
+	}
 	list_del(&work->entry);
 	atbm_wk_out_pending(work);
 }
@@ -797,7 +806,15 @@ bool ieee80211_atbm_flush_delayed_work(struct atbm_delayed_work *dwork)
 	spin_lock_irqsave(&work->lock, flags1);
 	
 	if (likely(atbm_del_timer(&dwork->timer))){
-		BUG_ON(dwork->wq == NULL);
+	//	BUG_ON(dwork->wq == NULL);
+		
+		if(dwork->wq == NULL){
+			atbm_printk_err("%s %d ,ERROR !!! dwork->wq == NULL\n",__func__,__LINE__);
+			//spin_unlock_irqrestore(&work->lock, flags1);
+			ret = false;
+			goto w_lock;
+		}
+	
 		dwork->n_timeout ++;
 		_ieee80211_atbm_clear_delay_work(dwork->wq,&dwork->work);
 		if(!atbm_wk_in_pending(work)){
@@ -836,9 +853,13 @@ bool ieee80211_atbm_flush_delayed_work(struct atbm_delayed_work *dwork)
 	}else if(atbm_wk_in_runing(work)){
 		head = &wq->works;
 	    tail = false;
-	}else 
-		BUG_ON(1);
+	}else{ 
+		//BUG_ON(1);
+		atbm_printk_err("%s %d ,ERROR !!! no work pending & runing \n",__func__,__LINE__);
 	
+		ret = false;
+		goto wq_lock;
+	}
 	if(wq->work_thread){
 		atbm_waitwk_insert(&wait,head,tail);
 		atbm_workqueue_wakeup(wq,wq->work_thread);
@@ -884,7 +905,14 @@ bool ieee80211_atbm_cancel_delayed_work_sync(struct atbm_delayed_work *dwork)
 		atbm_printk_debug("[cancel_delayed sync]->[%s] success\n",work->name);
 		ret = true;
 		dwork->n_timeout ++;
-		BUG_ON(dwork->wq == NULL);
+		//BUG_ON(dwork->wq == NULL);
+		
+		if(dwork->wq == NULL){
+			atbm_printk_err("%s %d ,ERROR !!! dwork->wq == NULL\n",__func__,__LINE__);
+			ret = false;
+			goto w_lock;
+		}
+		
 		_ieee80211_atbm_clear_delay_work(dwork->wq,&dwork->work);	
 	}else if(atbm_wk_in_delayed(work)){
 		/*
@@ -913,7 +941,10 @@ bool ieee80211_atbm_cancel_delayed_work_sync(struct atbm_delayed_work *dwork)
 		goto wq_lock;
 	}
 	if(!atbm_wk_in_runing(work)){
-		BUG_ON(1);
+		//BUG_ON(1);
+		atbm_printk_err("%s %d ,ERROR !!! wk is no running\n",__func__,__LINE__);
+		ret = false;
+		goto wq_lock;
 	}
 	if(wq->work_thread){
 		atbm_waitwk_insert(&wait,&wq->works,false);
@@ -947,7 +978,12 @@ bool ieee80211_atbm_cancel_delayed_work(struct atbm_delayed_work *dwork)
 	atbm_printk_debug("[cancel_delayed]->[%s] in\n",work->name);
 	
 	if (likely(atbm_del_timer(&dwork->timer))){
-		BUG_ON(dwork->wq == NULL);
+	//	BUG_ON(dwork->wq == NULL);
+		if(dwork->wq == NULL){
+			atbm_printk_err("%s %d ,ERROR !!! dwork->wq == NULL\n",__func__,__LINE__);
+			ret = false;
+			goto exit;
+		}
 		dwork->n_timeout ++;
 		_ieee80211_atbm_clear_delay_work(dwork->wq,work);
 		atbm_printk_debug("[cancel_delayed]->[%s] sucess\n",work->name);
@@ -1008,7 +1044,10 @@ bool ieee80211_atbm_cancel_work_sync(struct atbm_work_struct *work)
 	}
 	
 	if(!atbm_wk_in_runing(work)){
-		BUG_ON(1);
+		//BUG_ON(1);
+		
+		atbm_printk_err("%s %d ,ERROR !!! work is not runing\n",__func__,__LINE__);
+		goto wq_lock;
 	}
 	
 	if(wq->work_thread){
@@ -1066,7 +1105,10 @@ bool ieee80211_atbm_flush_work(struct atbm_work_struct *work)
 		head = work->entry.next;
 		tail = true;
 	}else{
-		BUG_ON(1);
+		//BUG_ON(1);
+		atbm_printk_err("%s %d ,ERROR !!! work not pending & runing\n",__func__,__LINE__);
+		ret = false;
+		goto wq_lock;
 	}
 	
 	if(wq->work_thread){

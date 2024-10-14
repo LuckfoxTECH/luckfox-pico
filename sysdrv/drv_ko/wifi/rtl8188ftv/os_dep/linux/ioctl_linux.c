@@ -12474,7 +12474,7 @@ static iw_handler rtw_private_handler[] = {
 
 #if 1
 #if WIRELESS_EXT >= 17
-static struct iw_statistics *rtw_get_wireless_stats(struct net_device *dev)
+__attribute__((unused)) static struct iw_statistics *rtw_get_wireless_stats(struct net_device *dev)
 {
 	_adapter *padapter = (_adapter *)rtw_netdev_priv(dev);
 	struct iw_statistics *piwstats = &padapter->iwstats;

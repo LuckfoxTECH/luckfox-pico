@@ -14,14 +14,15 @@ include_directories(${PROJECT_SOURCE_DIR}/./include
 					)
 
 aux_source_directory(./ SRCS)
-aux_source_directory(audio SRCS)
 aux_source_directory(video SRCS)
-aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rv1106 SRCS)
 aux_source_directory(server SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/ SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/audio/rv1106 SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/isp/rv1106 SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/socket_server SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/param SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/system SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/rtsp SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/rtmp SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/osd SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/roi SRCS)
@@ -31,11 +32,11 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/common/rockiva SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/event SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common/region_clip SRCS)
 
-include_directories(audio
-					${PROJECT_SOURCE_DIR}/common/isp/rv1106
-					video
+include_directories(video
 					server
 					${PROJECT_SOURCE_DIR}/common
+					${PROJECT_SOURCE_DIR}/common/audio/rv1106
+					${PROJECT_SOURCE_DIR}/common/isp/rv1106
 					${PROJECT_SOURCE_DIR}/common/socket_server
 					${PROJECT_SOURCE_DIR}/common/rtsp
 					${PROJECT_SOURCE_DIR}/common/rtmp
@@ -62,9 +63,8 @@ add_definitions(-DISP_HW_V32)
 # link_libraries(asan)
 
 add_executable(${PROJECT_NAME} ${SRCS})
-target_link_libraries(${PROJECT_NAME} pthread rockit rockchip_mpp rkaiq rtsp rkaudio_detect 
-aec_bf_process wpa_client m rkmuxer freetype rockiva iconv rknnmrt rga stdc++ rksysutils
-rkAVS_stitchFor1106)
+target_link_libraries(${PROJECT_NAME} pthread rockit_full rockchip_mpp rkaiq rtsp rkaudio_detect
+aec_bf_process wpa_client m rkmuxer freetype rockiva iconv rknnmrt rga stdc++ rksysutils rkaudio)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 install(FILES rkipc.ini DESTINATION share)

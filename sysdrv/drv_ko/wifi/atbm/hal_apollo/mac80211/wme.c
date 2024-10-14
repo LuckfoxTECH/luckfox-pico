@@ -75,7 +75,10 @@ u16 ieee80211_select_queue(struct ieee80211_sub_if_data *sdata,
 			qos = test_sta_flag(sta, WLAN_STA_WME);
 			break;
 		}
-   		fallthrough;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 10, 60))
+		
+			fallthrough;
+#endif
 	case NL80211_IFTYPE_AP:
 		ra = skb->data;
 		break;

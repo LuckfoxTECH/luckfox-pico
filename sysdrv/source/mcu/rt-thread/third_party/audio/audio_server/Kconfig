@@ -1,0 +1,98 @@
+menuconfig RT_USING_AUDIO_SERVER
+    bool "Audio server"
+    select RT_USING_UNCACHE_HEAP
+    default n
+
+if RT_USING_AUDIO_SERVER
+    choice
+        prompt "Compile type"
+        default AUDIO_USING_STATIC_LIBRARY
+        help
+          Choice the complie way, link the static
+          library or compile with source code
+
+        config AUDIO_USING_STATIC_LIBRARY
+            bool "Use static library"
+
+        config AUDIO_USING_SOURCE_CODE
+            bool "Use source code"
+    endchoice
+
+    if AUDIO_USING_SOURCE_CODE
+
+        config AUDIO_ENABLE_PLAYER
+            bool "Enable player"
+            default n
+            select AUDIO_ENABLE_PLUGINS
+            select AUDIO_PLUGIN_RESAMPLE
+
+        config AUDIO_ENABLE_RECORDER
+            bool "Enable recorder"
+            default n
+
+        menuconfig AUDIO_ENABLE_ENDECODE
+            bool "Enable encode and decode"
+            default n
+
+        if AUDIO_ENABLE_ENDECODE
+
+            choice
+                prompt "Codec run on"
+                default AUDIO_CODEC_RUN_ON_CM4
+                help
+                  Choice codec run on dsp or cm4
+
+                config AUDIO_CODEC_RUN_ON_DSP
+                    bool "DSP"
+
+                config AUDIO_CODEC_RUN_ON_CM4
+                    bool "CM4"
+            endchoice
+
+            config AUDIO_DECODER_MP3
+                bool "Enable mp3 decode"
+                default n
+
+            config AUDIO_DECODER_APE
+                bool "Enable ape decode"
+                default n
+
+            config AUDIO_DECODER_AMR
+                bool "Enable amr decode"
+                default n
+
+            config AUDIO_ENCODER_AMR
+                bool "Enable amr encode"
+                default n
+
+            config AUDIO_ENCODER_SPEEX
+                bool "Enable speex encode"
+                default n
+
+        endif
+
+        menuconfig AUDIO_ENABLE_PLUGINS
+            bool "Enable audio plugins"
+            default n
+
+        if AUDIO_ENABLE_PLUGINS
+
+            config AUDIO_PLUGIN_RESAMPLE
+                bool "Enable resample plugin"
+                default n
+
+        endif
+
+    endif
+
+    source "$RTT_DIR/third_party/audio/audio_server/extcodec/Kconfig"
+
+    config AUDIO_ENABLE_PLAYER_TEST
+        bool "Enable player test"
+        default n
+
+    config AUDIO_ENABLE_RECORDER_TEST
+        bool "Enable recorder test"
+        default n
+
+endif

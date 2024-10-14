@@ -27,10 +27,12 @@
 #include "RkAiqCalibDbTypes.h"
 #include "abayer2dnr2/rk_aiq_types_abayer2dnr_algo_v2.h"
 #include "bayer2dnr_head_v2.h"
+#include "bayer2dnr_uapi_head_v2.h"
+
 
 //RKAIQ_BEGIN_DECLARE
 
-#define RK_BAYER2DNR_V2_MAX_ISO_NUM  CALIBDB_MAX_ISO_LEVEL
+//#define RK_BAYER2DNR_V2_MAX_ISO_NUM  CALIBDB_MAX_ISO_LEVEL
 #define ABAYER2DNRV2_DELTA_ISO (10)
 
 typedef enum Abayer2dnr_result_V2_e {
@@ -72,22 +74,17 @@ typedef enum Abayer2dnr_ParamMode_V2_e {
     ABAYER2DNR_PARAM_MODE_MAX                                      /**< max */
 } Abayer2dnr_ParamMode_V2_t;
 
-typedef struct Abayer2dnr_ExpInfo_V2_s {
-    int hdr_mode;
-    float arTime[3];
-    float arAGain[3];
-    float arDGain[3];
-    int   arIso[3];
-    int   snr_mode;
-    int gray_mode;
-} Abayer2dnr_ExpInfo_V2_t;
 
 
+
+#if 0
 
 typedef struct RK_Bayer2dnr_Params_V2_s
 {
     // bayernr version
     int enable;
+
+    bool hdrdgain_ctrl_en;
 
     // v2 parse
     float iso[RK_BAYER2DNR_V2_MAX_ISO_NUM];
@@ -104,12 +101,17 @@ typedef struct RK_Bayer2dnr_Params_V2_s
     int pix_diff[RK_BAYER2DNR_V2_MAX_ISO_NUM];
     int diff_thld[RK_BAYER2DNR_V2_MAX_ISO_NUM];
 
+    float hdr_dgain_scale_s[RK_BAYER2DNR_V2_MAX_ISO_NUM];
+    float hdr_dgain_scale_m[RK_BAYER2DNR_V2_MAX_ISO_NUM];
+
 } RK_Bayer2dnr_Params_V2_t;
+
 
 typedef struct RK_Bayer2dnr_Params_V2_Select_s
 {
     // v2 version register // edge filter params
     int enable;
+    bool hdrdgain_ctrl_en;
 
     int lumapoint[16];
     int sigma[16];
@@ -123,8 +125,12 @@ typedef struct RK_Bayer2dnr_Params_V2_Select_s
     int pix_diff;
     int diff_thld;
 
-} RK_Bayer2dnr_Params_V2_Select_t;
+    float hdr_dgain_scale_s;
+    float hdr_dgain_scale_m;
 
+
+} RK_Bayer2dnr_Params_V2_Select_t;
+#endif
 
 typedef struct Abayer2dnr_Manual_Attr_V2_s
 {
@@ -145,13 +151,10 @@ typedef struct Abayer2dnr_Auto_Attr_V2_s
 typedef struct Abayer2dnr_ProcResult_V2_s {
 
     //for sw simultaion
-    RK_Bayer2dnr_Params_V2_Select_t st2DSelect;
+    //RK_Bayer2dnr_Params_V2_Select_t st2DSelect;
 
     //for hw register
-    RK_Bayer2dnr_Fix_V2_t st2DFix;
-
-    bool isNeedUpdate;
-
+    RK_Bayer2dnr_Fix_V2_t* st2DFix;
 } Abayer2dnr_ProcResult_V2_t;
 
 
@@ -173,6 +176,7 @@ typedef struct rk_aiq_bayer2dnr_attrib_v2_s {
 typedef struct rk_aiq_bayer2dnr_strength_v2_s {
     rk_aiq_uapi_sync_t sync;
     float percent;
+    bool strength_enable;
 } rk_aiq_bayer2dnr_strength_v2_t;
 
 

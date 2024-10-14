@@ -27,16 +27,14 @@ int rkipc_log_level = LOG_INFO;
 
 static int g_main_run_ = 1;
 char *rkipc_ini_path_ = NULL;
-char *rkipc_iq_file_path_ = NULL;
 
 static void sig_proc(int signo) {
 	LOG_INFO("received signo %d \n", signo);
 	g_main_run_ = 0;
 }
 
-static const char short_options[] = "c:a:l:";
+static const char short_options[] = "c:l:";
 static const struct option long_options[] = {{"config", required_argument, NULL, 'c'},
-                                             {"aiq_file", no_argument, NULL, 'a'},
                                              {"log_level", no_argument, NULL, 'l'},
                                              {"help", no_argument, NULL, 'h'},
                                              {0, 0, 0, 0}};
@@ -48,7 +46,6 @@ static void usage_tip(FILE *fp, int argc, char **argv) {
 	        "Options:\n"
 	        "-c | --config      rkipc ini file, default is "
 	        "/userdata/rkipc.ini, need to be writable\n"
-	        "-a | --aiq_file    aiq file dir path, default is /etc/iqfiles\n"
 	        "-l | --log_level   log_level [0/1/2/3], default is 2\n"
 	        "-h | --help        for help \n\n"
 	        "\n",
@@ -68,9 +65,6 @@ void rkipc_get_opt(int argc, char *argv[]) {
 		case 'c':
 			rkipc_ini_path_ = optarg;
 			break;
-		case 'a':
-			rkipc_iq_file_path_ = optarg;
-			break;
 		case 'l':
 			rkipc_log_level = atoi(optarg);
 			break;
@@ -86,13 +80,12 @@ void rkipc_get_opt(int argc, char *argv[]) {
 
 int main(int argc, char **argv) {
 	LOG_DEBUG("main begin\n");
+	rkipc_version_dump();
 	signal(SIGINT, sig_proc);
 	signal(SIGTERM, sig_proc);
 
 	rkipc_get_opt(argc, argv);
-	LOG_INFO("rkipc_ini_path_ is %s, rkipc_iq_file_path_ is %s, rkipc_log_level "
-	         "is %d\n",
-	         rkipc_ini_path_, rkipc_iq_file_path_, rkipc_log_level);
+	LOG_INFO("rkipc_ini_path_ is %s, rkipc_log_level is %d\n", rkipc_ini_path_, rkipc_log_level);
 
 	// init
 	// rk_network_init(NULL);

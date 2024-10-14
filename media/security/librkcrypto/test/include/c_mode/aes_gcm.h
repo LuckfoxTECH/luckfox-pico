@@ -7,7 +7,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *    notice, this list of conditions and the following disclaimer. 
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -53,14 +53,13 @@
 #define __AES_GCM_H__
 #include "aes_core.h"
 
-#ifdef __cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
 
-int rk_aes_gcm_encrypt(struct aes_ae_in *in, struct aes_ae_out *out,
-                       const int enc);
+int rk_aes_gcm_encrypt(struct aes_ae_in *in, struct aes_ae_out *out, const int enc);
 
-#ifdef __cplusplus
+#ifdef  __cplusplus
 }
 #endif
 

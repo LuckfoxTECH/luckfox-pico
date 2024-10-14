@@ -742,7 +742,12 @@ int sta_info_insert_rcu(struct sta_info *sta) __acquires(RCU)
 
 	return 0;
  out_free:
-	BUG_ON(!err);
+//	BUG_ON(!err);
+
+	if(!err){
+		atbm_printk_err("%s %d ,ERROR !!! err is 0 \n",__func__,__LINE__);
+		//return;
+	}	
 	__sta_info_free(local, sta);
 	return err;
 }
@@ -1053,8 +1058,12 @@ static int __must_check __sta_info_destroy(struct sta_info *sta)
 
 	if (test_sta_flag(sta, WLAN_STA_PS_STA) ||
 	    test_sta_flag(sta, WLAN_STA_PS_DRIVER)) {
-		BUG_ON(!sdata->bss);
+	//	BUG_ON(!sdata->bss);
 
+		if(!sdata->bss){
+			atbm_printk_err("%s %d ,ERROR !!! sdata->bss is NULL\n",__func__,__LINE__);
+			return -1;
+		}		
 		clear_sta_flag(sta, WLAN_STA_PS_STA);
 		clear_sta_flag(sta, WLAN_STA_PS_DRIVER);
 

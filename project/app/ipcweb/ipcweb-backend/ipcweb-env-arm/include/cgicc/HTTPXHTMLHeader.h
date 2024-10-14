@@ -4,7 +4,7 @@
  *
  *  Copyright (C) 1996 - 2004 Stephen F. Booth <sbooth@gnu.org>
  *                       2007 David Roberts
-                     2007 Sebastien DIAZ <sebastien.diaz@gmail.com>
+		     2007 Sebastien DIAZ <sebastien.diaz@gmail.com>
  *  Part of the GNU cgicc library, http://www.gnu.org/software/cgicc
  *
  *  This library is free software; you can redistribute it and/or
@@ -19,10 +19,11 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA 
  */
 #ifndef HTTPXHTMLHEADER_H
 #define HTTPXHTMLHEADER_H
+
 
 #include "HTTPContentHeader.h"
 
@@ -33,33 +34,33 @@
  */
 
 namespace cgicc {
-/*! \class HTTPXHTMLHeader HTTPXHTMLHeader.h cgicc/HTTPXHTMLHeader.h
- * \brief Class that abstracts a XHTML Content Header
- *
- * This class add the XHTML feature
- */
+/*! \class HTTPXHTMLHeader HTTPXHTMLHeader.h cgicc/HTTPXHTMLHeader.h 
+   * \brief Class that abstracts a XHTML Content Header
+   *
+   * This class add the XHTML feature
+   */
 class CGICC_API HTTPXHTMLHeader : public HTTPContentHeader {
-public:
-  // ============================================================
-
-  /*! \name Constructor and Destructor */
-  //@{
-
-  /*!
-   * \brief Constructor
-   *
-   * Create a new HTTPXHTMLHeader object
-   */
-  HTTPXHTMLHeader();
-
-  /*!
-   * \brief Destructor
-   *
-   * Delete this HTTPXHTMLHeader object
-   */
-  virtual ~HTTPXHTMLHeader();
-  //@}
+	public:
+	// ============================================================
+    
+    /*! \name Constructor and Destructor */
+    //@{
+    
+    /*! 
+     * \brief Constructor
+     *
+     * Create a new HTTPXHTMLHeader object
+     */
+	HTTPXHTMLHeader();
+	
+	 /*!
+     * \brief Destructor 
+     *
+     * Delete this HTTPXHTMLHeader object
+     */
+	virtual ~HTTPXHTMLHeader();
+	//@}
 };
-} // namespace cgicc
+}// namespace cgicc
 
 #endif

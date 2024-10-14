@@ -3,7 +3,7 @@
 #################################################
 # 	Board Config
 #################################################
-
+export LF_ORIGIN_BOARD_CONFIG=BoardConfig-EMMC-Buildroot-RV1106_Luckfox_Pico_Ultra-IPC.mk
 # Target CHIP
 export RK_CHIP=rv1106
 
@@ -82,6 +82,9 @@ export RK_UBOOT_DEFCONFIG=luckfox_rv1106_uboot_defconfig
 
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_defconfig
+
+# Kernel defconfig fragment
+#export RK_KERNEL_DEFCONFIG_FRAGMENT=rv1106-pm.config
 
 # Config sensor IQ files
 # RK_CAMERA_SENSOR_IQFILES format:

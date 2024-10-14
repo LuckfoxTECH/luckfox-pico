@@ -1,0 +1,3 @@
+BINARY = 534d4152-5443-534c-5443525950544f31
+NOWERROR = 1
+include ../ta_common.mk

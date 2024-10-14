@@ -1,0 +1,28 @@
+from building import *
+
+cwd     = GetCurrentDir()
+
+CPPPATH = [cwd]
+src = ['./wice_init.c']
+wchip = ''
+mcu = ''
+
+if GetDepend('RT_USING_WLAN_CHIP_AP6212_A'):
+    wchip = '/ap6212_a'
+
+if GetDepend('RKMCU_RK2108'):
+    mcu = '/rk2108'
+
+if GetDepend('SOC_RK1808'):
+    mcu = '/rk1808'
+
+LIBPATH = [cwd + mcu + wchip]
+
+LIBS    = ['wice_gcc']
+
+if GetDepend('RT_USING_WICE_MFG_TEST'):
+   LIBS    = ['wice_mfg_gcc']
+
+group = DefineGroup('wlan-wiced', src, depend = ['RT_USING_WLAN_WICED', 'RT_USING_LWIP'], CPPPATH = CPPPATH, LIBS = LIBS, LIBPATH = LIBPATH)
+
+Return('group')

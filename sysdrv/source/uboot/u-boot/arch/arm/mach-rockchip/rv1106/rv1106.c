@@ -7,6 +7,9 @@
 #include <boot_rkimg.h>
 #include <cli.h>
 #include <debug_uart.h>
+#include <miiphy.h>
+#include <syscon.h>
+#include <asm/arch/clock.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/grf_rv1106.h>
@@ -109,6 +112,12 @@ DECLARE_GLOBAL_DATA_PTR;
 #define USBPHY_APB_BASE			0xff3e0000
 #define USBPHY_FSLS_DIFF_RECEIVER	0x0100
 
+#define CSI_PHY_BASE			0xff3e8000
+#define CSI_DPHY_LANE_EN		0x0
+#define CSI_DPHY_DUAL_CLK_ENABLE	0x80
+#define CSI_DPHY_PATH0_MODE		0x44c
+#define CSI_DPHY_PATH1_MODE		0x84c
+
 #define GPIO0_IOC_BASE			0xFF388000
 #define GPIO1_IOC_BASE			0xFF538000
 #define GPIO2_IOC_BASE			0xFF548000
@@ -123,6 +132,10 @@ DECLARE_GLOBAL_DATA_PTR;
 #define GPIO4B_IOMUX_SEL_L		0x008
 
 #define GPIO4_IOC_GPIO4B_DS0		0x0030
+#define GPIO4_IOC_SARADC_IO_CON		0x00c0
+
+#define VICRU_BASE			0XFF3B4000
+#define VICRU_VISOFTRST_CON01		0xA04
 
 /* OS_REG1[2:0]: chip ver */
 #define CHIP_VER_REG			0xff020204
@@ -398,9 +411,32 @@ void board_debug_uart_init(void)
 #endif
 }
 
+#ifdef CONFIG_SUPPORT_USBPLUG
+void board_set_iomux(enum if_type if_type, int devnum, int routing)
+{
+	switch (if_type) {
+	case IF_TYPE_MMC:
+		/* emmc iomux */
+		writel(0xffff1111, GPIO4_IOC_BASE + GPIO4A_IOMUX_SEL_L);
+		writel(0xffff1111, GPIO4_IOC_BASE + GPIO4A_IOMUX_SEL_H);
+		writel(0x00ff0011, GPIO4_IOC_BASE + GPIO4B_IOMUX_SEL_L);
+		break;
+	case IF_TYPE_MTD:
+		/* fspi iomux */
+		writel(0x0f000700, GPIO4_IOC_BASE + 0x0030);
+		writel(0xff002200, GPIO4_IOC_BASE + GPIO4A_IOMUX_SEL_L);
+		writel(0x0f0f0202, GPIO4_IOC_BASE + GPIO4A_IOMUX_SEL_H);
+		writel(0x00ff0022, GPIO4_IOC_BASE + GPIO4B_IOMUX_SEL_L);
+		break;
+	default:
+		break;
+	}
+}
+#endif
+
 int arch_cpu_init(void)
 {
-#ifdef CONFIG_SPL_BUILD
+#if defined(CONFIG_SPL_BUILD) || defined(CONFIG_SUPPORT_USBPLUG)
 	/* Save chip version to OS_REG1[2:0] */
 	if (readl(ROM_VER_REG) == ROM_V2)
 		writel((readl(CHIP_VER_REG) & ~CHIP_VER_MSK) | V(2), CHIP_VER_REG);
@@ -491,22 +527,40 @@ int arch_cpu_init(void)
 	writel(0x00ff0011, GPIO4_IOC_BASE + GPIO4B_IOMUX_SEL_L);
 #endif
 
+	/* Set GPIO3_B0~GPIO3B7 and GPIO3_C0~GPIO3_C3 of MIPI CSI DPHY to default GPIO Input 1V8 Only mode */
+	writel(0x0000007d, CSI_PHY_BASE + CSI_DPHY_LANE_EN);
+	writel(0x0000005f, CSI_PHY_BASE + CSI_DPHY_DUAL_CLK_ENABLE);
+	writel(0x00000001, CSI_PHY_BASE + CSI_DPHY_PATH0_MODE);
+	writel(0x00000001, CSI_PHY_BASE + CSI_DPHY_PATH1_MODE);
+	/* Set GPIO4_C0 GPIO4C1 of SARADC to default GPIO Input 1V8 Only mode */
+	writel(0x000c000c, GPIO4_IOC_BASE + GPIO4_IOC_SARADC_IO_CON);
+
 #endif
+	/* reset sdmmc0 to prevent power leak */
+	writel(0x30003000, VICRU_BASE + VICRU_VISOFTRST_CON01);
+	udelay(1);
+	writel(0x30000000, VICRU_BASE + VICRU_VISOFTRST_CON01);
+
 	return 0;
 }
 
 #ifdef CONFIG_SPL_BUILD
 int spl_fit_standalone_release(char *id, uintptr_t entry_point)
 {
-	/* set the mcu uncache area, usually set the devices address */
-	writel(0xff000, CORE_GRF_BASE + CORE_GRF_CACHE_PERI_ADDR_START);
-	writel(0xffc00, CORE_GRF_BASE + CORE_GRF_CACHE_PERI_ADDR_END);
-	/* Reset the hp mcu */
-	writel(0x1e001e, CORECRU_BASE + CORECRU_CORESOFTRST_CON01);
-	/* set the mcu addr */
-	writel(entry_point, CORE_SGRF_BASE + CORE_SGRF_HPMCU_BOOT_ADDR);
-	/* release the mcu */
-	writel(0x1e0000, CORECRU_BASE + CORECRU_CORESOFTRST_CON01);
+	if (!strcmp(id, "mcu0")) {
+		/* set the mcu uncache area, usually set the devices address */
+		writel(0xff000, CORE_GRF_BASE + CORE_GRF_CACHE_PERI_ADDR_START);
+		writel(0xffc00, CORE_GRF_BASE + CORE_GRF_CACHE_PERI_ADDR_END);
+		/* Reset the hp mcu */
+		writel(0x1e001e, CORECRU_BASE + CORECRU_CORESOFTRST_CON01);
+		/* set the mcu addr */
+		writel(entry_point, CORE_SGRF_BASE + CORE_SGRF_HPMCU_BOOT_ADDR);
+		/* release the mcu */
+		writel(0x1e0000, CORECRU_BASE + CORECRU_CORESOFTRST_CON01);
+	} else if (!strcmp(id, "mcu1")) {
+		/* set the mcu addr */
+		writel(entry_point, CORE_SGRF_BASE + CORE_SGRF_HPMCU_BOOT_ADDR);
+	}
 
 	return 0;
 }
@@ -538,15 +592,65 @@ int rk_board_scan_bootdev(void)
 }
 #endif
 
-int rk_board_late_init(void)
-{
-#if defined(CONFIG_CMD_SCRIPT_UPDATE)
-	struct blk_desc *desc;
+#if (defined CONFIG_MII || defined CONFIG_CMD_MII || defined CONFIG_PHYLIB)
+#define GMAC_NODE_FDT_PATH		"/ethernet@ffa80000"
+#define RK630_MII_NAME			"ethernet@ffa80000"
+#define	PHY_ADDR			2
+#define	PAGE_SWITCH			0x1f
+#define	DISABLE_APS_REG			0x12
+#define	DISABLE_APS_VAL			0x4824
+#define	PHYAFE_PDCW_REG			0x1c
+#define	PHYAFE_PDCW_VAL			0x8880
+#define	PD_ANALOG_REG			0x0
+#define PD_ANALOG_VAL			0x3900
+#define RV1106_MACPHY_SHUTDOWN		BIT(1)
+#define RV1106_MACPHY_ENABLE_MASK	BIT(1)
 
-	desc = rockchip_get_bootdev();
-	if (desc && desc->if_type == IF_TYPE_MMC && desc->devnum == 1)
-		run_command("sd_update", 0);
-#endif
+static int rk_board_fdt_pwrdn_gmac(const void *blob)
+{
+	void *fdt = (void *)gd->fdt_blob;
+	struct rv1106_grf *grf;
+	int gmac_node;
+
+	/* Turn off GMAC FEPHY to reduce chip power consumption at uboot level,
+	 * if the gmac node is disabled at kernel dtb. RV1106/1103 has the
+	 * internal gmac phy, u-boot.dtb defines and enables the gmac node
+	 * by default, so even if the gmac node of the kernel dts is disabled,
+	 * U-Boot will enable and initialize the gmac phy. So it is not okay
+	 * to turn off gmac phy by default in arch_cpu_init(), need to turn off
+	 * gmac phy in the current function.
+	 */
+	gmac_node = fdt_path_offset(gd->fdt_blob, GMAC_NODE_FDT_PATH);
+	if (fdt_stringlist_search(fdt, gmac_node, "status", "disabled") >= 0) {
+		/* switch to page 1 */
+		miiphy_write(RK630_MII_NAME, PHY_ADDR, PAGE_SWITCH, 0x0100);
+		miiphy_write(RK630_MII_NAME, PHY_ADDR, DISABLE_APS_REG,
+			     DISABLE_APS_VAL);
+		/* switch to pae 6 */
+		miiphy_write(RK630_MII_NAME, PHY_ADDR, PAGE_SWITCH, 0x0600);
+		miiphy_write(RK630_MII_NAME, PHY_ADDR, PHYAFE_PDCW_REG,
+			     PHYAFE_PDCW_VAL);
+		/* switch to page 0 */
+		miiphy_write(RK630_MII_NAME, PHY_ADDR, PAGE_SWITCH, 0x0000);
+		miiphy_write(RK630_MII_NAME, PHY_ADDR, PD_ANALOG_REG,
+			     PD_ANALOG_VAL);
+
+		grf = syscon_get_first_range(ROCKCHIP_SYSCON_GRF);
+		if (grf)
+			rk_clrsetreg(&grf->macphy_con0,
+				     RV1106_MACPHY_ENABLE_MASK,
+				     RV1106_MACPHY_SHUTDOWN);
+	}
+
 	return 0;
 }
+#endif
 
+int rk_board_fdt_fixup(const void *blob)
+{
+#if (defined CONFIG_MII || defined CONFIG_CMD_MII || defined CONFIG_PHYLIB)
+	rk_board_fdt_pwrdn_gmac(blob);
+#endif
+
+	return 0;
+}

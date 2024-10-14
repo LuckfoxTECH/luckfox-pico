@@ -1,0 +1,15 @@
+# RT-Thread building script for bridge
+
+import os
+from building import *
+
+cwd = GetCurrentDir()
+objs = []
+list = os.listdir(cwd)
+src = Glob('*.c')
+CPPPATH = [cwd]
+
+group = DefineGroup('aupipe', src, depend = ['RT_USING_AUPIPE'], CPPPATH = CPPPATH)
+objs = objs + group
+
+Return('objs')

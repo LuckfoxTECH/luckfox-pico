@@ -73,10 +73,10 @@ FT_BEGIN_HEADER
  *   2.10
  */
 typedef struct FT_Color_ {
-  FT_Byte blue;
-  FT_Byte green;
-  FT_Byte red;
-  FT_Byte alpha;
+	FT_Byte blue;
+	FT_Byte green;
+	FT_Byte red;
+	FT_Byte alpha;
 
 } FT_Color;
 
@@ -160,12 +160,12 @@ typedef struct FT_Color_ {
  *   2.10
  */
 typedef struct FT_Palette_Data_ {
-  FT_UShort num_palettes;
-  const FT_UShort *palette_name_ids;
-  const FT_UShort *palette_flags;
+	FT_UShort num_palettes;
+	const FT_UShort *palette_name_ids;
+	const FT_UShort *palette_flags;
 
-  FT_UShort num_palette_entries;
-  const FT_UShort *palette_entry_name_ids;
+	FT_UShort num_palette_entries;
+	const FT_UShort *palette_entry_name_ids;
 
 } FT_Palette_Data;
 

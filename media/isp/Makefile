@@ -17,7 +17,6 @@ PKG_NAME_RKISP_DEMO := $(PKG_NAME)/rkisp_demo
 
 ifeq ($(CURRENT_DIR)/$(PKG_NAME)/rkaiq/CMakeLists.txt, $(wildcard $(CURRENT_DIR)/$(PKG_NAME)/rkaiq/CMakeLists.txt))
 PKG_NAME_RKAIQ := $(PKG_NAME)/rkaiq
-PKG_NAME_RK3A_SERVER := $(PKG_NAME)/rkaiq_3A_server
 PKG_NAME_RKAIQ_SMARTIR := $(PKG_NAME)/smart_ir
 PKG_NAME_RK_STREAM := $(PKG_NAME)/rk_stream
 PKG_CONF_OPTS += -DRKAIQ_BUILD_BINARY_IQ=ON
@@ -26,16 +25,28 @@ PKG_CONF_OPTS += -DRKAIQ_ENABLE_RGA=ON
 PKG_CONF_OPTS += -DRK_AIQ_INSTALLED_DIR=$(CURRENT_DIR)/$(PKG_BIN)
 PKG_TARGET += rga-build rkisp_demo-build
 endif
-PKG_TARGET += rkaiq_3a_server-build
 PKG_TARGET += rkaiq_smart_ir-build
 PKG_TARGET += rk_stream-build
+
+ifeq ($(CONFIG_RK_CHIP),rk3588)
+PKG_NAME_RKAIQ_ISPFEC := $(PKG_NAME)/IspFec
+PKG_TARGET += rkaiq_isp_fec-build
+endif
 else
 PKG_NAME_RKAIQ := $(PKG_NAME)
 ifeq ($(CONFIG_RK_ISP_BUILD_DEMO),y)
 PKG_CONF_OPTS += -DENABLE_RKISP_DEMO=ON
 PKG_CONF_OPTS += -DRKAIQ_ENABLE_RGA=ON
-PKG_TARGET += rga-build
+PKG_TARGET += rga-build rkisp_demo-build
 endif
+endif
+
+PKG_NAME_RK3A_SERVER := $(PKG_NAME)/rkaiq_3A_server
+PKG_TARGET += rkaiq_3a_server-build
+
+PKG_NAME_RKAIQ_TOOL_SERVER := $(PKG_NAME)/rkaiq_tool_server
+ifeq ($(CONFIG_RK_CHIP),rv1106)
+PKG_TARGET += rkaiq_tool_server-build
 endif
 
 RK_MEDIA_OPTS += -I${RK_MEDIA_OUTPUT}/include -I${RK_MEDIA_OUTPUT}/include/libdrm -L${RK_MEDIA_OUTPUT}/lib -L$(CURRENT_DIR)/$(PKG_BIN)/lib
@@ -71,6 +82,7 @@ endif
 
 ifeq ($(CONFIG_RK_ISP_HW_VERSION_V32),y)
 PKG_CONF_OPTS += -DISP_HW_VERSION=-DISP_HW_V32
+PKG_CONF_OPTS += -DRKAIQ_ENABLE_CAMGROUP=TRUE
 PKG_RESOURCE_DIR := $(CURRENT_DIR)/$(PKG_NAME_RKAIQ)/iqfiles/isp32
 endif
 
@@ -86,7 +98,6 @@ endif
 
 ifeq ($(CONFIG_RK_CHIP),rk3588)
 PKG_CONF_OPTS += -DRKAIQ_TOOL_SERVER=ON
-PKG_NAME_RKISP_DEMO := $(PKG_NAME)/tests/rkisp_demo
 endif
 
 ifeq ($(CONFIG_RK_CHIP),rv1106)
@@ -138,6 +149,8 @@ camera_engine_rkaiq-build: camera_engine_rkaiq-release
 			-DBUILD_TESTING=OFF \
 			-DBUILD_SHARED_LIBS=ON \
 			-DARCH="$(RK_ISP_ARCH_TYPE)" \
+			-DRKAIQ_ENABLE_CAMGROUP=TRUE \
+			-DRKAIQ_HAVE_MULTIISP=TRUE \
 			$(PKG_CONF_OPTS) \
 			;\
 			make -j$(RK_JOBS) || exit -1; \
@@ -187,9 +200,31 @@ rkaiq_3a_server-build: camera_engine_rkaiq-build
 			cp -fr $(CURRENT_DIR)/$(PKG_BIN)/usr/bin/* $(CURRENT_DIR)/$(PKG_BIN)/bin; \
 	popd; ) || exit -1;
 
+rkaiq_tool_server-build: camera_engine_rkaiq-build
+	@test ! -d $(CURRENT_DIR)/$(PKG_NAME_RKAIQ_TOOL_SERVER) || \
+		test -f $(CURRENT_DIR)/$(PKG_BIN)/bin/rkaiq_tool_server || (\
+	echo "Start to build $(PKG_NAME_RKAIQ_TOOL_SERVER)"; \
+	rm -rf $(CURRENT_DIR)/$(PKG_BUILD)/$(PKG_NAME_RKAIQ_TOOL_SERVER) ; \
+	mkdir -p $(CURRENT_DIR)/$(PKG_BUILD)/$(PKG_NAME_RKAIQ_TOOL_SERVER) ; \
+	pushd $(CURRENT_DIR)/$(PKG_BUILD)/$(PKG_NAME_RKAIQ_TOOL_SERVER) ; \
+		rm -f CMakeCache.txt; \
+		cmake $(CURRENT_DIR)/$(PKG_NAME_RKAIQ_TOOL_SERVER) \
+			-DCMAKE_C_COMPILER=$(RK_MEDIA_CROSS)-gcc \
+			-DCMAKE_CXX_COMPILER=$(RK_MEDIA_CROSS)-g++ \
+			-DCMAKE_INSTALL_PREFIX="$(CURRENT_DIR)/$(PKG_BIN)" \
+			-DCMAKE_BUILD_TYPE=MinSizeRel \
+			-DCMAKE_COLOR_MAKEFILE=OFF \
+			-DARCH="$(RK_ISP_ARCH_TYPE)" \
+			$(PKG_CONF_OPTS) \
+			;\
+			make -j$(RK_JOBS) || exit -1; \
+			make install; \
+			cp -fr $(CURRENT_DIR)/$(PKG_BIN)/usr/bin/* $(CURRENT_DIR)/$(PKG_BIN)/bin; \
+	popd; ) || exit -1;
+
 rkisp_demo-build: camera_engine_rkaiq-build
 	@test ! -d $(CURRENT_DIR)/$(PKG_NAME_RKISP_DEMO) || \
-		test -f $(CURRENT_DIR)/$(PKG_BIN)/bin/rkisp_demo || (\
+		(\
 	echo "Start to build $(PKG_NAME_RKISP_DEMO)"; \
 	rm -rf $(CURRENT_DIR)/$(PKG_BUILD)/$(PKG_NAME_RKISP_DEMO) ; \
 	mkdir -p $(CURRENT_DIR)/$(PKG_BUILD)/$(PKG_NAME_RKISP_DEMO) ; \
@@ -273,6 +308,38 @@ rk_stream-build: camera_engine_rkaiq-build
 			make -j$(RK_JOBS) || exit -1; \
 			make install; \
 	popd; ) || exit -1;
+
+rkaiq_isp_fec-build: camera_engine_rkaiq-build
+	test ! -d $(CURRENT_DIR)/$(PKG_NAME_RKAIQ_ISPFEC) || \
+		test -f $(CURRENT_DIR)/$(PKG_BIN)/lib/libIspFec.so || (\
+	echo "Start to build $(PKG_NAME_RKAIQ_ISPFEC)"; \
+	rm -rf $(CURRENT_DIR)/$(PKG_BUILD)/$(PKG_NAME_RKAIQ_ISPFEC) ; \
+	mkdir -p $(CURRENT_DIR)/$(PKG_BUILD)/$(PKG_NAME_RKAIQ_ISPFEC) ; \
+	pushd $(CURRENT_DIR)/$(PKG_BUILD)/$(PKG_NAME_RKAIQ_ISPFEC) ; \
+		rm -f CMakeCache.txt; \
+		cmake $(CURRENT_DIR)/$(PKG_NAME_RKAIQ_ISPFEC) \
+			-DCMAKE_C_COMPILER=$(RK_MEDIA_CROSS)-gcc \
+			-DCMAKE_CXX_COMPILER=$(RK_MEDIA_CROSS)-g++ \
+			-DCMAKE_INSTALL_PREFIX="$(CURRENT_DIR)/$(PKG_BIN)" \
+			-DCMAKE_BUILD_TYPE=MinSizeRel \
+			-DCMAKE_COLOR_MAKEFILE=OFF \
+			-DBUILD_DOC=OFF \
+			-DBUILD_DOCS=OFF \
+			-DBUILD_EXAMPLE=OFF \
+			-DBUILD_EXAMPLES=OFF \
+			-DBUILD_TEST=OFF \
+			-DBUILD_TESTS=OFF \
+			-DBUILD_TESTING=OFF \
+			-DBUILD_SHARED_LIBS=ON \
+			-DARCH="$(RK_ISP_ARCH_TYPE)" \
+			-DRK_GDC_GEN_MESH_ONLINE=ON \
+			$(PKG_CONF_OPTS) ;\
+			make -j$(RK_JOBS) || exit -1; \
+			make install; \
+	popd; );
+ifneq ($(RK_MEDIA_OUTPUT),)
+	$(call MAROC_COPY_PKG_TO_MEDIA_OUTPUT, $(RK_MEDIA_OUTPUT), $(PKG_BIN))
+endif
 
 clean:
 	@rm -rf $(PKG_BUILD) $(PKG_BIN);

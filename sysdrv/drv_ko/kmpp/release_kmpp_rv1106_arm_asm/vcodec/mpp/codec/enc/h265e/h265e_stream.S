@@ -438,25 +438,25 @@ h265e_stream_flush:
 	.size	h265e_stream_flush, .-h265e_stream_flush
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__FUNCTION__.9282, %object
-	.size	__FUNCTION__.9282, 18
-__FUNCTION__.9282:
+	.type	__FUNCTION__.9335, %object
+	.size	__FUNCTION__.9335, 18
+__FUNCTION__.9335:
 	.ascii	"h265e_stream_init\000"
-	.type	__FUNCTION__.9286, %object
-	.size	__FUNCTION__.9286, 20
-__FUNCTION__.9286:
+	.type	__FUNCTION__.9339, %object
+	.size	__FUNCTION__.9339, 20
+__FUNCTION__.9339:
 	.ascii	"h265e_stream_deinit\000"
-	.type	__func__.9299, %object
-	.size	__func__.9299, 28
-__func__.9299:
+	.type	__func__.9352, %object
+	.size	__func__.9352, 28
+__func__.9352:
 	.ascii	"h265e_stream_write_with_log\000"
-	.type	__func__.9305, %object
-	.size	__func__.9305, 29
-__func__.9305:
+	.type	__func__.9358, %object
+	.size	__func__.9358, 29
+__func__.9358:
 	.ascii	"h265e_stream_write1_with_log\000"
-	.type	__func__.9311, %object
-	.size	__func__.9311, 31
-__func__.9311:
+	.type	__func__.9364, %object
+	.size	__func__.9364, 31
+__func__.9364:
 	.ascii	"h265e_stream_write_ue_with_log\000"
 	.type	ue_size_tab, %object
 	.size	ue_size_tab, 256
@@ -717,9 +717,9 @@ ue_size_tab:
 	.byte	15
 	.byte	15
 	.byte	15
-	.type	__func__.9321, %object
-	.size	__func__.9321, 31
-__func__.9321:
+	.type	__func__.9374, %object
+	.size	__func__.9374, 31
+__func__.9374:
 	.ascii	"h265e_stream_write_se_with_log\000"
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:

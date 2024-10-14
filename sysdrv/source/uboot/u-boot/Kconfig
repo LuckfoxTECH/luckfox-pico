@@ -168,6 +168,12 @@ endmenu		# General setup
 
 menu "Boot images"
 
+config IMAGE_GZIP
+	bool "U-Boot Image with gzip compression"
+	default n
+	help
+	  This enables gzip compression on U-Boot Image.
+
 config ANDROID_BOOT_IMAGE
 	bool "Enable support for Android Boot Images"
 	default y if FASTBOOT
@@ -202,6 +208,18 @@ config FIT_ENABLE_SHA256_SUPPORT
 	  input data. Use this for the highest security. Note that only the
 	  SHA256 variant is supported: SHA512 and others are not currently
 	  supported in U-Boot.
+
+config FIT_ENABLE_RSA4096_SUPPORT
+	bool "Support RSA4096 verification of FIT image contents"
+	select RSA_SOFTWARE_EXP if !DM_CRYPTO
+	default n
+	help
+	  Enable this to support RSA4096 checksum of FIT image contents. A
+	  RSA4096 is a 4096-bit (512-byte) key used to check that
+	  check if the content comes from an encryption party. RSA4096 is one
+	  of algorithms recommended for use in secure applications since (as at 2016)
+	  there is no known feasible attack that could produce a 'collision' with differing
+	  input data. Use this for the higher security than RSA2048 in default.
 
 config FIT_SIGNATURE
 	bool "Enable signature verification of FIT uImages"
@@ -277,6 +295,9 @@ config FIT_PRINT
 	help
 	  Say y here if you want to enable fit image structure and data
 	  print.
+
+config FIT_OMIT_UBOOT
+	bool "Omit u-boot-nodtb.bin and u-boot.dtb when output uboot.itb"
 
 if SPL
 

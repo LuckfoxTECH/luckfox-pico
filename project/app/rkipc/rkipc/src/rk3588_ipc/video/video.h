@@ -7,7 +7,7 @@
 #include "region_clip.h"
 #include "roi.h"
 #include "rtmp.h"
-#include "rtsp_demo.h"
+#include "rtsp.h"
 #include "storage.h"
 
 #include <inttypes.h> // PRId64

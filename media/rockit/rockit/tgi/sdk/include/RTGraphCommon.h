@@ -20,24 +20,25 @@
 #ifndef SRC_RT_TASK_TASK_GRAPH_COMMON_H_
 #define SRC_RT_TASK_TASK_GRAPH_COMMON_H_
 
-typedef INT64 RTCBHandle;
-typedef INT64 RTLinkHandle;
+typedef INT64  RTCBHandle;
+typedef INT64  RTLinkHandle;
 
-#define RT_INVALID_CB_HANDLE -1
-#define RT_INVALID_LINK_HANDLE -1
-#define RT_INVALID_STREAM_ID -1
-#define RT_INVALID_NODE_ID -1
+#define RT_INVALID_CB_HANDLE    -1
+#define RT_INVALID_LINK_HANDLE  -1
+#define RT_INVALID_STREAM_ID    -1
+#define RT_INVALID_NODE_ID      -1
 
 typedef enum GraphIOStreamMode {
-  // Blocks and waits until none of the affected streams
-  // are full. Note that if max_queue_size is set to -1, the packet will be
-  // added regardless of queue size.
-  WAIT_TILL_NOT_FULL,
-  // Returns and does not add packet if any affected input
-  // stream is full.
-  ADD_IF_NOT_FULL,
-  // drop packet when streams are full
-  DROP_IF_FULL,
+    // Blocks and waits until none of the affected streams
+    // are full. Note that if max_queue_size is set to -1, the packet will be
+    // added regardless of queue size.
+    WAIT_TILL_NOT_FULL,
+    // Returns and does not add packet if any affected input
+    // stream is full.
+    ADD_IF_NOT_FULL,
+    // drop packet when streams are full
+    DROP_IF_FULL,
 } RTGraphIOStreamMode;
 
-#endif // SRC_RT_TASK_TASK_GRAPH_COMMON_H_
+
+#endif  // SRC_RT_TASK_TASK_GRAPH_COMMON_H_

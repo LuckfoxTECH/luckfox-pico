@@ -39,7 +39,7 @@ typedef struct CalibDbV2_Lut3D_Table_Para_s {
 }CalibDbV2_Lut3D_Table_Para_t;
 
 typedef struct CalibDbV2_Lut3D_Gain_Alp_s {
-    // M4_ARRAY_DESC("gain", "f32", M4_SIZE(1,9), M4_RANGE(0,256), "[1,2,4,8,16,32,64,128,256]", M4_DIGIT(0), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("gain", "f32", M4_SIZE(1,9), M4_RANGE(0,1024), "[1,2,4,8,16,32,64,128,256]", M4_DIGIT(0), M4_DYNAMIC(0))
     float                                                       gain[9];
     // M4_ARRAY_DESC("Alpha", "f32", M4_SIZE(1,9), M4_RANGE(0,1), "1.00", M4_DIGIT(2), M4_DYNAMIC(0))
     float                                                       alpha[9];
@@ -69,16 +69,9 @@ typedef struct CalibDbV2_Lut3D_Manual_Para_s {
     CalibDbV2_Lut3D_Table_Para_t Table;
 }CalibDbV2_Lut3D_Manual_Para_t;
 
-typedef enum CalibDbV2_Lut3D_Op_Mode_s {
-    CALIB_Lut3D_MODE_MANUAL                      = 1,        /**< run manual 3dlut */
-    CALIB_Lut3D_MODE_AUTO                        = 2,        /**< run auto 3dlut */
-} CalibDbV2_Lut3D_Op_Mode_t;
-
 typedef struct CalibDbV2_Lut3D_Common_Para_s {
     // M4_BOOL_DESC("enable", "0")
     bool enable;
-    // M4_ENUM_DESC("mode", "CalibDbV2_Lut3D_Op_Mode_t", "CALIB_Lut3D_MODE_AUTO");
-    CalibDbV2_Lut3D_Op_Mode_t mode;
     // M4_NUMBER_DESC("gain tolerance", "f32", M4_RANGE(0.0, 256), "0.2", M4_DIGIT(4))
     float gain_tolerance;
 }CalibDbV2_Lut3D_Common_Para_t;
@@ -86,8 +79,6 @@ typedef struct CalibDbV2_Lut3D_Common_Para_s {
 typedef struct {
     // M4_STRUCT_DESC("common", "normal_ui_style")
     CalibDbV2_Lut3D_Common_Para_t common;
-    // M4_STRUCT_DESC("manualLut3D", "normal_ui_style")
-    CalibDbV2_Lut3D_Manual_Para_t MLut3D;
     // M4_STRUCT_DESC("autoLut3D", "normal_ui_style")
     CalibDbV2_Lut3D_Auto_Para_t ALut3D;
 } CalibDbV2_Lut3D_Para_V2_t;

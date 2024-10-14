@@ -1,20 +1,22 @@
 /*
  * Copyright (C) 2021 Fuzhou Rockchip Electronics Co., Ltd
+ *
  * SPDX-License-Identifier: GPL-2.0
  */
 
 /dts-v1/;
 / {
-	description = "FIT source file for rockchip AMP";
+	description = "Rockchip AMP FIT Image";
 	#address-cells = <1>;
 
 	images {
+		/* ARM cortex-A core */
 		amp1 {
 			description  = "bare-mental-core1";
 			data         = /incbin/("./amp1.bin");
-			type         = "firmware";
+			type         = "firmware";	// must be "firmware"
 			compression  = "none";
-			arch         = "arm";		// "arm64" or "arm"
+			arch         = "arm";		// "arm64" or "arm", the same as U-Boot state
 			cpu          = <0x100>;		// mpidr
 			thumb        = <0>;		// 0: arm or thumb2; 1: thumb
 			hyp          = <0>;		// 0: el1/svc; 1: el2/hyp
@@ -56,6 +58,20 @@
 				algo = "sha256";
 			};
 		};
+
+		/* Other core */
+		amp4 {
+			description  = "standalone-mcu1";
+			data         = /incbin/("./mcu1.bin");
+			type         = "standalone";	// must be "standalone"
+			compression  = "none";
+			arch         = "arm";		// "arm64" or "arm", the same as U-Boot state
+			load         = <0x06800000>;
+			udelay       = <1000000>;
+			hash {
+				algo = "sha256";
+			};
+		};
 	};
 
 	configurations {
@@ -63,7 +79,7 @@
 		conf {
 			description = "Rockchip AMP images";
 			rollback-index = <0x0>;
-			loadables = "amp1", "amp2", "amp3";
+			loadables = "amp1", "amp2", "amp3", "amp4";
 
 			signature {
 				algo = "sha256,rsa2048";
@@ -83,6 +99,8 @@
 				thumb        = <0>;
 				hyp          = <0>;
 				udelay       = <1000000>;
+				load         = <0x2000000>; // optional
+				load_c       = <0x4000000>; // optional
 			};
 		};
 	};

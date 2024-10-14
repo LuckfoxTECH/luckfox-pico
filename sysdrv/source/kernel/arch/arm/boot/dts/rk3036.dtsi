@@ -408,6 +408,20 @@
 		status = "disabled";
 	};
 
+	spdif_tx: spdif-tx@10204000 {
+		compatible = "rockchip,rk3066-spdif";
+		reg = <0x10204000 0x1000>;
+		clocks = <&cru SCLK_SPDIF>, <&cru SCLK_SPDIF>;
+		clock-names = "mclk", "hclk";
+		interrupts = <GIC_SPI 60 IRQ_TYPE_LEVEL_HIGH>;
+		dmas = <&pdma 13>;
+		dma-names = "tx";
+		pinctrl-names = "default";
+		pinctrl-0 = <&spdif_out>;
+		#sound-dai-cells = <0>;
+		status = "disabled";
+	};
+
 	sfc: sfc@10208000 {
 		compatible = "rockchip,sfc";
 		reg = <0x10208000 0x200>;
@@ -488,7 +502,12 @@
 		resets = <&cru SRST_I2S>;
 		reset-names = "reset-m";
 		pinctrl-names = "default";
-		pinctrl-0 = <&i2s_bus>;
+		pinctrl-0 = <&i2s_mclk
+			     &i2s_sclk
+			     &i2s_lrclkrx
+			     &i2s_lrclktx
+			     &i2s_sdo
+			     &i2s_sdi>;
 		#sound-dai-cells = <0>;
 		status = "disabled";
 	};
@@ -506,6 +525,8 @@
 	grf: syscon@20008000 {
 		compatible = "rockchip,rk3036-grf", "syscon", "simple-mfd";
 		reg = <0x20008000 0x1000>;
+		#address-cells = <1>;
+		#size-cells = <1>;
 
 		reboot-mode {
 			compatible = "syscon-reboot-mode";
@@ -535,10 +556,37 @@
 				clocks = <&cru SCLK_GPU>;
 			};
 		};
+
+		usb2phy: usb2-phy@17c {
+			compatible = "rockchip,rk3036-usb2phy";
+			reg = <0x017c 0x0c>;
+			clocks = <&cru SCLK_OTGPHY0>;
+			clock-names = "phyclk";
+			#clock-cells = <0>;
+			clock-output-names = "usb480m_phy";
+			status = "disabled";
+
+			u2phy_otg: otg-port {
+				#phy-cells = <0>;
+				interrupts = <GIC_SPI 35 IRQ_TYPE_LEVEL_HIGH>,
+					<GIC_SPI 51 IRQ_TYPE_LEVEL_HIGH>,
+					<GIC_SPI 52 IRQ_TYPE_LEVEL_HIGH>;
+				interrupt-names = "otg-bvalid", "otg-id",
+						"linestate";
+				status = "disabled";
+			};
+
+			u2phy_host: host-port {
+				#phy-cells = <0>;
+				interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_HIGH>;
+				interrupt-names = "linestate";
+				status = "disabled";
+			};
+		};
 	};
 
 	acodec: acodec-ana@20030000 {
-		compatible = "rk3036-codec";
+		compatible = "rockchip,rk3036-codec";
 		reg = <0x20030000 0x4000>;
 		rockchip,grf = <&grf>;
 		clock-names = "acodec_pclk";
@@ -566,25 +614,6 @@
 			hdmi_in_vop: endpoint@0 {
 				reg = <0>;
 				remote-endpoint = <&vop_out_hdmi>;
-			};
-		};
-	};
-
-	hdmi_sound: hdmi-sound {
-		compatible = "simple-audio-card";
-		simple-audio-card,name = "rockchip,hdmi";
-		simple-audio-card,widgets = "Headphone", "Out Jack",
-					    "Line", "In Jack";
-		status = "disabled";
-
-		simple-audio-card,dai-link {
-			format = "i2s";
-			mclk-fs = <256>;
-			cpu {
-				sound-dai = <&i2s>;
-			};
-			codec {
-				sound-dai = <&hdmi>;
 			};
 		};
 	};
@@ -897,6 +926,12 @@
 			};
 		};
 
+		spdif_tx {
+			spdif_out: spdif-out {
+				rockchip,pins = <0 RK_PD4 1 &pcfg_pull_default>;
+			};
+		};
+
 		emac {
 			emac_xfer: emac-xfer {
 				rockchip,pins = <2 RK_PB2 1 &pcfg_pull_default>, /* crs_dvalid */
@@ -937,13 +972,23 @@
 		};
 
 		i2s {
-			i2s_bus: i2s-bus {
-				rockchip,pins = <1 RK_PA0 1 &pcfg_pull_default>,
-						<1 RK_PA1 1 &pcfg_pull_default>,
-						<1 RK_PA2 1 &pcfg_pull_default>,
-						<1 RK_PA3 1 &pcfg_pull_default>,
-						<1 RK_PA4 1 &pcfg_pull_default>,
-						<1 RK_PA5 1 &pcfg_pull_default>;
+			i2s_mclk: i2s-mclk {
+				rockchip,pins = <1 RK_PA0 1 &pcfg_pull_default>;
+			};
+			i2s_sclk: i2s-sclk {
+				rockchip,pins = <1 RK_PA1 1 &pcfg_pull_default>;
+			};
+			i2s_lrclkrx: i2s-lrclkrx {
+				rockchip,pins = <1 RK_PA2 1 &pcfg_pull_default>;
+			};
+			i2s_lrclktx: i2s-lrclktx {
+				rockchip,pins = <1 RK_PA3 1 &pcfg_pull_default>;
+			};
+			i2s_sdo: i2s-sdo {
+				rockchip,pins = <1 RK_PA4 1 &pcfg_pull_default>;
+			};
+			i2s_sdi: i2s-sdi {
+				rockchip,pins = <1 RK_PA5 1 &pcfg_pull_default>;
 			};
 		};
 

@@ -103,6 +103,8 @@ int param_parse_pstore(void)
 		gd->pstore_addr = t->u.pstore.buf[LOG_UBOOT].addr;
 		gd->pstore_size = t->u.pstore.buf[LOG_UBOOT].size - sizeof(struct persistent_ram_buffer);
 	}
+#elif (CONFIG_PERSISTENT_RAM_ADDR == 0 || CONFIG_PERSISTENT_RAM_SIZE == 0)
+	#error: CONFIG_PERSISTENT_RAM_SIZE and CONFIG_PERSISTENT_RAM_ADDR value should not be 0.
 #else
 	gd->pstore_addr = CONFIG_PERSISTENT_RAM_ADDR;
 	gd->pstore_size = CONFIG_PERSISTENT_RAM_SIZE - sizeof(struct persistent_ram_buffer);
@@ -136,15 +138,18 @@ void putc_to_ram(const char c)
 	if (!rb || pstore_size == 0)
 		return;
 
+	if (rb->start >= pstore_size)
+		rb->start = 0;
+
 	dst = rb->data + rb->start;
 	*dst = c;
 
 	if (rb->size < pstore_size)
 		rb->size++;
+	else
+		rb->size = pstore_size;
 
 	rb->start++;
-	if (rb->start >= pstore_size)
-		rb->start = 0;
 }
 
 void puts_to_ram(const char *str)

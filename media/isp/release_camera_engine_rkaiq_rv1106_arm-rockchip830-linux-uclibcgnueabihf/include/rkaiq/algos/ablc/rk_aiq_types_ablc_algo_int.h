@@ -23,6 +23,8 @@
 #include "ablc/rk_aiq_types_ablc_algo.h"
 #include "RkAiqCalibDbTypes.h"
 #include "ablc_head.h"
+#include "ablc_uapi_head.h"
+
 
 #define ABLC_RECALCULATE_DELTE_ISO  (10)
 
@@ -66,13 +68,14 @@ typedef enum AblcParamMode_e {
 typedef struct AblcParams_s {
     bool enable;
     int len;
-    float* iso;
-    float* blc_r;
-    float* blc_gr;
-    float* blc_gb;
-    float* blc_b;
+    float iso[ABLC_MAX_ISO_LEVEL];
+    float blc_r[ABLC_MAX_ISO_LEVEL];
+    float blc_gr[ABLC_MAX_ISO_LEVEL];
+    float blc_gb[ABLC_MAX_ISO_LEVEL];
+    float blc_b[ABLC_MAX_ISO_LEVEL];
 } AblcParams_t;
 
+#if 0
 typedef struct AblcSelect_s {
     bool enable;
     short int blc_r;
@@ -81,7 +84,10 @@ typedef struct AblcSelect_s {
     short int blc_b;
 } AblcSelect_t;
 
+
 typedef AblcSelect_t AblcManualAttr_t;
+#endif
+
 
 typedef struct AblcProc_s {
     bool enable;
@@ -92,12 +98,10 @@ typedef struct AblcProc_s {
 
     bool blc1_enable;
 
-    short int blc1_r;
-    short int blc1_gr;
-    short int blc1_gb;
-    short int blc1_b;
-
-    bool isNeedUpdate;
+    float blc1_r;
+    float blc1_gr;
+    float blc1_gb;
+    float blc1_b;
 } AblcProc_t;
 
 
@@ -111,13 +115,7 @@ typedef struct rk_aiq_blc_attrib_s {
     AblcManualAttr_t stBlc1Manual;
 } rk_aiq_blc_attrib_t;
 
-typedef struct AblcExpInfo_s {
-    int hdr_mode;
-    float arTime[3];
-    float arAGain[3];
-    float arDGain[3];
-    int   arIso[3];
-} AblcExpInfo_t;
+
 
 #endif
 

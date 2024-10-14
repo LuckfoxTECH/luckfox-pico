@@ -6,6 +6,7 @@
  */
 
 #include <common.h>
+#include <bouncebuf.h>
 #include <dm.h>
 #include <errno.h>
 #include <memalign.h>
@@ -740,13 +741,25 @@ static ulong nvme_blk_rw(struct udevice *udev, lbaint_t blknr,
 	u64 prp2;
 	u64 total_len = blkcnt << desc->log2blksz;
 	u64 temp_len = total_len;
+	uintptr_t temp_buffer;
 
 	u64 slba = blknr;
 	u16 lbas = 1 << (dev->max_transfer_shift - ns->lba_shift);
 	u64 total_lbas = blkcnt;
 
-	flush_dcache_range((unsigned long)buffer,
-			   (unsigned long)buffer + total_len);
+	struct bounce_buffer bb;
+	unsigned int bb_flags;
+	int ret;
+
+	if (read)
+		bb_flags = GEN_BB_WRITE;
+	else
+		bb_flags = GEN_BB_READ;
+
+	ret = bounce_buffer_start(&bb, buffer, total_len, bb_flags);
+	if (ret)
+		return -ENOMEM;
+	temp_buffer = (unsigned long)bb.bounce_buffer;
 
 	c.rw.opcode = read ? nvme_cmd_read : nvme_cmd_write;
 	c.rw.flags = 0;
@@ -771,24 +784,22 @@ static ulong nvme_blk_rw(struct udevice *udev, lbaint_t blknr,
 		}
 
 		if (nvme_setup_prps(dev, &prp2,
-				    lbas << ns->lba_shift, (ulong)buffer))
+				    lbas << ns->lba_shift, temp_buffer))
 			return -EIO;
 		c.rw.slba = cpu_to_le64(slba);
 		slba += lbas;
 		c.rw.length = cpu_to_le16(lbas - 1);
-		c.rw.prp1 = cpu_to_le64((ulong)buffer);
+		c.rw.prp1 = cpu_to_le64(temp_buffer);
 		c.rw.prp2 = cpu_to_le64(prp2);
 		status = nvme_submit_sync_cmd(dev->queues[NVME_IO_Q],
 				&c, NULL, IO_TIMEOUT);
 		if (status)
 			break;
 		temp_len -= (u32)lbas << ns->lba_shift;
-		buffer += lbas << ns->lba_shift;
+		temp_buffer += lbas << ns->lba_shift;
 	}
 
-	if (read)
-		invalidate_dcache_range((unsigned long)buffer,
-					(unsigned long)buffer + total_len);
+	bounce_buffer_stop(&bb);
 
 	return (total_len - temp_len) >> desc->log2blksz;
 }

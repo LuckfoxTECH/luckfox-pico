@@ -246,35 +246,13 @@ static void *update_download_hdr(struct update_header *hdr)
 }
 
 #ifndef CONFIG_FIT_SIGNATURE
-#ifdef CONFIG_DM_CRYPTO
-static void sha256_checksum(char *input, u32 input_len, u8 *output)
-{
-	sha_context csha_ctx;
-	struct udevice *dev;
-
-	dev = crypto_get_device(CRYPTO_SHA256);
-	if (!dev) {
-		TFTPUD_E("No crypto device\n");
-		return;
-	}
-	csha_ctx.algo = CRYPTO_SHA256;
-	csha_ctx.length = input_len;
-	crypto_sha_csum(dev, &csha_ctx, (char *)input, input_len, output);
-}
-#else
-static void sha256_checksum(char *input, u32 input_len, u8 *output)
-{
-	sha256_csum((const uchar *)input, input_len, output);
-}
-#endif
-
 static int hdr_checksum_verify(void *fit, struct update_header *hdr)
 {
 	u8 *hash, csum[SHA256_HASH_SIZE];
 	int ret, i;
 
 	hash = (u8 *)fit + fdt_totalsize(fit);
-	sha256_checksum(fit, fdt_totalsize(fit), csum);
+	sha256_csum((const uchar *)fit, fdt_totalsize(fit), csum);
 	ret = memcmp(hash, csum, SHA256_HASH_SIZE) ? -EINVAL : 0;
 	if (ret) {
 		printf(" update.hash: ");

@@ -50,163 +50,172 @@ static TEEC_Session bench_sess;
 static pthread_mutex_t teec_bench_mu = PTHREAD_MUTEX_INITIALIZER;
 
 /* Cycle counter */
-static inline uint64_t read_ccounter(void) {
-  uint64_t ccounter = 0;
+static inline uint64_t read_ccounter(void)
+{
+	uint64_t ccounter = 0;
 #ifdef __aarch64__
-  asm volatile("mrs %0, PMCCNTR_EL0" : "=r"(ccounter));
+	asm volatile("mrs %0, PMCCNTR_EL0" : "=r"(ccounter));
 #else
-  asm volatile("mrc p15, 0, %0, c9, c13, 0" : "=r"(ccounter));
+	asm volatile("mrc p15, 0, %0, c9, c13, 0" : "=r"(ccounter));
 #endif
-  return ccounter * TEE_BENCH_DIVIDER;
+	return ccounter * TEE_BENCH_DIVIDER;
 }
 
-static TEEC_Result benchmark_pta_open(void) {
-  TEEC_Result res = TEEC_ERROR_GENERIC;
-  uint32_t ret_orig = 0;
+static TEEC_Result benchmark_pta_open(void)
+{
+	TEEC_Result res = TEEC_ERROR_GENERIC;
+	uint32_t ret_orig = 0;
 
-  res = TEEC_InitializeContext(NULL, &bench_ctx);
-  if (res != TEEC_SUCCESS)
-    return res;
+	res = TEEC_InitializeContext(NULL, &bench_ctx);
+	if (res != TEEC_SUCCESS)
+		return res;
 
-  res = TEEC_OpenSession(&bench_ctx, &bench_sess, &pta_benchmark_uuid,
-                         TEEC_LOGIN_PUBLIC, NULL, NULL, &ret_orig);
-  if (res != TEEC_SUCCESS) {
-    TEEC_FinalizeContext(&bench_ctx);
-    return res;
-  }
+	res = TEEC_OpenSession(&bench_ctx, &bench_sess,
+			&pta_benchmark_uuid,
+			TEEC_LOGIN_PUBLIC, NULL, NULL, &ret_orig);
+	if (res != TEEC_SUCCESS) {
+		TEEC_FinalizeContext(&bench_ctx);
+		return res;
+	}
 
-  return res;
+	return res;
 }
 
-static void benchmark_pta_close(void) {
-  TEEC_CloseSession(&bench_sess);
-  TEEC_FinalizeContext(&bench_ctx);
+static void benchmark_pta_close(void)
+{
+	TEEC_CloseSession(&bench_sess);
+	TEEC_FinalizeContext(&bench_ctx);
 }
 
 static TEEC_Result benchmark_get_bench_buf_paddr(uint64_t *paddr_ts_buf,
-                                                 uint64_t *size) {
-  TEEC_Result res = TEEC_ERROR_GENERIC;
-  uint32_t ret_orig = 0;
-  TEEC_Operation op;
+				uint64_t *size)
+{
+	TEEC_Result res = TEEC_ERROR_GENERIC;
+	uint32_t ret_orig = 0;
+	TEEC_Operation op;
 
-  memset(&op, 0, sizeof(op));
+	memset(&op, 0, sizeof(op));
 
-  res = benchmark_pta_open();
-  if (res != TEEC_SUCCESS)
-    return res;
+	res = benchmark_pta_open();
+	if (res != TEEC_SUCCESS)
+		return res;
 
-  op.paramTypes =
-      TEEC_PARAM_TYPES(TEEC_VALUE_OUTPUT, TEEC_NONE, TEEC_NONE, TEEC_NONE);
+	op.paramTypes = TEEC_PARAM_TYPES(TEEC_VALUE_OUTPUT, TEEC_NONE,
+					TEEC_NONE, TEEC_NONE);
 
-  res =
-      TEEC_InvokeCommand(&bench_sess, BENCHMARK_CMD_GET_MEMREF, &op, &ret_orig);
-  if (res != TEEC_SUCCESS)
-    return res;
+	res = TEEC_InvokeCommand(&bench_sess, BENCHMARK_CMD_GET_MEMREF,
+					&op, &ret_orig);
+	if (res != TEEC_SUCCESS)
+		return res;
 
-  *paddr_ts_buf = op.params[0].value.a;
-  *size = op.params[0].value.b;
+	*paddr_ts_buf = op.params[0].value.a;
+	*size = op.params[0].value.b;
 
-  benchmark_pta_close();
+	benchmark_pta_close();
 
-  return res;
+	return res;
 }
 
-static void *mmap_paddr(intptr_t paddr, uint64_t size) {
-  int devmem = 0;
-  off_t offset = 0;
-  off_t page_addr = 0;
-  intptr_t *hw_addr = NULL;
+static void *mmap_paddr(intptr_t paddr, uint64_t size)
+{
+	int devmem = 0;
+	off_t offset = 0;
+	off_t page_addr = 0;
+	intptr_t *hw_addr = NULL;
 
-  devmem = open("/dev/mem", O_RDWR);
-  if (!devmem)
-    return NULL;
+	devmem = open("/dev/mem", O_RDWR);
+	if (!devmem)
+		return NULL;
 
-  offset = (off_t)paddr % getpagesize();
-  page_addr = (off_t)(paddr - offset);
+	offset = (off_t)paddr % getpagesize();
+	page_addr = (off_t)(paddr - offset);
 
-  hw_addr = (intptr_t *)mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED,
-                             devmem, page_addr);
-  if (hw_addr == MAP_FAILED) {
-    close(devmem);
-    return NULL;
-  }
+	hw_addr = (intptr_t *)mmap(0, size, PROT_READ|PROT_WRITE,
+					MAP_SHARED, devmem, page_addr);
+	if (hw_addr == MAP_FAILED) {
+		close(devmem);
+		return NULL;
+	}
 
-  close(devmem);
-  return (hw_addr + offset);
+	close(devmem);
+	return (hw_addr + offset);
 }
 
 /* check if we are in benchmark mode */
-static bool benchmark_check_mode(void) {
-  uint64_t ts_buf_raw = 0;
-  uint64_t ts_buf_size = 0;
-  bool res = true;
+static bool benchmark_check_mode(void)
+{
+	uint64_t ts_buf_raw = 0;
+	uint64_t ts_buf_size = 0;
+	bool res = true;
 
-  if (!bench_ts_global) {
-    /* receive buffer from Benchmark PTA and register it */
-    benchmark_get_bench_buf_paddr(&ts_buf_raw, &ts_buf_size);
-    if (ts_buf_raw && ts_buf_size) {
-      bench_ts_global = mmap_paddr(ts_buf_raw, ts_buf_size);
-      res = (bench_ts_global) ? true : false;
-    } else {
-      res = false;
-    }
-  }
+	if (!bench_ts_global) {
+		/* receive buffer from Benchmark PTA and register it */
+		benchmark_get_bench_buf_paddr(&ts_buf_raw, &ts_buf_size);
+		if (ts_buf_raw && ts_buf_size) {
+			bench_ts_global = mmap_paddr(ts_buf_raw, ts_buf_size);
+			res = (bench_ts_global) ? true : false;
+		} else {
+			res = false;
+		}
+	}
 
-  return res;
+	return res;
 }
 
 /* Adding timestamp to buffer */
-void bm_timestamp(void) {
-  struct tee_ts_cpu_buf *cpu_buf = NULL;
-  uint64_t ts_i = 0;
-  void *ret_addr = NULL;
-  uint32_t cur_cpu = 0;
-  int ret = 0;
-  cpu_set_t cpu_set_old;
-  cpu_set_t cpu_set_tmp;
-  struct tee_time_st ts_data;
+void bm_timestamp(void)
+{
+	struct tee_ts_cpu_buf *cpu_buf = NULL;
+	uint64_t ts_i = 0;
+	void *ret_addr = NULL;
+	uint32_t cur_cpu = 0;
+	int ret = 0;
+	cpu_set_t cpu_set_old;
+	cpu_set_t cpu_set_tmp;
+	struct tee_time_st ts_data;
 
-  memset(&cpu_set_old, 0, sizeof(cpu_set_old));
-  memset(&cpu_set_tmp, 0, sizeof(cpu_set_tmp));
-  memset(&ts_data, 0, sizeof(ts_data));
+	memset(&cpu_set_old, 0, sizeof(cpu_set_old));
+	memset(&cpu_set_tmp, 0, sizeof(cpu_set_tmp));
+	memset(&ts_data, 0, sizeof(ts_data));
 
-  if (pthread_mutex_trylock(&teec_bench_mu))
-    return;
+	if (pthread_mutex_trylock(&teec_bench_mu))
+		return;
 
-  if (!benchmark_check_mode())
-    goto error;
+	if (!benchmark_check_mode())
+		goto error;
 
-  CPU_ZERO(&cpu_set_old);
-  ret = sched_getaffinity(0, sizeof(cpu_set_old), &cpu_set_old);
-  if (ret)
-    goto error;
+	CPU_ZERO(&cpu_set_old);
+	ret = sched_getaffinity(0, sizeof(cpu_set_old), &cpu_set_old);
+	if (ret)
+		goto error;
 
-  /* stick to the same core while putting timestamp */
-  cur_cpu = sched_getcpu();
-  CPU_ZERO(&cpu_set_tmp);
-  CPU_SET(cur_cpu, &cpu_set_tmp);
-  ret = sched_setaffinity(0, sizeof(cpu_set_tmp), &cpu_set_tmp);
-  if (ret)
-    goto error;
+	/* stick to the same core while putting timestamp */
+	cur_cpu = sched_getcpu();
+	CPU_ZERO(&cpu_set_tmp);
+	CPU_SET(cur_cpu, &cpu_set_tmp);
+	ret = sched_setaffinity(0, sizeof(cpu_set_tmp), &cpu_set_tmp);
+	if (ret)
+		goto error;
 
-  /* fill timestamp data */
-  if (cur_cpu >= bench_ts_global->cores) {
-    ret = sched_setaffinity(0, sizeof(cpu_set_old), &cpu_set_old);
-    goto error;
-  }
+	/* fill timestamp data */
+	if (cur_cpu >= bench_ts_global->cores) {
+		ret = sched_setaffinity(0, sizeof(cpu_set_old), &cpu_set_old);
+		goto error;
+	}
 
-  ret_addr = __builtin_return_address(0);
+	ret_addr = __builtin_return_address(0);
 
-  cpu_buf = &bench_ts_global->cpu_buf[cur_cpu];
-  ts_i = __sync_fetch_and_add(&cpu_buf->head, 1);
-  ts_data.cnt = read_ccounter();
-  ts_data.addr = (uintptr_t)ret_addr;
-  ts_data.src = TEE_BENCH_CLIENT;
-  cpu_buf->stamps[ts_i & TEE_BENCH_MAX_MASK] = ts_data;
+	cpu_buf = &bench_ts_global->cpu_buf[cur_cpu];
+	ts_i = __sync_fetch_and_add(&cpu_buf->head, 1);
+	ts_data.cnt = read_ccounter();
+	ts_data.addr = (uintptr_t)ret_addr;
+	ts_data.src = TEE_BENCH_CLIENT;
+	cpu_buf->stamps[ts_i & TEE_BENCH_MAX_MASK] = ts_data;
 
-  /* set back affinity mask */
-  sched_setaffinity(0, sizeof(cpu_set_old), &cpu_set_old);
+	/* set back affinity mask */
+	sched_setaffinity(0, sizeof(cpu_set_old), &cpu_set_old);
 
 error:
-  pthread_mutex_unlock(&teec_bench_mu);
+	pthread_mutex_unlock(&teec_bench_mu);
 }
+

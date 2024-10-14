@@ -1,0 +1,14 @@
+Import('RTT_ROOT')
+Import('rtconfig')
+from building import *
+
+src = Split('''
+    main/bt_app_core.c
+    main/main.c
+''')
+
+CPPPATH = ""
+
+group = DefineGroup('examples_a2dp_source', src, depend = ['A2DP_SOURCE_EXAMPLE'], CPPPATH = CPPPATH)
+
+Return('group')

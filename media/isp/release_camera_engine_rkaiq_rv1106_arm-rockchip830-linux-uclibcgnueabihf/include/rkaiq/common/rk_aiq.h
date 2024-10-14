@@ -28,16 +28,27 @@ XCAM_BEGIN_DECLARE
 
 typedef enum rk_aiq_status_e {
     RK_AIQ_STATUS_VICAP_READY = 1,
+    RK_AIQ_STATUS_VICAP_RESET,
+    RK_AIQ_STATUS_VICAP_WITH_MULTI_CAM_RESET,
+    RK_AIQ_STATUS_PREAIQ_DONE,
 } rk_aiq_status_t;
 
 typedef struct rk_aiq_metas_s {
     uint32_t frame_id;
+    int cam_id;
+    const char* sensor_name;
 } rk_aiq_metas_t;
+
+typedef struct rk_aiq_multi_cam_s {
+    int multi_cam_id[8];
+    int cam_count;
+} rk_aiq_multi_cam_t;
 
 typedef struct rk_aiq_hwevt_s {
     int cam_id;
     int aiq_status;
     void* ctx;
+    rk_aiq_multi_cam_t multi_cam;
 } rk_aiq_hwevt_t;
 
 typedef enum rk_aiq_err_code {
@@ -76,12 +87,21 @@ typedef enum rk_aiq_prd_type_e {
     RK_AIQ_PRD_TYPE_NORMAL,
     RK_AIQ_PRD_TYPE_TB_BATIPC,
     RK_AIQ_PRD_TYPE_TB_DOORLOCK,
+    RK_AIQ_PRD_TYPE_SINGLE_FRAME,
 } rk_aiq_prd_type_t;
+
+typedef enum rk_aiq_iq_bin_mode_s {
+    RK_AIQ_META_FULL_IQ_BIN = 0,
+    RK_AIQ_META_NOT_FULL_IQ_BIN,
+} rk_aiq_iq_bin_mode_t;
 
 typedef struct rk_aiq_tb_info_s {
     uint16_t magic;
     bool is_pre_aiq;
     uint8_t prd_type;
+    bool is_start_once;
+    uint8_t iq_bin_mode;
+    void *rtt_share_addr;
 } rk_aiq_tb_info_t;
 
 XCAM_END_DECLARE

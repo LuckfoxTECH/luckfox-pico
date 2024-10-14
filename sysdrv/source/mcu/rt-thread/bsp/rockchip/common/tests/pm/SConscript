@@ -1,0 +1,13 @@
+Import('RTT_ROOT')
+Import('rtconfig')
+from building import *
+
+cwd     = GetCurrentDir()
+src = Glob('*.c')
+CPPPATH = [cwd]
+group = []
+
+if GetDepend('RT_USING_COMMON_TEST_PM') or GetDepend('RT_USING_COMMON_TEST_CPU_USAGE'):
+    group = DefineGroup('pm', src, depend = [], CPPPATH = CPPPATH)
+
+Return('group')

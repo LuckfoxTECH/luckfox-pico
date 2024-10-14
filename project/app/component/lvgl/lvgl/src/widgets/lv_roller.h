@@ -30,24 +30,23 @@ extern "C" {
 
 /** Roller mode.*/
 enum {
-  LV_ROLLER_MODE_NORMAL,   /**< Normal mode (roller ends at the end of the
-                              options).*/
-  LV_ROLLER_MODE_INFINITE, /**< Infinite mode (roller can be scrolled
-                              forever).*/
+    LV_ROLLER_MODE_NORMAL, /**< Normal mode (roller ends at the end of the options).*/
+    LV_ROLLER_MODE_INFINITE, /**< Infinite mode (roller can be scrolled forever).*/
 };
 
 typedef uint8_t lv_roller_mode_t;
 
 typedef struct {
-  lv_obj_t obj;
-  uint16_t option_cnt;     /**< Number of options*/
-  uint16_t sel_opt_id;     /**< Index of the current option*/
-  uint16_t sel_opt_id_ori; /**< Store the original index on focus*/
-  lv_roller_mode_t mode : 1;
-  uint32_t moved : 1;
+    lv_obj_t obj;
+    uint16_t option_cnt;          /**< Number of options*/
+    uint16_t sel_opt_id;          /**< Index of the current option*/
+    uint16_t sel_opt_id_ori;      /**< Store the original index on focus*/
+    lv_roller_mode_t mode : 1;
+    uint32_t moved : 1;
 } lv_roller_t;
 
 extern const lv_obj_class_t lv_roller_class;
+
 
 /**********************
  * GLOBAL PROTOTYPES
@@ -55,11 +54,10 @@ extern const lv_obj_class_t lv_roller_class;
 
 /**
  * Create a roller object
- * @param parent    pointer to an object, it will be the parent of the new
- * roller.
+ * @param parent    pointer to an object, it will be the parent of the new roller.
  * @return          pointer to the created roller
  */
-lv_obj_t *lv_roller_create(lv_obj_t *parent);
+lv_obj_t * lv_roller_create(lv_obj_t * parent);
 
 /*=====================
  * Setter functions
@@ -71,8 +69,7 @@ lv_obj_t *lv_roller_create(lv_obj_t *parent);
  * @param options   a string with '\n' separated options. E.g. "One\nTwo\nThree"
  * @param mode      `LV_ROLLER_MODE_NORMAL` or `LV_ROLLER_MODE_INFINITE`
  */
-void lv_roller_set_options(lv_obj_t *obj, const char *options,
-                           lv_roller_mode_t mode);
+void lv_roller_set_options(lv_obj_t * obj, const char * options, lv_roller_mode_t mode);
 
 /**
  * Set the selected option
@@ -80,15 +77,14 @@ void lv_roller_set_options(lv_obj_t *obj, const char *options,
  * @param sel_opt   index of the selected option (0 ... number of option - 1);
  * @param anim_en   LV_ANIM_ON: set with animation; LV_ANOM_OFF set immediately
  */
-void lv_roller_set_selected(lv_obj_t *obj, uint16_t sel_opt,
-                            lv_anim_enable_t anim);
+void lv_roller_set_selected(lv_obj_t * obj, uint16_t sel_opt, lv_anim_enable_t anim);
 
 /**
  * Set the height to show the given number of rows (options)
  * @param obj       pointer to a roller object
  * @param row_cnt   number of desired visible rows
  */
-void lv_roller_set_visible_row_count(lv_obj_t *obj, uint8_t row_cnt);
+void lv_roller_set_visible_row_count(lv_obj_t * obj, uint8_t row_cnt);
 
 /*=====================
  * Getter functions
@@ -99,7 +95,7 @@ void lv_roller_set_visible_row_count(lv_obj_t *obj, uint8_t row_cnt);
  * @param obj       pointer to a roller object
  * @return          index of the selected option (0 ... number of option - 1);
  */
-uint16_t lv_roller_get_selected(const lv_obj_t *obj);
+uint16_t lv_roller_get_selected(const lv_obj_t * obj);
 
 /**
  * Get the current selected option as a string.
@@ -107,23 +103,22 @@ uint16_t lv_roller_get_selected(const lv_obj_t *obj);
  * @param buf       pointer to an array to store the string
  * @param buf_size  size of `buf` in bytes. 0: to ignore it.
  */
-void lv_roller_get_selected_str(const lv_obj_t *obj, char *buf,
-                                uint32_t buf_size);
+void lv_roller_get_selected_str(const lv_obj_t * obj, char * buf, uint32_t buf_size);
+
 
 /**
  * Get the options of a roller
  * @param obj       pointer to roller object
- * @return          the options separated by '\n'-s (E.g.
- * "Option1\nOption2\nOption3")
+ * @return          the options separated by '\n'-s (E.g. "Option1\nOption2\nOption3")
  */
-const char *lv_roller_get_options(const lv_obj_t *obj);
+const char * lv_roller_get_options(const lv_obj_t * obj);
 
 /**
  * Get the total number of options
  * @param obj   pointer to a roller object
  * @return      the total number of options
  */
-uint16_t lv_roller_get_option_cnt(const lv_obj_t *obj);
+uint16_t lv_roller_get_option_cnt(const lv_obj_t * obj);
 
 /**********************
  *      MACROS

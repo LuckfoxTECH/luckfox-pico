@@ -19,18 +19,23 @@ include $(MAKEFILE_DIR)/Makefile.param
 
 media_src := $(wildcard ./*/Makefile)
 media_src := $(dir $(media_src))
+media_src := $(filter-out ./samples/,$(media_src))
 ################################################################################
 ##  build target
 ################################################################################
-all:
+all: media_libs
+	make -C ./samples
+	$(call MAROC_COPY_PKG_TO_MEDIA_OUTPUT, $(RK_PROJECT_PATH_MEDIA), $(RK_MEDIA_OUTPUT))
+
+media_libs:
 	@rm -rf $(RK_MEDIA_OUTPUT)
 	$(foreach target,$(media_src),make -C $(target)||exit -1;)
-	$(call MAROC_COPY_PKG_TO_MEDIA_OUTPUT, $(RK_PROJECT_PATH_MEDIA), $(RK_MEDIA_OUTPUT))
 
 distclean: clean
 
 clean:
 	$(foreach target,$(media_src),make distclean -C $(target)||exit -1;)
+	make -C ./samples distclean
 	@rm -rf $(RK_MEDIA_OUTPUT)
 
 info:

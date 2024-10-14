@@ -1,8 +1,14 @@
-commit f0079f49d247288631aa42e83e20f7b2d456f2f6
-Author: Herman Chen <herman.chen@rock-chips.com>
-Date:   Thu Feb 24 17:18:38 2022 +0800
+commit cc20dd3efeb842dc17ebcb7cf7d772b46420bb1c
+Author: Yandong Lin <yandong.lin@rock-chips.com>
+Date:   Thu Nov 2 17:59:46 2023 +0800
 
-    [h264e_vepu580]: Add dpb hal func and more buffer
+    fix[mpeg4_api]: fix drop frame when two stream switch
     
-    Change-Id: I1e458732b821571d25079aebe19831948bd591ee
-    Signed-off-by: Herman Chen <herman.chen@rock-chips.com>
+    There is a case:
+    In split mode, after sending the last packet of a stream,
+    the user then continues to send packet with extra data flag for the new
+    stream.
+    It will result in the last packet loss.
+    
+    Change-Id: Iba945dbf4229a49fea2040ecc9f76e4ef7209de8
+    Signed-off-by: Yandong Lin <yandong.lin@rock-chips.com>

@@ -23,7 +23,7 @@
 #include "rk_debug.h"
 #include "rk_comm_mb.h"
 #include "rk_mpi_mmz.h"
-
+#include "rk_mpi_sys.h"
 #include "test_comm_argparse.h"
 
 #define MB_POOL_COUNT           10
@@ -169,12 +169,15 @@ RK_S32 main(RK_S32 argc, const char **argv) {
                                  "\nuse --help for details.");
 
     argc = argparse_parse(&argparse, argc, argv);
-
+    if (RK_MPI_SYS_Init() != RK_SUCCESS) {
+        RK_LOGE("rk mpi sys init fail!");
+        goto __FAILED;
+    }
     s32Ret = unit_test_mpi_mmz(&stMmzCtx);
     if (s32Ret != RK_SUCCESS) {
         goto __FAILED;
     }
-
+    RK_MPI_SYS_Exit();
     RK_LOGI("test running ok.");
     return RK_SUCCESS;
 __FAILED:

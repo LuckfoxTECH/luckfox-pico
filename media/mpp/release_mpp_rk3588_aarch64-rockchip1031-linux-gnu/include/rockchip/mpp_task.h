@@ -24,19 +24,19 @@
  * Advanced task flow introduces three concepts: port, task and item
  *
  * Port is from OpenMAX
- * Port has two type: input port and output port which are all for data
- * transaction. Port work like a queue. task will be dequeue from or enqueue to
- * one port. On input side user will dequeue task from input port, setup task
- * and enqueue task back to input port. On output side user will dequeue task
- * from output port, get the information from and then enqueue task back to
- * output port.
+ * Port has two type: input port and output port which are all for data transaction.
+ * Port work like a queue. task will be dequeue from or enqueue to one port.
+ * On input side user will dequeue task from input port, setup task and enqueue task
+ * back to input port.
+ * On output side user will dequeue task from output port, get the information from
+ * and then enqueue task back to output port.
  *
  * Task indicates one transaction on the port.
  * Task has two working mode: async mode and sync mode
- * If mpp is work in sync mode on task enqueue function return the task has been
- * done If mpp is work in async mode on task enqueue function return the task is
- * just put on the task queue for process. Task can carry different items. Task
- * just like a container of items
+ * If mpp is work in sync mode on task enqueue function return the task has been done
+ * If mpp is work in async mode on task enqueue function return the task is just put
+ * on the task queue for process.
+ * Task can carry different items. Task just like a container of items
  *
  * Item indicates MppPacket or MppFrame which is contained in one task
  */
@@ -53,9 +53,9 @@
  * Each port uses its task queue to communication
  */
 typedef enum {
-  MPP_PORT_INPUT,
-  MPP_PORT_OUTPUT,
-  MPP_PORT_BUTT,
+    MPP_PORT_INPUT,
+    MPP_PORT_OUTPUT,
+    MPP_PORT_BUTT,
 } MppPortType;
 
 /*
@@ -88,9 +88,9 @@ typedef enum {
  ******************************************************************************
  */
 typedef enum {
-  MPP_TASK_ASYNC,
-  MPP_TASK_SYNC,
-  MPP_TASK_WORK_MODE_BUTT,
+    MPP_TASK_ASYNC,
+    MPP_TASK_SYNC,
+    MPP_TASK_WORK_MODE_BUTT,
 } MppTaskWorkMode;
 
 /*
@@ -102,10 +102,10 @@ typedef enum {
  * small than MPP_POLL_BUTT or larger than MPP_POLL_MAX is invalid value
  */
 typedef enum {
-  MPP_POLL_BUTT = -2,
-  MPP_POLL_BLOCK = -1,
-  MPP_POLL_NON_BLOCK = 0,
-  MPP_POLL_MAX = 8000,
+    MPP_POLL_BUTT       = -2,
+    MPP_POLL_BLOCK      = -1,
+    MPP_POLL_NON_BLOCK  = 0,
+    MPP_POLL_MAX        = 8000,
 } MppPollType;
 
 /*
@@ -115,10 +115,10 @@ typedef enum {
  * small than MPP_TIMEOUT_MAX   - for poll with timeout in ms
  * small than MPP_TIMEOUT_BUTT or larger than MPP_TIMEOUT_MAX is invalid value
  */
-#define MPP_TIMEOUT_BUTT (-2L)
-#define MPP_TIMEOUT_BLOCK (-1L)
-#define MPP_TIMEOUT_NON_BLOCK (0L)
-#define MPP_TIMEOUT_MAX (8000L)
+#define MPP_TIMEOUT_BUTT        (-2L)
+#define MPP_TIMEOUT_BLOCK       (-1L)
+#define MPP_TIMEOUT_NON_BLOCK   (0L)
+#define MPP_TIMEOUT_MAX         (8000L)
 
 /*
  * MppTask is descriptor of a task which send to mpp for process
@@ -131,8 +131,7 @@ typedef enum {
  * output   - MppFrame      (ion/drm buffer in external/internal mode)
  * 2. secure decoder mode:
  * input    - MppPacket     (externel ion/drm buffer, cpu can not access)
- * output   - MppFrame      (ion/drm buffer in external/internal mode, cpu can
- * not access)
+ * output   - MppFrame      (ion/drm buffer in external/internal mode, cpu can not access)
  *
  * interface usage:
  *
@@ -163,12 +162,11 @@ typedef enum {
  * input    - MppFrame      (ion/drm buffer in external mode)
  * output   - MppPacket     (normal cpu buffer, need cpu copy)
  * 2. user input encoder mode:
- * input    - MppFrame      (normal cpu buffer, need to build hardware table for
- * this buffer) output   - MppPacket     (normal cpu buffer, need cpu copy)
+ * input    - MppFrame      (normal cpu buffer, need to build hardware table for this buffer)
+ * output   - MppPacket     (normal cpu buffer, need cpu copy)
  * 3. secure encoder mode:
- * input    - MppFrame      (ion/drm buffer in external mode, cpu can not
- * access) output   - MppPacket     (externel ion/drm buffer, cpu can not
- * access)
+ * input    - MppFrame      (ion/drm buffer in external mode, cpu can not access)
+ * output   - MppPacket     (externel ion/drm buffer, cpu can not access)
  *
  * typical / user input flow
  * input side:
@@ -192,10 +190,9 @@ typedef enum {
  * task_get_item(task, MODE_OUTPUT, &frame)
  * task_enqueue(ctx, PORT_OUTPUT, task);
  *
- * NOTE: this flow can specify the output frame. User will setup both intput
- * frame and output packet buffer at the input side. Then at output side when
- * user gets a finished task user can get the output packet and corresponding
- * released input frame.
+ * NOTE: this flow can specify the output frame. User will setup both intput frame and output packet
+ * buffer at the input side. Then at output side when user gets a finished task user can get the output
+ * packet and corresponding released input frame.
  *
  * image processing
  *
@@ -221,24 +218,17 @@ extern "C" {
 
 MPP_RET mpp_task_meta_set_s32(MppTask task, MppMetaKey key, RK_S32 val);
 MPP_RET mpp_task_meta_set_s64(MppTask task, MppMetaKey key, RK_S64 val);
-MPP_RET mpp_task_meta_set_ptr(MppTask task, MppMetaKey key, void *val);
-MPP_RET mpp_task_meta_set_frame(MppTask task, MppMetaKey key, MppFrame frame);
-MPP_RET mpp_task_meta_set_packet(MppTask task, MppMetaKey key,
-                                 MppPacket packet);
-MPP_RET mpp_task_meta_set_buffer(MppTask task, MppMetaKey key,
-                                 MppBuffer buffer);
+MPP_RET mpp_task_meta_set_ptr(MppTask task, MppMetaKey key, void  *val);
+MPP_RET mpp_task_meta_set_frame (MppTask task, MppMetaKey key, MppFrame  frame);
+MPP_RET mpp_task_meta_set_packet(MppTask task, MppMetaKey key, MppPacket packet);
+MPP_RET mpp_task_meta_set_buffer(MppTask task, MppMetaKey key, MppBuffer buffer);
 
-MPP_RET mpp_task_meta_get_s32(MppTask task, MppMetaKey key, RK_S32 *val,
-                              RK_S32 default_val);
-MPP_RET mpp_task_meta_get_s64(MppTask task, MppMetaKey key, RK_S64 *val,
-                              RK_S64 default_val);
-MPP_RET mpp_task_meta_get_ptr(MppTask task, MppMetaKey key, void **val,
-                              void *default_val);
-MPP_RET mpp_task_meta_get_frame(MppTask task, MppMetaKey key, MppFrame *frame);
-MPP_RET mpp_task_meta_get_packet(MppTask task, MppMetaKey key,
-                                 MppPacket *packet);
-MPP_RET mpp_task_meta_get_buffer(MppTask task, MppMetaKey key,
-                                 MppBuffer *buffer);
+MPP_RET mpp_task_meta_get_s32(MppTask task, MppMetaKey key, RK_S32 *val, RK_S32 default_val);
+MPP_RET mpp_task_meta_get_s64(MppTask task, MppMetaKey key, RK_S64 *val, RK_S64 default_val);
+MPP_RET mpp_task_meta_get_ptr(MppTask task, MppMetaKey key, void  **val, void  *default_val);
+MPP_RET mpp_task_meta_get_frame (MppTask task, MppMetaKey key, MppFrame  *frame);
+MPP_RET mpp_task_meta_get_packet(MppTask task, MppMetaKey key, MppPacket *packet);
+MPP_RET mpp_task_meta_get_buffer(MppTask task, MppMetaKey key, MppBuffer *buffer);
 
 #ifdef __cplusplus
 }

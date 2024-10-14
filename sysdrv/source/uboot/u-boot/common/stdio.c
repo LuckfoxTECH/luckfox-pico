@@ -368,16 +368,11 @@ int stdio_add_devices(void)
 	 */
 #ifndef CONFIG_SYS_CONSOLE_IS_IN_ENV
 	struct udevice *vdev;
-# ifndef CONFIG_DM_KEYBOARD
-	int ret;
-# endif
 
-	for (ret = uclass_first_device(UCLASS_VIDEO, &vdev);
+	for (uclass_first_device(UCLASS_VIDEO, &vdev);
 	     vdev;
-	     ret = uclass_next_device(&vdev))
+	     uclass_next_device(&vdev))
 		;
-	if (ret)
-		printf("%s: Video device failed (ret=%d)\n", __func__, ret);
 #endif /* !CONFIG_SYS_CONSOLE_IS_IN_ENV */
 #else
 # if defined(CONFIG_LCD)

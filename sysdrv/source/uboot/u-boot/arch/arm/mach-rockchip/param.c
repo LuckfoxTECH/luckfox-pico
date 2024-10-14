@@ -259,6 +259,12 @@ int param_parse_atags_bootdev(char **devtype, char **devnum)
 			*devnum = "2";
 			break;
 #endif
+#ifdef CONFIG_UFS
+		case BOOT_TYPE_UFS:
+			*devtype = "scsi";
+			*devnum = "0";
+			break;
+#endif
 		default:
 			printf("Unknown bootdev type: 0x%x\n",
 			       t->u.bootdev.devtype);

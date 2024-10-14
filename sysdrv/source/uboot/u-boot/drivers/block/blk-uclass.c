@@ -619,7 +619,9 @@ int blk_create_device(struct udevice *parent, const char *drv_name,
 	desc = dev_get_uclass_platdata(dev);
 	desc->if_type = if_type;
 	desc->blksz = blksz;
+	desc->rawblksz = blksz;
 	desc->lba = size / blksz;
+	desc->rawlba = size / blksz;
 	desc->part_type = PART_TYPE_UNKNOWN;
 	desc->bdev = dev;
 	desc->devnum = devnum;

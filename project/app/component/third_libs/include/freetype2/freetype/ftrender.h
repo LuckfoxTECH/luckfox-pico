@@ -55,32 +55,26 @@ typedef FT_Error (*FT_Glyph_PrepareFunc)(FT_Glyph glyph, FT_GlyphSlot slot);
 #define FT_Glyph_Prepare_Func FT_Glyph_PrepareFunc
 
 struct FT_Glyph_Class_ {
-  FT_Long glyph_size;
-  FT_Glyph_Format glyph_format;
+	FT_Long glyph_size;
+	FT_Glyph_Format glyph_format;
 
-  FT_Glyph_InitFunc glyph_init;
-  FT_Glyph_DoneFunc glyph_done;
-  FT_Glyph_CopyFunc glyph_copy;
-  FT_Glyph_TransformFunc glyph_transform;
-  FT_Glyph_GetBBoxFunc glyph_bbox;
-  FT_Glyph_PrepareFunc glyph_prepare;
+	FT_Glyph_InitFunc glyph_init;
+	FT_Glyph_DoneFunc glyph_done;
+	FT_Glyph_CopyFunc glyph_copy;
+	FT_Glyph_TransformFunc glyph_transform;
+	FT_Glyph_GetBBoxFunc glyph_bbox;
+	FT_Glyph_PrepareFunc glyph_prepare;
 };
 
-typedef FT_Error (*FT_Renderer_RenderFunc)(FT_Renderer renderer,
-                                           FT_GlyphSlot slot,
-                                           FT_Render_Mode mode,
-                                           const FT_Vector *origin);
+typedef FT_Error (*FT_Renderer_RenderFunc)(FT_Renderer renderer, FT_GlyphSlot slot,
+                                           FT_Render_Mode mode, const FT_Vector *origin);
 
-typedef FT_Error (*FT_Renderer_TransformFunc)(FT_Renderer renderer,
-                                              FT_GlyphSlot slot,
-                                              const FT_Matrix *matrix,
-                                              const FT_Vector *delta);
+typedef FT_Error (*FT_Renderer_TransformFunc)(FT_Renderer renderer, FT_GlyphSlot slot,
+                                              const FT_Matrix *matrix, const FT_Vector *delta);
 
-typedef void (*FT_Renderer_GetCBoxFunc)(FT_Renderer renderer, FT_GlyphSlot slot,
-                                        FT_BBox *cbox);
+typedef void (*FT_Renderer_GetCBoxFunc)(FT_Renderer renderer, FT_GlyphSlot slot, FT_BBox *cbox);
 
-typedef FT_Error (*FT_Renderer_SetModeFunc)(FT_Renderer renderer,
-                                            FT_ULong mode_tag,
+typedef FT_Error (*FT_Renderer_SetModeFunc)(FT_Renderer renderer, FT_ULong mode_tag,
                                             FT_Pointer mode_ptr);
 
 /* deprecated identifiers */
@@ -122,16 +116,16 @@ typedef FT_Error (*FT_Renderer_SetModeFunc)(FT_Renderer renderer,
  *     its raster's class.
  */
 typedef struct FT_Renderer_Class_ {
-  FT_Module_Class root;
+	FT_Module_Class root;
 
-  FT_Glyph_Format glyph_format;
+	FT_Glyph_Format glyph_format;
 
-  FT_Renderer_RenderFunc render_glyph;
-  FT_Renderer_TransformFunc transform_glyph;
-  FT_Renderer_GetCBoxFunc get_glyph_cbox;
-  FT_Renderer_SetModeFunc set_mode;
+	FT_Renderer_RenderFunc render_glyph;
+	FT_Renderer_TransformFunc transform_glyph;
+	FT_Renderer_GetCBoxFunc get_glyph_cbox;
+	FT_Renderer_SetModeFunc set_mode;
 
-  FT_Raster_Funcs *raster_class;
+	FT_Raster_Funcs *raster_class;
 
 } FT_Renderer_Class;
 

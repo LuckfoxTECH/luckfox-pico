@@ -8,6 +8,7 @@
 #include <common.h>
 #include <dm.h>
 #include <mapmem.h>
+#include <asm/io.h>
 #include <dm/of_access.h>
 
 int dev_read_u32_default(struct udevice *dev, const char *propname, int def)
@@ -61,6 +62,16 @@ fdt_addr_t dev_read_addr_index(struct udevice *dev, int index)
 fdt_addr_t dev_read_addr(struct udevice *dev)
 {
 	return dev_read_addr_index(dev, 0);
+}
+
+void *dev_remap_addr_index(struct udevice *dev, int index)
+{
+        fdt_addr_t addr = dev_read_addr_index(dev, index);
+
+        if (addr == FDT_ADDR_T_NONE)
+                return NULL;
+
+        return map_physmem(addr, 0, MAP_NOCACHE);
 }
 
 void *dev_read_addr_ptr(struct udevice *dev)

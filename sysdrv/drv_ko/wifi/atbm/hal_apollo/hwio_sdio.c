@@ -73,7 +73,11 @@ static int __atbm_reg_read(struct atbm_common *hw_priv, u16 addr,
 	addr_sdio = SPI_REG_ADDR_TO_SDIO(addr);
 	sdio_reg_addr_17bit = SDIO_ADDR17BIT(0, 0, 0, addr_sdio);
 
-	BUG_ON(!hw_priv->sbus_ops);
+	//BUG_ON(!hw_priv->sbus_ops);
+	if(!hw_priv->sbus_ops){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+		return -1;
+	}
 	return hw_priv->sbus_ops->sbus_read_sync(hw_priv->sbus_priv,
 						  sdio_reg_addr_17bit,
 						  buf, buf_len);
@@ -114,7 +118,11 @@ static int __atbm_data_read(struct atbm_common *hw_priv, u16 addr,
 	addr_sdio = SPI_REG_ADDR_TO_SDIO(addr);
 	sdio_reg_addr_17bit = SDIO_ADDR17BIT(buf_id, 0, 0, addr_sdio);
 
-	BUG_ON(!hw_priv->sbus_ops);
+	//BUG_ON(!hw_priv->sbus_ops);
+	if(!hw_priv->sbus_ops){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+		return -1;
+	}
 	return hw_priv->sbus_ops->sbus_memcpy_fromio(hw_priv->sbus_priv,
 						  sdio_reg_addr_17bit,
 						  buf, buf_len);
@@ -131,7 +139,11 @@ static int __atbm_data_write(struct atbm_common *hw_priv, u16 addr,
 	addr_sdio = SPI_REG_ADDR_TO_SDIO(addr);
 	sdio_reg_addr_17bit = SDIO_ADDR17BIT(buf_id, 0, 0, addr_sdio);
 
-	BUG_ON(!hw_priv->sbus_ops);
+	//BUG_ON(!hw_priv->sbus_ops);
+	if(!hw_priv->sbus_ops){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+		return -1;
+	}
 	return hw_priv->sbus_ops->sbus_memcpy_toio(hw_priv->sbus_priv,
 						sdio_reg_addr_17bit,
 						buf, buf_len);
@@ -166,7 +178,11 @@ int __atbm_reg_write_dpll(struct atbm_common *hw_priv, u16 addr,
 	addr_sdio = addr;//SPI_REG_ADDR_TO_SDIO(addr);
 	sdio_reg_addr_17bit = SDIO_ADDR17BIT(buf_id, 0, 0, addr_sdio);
 
-	BUG_ON(!hw_priv->sbus_ops);
+	//BUG_ON(!hw_priv->sbus_ops);
+	if(!hw_priv->sbus_ops){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+		return -1;
+	}
 	return hw_priv->sbus_ops->sbus_write_sync(hw_priv->sbus_priv,
 						  sdio_reg_addr_17bit,
 						  buf, buf_len);
@@ -185,7 +201,11 @@ int __atbm_reg_read_dpll(struct atbm_common *hw_priv, u16 addr,
 		sdio_reg_addr_17bit = SDIO_ADDR17BIT(buf_id, 0, 0, addr_sdio);
 		//atbm_dbg(ATBM_APOLLO_DBG_MSG, "%x,sdio_reg_addr_17bit,func=%s\n",sdio_reg_addr_17bit,__func__);
 
-		BUG_ON(!hw_priv->sbus_ops);
+		//BUG_ON(!hw_priv->sbus_ops);
+		if(!hw_priv->sbus_ops){
+			atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+			return -1;
+		}
 		return hw_priv->sbus_ops->sbus_read_sync(hw_priv->sbus_priv,
 							sdio_reg_addr_17bit,
 							(void*)buf, buf_len);
@@ -196,7 +216,11 @@ int atbm_reg_read_dpll(struct atbm_common *hw_priv, u16 addr, void *buf,
 			u32 buf_len)
 {
 	int ret;
-	BUG_ON(!hw_priv->sbus_ops);
+//	BUG_ON(!hw_priv->sbus_ops);
+	if(!hw_priv->sbus_ops){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+		return -1;
+	}
 	hw_priv->sbus_ops->lock(hw_priv->sbus_priv);
 	ret = __atbm_reg_read_dpll(hw_priv, addr, buf, buf_len, 0);
 	hw_priv->sbus_ops->unlock(hw_priv->sbus_priv);
@@ -207,7 +231,11 @@ int atbm_reg_write_dpll(struct atbm_common *hw_priv, u16 addr, const void *buf,
 			u32 buf_len)
 {
 	int ret;
-	BUG_ON(!hw_priv->sbus_ops);
+	//BUG_ON(!hw_priv->sbus_ops);
+	if(!hw_priv->sbus_ops){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+		return -1;
+	}
 	hw_priv->sbus_ops->lock(hw_priv->sbus_priv);
 	ret = __atbm_reg_write_dpll(hw_priv, addr, buf, buf_len, 0);
 	hw_priv->sbus_ops->unlock(hw_priv->sbus_priv);
@@ -219,7 +247,11 @@ int atbm_reg_read(struct atbm_common *hw_priv, u16 addr, void *buf,
 			u32 buf_len)
 {
 	int ret;
-	BUG_ON(!hw_priv->sbus_ops);
+	//BUG_ON(!hw_priv->sbus_ops);
+	if(!hw_priv->sbus_ops){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+		return -1;
+	}
 	hw_priv->sbus_ops->lock(hw_priv->sbus_priv);
 	ret = __atbm_reg_read(hw_priv, addr, buf, buf_len);
 	hw_priv->sbus_ops->unlock(hw_priv->sbus_priv);
@@ -230,7 +262,11 @@ int atbm_reg_write(struct atbm_common *hw_priv, u16 addr, const void *buf,
 			u32 buf_len)
 {
 	int ret;
-	BUG_ON(!hw_priv->sbus_ops);
+	//BUG_ON(!hw_priv->sbus_ops);
+	if(!hw_priv->sbus_ops){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+		return -1;
+	}
 	hw_priv->sbus_ops->lock(hw_priv->sbus_priv);
 	ret = __atbm_reg_write(hw_priv, addr, buf, buf_len);
 	hw_priv->sbus_ops->unlock(hw_priv->sbus_priv);
@@ -241,7 +277,11 @@ int atbm_reg_read_unlock(struct atbm_common *hw_priv, u16 addr, void *buf,
 {
 	int ret;
 	int retry=0;
-	BUG_ON(!hw_priv->sbus_ops);
+	//BUG_ON(!hw_priv->sbus_ops);
+	if(!hw_priv->sbus_ops){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+		return -1;
+	}
 	while (retry <= 3) {
 		ret = __atbm_reg_read(hw_priv, addr, buf, buf_len);
 		if(ret){
@@ -259,7 +299,11 @@ int atbm_reg_write_unlock(struct atbm_common *hw_priv, u16 addr, const void *buf
 {
 	int ret;
 	int retry=0;
-	BUG_ON(!hw_priv->sbus_ops);
+	//BUG_ON(!hw_priv->sbus_ops);
+	if(!hw_priv->sbus_ops){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+		return -1;
+	}
 	while (retry <= 3) {
 		ret = __atbm_reg_write(hw_priv, addr, buf, buf_len);
 		if(ret){
@@ -297,7 +341,11 @@ int atbm_data_read_unlock(struct atbm_common *hw_priv, void *buf, u32 buf_len)
 int atbm_data_read(struct atbm_common *hw_priv, void *buf, u32 buf_len)
 {
 	int ret;
-	BUG_ON(!hw_priv->sbus_ops);
+	//BUG_ON(!hw_priv->sbus_ops);
+		if(!hw_priv->sbus_ops){
+			atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+			return -1;
+		}
 	hw_priv->sbus_ops->lock(hw_priv->sbus_priv);
 	{
 		ret = atbm_data_read_unlock(hw_priv,buf,buf_len);
@@ -315,7 +363,11 @@ int atbm_data_force_write(struct atbm_common *hw_priv, const void *buf,
 {
         int ret, retry = 1;
         int buf_id_tx;
-        BUG_ON(!hw_priv->sbus_ops);
+		//BUG_ON(!hw_priv->sbus_ops);
+			if(!hw_priv->sbus_ops){
+				atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+				return -1;
+			}
         hw_priv->sbus_ops->lock(hw_priv->sbus_priv);
         buf_id_tx = ((hw_priv->buf_id_tx-1)&0x3f)+64;
 		atbm_printk_always("buf_id_tx =%d\n",buf_id_tx);
@@ -372,7 +424,11 @@ int atbm_data_write(struct atbm_common *hw_priv, const void *buf,
 {
 	int ret;
 
-	BUG_ON(!hw_priv->sbus_ops);
+	//BUG_ON(!hw_priv->sbus_ops);
+		if(!hw_priv->sbus_ops){
+			atbm_printk_err("%s %d ,ERROR !!! hw_priv->sbus_ops is NULL\n",__func__,__LINE__);
+			return -1;
+		}
 	hw_priv->sbus_ops->lock(hw_priv->sbus_priv);
 //	printk("buf_id =%d,buf_id_offset=%d\n",buf_id_tx,hw_priv->buf_id_offset);
 	ret = atbm_data_write_unlock(hw_priv,buf,buf_len);
@@ -944,6 +1000,7 @@ int __atbm_irq_enable(struct atbm_common *priv, int enable)
 }
 
 
+extern void atbm_HwGetChipType(struct atbm_common *priv);
 
 //atbm_dcxo_dpll_initial
 int atbm_before_load_firmware(struct atbm_common *hw_priv)
@@ -962,9 +1019,14 @@ int atbm_before_load_firmware(struct atbm_common *hw_priv)
 	u32 config_reg;
 	
 	FUNC_ENTER();
-
-	BUG_ON(!hw_priv);	
-	#if (ATBM_VOL_L == 10)
+	
+	//BUG_ON(!hw_priv);
+	if(!hw_priv){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv is NULL\n",__func__,__LINE__);
+		return -1;
+	}
+	atbm_HwGetChipType(hw_priv);
+#if (ATBM_VOL_L == 10)
 	#pragma message ("1.0v")
 	atbm_printk_init("+++++++++++++++++1.0v+++++++++++++++++++\n");
 	ret = atbm_direct_write_reg_32(hw_priv,0xacc0178,0x3400071);
@@ -1174,13 +1236,13 @@ out:
 	{
 		u32 reset_reg = 0;
 		#pragma message("add delay before load fw")
-		mdelay(1);
+		mdelay(100);
 		ret = atbm_direct_read_reg_32(hw_priv,0x16100074,&reset_reg);
 		atbm_printk_err("%s:read [0x16100074]=[%x],ret(%d)\n",__func__,reset_reg,ret);
 		reset_reg |= BIT(0);
 		ret = atbm_direct_write_reg_32(hw_priv,0x16100074,reset_reg);		
 		atbm_printk_err("%s:write [0x16100074]=[%x],ret(%d)\n",__func__,reset_reg,ret);
-		mdelay(1);
+		mdelay(100);
 	}
 #endif 
 #endif
@@ -1315,6 +1377,9 @@ int atbm_after_load_firmware(struct atbm_common *hw_priv)
 		 * not able to get an interrupt */
 		mdelay(10);
 		atbm_reg_read_32(hw_priv, ATBM_HIFREG_CONFIG_REG_ID, &val32);
+		atbm_printk_err("%s:%d==> val32 = %x \n",__func__,__LINE__,val32);
+
+		
 	out:
 		return ret;
 

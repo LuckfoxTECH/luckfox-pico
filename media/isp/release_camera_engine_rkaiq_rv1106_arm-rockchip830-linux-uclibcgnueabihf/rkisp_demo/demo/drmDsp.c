@@ -84,15 +84,14 @@ void deInitDrmDsp() {
 }
 
 static int arm_camera_yuv420_scale_arm(char *srcbuf, char *dstbuf,int src_w, int src_h,int dst_w, int dst_h) {
-	unsigned char *psY,*pdY,*psUV,*pdUV;
-	unsigned char *src,*dst;
+	unsigned char *psY = NULL,*pdY = NULL,*psUV = NULL,*pdUV = NULL;
+	// unsigned char *src,*dst;
 	int srcW,srcH,cropW,cropH,dstW,dstH;
 	long zoomindstxIntInv,zoomindstyIntInv;
 	long x,y;
 	long yCoeff00,yCoeff01,xCoeff00,xCoeff01;
 	long sX,sY;
 	long r0,r1,a,b,c,d;
-	int ret = 0;
 	int nv21DstFmt = 0, mirror = 0;
 	int ratio = 0;
 	int top_offset=0,left_offset=0;
@@ -102,7 +101,7 @@ static int arm_camera_yuv420_scale_arm(char *srcbuf, char *dstbuf,int src_w, int
 		ratio = ((src_w*100/dst_w) >= (src_h*100/dst_h))?(src_h*100/dst_h):(src_w*100/dst_w);
 		cropW = ratio*dst_w/100;
 		cropH = ratio*dst_h/100;
-		
+
 		left_offset=((src_w-cropW)>>1) & (~0x01);
 		top_offset=((src_h-cropH)>>1) & (~0x01);
 	}else{
@@ -112,18 +111,18 @@ static int arm_camera_yuv420_scale_arm(char *srcbuf, char *dstbuf,int src_w, int
 		left_offset=0;
 	}
 
-	src = psY = (unsigned char*)(srcbuf)+top_offset*src_w+left_offset;
+	// src = psY = (unsigned char*)(srcbuf)+top_offset*src_w+left_offset;
 	//psUV = psY +src_w*src_h+top_offset*src_w/2+left_offset;
 	psUV = (unsigned char*)(srcbuf) +src_w*src_h+top_offset*src_w/2+left_offset;
 
-	
+
 	srcW =src_w;
 	srcH = src_h;
 //	cropW = src_w;
 //	cropH = src_h;
 
-	
-	dst = pdY = (unsigned char*)dstbuf;
+
+	// dst = pdY = (unsigned char*)dstbuf;
 	pdUV = pdY + dst_w*dst_h;
 	dstW = dst_w;
 	dstH = dst_h;
@@ -131,15 +130,15 @@ static int arm_camera_yuv420_scale_arm(char *srcbuf, char *dstbuf,int src_w, int
 	zoomindstxIntInv = ((unsigned long)(cropW)<<16)/dstW + 1;
 	zoomindstyIntInv = ((unsigned long)(cropH)<<16)/dstH + 1;
 	//y
-	//for(y = 0; y<dstH - 1 ; y++ ) {	
-	for(y = 0; y<dstH; y++ ) {	
+	//for(y = 0; y<dstH - 1 ; y++ ) {
+	for(y = 0; y<dstH; y++ ) {
 		yCoeff00 = (y*zoomindstyIntInv)&0xffff;
 		yCoeff01 = 0xffff - yCoeff00;
 		sY = (y*zoomindstyIntInv >> 16);
-		sY = (sY >= srcH - 1)? (srcH - 2) : sY; 	
+		sY = (sY >= srcH - 1)? (srcH - 2) : sY;
 		for(x = 0; x<dstW; x++ ) {
 			xCoeff00 = (x*zoomindstxIntInv)&0xffff;
-			xCoeff01 = 0xffff - xCoeff00;	
+			xCoeff01 = 0xffff - xCoeff00;
 			sX = (x*zoomindstxIntInv >> 16);
 			sX = (sX >= srcW -1)?(srcW- 2) : sX;
 			a = psY[sY*srcW + sX];
@@ -150,7 +149,7 @@ static int arm_camera_yuv420_scale_arm(char *srcbuf, char *dstbuf,int src_w, int
 			r0 = (a * xCoeff01 + b * xCoeff00)>>16 ;
 			r1 = (c * xCoeff01 + d * xCoeff00)>>16 ;
 			r0 = (r0 * yCoeff01 + r1 * yCoeff00)>>16;
-			
+
 			if(mirror)
 				pdY[dstW -1 - x] = r0;
 			else
@@ -170,10 +169,10 @@ static int arm_camera_yuv420_scale_arm(char *srcbuf, char *dstbuf,int src_w, int
 		yCoeff00 = (y*zoomindstyIntInv)&0xffff;
 		yCoeff01 = 0xffff - yCoeff00;
 		sY = (y*zoomindstyIntInv >> 16);
-		sY = (sY >= srcH -1)? (srcH - 2) : sY;		
+		sY = (sY >= srcH -1)? (srcH - 2) : sY;
 		for(x = 0; x<dstW; x++ ) {
 			xCoeff00 = (x*zoomindstxIntInv)&0xffff;
-			xCoeff01 = 0xffff - xCoeff00;	
+			xCoeff01 = 0xffff - xCoeff00;
 			sX = (x*zoomindstxIntInv >> 16);
 			sX = (sX >= srcW -1)?(srcW- 2) : sX;
 			//U
@@ -185,7 +184,7 @@ static int arm_camera_yuv420_scale_arm(char *srcbuf, char *dstbuf,int src_w, int
 			r0 = (a * xCoeff01 + b * xCoeff00)>>16 ;
 			r1 = (c * xCoeff01 + d * xCoeff00)>>16 ;
 			r0 = (r0 * yCoeff01 + r1 * yCoeff00)>>16;
-		
+
 			if(mirror && nv21DstFmt)
 				pdUV[dstW*2-1- (x*2)] = r0;
 			else if(mirror)
@@ -216,19 +215,19 @@ static int arm_camera_yuv420_scale_arm(char *srcbuf, char *dstbuf,int src_w, int
 		pdUV += dstW*2;
 	}
 	return 0;
-}	
+}
 
 int drmDspFrame(int srcWidth, int srcHeight, int dispWidth, int dispHeight,
-		int dmaFd, int fmt)
+		int dmaFd, void* srcAddr, int fmt)
 {
   int ret;
-  struct drm_mode_create_dumb cd;
+  // struct drm_mode_create_dumb cd;
   struct sp_bo* bo;
   struct drmDsp* pDrmDsp = &gDrmDsp;
 
   int wAlign16 = ((dispWidth+ 15) & (~15));
   int hAlign16 = (dispHeight + 15) & (~15);
-  int frameSize = wAlign16 * hAlign16 * 3 / 2;
+  // int frameSize = wAlign16 * hAlign16 * 3 / 2;
   uint32_t handles[4], pitches[4], offsets[4];
 
   if (DRM_FORMAT_NV12 != fmt) {
@@ -289,9 +288,9 @@ int drmDspFrame(int srcWidth, int srcHeight, int dispWidth, int dispHeight,
 #else
   //copy src data to bo
   if (srcWidth == dispWidth)
-	  memcpy(bo->map_addr, dmaFd, wAlign16 * hAlign16 * 3 / 2);
+	  memcpy(bo->map_addr, srcAddr, wAlign16 * hAlign16 * 3 / 2);
   else
-	  arm_camera_yuv420_scale_arm(dmaFd, bo->map_addr, srcWidth, srcHeight, dispWidth, dispHeight);
+	  arm_camera_yuv420_scale_arm(srcAddr, bo->map_addr, srcWidth, srcHeight, dispWidth, dispHeight);
 #endif
 
   ret = drmModeAddFB2(bo->dev->fd, bo->width, bo->height,

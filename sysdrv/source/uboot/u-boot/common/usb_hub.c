@@ -347,6 +347,9 @@ int usb_hub_port_connect_change(struct usb_device *dev, int port)
 	ALLOC_CACHE_ALIGN_BUFFER(struct usb_port_status, portsts, 1);
 	unsigned short portstatus;
 	int ret, speed;
+#if CONFIG_IS_ENABLED(DM_USB)
+	int tries = 2;
+#endif
 
 	/* Check status */
 	ret = usb_get_port_status(dev, port + 1, portsts);
@@ -374,6 +377,9 @@ int usb_hub_port_connect_change(struct usb_device *dev, int port)
 			return -ENOTCONN;
 	}
 
+#if CONFIG_IS_ENABLED(DM_USB)
+retry:
+#endif
 	/* Reset the port */
 	ret = usb_hub_port_reset(dev, port, &portstatus);
 	if (ret < 0) {
@@ -401,6 +407,9 @@ int usb_hub_port_connect_change(struct usb_device *dev, int port)
 	struct udevice *child;
 
 	ret = usb_scan_device(dev->dev, port + 1, speed, &child);
+
+	if ((ret < 0) && (tries-- > 0))
+		goto retry;
 #else
 	struct usb_device *usb;
 

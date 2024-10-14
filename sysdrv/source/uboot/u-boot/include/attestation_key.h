@@ -21,6 +21,7 @@ typedef enum {
 	ATAP_RESULT_ERROR_INVALID_DEVICE_ID,
 	ATAP_RESULT_ERROR_BUF_COPY,
 	ATAP_RESULT_ERROR_STORAGE,
+	ATAP_RESULT_ERROR_ALREADY_EXSIT,
 } atap_result;
 
 /* load attestation key from misc partition. */

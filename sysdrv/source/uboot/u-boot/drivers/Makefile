@@ -20,6 +20,7 @@ obj-$(CONFIG_$(SPL_TPL_)SPI_FLASH_SUPPORT) += mtd/spi/
 obj-$(CONFIG_$(SPL_TPL_)SPI_SUPPORT) += spi/
 obj-$(CONFIG_$(SPL_TPL_)TIMER) += timer/
 obj-$(CONFIG_$(SPL_TPL_)IRQ) += irq/
+obj-$(CONFIG_$(SPL_TPL_)DM_VIDEO) += video/
 
 ifndef CONFIG_TPL_BUILD
 ifdef CONFIG_SPL_BUILD
@@ -58,6 +59,7 @@ obj-$(CONFIG_SPL_WATCHDOG_SUPPORT) += watchdog/
 obj-$(CONFIG_SPL_USB_HOST_SUPPORT) += usb/host/
 obj-$(CONFIG_OMAP_USB_PHY) += usb/phy/
 obj-$(CONFIG_SPL_SATA_SUPPORT) += ata/ scsi/
+obj-$(CONFIG_SPL_UFS_SUPPORT) += ata/ scsi/ ufs/
 obj-$(CONFIG_SPL_USB_HOST_SUPPORT) += block/
 obj-$(CONFIG_SPL_MMC_SUPPORT) += block/
 obj-$(CONFIG_SPL_MTD_SUPPORT) += block/
@@ -101,7 +103,6 @@ obj-y += sound/
 obj-y += spmi/
 obj-y += sysreset/
 obj-y += tpm/
-obj-y += video/
 obj-y += watchdog/
 obj-$(CONFIG_QE) += qe/
 obj-$(CONFIG_U_QE) += qe/
@@ -113,6 +114,7 @@ obj-y += input/
 obj-y += soc/
 obj-$(CONFIG_REMOTEPROC) += remoteproc/
 obj-y += thermal/
+obj-y += ufs/
 
 obj-$(CONFIG_MACH_PIC32) += ddr/microchip/
 endif

@@ -511,6 +511,7 @@ static int dwc3_ep0_set_address(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
 		return -EINVAL;
 	}
 
+	dwc->connected = 1;
 	reg = dwc3_readl(dwc->regs, DWC3_DCFG);
 	reg &= ~(DWC3_DCFG_DEVADDR_MASK);
 	reg |= DWC3_DCFG_DEVADDR(addr);

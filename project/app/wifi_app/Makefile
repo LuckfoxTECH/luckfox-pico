@@ -35,12 +35,19 @@ PKG_CONF_OPTS += $(RK_APP_OPTS) -Os \
 				 -L $(CURRENT_DIR)/$(PKG_BIN)/lib \
 				 -l nl-3 \
 				 -l nl-genl-3
+ifeq ($(RK_APP_CHIP),rv1126)
+PKG_CONF_OPTS += -lpthread
+endif
 ifeq ($(PKG_USE_THUMB2),YES)
 PKG_CONF_OPTS += -mthumb -Wa,-mimplicit-it=thumb -mthumb-interwork
 endif
 
 ifeq ($(RK_ENABLE_WIFI),y)
 PKG_TARGET += build-wifi
+else
+ifneq (, $(filter RK_WIFI_APP,$(RK_APP_TYPE)))
+PKG_TARGET += build-wifi
+endif
 endif
 
 all: $(PKG_TARGET)
@@ -96,7 +103,6 @@ build-wifi: libnl
 	make -C $(CURRENT_DIR)/wifi/;
 
 	$(RK_APP_CROSS)-strip -s $(CURRENT_DIR)/$(PKG_BIN)/bin/wpa_supplicant ;
-	$(RK_APP_CROSS)-strip -s $(CURRENT_DIR)/$(PKG_BIN)/bin/hostapd ;
 	$(RK_APP_CROSS)-strip -s $(CURRENT_DIR)/$(PKG_BIN)/bin/wpa_cli ;
 	$(RK_APP_CROSS)-strip -s $(CURRENT_DIR)/$(PKG_BIN)/bin/wpa_supplicant_rtk ;
 	$(RK_APP_CROSS)-strip -s $(CURRENT_DIR)/$(PKG_BIN)/bin/wpa_supplicant_nl80211_rtk ;
@@ -110,19 +116,34 @@ build-wifi: libnl
 		$(CURRENT_DIR)/$(PKG_BIN_INSTALL)/usr/lib;
 	@cp -fa $(CURRENT_DIR)/$(PKG_BIN)/bin/wpa_supplicant \
 		$(CURRENT_DIR)/$(PKG_BIN)/bin/wpa_cli \
-		$(CURRENT_DIR)/$(PKG_BIN)/bin/hostapd \
 		$(CURRENT_DIR)/$(PKG_BIN)/bin/wpa_supplicant_rtk \
 		$(CURRENT_DIR)/$(PKG_BIN)/bin/wpa_supplicant_nl80211_rtk \
 		$(CURRENT_DIR)/$(PKG_BIN)/bin/wpa_cli_rtk \
 		$(CURRENT_DIR)/$(PKG_BIN_INSTALL)/usr/bin;
+ifeq ($(RK_APP_CHIP),rv1126)
+	@cp -fa $(CURRENT_DIR)/wpa_supplicant_rv1126.conf $(CURRENT_DIR)/$(PKG_BIN_INSTALL)/etc/wpa_supplicant.conf;
+else
 	@cp -fa $(CURRENT_DIR)/wpa_supplicant.conf $(CURRENT_DIR)/$(PKG_BIN_INSTALL)/etc;
+endif
 	@cp -fa $(CURRENT_DIR)/wifi/test/rkwifi_server $(CURRENT_DIR)/$(PKG_BIN_INSTALL)/usr/bin;
 	@cp -fa $(CURRENT_DIR)/bin/wifi_start.sh $(CURRENT_DIR)/$(PKG_BIN_INSTALL)/usr/bin;
 	@cp -fa $(CURRENT_DIR)/wifi/librkwifibt.so $(CURRENT_DIR)/$(PKG_BIN_INSTALL)/usr/lib;
 	@cp -fa $(CURRENT_DIR)/$(PKG_BIN)/lib/libwpa_client.so $(CURRENT_DIR)/$(PKG_BIN_INSTALL)/usr/lib;
+
+ifneq ($(findstring $(RK_ENABLE_WIFI_CHIP),"AP6XXX"),)
+	@mkdir -p $(CURRENT_DIR)/$(PKG_BIN_INSTALL)/vendor/etc/firmware;
+	@cp -fa $(CURRENT_DIR)/AP6256/nvram_ap6256.txt $(CURRENT_DIR)/$(PKG_BIN_INSTALL)/vendor/etc/firmware;
+	@cp -fa $(CURRENT_DIR)/AP6256/fw_bcm43456c5_ag.bin $(CURRENT_DIR)/$(PKG_BIN_INSTALL)/vendor/etc/firmware;
+endif
+
+ifeq ($(RK_APP_CHIP),rv1106)
+	$(RK_APP_CROSS)-strip -s $(CURRENT_DIR)/$(PKG_BIN)/bin/hostapd ;
+	@cp -fa $(CURRENT_DIR)/$(PKG_BIN)/bin/hostapd $(CURRENT_DIR)/$(PKG_BIN_INSTALL)/usr/bin;
 	@cp -fa $(CURRENT_DIR)/precompile/$(RK_APP_CROSS)/lib/* $(CURRENT_DIR)/$(PKG_BIN_INSTALL)/usr/lib;
 	@cp -fa $(CURRENT_DIR)/precompile/$(RK_APP_CROSS)/bin/iperf $(CURRENT_DIR)/$(PKG_BIN_INSTALL)/usr/bin/;
 	@cp -fa $(CURRENT_DIR)/precompile/$(RK_APP_CROSS)/bin/dnsmasq $(CURRENT_DIR)/$(PKG_BIN_INSTALL)/usr/bin/;
+endif
+
 	$(call MAROC_COPY_PKG_TO_APP_OUTPUT, $(RK_APP_OUTPUT), $(PKG_BIN_INSTALL_DIR))
 
 libnl:

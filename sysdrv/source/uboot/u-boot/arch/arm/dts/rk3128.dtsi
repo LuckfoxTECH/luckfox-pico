@@ -222,6 +222,18 @@
 		reg = <0x20000110 0x24>;
 		#reset-cells = <1>;
 	};
+
+	sfc: sfc@1020c000 {
+		compatible ="rockchip,rksfc","rockchip,sfc";
+		reg = <0x1020c000 0x8000>;
+		interrupts = <GIC_SPI 50 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&cru SCLK_SFC>, <&cru HCLK_SFC>;
+		clock-names = "clk_sfc", "hclk_sfc";
+		assigned-clocks = <&cru SCLK_SFC>;
+		assigned-clock-rates = <60000000>;
+		status = "disabled";
+	};
+
 	nandc: nandc@10500000 {
 		compatible = "rockchip,rk-nandc";
 		reg = <0x10500000 0x4000>;
@@ -580,6 +592,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&spi0_tx &spi0_rx &spi0_clk &spi0_cs0 &spi0_cs1>;
 		clock-names = "spiclk", "apb_pclk";
+		clocks = <&cru SCLK_SPI0>, <&cru PCLK_SPI0>;
 		dmas = <&pdma 8>, <&pdma 9>;
 		dma-names = "tx", "rx";
 		#address-cells = <1>;
@@ -590,6 +603,8 @@
 	grf: syscon@20008000 {
 		compatible = "rockchip,rk3128-grf", "syscon";
 		reg = <0x20008000 0x1000>;
+		#address-cells = <1>;
+		#size-cells = <1>;
 
 		lvds: lvds {
 			compatible = "rockchip,rk3126-lvds";

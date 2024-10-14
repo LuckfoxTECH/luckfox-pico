@@ -3,7 +3,7 @@
 #################################################
 # 	Board Config
 #################################################
-
+export LF_ORIGIN_BOARD_CONFIG=BoardConfig-SD_CARD-Buildroot-RV1103_Luckfox_Pico_Mini_A-IPC.mk
 # Target CHIP
 export RK_CHIP=rv1106
 
@@ -14,7 +14,7 @@ export RK_APP_TYPE=RKIPC_RV1103
 export RK_BOOTARGS_CMA_SIZE="24M"
 
 # Kernel dts
-export RK_KERNEL_DTS=rv1103g-luckfox-pico-mini-a.dts
+export RK_KERNEL_DTS=rv1103g-luckfox-pico-mini.dts
 
 #################################################
 #	BOOT_MEDIUM
@@ -35,7 +35,7 @@ export RK_UBOOT_DEFCONFIG_FRAGMENT=rk-emmc.config
 #       <partdef> := <size>[@<offset>](part-name)
 # Note:
 #   If the first partition offset is not 0x0, it must be added. Otherwise, it needn't adding.
-export RK_PARTITION_CMD_IN_ENV="32K(env),512K@32K(idblock),256K(uboot),32M(boot),512M(oem),256M(userdata),6G(rootfs),-(media)"
+export RK_PARTITION_CMD_IN_ENV="32K(env),512K@32K(idblock),256K(uboot),32M(boot),512M(oem),256M(userdata),6G(rootfs)"
 
 # config partition's filesystem type (squashfs is readonly)
 # emmc:    squashfs/ext4

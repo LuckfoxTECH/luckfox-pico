@@ -299,8 +299,13 @@ static void mesh_path_move_to_queue(struct mesh_path *gate_mpath,
 	unsigned long flags;
 	int num_skbs;
 
-	BUG_ON(gate_mpath == from_mpath);
-	BUG_ON(!gate_mpath->next_hop);
+//	BUG_ON(gate_mpath == from_mpath);
+//	BUG_ON(!gate_mpath->next_hop);
+	if((gate_mpath == from_mpath) || (!gate_mpath->next_hop)){
+		atbm_printk_err("%s %d ,ERROR !!! gate_mpath == from_mpath , gate_mpath->next_hop = %x\n",
+							__func__,__LINE__,gate_mpath->next_hop);
+		return;
+	}
 
 	__atbm_skb_queue_head_init(&gateq);
 	__atbm_skb_queue_head_init(&failq);

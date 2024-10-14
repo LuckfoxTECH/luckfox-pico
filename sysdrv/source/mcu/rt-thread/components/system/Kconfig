@@ -1,0 +1,634 @@
+# Kconfig file for package LittlevGL2RTT
+menuconfig RT_USING_LITTLEVGL2RTT
+    bool "LittlevGL2RTT: The LittlevGl gui lib adapter RT-Thread"
+    default n
+    depends on !PKG_USING_LITTLEVGL2RTT
+
+if RT_USING_LITTLEVGL2RTT
+
+    choice
+        prompt "LittlevGL2RTT version"
+        default RT_USING_LITTLEVGL2RTT_V7
+        config RT_USING_LITTLEVGL2RTT_V7
+            bool "v7.4.0"
+        config RT_USING_LITTLEVGL2RTT_V8
+            bool "v8.3.3"
+    endchoice
+
+    menu "LittlevGL2RTT Component Options"
+        menu "LV memory management config"
+            choice
+                prompt "Memory management mode"
+                default RT_LV_MEM_DYNAMIC
+
+                config RT_LV_MEM_STATIC
+                    bool "static"
+                config RT_LV_MEM_DYNAMIC
+                    bool "dynamic"
+            endchoice
+
+            config RT_LV_MEM_CUSTOM
+                int
+                default 0 if RT_LV_MEM_STATIC
+                default 1 if RT_LV_MEM_DYNAMIC
+            config RT_LV_MEM_KB_SIZE
+                int "Memory Size used by 'lv_mem_alloc'(KB)"
+                range 2 65536
+                default 32
+                depends on RT_LV_MEM_STATIC
+            config RT_LV_MEM_AUTO_DEFRAG
+                int "Automatically defrag on free"
+                default 1
+                range 0 1
+                depends on RT_LV_MEM_STATIC
+        endmenu
+
+        menu "LV graphical config"
+            choice
+                prompt "Color depth"
+                default RT_LV_COLOR_DEPTH_16
+
+                config RT_LV_COLOR_DEPTH_1
+                    bool "1bit"
+                config RT_LV_COLOR_DEPTH_8
+                    bool "8bit"
+                config RT_LV_COLOR_DEPTH_16
+                    bool "16bit"
+                config RT_LV_COLOR_DEPTH_24
+                    bool "24bit"
+            endchoice
+
+            config RT_LV_COLOR_DEPTH
+                int
+                default 1  if RT_LV_COLOR_DEPTH_1
+                default 8  if RT_LV_COLOR_DEPTH_8
+                default 16 if RT_LV_COLOR_DEPTH_16
+                default 24 if RT_LV_COLOR_DEPTH_24
+            config RT_LV_HOR_RES
+                int "horizontal pixels"
+                default 480
+            config RT_LV_VER_RES
+                int "vertical pixels"
+                default 272
+            config RT_LV_DPI
+                int "DPI(dot per inch)"
+                default 50
+            config RT_LV_COLOR_16_SWAP
+                bool "LV_COLOR_16_SWAP enable"
+                default n
+            config RT_LV_COLOR_SCREEN_TRANSP
+                bool "LV_COLOR_SCREEN_TRANSP enable"
+                default n
+            config RT_LV_INDEXED_CHROMA
+                bool "LV_INDEXED_CHROMA enable"
+                default y
+            config RT_LV_ANTIALIAS
+                bool "LV_ANTIALIAS enable"
+                default y
+            config RT_LV_DISP_DEF_REFR_PERIOD
+                int "LV_DISP_DEF_REFR_PERIOD value(ms) set"
+                default 10
+            config RT_LV_DISP_SMALL_LIMIT
+                int "LV_DISP_SMALL_LIMIT value set"
+                default 30
+            config RT_LV_DISP_MEDIUM_LIMIT
+                int "LV_DISP_MEDIUM_LIMIT value set"
+                default 50
+            config RT_LV_DISP_LARGE_LIMIT
+                int "LV_DISP_LARGE_LIMIT value set"
+                default 70
+        endmenu
+
+        menu "LV Input device config"
+            config RT_LV_INDEV_DEF_READ_PERIOD
+                int "LV_INDEV_DEF_READ_PERIOD value set"
+                default 10
+            config RT_LV_INDEV_DEF_DRAG_LIMIT
+                int "LV_INDEV_DEF_DRAG_LIMIT value set"
+                default 10
+            config RT_LV_INDEV_DEF_DRAG_THROW
+                int "LV_INDEV_DEF_DRAG_THROW value set"
+                default 10
+            config RT_LV_INDEV_DEF_LONG_PRESS_TIME
+                int "LV_INDEV_DEF_LONG_PRESS_TIME value set"
+                default 400
+            config RT_LV_INDEV_DEF_LONG_PRESS_REP_TIME
+                int "LV_INDEV_DEF_LONG_PRESS_REP_TIME value set"
+                default 100
+            config RT_LV_INDEV_DEF_GESTURE_LIMIT
+                int "LV_INDEV_DEF_GESTURE_LIMIT value set"
+                default 50
+            config RT_LV_INDEV_DEF_GESTURE_MIN_VELOCITY
+                int "LV_INDEV_DEF_GESTURE_MIN_VELOCITY value set"
+                default 3
+        endmenu
+
+        menu "LV Feature config"
+            config RT_LV_USE_ANIMATION
+                bool "LV ANIMATION enable"
+                default y
+            config RT_LV_USE_SHADOW
+                bool "LV SHADOW enable"
+                default y
+            config RT_LV_USE_BLEND_MODES
+                bool "LV BLEND_MODES enable"
+                default y
+            config RT_LV_USE_OPA_SCALE
+                bool "LV OPA_SCALE enable"
+                default y
+            config RT_LV_USE_IMG_TRANSFORM
+                bool "LV IMG_TRANSFORM enable"
+                default y
+            config RT_LV_USE_GROUP
+                bool "LV GROUP enable"
+                default y
+            config RT_LV_USE_GPU
+                bool "LV GPU enable"
+                default n
+            config RT_LV_USE_FILESYSTEM
+                bool "LV FILESYSTEM enable"
+                default y
+            config RT_LV_USE_USER_DATA
+                bool "LV USER_DATA enable"
+                default n
+            config RT_LV_USE_PERF_MONITOR
+                bool "LV PERF_MONITOR enable"
+                default n
+        endmenu
+
+        menu "LV OBJECT config"
+            config RT_LV_USE_ARC
+                bool "LV ARC enable"
+                default y
+            config RT_LV_USE_BAR
+                bool "LV BAR enable"
+                default y
+            config RT_LV_USE_BTN
+                bool "LV BTN enable"
+                default y
+            config RT_LV_USE_BTNMATRIX
+                bool "LV BTNMATRIX enable"
+                default n
+            config RT_LV_USE_CALENDAR
+                bool "LV CALENDAR enable"
+                default n
+            config RT_LV_USE_CANVAS
+                bool "LV CANVAS enable"
+                default n
+            config RT_LV_USE_CHECKBOX
+                bool "LV CHECKBOX enable"
+                default y
+            config RT_LV_USE_CHART
+                bool "LV CHART enable"
+                default y
+            config RT_LV_USE_CONT
+                bool "LV CONT enable"
+                default y
+            config RT_LV_USE_CPICKER
+                bool "LV CPICKER enable"
+                default n
+            config RT_LV_USE_DROPDOWN
+                bool "LV DROPDOWN enable"
+                default y
+            config RT_LV_USE_GAUGE
+                bool "LV GAUGE enable"
+                default n
+            config RT_LV_USE_CLOCK
+                bool "LV CLOCK enable"
+                default y
+            config RT_LV_USE_IMG
+                bool "LV IMG enable"
+                default y
+            config RT_LV_USE_IMGBTN
+                bool "LV IMGBTN enable"
+                default y
+            config RT_LV_USE_KEYBOARD
+                bool "LV KEYBOARD enable"
+                default n
+            config RT_LV_USE_LABEL
+                bool "LV LABEL enable"
+                default y
+            config RT_LV_USE_LED
+                bool "LV LED enable"
+                default n
+            config RT_LV_USE_LINE
+                bool "LV LINE enable"
+                default y
+            config RT_LV_USE_LIST
+                bool "LV LIST enable"
+                default y
+            config RT_LV_USE_LINEMETER
+                bool "LV LINEMETER enable"
+                default y
+            config RT_LV_USE_OBJMASK
+                bool "LV OBJMASK enable"
+                default y
+            config RT_LV_USE_MSGBOX
+                bool "LV MSGBOX enable"
+                default y
+            config RT_LV_USE_PAGE
+                bool "LV PAGE enable"
+                default y
+            config RT_LV_USE_SPINNER
+                bool "LV SPINNER enable"
+                default y
+            config RT_LV_USE_ROLLER
+                bool "LV ROLLER enable"
+                default y
+            config RT_LV_USE_SLIDER
+                bool "LV SLIDER enable"
+                default y
+            config RT_LV_USE_SPINBOX
+                bool "LV SPINBOX enable"
+                default y
+            config RT_LV_USE_SWITCH
+                bool "LV SWITCH enable"
+                default y
+            config RT_LV_USE_TEXTAREA
+                bool "LV TEXTAREA enable"
+                default y
+            config RT_LV_USE_TABLE
+                bool "LV TABLE enable"
+                default n
+            config RT_LV_USE_TABVIEW
+                bool "LV TABVIEW enable"
+                default n
+            config RT_LV_USE_TILEVIEW
+                bool "LV TILEVIEW enable"
+                default n
+            config RT_LV_USE_WIN
+                bool "LV WIN enable"
+                default n
+        endmenu
+
+        menu "LV FONTS config"
+            config RT_LV_FONT_MONTSERRAT_8
+                bool "LV_FONT_MONTSERRAT_8 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_10
+                bool "LV_FONT_MONTSERRAT_10 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_12
+                bool "LV_FONT_MONTSERRAT_12 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_14
+                bool "LV_FONT_MONTSERRAT_14 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_16
+                bool "LV_FONT_MONTSERRAT_16 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_18
+                bool "LV_FONT_MONTSERRAT_18 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_20
+                bool "LV_FONT_MONTSERRAT_20 enable"
+                default y
+            config RT_LV_FONT_MONTSERRAT_22
+                bool "LV_FONT_MONTSERRAT_22 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_24
+                bool "LV_FONT_MONTSERRAT_24 enable"
+                default y
+            config RT_LV_FONT_MONTSERRAT_26
+                bool "LV_FONT_MONTSERRAT_26 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_28
+                bool "LV_FONT_MONTSERRAT_28 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_30
+                bool "LV_FONT_MONTSERRAT_30 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_32
+                bool "LV_FONT_MONTSERRAT_32 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_34
+                bool "LV_FONT_MONTSERRAT_34 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_36
+                bool "LV_FONT_MONTSERRAT_36 enable"
+                default y
+            config RT_LV_FONT_MONTSERRAT_38
+                bool "LV_FONT_MONTSERRAT_38 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_40
+                bool "LV_FONT_MONTSERRAT_40 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_42
+                bool "LV_FONT_MONTSERRAT_42 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_44
+                bool "LV_FONT_MONTSERRAT_44 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_46
+                bool "LV_FONT_MONTSERRAT_46 enable"
+                default n
+            config RT_LV_FONT_MONTSERRAT_48
+                bool "LV_FONT_MONTSERRAT_48 enable"
+                default n
+        endmenu
+
+        menu "LV_THEME_DEFAULT VALUEs config"
+            config RT_LV_THEME_DEFAULT_COLOR_PRIMARY
+                hex "LV_THEME_DEFAULT_COLOR_PRIMARY value set"
+                default 0x01a2b1
+            config RT_LV_THEME_DEFAULT_COLOR_SECONDARY
+                hex "LV_THEME_DEFAULT_COLOR_SECONDARY value set"
+                default 0x44d1b6
+            choice
+                prompt "LV_THEME_DEFAULT_FONT_SMALL select"
+                default RT_LV_THEME_DEFAULT_FONT_SMALL_NULL
+
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_NULL
+                    bool "no font select"
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_12
+                    bool "lv_font_montserrat_12 select"
+                    depends on RT_LV_FONT_MONTSERRAT_12
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_14
+                    bool "lv_font_montserrat_14 select"
+                    depends on RT_LV_FONT_MONTSERRAT_14
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_16
+                    bool "lv_font_montserrat_16 select"
+                    depends on RT_LV_FONT_MONTSERRAT_16
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_18
+                    bool "lv_font_montserrat_18 select"
+                    depends on RT_LV_FONT_MONTSERRAT_18
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_20
+                    bool "lv_font_montserrat_20 select"
+                    depends on RT_LV_FONT_MONTSERRAT_20
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_22
+                    bool "lv_font_montserrat_22 select"
+                    depends on RT_LV_FONT_MONTSERRAT_22
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_24
+                    bool "lv_font_montserrat_24 select"
+                    depends on RT_LV_FONT_MONTSERRAT_24
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_26
+                    bool "lv_font_montserrat_26 select"
+                    depends on RT_LV_FONT_MONTSERRAT_26
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_28
+                    bool "lv_font_montserrat_28 select"
+                    depends on RT_LV_FONT_MONTSERRAT_28
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_30
+                    bool "lv_font_montserrat_30 select"
+                    depends on RT_LV_FONT_MONTSERRAT_30
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_32
+                    bool "lv_font_montserrat_32 select"
+                    depends on RT_LV_FONT_MONTSERRAT_32
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_34
+                    bool "lv_font_montserrat_34 select"
+                    depends on RT_LV_FONT_MONTSERRAT_34
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_36
+                    bool "lv_font_montserrat_36 select"
+                    depends on RT_LV_FONT_MONTSERRAT_36
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_38
+                    bool "lv_font_montserrat_38 select"
+                    depends on RT_LV_FONT_MONTSERRAT_38
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_40
+                    bool "lv_font_montserrat_40 select"
+                    depends on RT_LV_FONT_MONTSERRAT_40
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_42
+                    bool "lv_font_montserrat_42 select"
+                    depends on RT_LV_FONT_MONTSERRAT_42
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_44
+                    bool "lv_font_montserrat_44 select"
+                    depends on RT_LV_FONT_MONTSERRAT_44
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_46
+                    bool "lv_font_montserrat_46 select"
+                    depends on RT_LV_FONT_MONTSERRAT_46
+                config RT_LV_THEME_DEFAULT_FONT_SMALL_MONTSERRAT_48
+                    bool "lv_font_montserrat_48 select"
+                    depends on RT_LV_FONT_MONTSERRAT_48
+            endchoice
+
+            choice
+                prompt "LV_THEME_DEFAULT_FONT_NORMAL select"
+                default RT_LV_THEME_DEFAULT_FONT_NORMAL_NULL
+
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_NULL
+                    bool "no font select"
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_12
+                    bool "lv_font_montserrat_12 select"
+                    depends on RT_LV_FONT_MONTSERRAT_12
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_14
+                    bool "lv_font_montserrat_14 select"
+                    depends on RT_LV_FONT_MONTSERRAT_14
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_16
+                    bool "lv_font_montserrat_16 select"
+                    depends on RT_LV_FONT_MONTSERRAT_16
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_18
+                    bool "lv_font_montserrat_18 select"
+                    depends on RT_LV_FONT_MONTSERRAT_18
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_20
+                    bool "lv_font_montserrat_20 select"
+                    depends on RT_LV_FONT_MONTSERRAT_20
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_22
+                    bool "lv_font_montserrat_22 select"
+                    depends on RT_LV_FONT_MONTSERRAT_22
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_24
+                    bool "lv_font_montserrat_24 select"
+                    depends on RT_LV_FONT_MONTSERRAT_24
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_26
+                    bool "lv_font_montserrat_26 select"
+                    depends on RT_LV_FONT_MONTSERRAT_26
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_28
+                    bool "lv_font_montserrat_28 select"
+                    depends on RT_LV_FONT_MONTSERRAT_28
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_30
+                    bool "lv_font_montserrat_30 select"
+                    depends on RT_LV_FONT_MONTSERRAT_30
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_32
+                    bool "lv_font_montserrat_32 select"
+                    depends on RT_LV_FONT_MONTSERRAT_32
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_34
+                    bool "lv_font_montserrat_34 select"
+                    depends on RT_LV_FONT_MONTSERRAT_34
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_36
+                    bool "lv_font_montserrat_36 select"
+                    depends on RT_LV_FONT_MONTSERRAT_36
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_38
+                    bool "lv_font_montserrat_38 select"
+                    depends on RT_LV_FONT_MONTSERRAT_38
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_40
+                    bool "lv_font_montserrat_40 select"
+                    depends on RT_LV_FONT_MONTSERRAT_40
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_42
+                    bool "lv_font_montserrat_42 select"
+                    depends on RT_LV_FONT_MONTSERRAT_42
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_44
+                    bool "lv_font_montserrat_44 select"
+                    depends on RT_LV_FONT_MONTSERRAT_44
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_46
+                    bool "lv_font_montserrat_46 select"
+                    depends on RT_LV_FONT_MONTSERRAT_46
+                config RT_LV_THEME_DEFAULT_FONT_NORMAL_MONTSERRAT_48
+                    bool "lv_font_montserrat_48 select"
+                    depends on RT_LV_FONT_MONTSERRAT_48
+            endchoice
+
+            choice
+                prompt "LV_THEME_DEFAULT_FONT_SUBTITLE select"
+                default RT_LV_THEME_DEFAULT_FONT_SUBTITLE_NULL
+
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_NULL
+                    bool "no font select"
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_12
+                    bool "lv_font_montserrat_12 select"
+                    depends on RT_LV_FONT_MONTSERRAT_12
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_14
+                    bool "lv_font_montserrat_14 select"
+                    depends on RT_LV_FONT_MONTSERRAT_14
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_16
+                    bool "lv_font_montserrat_16 select"
+                    depends on RT_LV_FONT_MONTSERRAT_16
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_18
+                    bool "lv_font_montserrat_18 select"
+                    depends on RT_LV_FONT_MONTSERRAT_18
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_20
+                    bool "lv_font_montserrat_20 select"
+                    depends on RT_LV_FONT_MONTSERRAT_20
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_22
+                    bool "lv_font_montserrat_22 select"
+                    depends on RT_LV_FONT_MONTSERRAT_22
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_24
+                    bool "lv_font_montserrat_24 select"
+                    depends on RT_LV_FONT_MONTSERRAT_24
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_26
+                    bool "lv_font_montserrat_26 select"
+                    depends on RT_LV_FONT_MONTSERRAT_26
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_28
+                    bool "lv_font_montserrat_28 select"
+                    depends on RT_LV_FONT_MONTSERRAT_28
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_30
+                    bool "lv_font_montserrat_30 select"
+                    depends on RT_LV_FONT_MONTSERRAT_30
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_32
+                    bool "lv_font_montserrat_32 select"
+                    depends on RT_LV_FONT_MONTSERRAT_32
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_34
+                    bool "lv_font_montserrat_34 select"
+                    depends on RT_LV_FONT_MONTSERRAT_34
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_36
+                    bool "lv_font_montserrat_36 select"
+                    depends on RT_LV_FONT_MONTSERRAT_36
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_38
+                    bool "lv_font_montserrat_38 select"
+                    depends on RT_LV_FONT_MONTSERRAT_38
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_40
+                    bool "lv_font_montserrat_40 select"
+                    depends on RT_LV_FONT_MONTSERRAT_40
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_42
+                    bool "lv_font_montserrat_42 select"
+                    depends on RT_LV_FONT_MONTSERRAT_42
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_44
+                    bool "lv_font_montserrat_44 select"
+                    depends on RT_LV_FONT_MONTSERRAT_44
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_46
+                    bool "lv_font_montserrat_46 select"
+                    depends on RT_LV_FONT_MONTSERRAT_46
+                config RT_LV_THEME_DEFAULT_FONT_SUBTITLE_MONTSERRAT_48
+                    bool "lv_font_montserrat_48 select"
+                    depends on RT_LV_FONT_MONTSERRAT_48
+            endchoice
+
+            choice
+                prompt "LV_THEME_DEFAULT_FONT_TITLE select"
+                default RT_LV_THEME_DEFAULT_FONT_TITLE_NULL
+
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_NULL
+                    bool "no font select"
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_12
+                    bool "lv_font_montserrat_12 select"
+                    depends on RT_LV_FONT_MONTSERRAT_12
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_14
+                    bool "lv_font_montserrat_14 select"
+                    depends on RT_LV_FONT_MONTSERRAT_14
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_16
+                    bool "lv_font_montserrat_16 select"
+                    depends on RT_LV_FONT_MONTSERRAT_16
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_18
+                    bool "lv_font_montserrat_18 select"
+                    depends on RT_LV_FONT_MONTSERRAT_18
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_20
+                    bool "lv_font_montserrat_20 select"
+                    depends on RT_LV_FONT_MONTSERRAT_20
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_22
+                    bool "lv_font_montserrat_22 select"
+                    depends on RT_LV_FONT_MONTSERRAT_22
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_24
+                    bool "lv_font_montserrat_24 select"
+                    depends on RT_LV_FONT_MONTSERRAT_24
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_26
+                    bool "lv_font_montserrat_26 select"
+                    depends on RT_LV_FONT_MONTSERRAT_26
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_28
+                    bool "lv_font_montserrat_28 select"
+                    depends on RT_LV_FONT_MONTSERRAT_28
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_30
+                    bool "lv_font_montserrat_30 select"
+                    depends on RT_LV_FONT_MONTSERRAT_30
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_32
+                    bool "lv_font_montserrat_32 select"
+                    depends on RT_LV_FONT_MONTSERRAT_32
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_34
+                    bool "lv_font_montserrat_34 select"
+                    depends on RT_LV_FONT_MONTSERRAT_34
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_36
+                    bool "lv_font_montserrat_36 select"
+                    depends on RT_LV_FONT_MONTSERRAT_36
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_38
+                    bool "lv_font_montserrat_38 select"
+                    depends on RT_LV_FONT_MONTSERRAT_38
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_40
+                    bool "lv_font_montserrat_40 select"
+                    depends on RT_LV_FONT_MONTSERRAT_40
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_42
+                    bool "lv_font_montserrat_42 select"
+                    depends on RT_LV_FONT_MONTSERRAT_42
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_44
+                    bool "lv_font_montserrat_44 select"
+                    depends on RT_LV_FONT_MONTSERRAT_44
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_46
+                    bool "lv_font_montserrat_46 select"
+                    depends on RT_LV_FONT_MONTSERRAT_46
+                config RT_LV_THEME_DEFAULT_FONT_TITLE_MONTSERRAT_48
+                    bool "lv_font_montserrat_48 select"
+                    depends on RT_LV_FONT_MONTSERRAT_48
+            endchoice
+        endmenu
+
+    endmenu
+
+    menu "LittlevGL2RTT display buffer Options"
+
+        choice
+            prompt "Display buffer malloc mode"
+            default RT_LV_DISP_USE_HEAP_BUF
+
+            config RT_LV_DISP_USE_HEAP_BUF
+                bool "heap malloc"
+            config RT_LV_DISP_USE_LARGE_BUF
+                bool "large malloc"
+                depends on RT_USING_LARGE_HEAP
+            config RT_LV_DISP_USE_DTCM_BUF
+                bool "dtcm malloc"
+                depends on RT_USING_DTCM_HEAP
+            config RT_LV_DISP_USE_PSRAM_BUF
+                bool "psram malloc"
+                depends on RT_USING_PSRAM_HEAP
+        endchoice
+
+        config RT_LV_DISP_DOUBLE_BUF
+            bool "display double buffer enable"
+            default n
+
+        config RT_LV_DISP_BUF_LINES
+            int "display buffer line size"
+            default 40
+            range 10  RT_LV_VER_RES
+    endmenu
+
+    config RT_LV_USING_DEMO
+        bool
+        prompt "LittlevGL2RTT demo example"
+        default n
+
+endif

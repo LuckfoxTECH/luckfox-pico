@@ -1,0 +1,1 @@
+gcc -O2 -o dhrystone dhry21a.c dhry21b.c timers.c

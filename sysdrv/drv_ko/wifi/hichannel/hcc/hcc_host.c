@@ -31,8 +31,8 @@ hcc_handler_stru *g_hcc_host_handler = HI_NULL;
 hi_u32  g_hcc_assemble_count = 5;
 static hi_u32  g_lo_buf_times = 0;
 #define MAX_TIMES                           1
-#define MAX_TIME_VALUE                      15
-#define MIN_TIME_VALUE                      15
+#define MAX_TIME_VALUE                      1000 //1ms
+#define MIN_TIME_VALUE                      1000 //1ms
 
 /* º¯Êý¶¨Òå */
 hcc_handler_stru *hcc_host_get_handler(hi_void)
@@ -383,6 +383,11 @@ static hi_u32 hcc_tx_flow_ctrl_handle(hcc_handler_stru *hcc_handler, hcc_queue_t
                 hcc_handler->hcc_transer_info.tx_flow_ctrl.uc_lopriority_cnt);
         }
     }
+
+    if (printk_ratelimit() && (ret == HI_FAIL))
+        oam_error_log2("tx_flow uc_hipriority %d, uc_lopriority %d!", hcc_mgmt_pkt_get(priority_cnt),
+                       hcc_large_pkt_get(priority_cnt));
+
     return ret;
 }
 
@@ -405,6 +410,8 @@ hi_s32 hcc_host_proc_tx_queue(hcc_handler_stru *hcc_handler, hcc_queue_type_enum
     }
 
     if (hcc_handler->hcc_transer_info.tx_flow_ctrl.flowctrl_flag == D2H_MSG_FLOWCTRL_OFF) {
+        if (printk_ratelimit())
+            oam_error_log0("tx_flow_ctrl: tx congestion!!!");
         hcc_tx_sleep();
         return  count;
     }

@@ -25,7 +25,7 @@ extern "C" {
 uint32_t custom_tick_get(void);
 #define LV_TICK_CUSTOM_SYS_TIME_EXPR custom_tick_get()
 
-typedef void *lv_user_data_t;
+typedef void * lv_user_data_t;
 
 /**********************
  * GLOBAL PROTOTYPES

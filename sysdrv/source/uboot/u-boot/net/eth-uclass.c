@@ -70,8 +70,8 @@ struct udevice *eth_get_dev(void)
 
 	uc_priv = eth_get_uclass_priv();
 	if (!uc_priv->current)
-		eth_errno = uclass_first_device(UCLASS_ETH,
-				    &uc_priv->current);
+		uclass_first_device(UCLASS_ETH,
+			    &uc_priv->current);
 	return uc_priv->current;
 }
 

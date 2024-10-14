@@ -9,3 +9,4 @@
 RK_RES test_ae(int verbose);
 
 #endif /*_TEST_AE_H_*/
+

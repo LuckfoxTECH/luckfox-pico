@@ -73,6 +73,17 @@ XCamReturn sample_abayertnr_getAttr_v23(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi
     return ret;
 }
 
+XCamReturn sample_abayertnr_getAttr_v23Lite(const rk_aiq_sys_ctx_t* ctx,
+                                            rk_aiq_uapi_mode_sync_e sync_mode) {
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    rk_aiq_bayertnr_attrib_v23L_t bayertnr_attr;
+    bayertnr_attr.sync.sync_mode = sync_mode;
+    ret                          = rk_aiq_user_api2_abayertnrV23Lite_GetAttrib(ctx, &bayertnr_attr);
+    printf("get abayertnr v23Lite attri ret:%d done:%d \n\n", ret, bayertnr_attr.sync.done);
+
+    return ret;
+}
 
 XCamReturn sample_abayertnr_getStrength_v2(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode_sync_e sync_mode)
 {
@@ -390,6 +401,159 @@ XCamReturn sample_abayertnr_setAuto_v23(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi
     return ret;
 }
 
+XCamReturn sample_abayertnr_setAuto_v23Lite(const rk_aiq_sys_ctx_t* ctx,
+                                            rk_aiq_uapi_mode_sync_e sync_mode) {
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    rk_aiq_bayertnr_attrib_v23L_t bayertnr_attr;
+    bayertnr_attr.sync.sync_mode = sync_mode;
+    ret                          = rk_aiq_user_api2_abayertnrV23Lite_GetAttrib(ctx, &bayertnr_attr);
+    bayertnr_attr.sync.sync_mode = sync_mode;
+    bayertnr_attr.eMode          = ABAYERTNRV23_OP_MODE_AUTO;
+    bayertnr_attr.stAuto.st3DParams.enable = 1;
+
+    for (int i = 0; i < RK_BAYERNR_V23_MAX_ISO_NUM; i++) {
+        bayertnr_attr.stAuto.st3DParams.iso[i] = 50 * pow(2, i);
+
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint[0]  = 512;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint[1]  = 1024;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint[2]  = 1536;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint[3]  = 2048;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint[4]  = 3072;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint[5]  = 4096;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint[6]  = 5120;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint[7]  = 6144;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint[8]  = 7168;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint[9]  = 8192;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint[10] = 9216;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint[11] = 10240;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint[12] = 11264;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint[13] = 12288;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint[14] = 13312;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint[15] = 14336;
+
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].sigma[0]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].sigma[1]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].sigma[2]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].sigma[3]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].sigma[4]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].sigma[5]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].sigma[6]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].sigma[7]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].sigma[8]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].sigma[9]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].sigma[10] = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].sigma[11] = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].sigma[12] = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].sigma[13] = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].sigma[14] = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].sigma[15] = 90;
+
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint2[0]  = 512;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint2[1]  = 1024;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint2[2]  = 1536;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint2[3]  = 2048;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint2[4]  = 3072;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint2[5]  = 4096;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint2[6]  = 5120;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint2[7]  = 6144;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint2[8]  = 7168;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint2[9]  = 8192;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint2[10] = 9216;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint2[11] = 10240;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint2[12] = 11264;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint2[13] = 12288;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint2[14] = 13312;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lumapoint2[15] = 14336;
+
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_sigma[0]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_sigma[1]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_sigma[2]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_sigma[3]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_sigma[4]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_sigma[5]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_sigma[6]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_sigma[7]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_sigma[8]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_sigma[9]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_sigma[10] = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_sigma[11] = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_sigma[12] = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_sigma[13] = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_sigma[14] = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_sigma[15] = 90;
+
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_sigma[0]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_sigma[1]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_sigma[2]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_sigma[3]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_sigma[4]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_sigma[5]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_sigma[6]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_sigma[7]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_sigma[8]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_sigma[9]  = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_sigma[10] = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_sigma[11] = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_sigma[12] = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_sigma[13] = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_sigma[14] = 90;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_sigma[15] = 90;
+
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].thumbds_w = 8;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].thumbds_h = 4;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_enable = 1;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_enable = 1;
+
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_gsbay_en = 1;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_gslum_en = 1;
+
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_gslum_en = 1;
+
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].global_pk_en = 0;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].global_pksq  = 1024;
+
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_filter_strength = 1.0;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_filter_strength = 1.0;
+
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].soft_threshold_ratio = 0.0;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_wgt_comp          = 0.16;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_clipwgt           = 0.03215;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hidif_th             = 32767;
+
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].trans_en     = 0;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].wgt_use_mode = 1;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].wgt_mge_mode = 1;
+
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_filter_abs_ctrl = 0;
+
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_filter_rat0  = 1;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].lo_filter_thed0 = 0;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_filter_rat0  = 0;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_filter_thed0 = 256;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_filter_rat1  = 0;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].hi_filter_thed1 = 1024;
+
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].guass_guide_coeff0 = 16;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].guass_guide_coeff1 = 8;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].guass_guide_coeff2 = 4;
+        // bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].guass_guide_coeff3 = 0;
+
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].wgtmm_opt_en = 0;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].wgtmm_sel_en = 0;
+        bayertnr_attr.stAuto.st3DParams.bayertnrParamISO[i].wgtmin       = 0;
+    }
+
+    ret = rk_aiq_user_api2_abayertnrV23Lite_SetAttrib(ctx, &bayertnr_attr);
+    printf("set abayertnr attri v23Lite auto ret:%d \n\n", ret);
+
+    rk_aiq_bayertnr_attrib_v23L_t get_bayertnr_attr;
+    get_bayertnr_attr.sync.sync_mode = sync_mode;
+    ret = rk_aiq_user_api2_abayertnrV23Lite_GetAttrib(ctx, &get_bayertnr_attr);
+    printf("get abayertnr v23Lite attri ret:%d done:%d \n\n", ret, get_bayertnr_attr.sync.done);
+    return ret;
+}
+
 XCamReturn sample_abayertnr_setManual_v2(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode_sync_e sync_mode)
 {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
@@ -672,6 +836,151 @@ XCamReturn sample_abayertnr_setManual_v23(const rk_aiq_sys_ctx_t* ctx, rk_aiq_ua
     return ret;
 }
 
+XCamReturn sample_abayertnr_setManual_v23Lite(const rk_aiq_sys_ctx_t* ctx,
+                                              rk_aiq_uapi_mode_sync_e sync_mode) {
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    rk_aiq_bayertnr_attrib_v23L_t bayertnr_attr;
+    bayertnr_attr.sync.sync_mode = sync_mode;
+    ret                          = rk_aiq_user_api2_abayertnrV23Lite_GetAttrib(ctx, &bayertnr_attr);
+    bayertnr_attr.sync.sync_mode = sync_mode;
+    bayertnr_attr.eMode          = ABAYERTNRV23_OP_MODE_MANUAL;
+    bayertnr_attr.stManual.st3DSelect.enable = 1;
+
+    bayertnr_attr.stManual.st3DSelect.lumapoint[0]  = 512;
+    bayertnr_attr.stManual.st3DSelect.lumapoint[1]  = 1024;
+    bayertnr_attr.stManual.st3DSelect.lumapoint[2]  = 1536;
+    bayertnr_attr.stManual.st3DSelect.lumapoint[3]  = 2048;
+    bayertnr_attr.stManual.st3DSelect.lumapoint[4]  = 3072;
+    bayertnr_attr.stManual.st3DSelect.lumapoint[5]  = 4096;
+    bayertnr_attr.stManual.st3DSelect.lumapoint[6]  = 5120;
+    bayertnr_attr.stManual.st3DSelect.lumapoint[7]  = 6144;
+    bayertnr_attr.stManual.st3DSelect.lumapoint[8]  = 7168;
+    bayertnr_attr.stManual.st3DSelect.lumapoint[9]  = 8192;
+    bayertnr_attr.stManual.st3DSelect.lumapoint[10] = 9216;
+    bayertnr_attr.stManual.st3DSelect.lumapoint[11] = 10240;
+    bayertnr_attr.stManual.st3DSelect.lumapoint[12] = 11264;
+    bayertnr_attr.stManual.st3DSelect.lumapoint[13] = 12288;
+    bayertnr_attr.stManual.st3DSelect.lumapoint[14] = 13312;
+    bayertnr_attr.stManual.st3DSelect.lumapoint[15] = 14336;
+
+    bayertnr_attr.stManual.st3DSelect.sigma[0]  = 90;
+    bayertnr_attr.stManual.st3DSelect.sigma[1]  = 90;
+    bayertnr_attr.stManual.st3DSelect.sigma[2]  = 90;
+    bayertnr_attr.stManual.st3DSelect.sigma[3]  = 90;
+    bayertnr_attr.stManual.st3DSelect.sigma[4]  = 90;
+    bayertnr_attr.stManual.st3DSelect.sigma[5]  = 90;
+    bayertnr_attr.stManual.st3DSelect.sigma[6]  = 90;
+    bayertnr_attr.stManual.st3DSelect.sigma[7]  = 90;
+    bayertnr_attr.stManual.st3DSelect.sigma[8]  = 90;
+    bayertnr_attr.stManual.st3DSelect.sigma[9]  = 90;
+    bayertnr_attr.stManual.st3DSelect.sigma[10] = 90;
+    bayertnr_attr.stManual.st3DSelect.sigma[11] = 90;
+    bayertnr_attr.stManual.st3DSelect.sigma[12] = 90;
+    bayertnr_attr.stManual.st3DSelect.sigma[13] = 90;
+    bayertnr_attr.stManual.st3DSelect.sigma[14] = 90;
+    bayertnr_attr.stManual.st3DSelect.sigma[15] = 90;
+
+    bayertnr_attr.stManual.st3DSelect.lumapoint2[0]  = 512;
+    bayertnr_attr.stManual.st3DSelect.lumapoint2[1]  = 1024;
+    bayertnr_attr.stManual.st3DSelect.lumapoint2[2]  = 1536;
+    bayertnr_attr.stManual.st3DSelect.lumapoint2[3]  = 2048;
+    bayertnr_attr.stManual.st3DSelect.lumapoint2[4]  = 3072;
+    bayertnr_attr.stManual.st3DSelect.lumapoint2[5]  = 4096;
+    bayertnr_attr.stManual.st3DSelect.lumapoint2[6]  = 5120;
+    bayertnr_attr.stManual.st3DSelect.lumapoint2[7]  = 6144;
+    bayertnr_attr.stManual.st3DSelect.lumapoint2[8]  = 7168;
+    bayertnr_attr.stManual.st3DSelect.lumapoint2[9]  = 8192;
+    bayertnr_attr.stManual.st3DSelect.lumapoint2[10] = 9216;
+    bayertnr_attr.stManual.st3DSelect.lumapoint2[11] = 10240;
+    bayertnr_attr.stManual.st3DSelect.lumapoint2[12] = 11264;
+    bayertnr_attr.stManual.st3DSelect.lumapoint2[13] = 12288;
+    bayertnr_attr.stManual.st3DSelect.lumapoint2[14] = 13312;
+    bayertnr_attr.stManual.st3DSelect.lumapoint2[15] = 14336;
+
+    bayertnr_attr.stManual.st3DSelect.lo_sigma[0]  = 32;
+    bayertnr_attr.stManual.st3DSelect.lo_sigma[1]  = 32;
+    bayertnr_attr.stManual.st3DSelect.lo_sigma[2]  = 32;
+    bayertnr_attr.stManual.st3DSelect.lo_sigma[3]  = 32;
+    bayertnr_attr.stManual.st3DSelect.lo_sigma[4]  = 32;
+    bayertnr_attr.stManual.st3DSelect.lo_sigma[5]  = 32;
+    bayertnr_attr.stManual.st3DSelect.lo_sigma[6]  = 32;
+    bayertnr_attr.stManual.st3DSelect.lo_sigma[7]  = 32;
+    bayertnr_attr.stManual.st3DSelect.lo_sigma[8]  = 32;
+    bayertnr_attr.stManual.st3DSelect.lo_sigma[9]  = 32;
+    bayertnr_attr.stManual.st3DSelect.lo_sigma[10] = 32;
+    bayertnr_attr.stManual.st3DSelect.lo_sigma[11] = 32;
+    bayertnr_attr.stManual.st3DSelect.lo_sigma[12] = 32;
+    bayertnr_attr.stManual.st3DSelect.lo_sigma[13] = 32;
+    bayertnr_attr.stManual.st3DSelect.lo_sigma[14] = 32;
+    bayertnr_attr.stManual.st3DSelect.lo_sigma[15] = 32;
+
+    bayertnr_attr.stManual.st3DSelect.hi_sigma[0]  = 256;
+    bayertnr_attr.stManual.st3DSelect.hi_sigma[1]  = 256;
+    bayertnr_attr.stManual.st3DSelect.hi_sigma[2]  = 256;
+    bayertnr_attr.stManual.st3DSelect.hi_sigma[3]  = 256;
+    bayertnr_attr.stManual.st3DSelect.hi_sigma[4]  = 256;
+    bayertnr_attr.stManual.st3DSelect.hi_sigma[5]  = 256;
+    bayertnr_attr.stManual.st3DSelect.hi_sigma[6]  = 256;
+    bayertnr_attr.stManual.st3DSelect.hi_sigma[7]  = 256;
+    bayertnr_attr.stManual.st3DSelect.hi_sigma[8]  = 256;
+    bayertnr_attr.stManual.st3DSelect.hi_sigma[9]  = 256;
+    bayertnr_attr.stManual.st3DSelect.hi_sigma[10] = 256;
+    bayertnr_attr.stManual.st3DSelect.hi_sigma[11] = 256;
+    bayertnr_attr.stManual.st3DSelect.hi_sigma[12] = 256;
+    bayertnr_attr.stManual.st3DSelect.hi_sigma[13] = 256;
+    bayertnr_attr.stManual.st3DSelect.hi_sigma[14] = 256;
+    bayertnr_attr.stManual.st3DSelect.hi_sigma[15] = 256;
+
+    bayertnr_attr.stManual.st3DSelect.thumbds_w    = 8;
+    bayertnr_attr.stManual.st3DSelect.thumbds_h    = 4;
+    bayertnr_attr.stManual.st3DSelect.lo_enable    = 1;
+    bayertnr_attr.stManual.st3DSelect.hi_enable    = 1;
+    bayertnr_attr.stManual.st3DSelect.lo_gsbay_en  = 1;
+    bayertnr_attr.stManual.st3DSelect.lo_gslum_en  = 1;
+    bayertnr_attr.stManual.st3DSelect.hi_gslum_en  = 1;
+    bayertnr_attr.stManual.st3DSelect.global_pk_en = 0;
+    bayertnr_attr.stManual.st3DSelect.global_pksq  = 1024;
+
+    bayertnr_attr.stManual.st3DSelect.lo_filter_strength = 1.0;
+    bayertnr_attr.stManual.st3DSelect.hi_filter_strength = 1.0;
+
+    bayertnr_attr.stManual.st3DSelect.soft_threshold_ratio = 0.0;
+    bayertnr_attr.stManual.st3DSelect.hi_wgt_comp          = 0.16;
+    bayertnr_attr.stManual.st3DSelect.lo_clipwgt           = 0.03215;
+    bayertnr_attr.stManual.st3DSelect.hidif_th             = 32767;
+
+    bayertnr_attr.stManual.st3DSelect.trans_en     = 0;
+    bayertnr_attr.stManual.st3DSelect.wgt_use_mode = 1;
+    bayertnr_attr.stManual.st3DSelect.wgt_mge_mode = 1;
+
+    bayertnr_attr.stManual.st3DSelect.hi_filter_abs_ctrl = 0;
+
+    bayertnr_attr.stManual.st3DSelect.lo_filter_rat0  = 1;
+    bayertnr_attr.stManual.st3DSelect.lo_filter_thed0 = 0;
+    bayertnr_attr.stManual.st3DSelect.hi_filter_rat0  = 0;
+    bayertnr_attr.stManual.st3DSelect.hi_filter_thed0 = 256;
+    bayertnr_attr.stManual.st3DSelect.hi_filter_rat1  = 0;
+    bayertnr_attr.stManual.st3DSelect.hi_filter_thed1 = 1024;
+
+    bayertnr_attr.stManual.st3DSelect.guass_guide_coeff0 = 16;
+    bayertnr_attr.stManual.st3DSelect.guass_guide_coeff1 = 8;
+    bayertnr_attr.stManual.st3DSelect.guass_guide_coeff2 = 4;
+    // bayertnr_attr.stManual.st3DSelect.guass_guide_coeff3 = 8;
+
+    bayertnr_attr.stManual.st3DSelect.wgtmm_opt_en = 0;
+    bayertnr_attr.stManual.st3DSelect.wgtmm_sel_en = 0;
+    bayertnr_attr.stManual.st3DSelect.wgtmin       = 0;
+
+    ret = rk_aiq_user_api2_abayertnrV23Lite_SetAttrib(ctx, &bayertnr_attr);
+    printf("set bayertnr v2 attri manual ret:%d \n\n", ret);
+
+    rk_aiq_bayertnr_attrib_v23L_t get_bayertnr_attr;
+    get_bayertnr_attr.sync.sync_mode = sync_mode;
+    ret = rk_aiq_user_api2_abayertnrV23Lite_GetAttrib(ctx, &get_bayertnr_attr);
+    printf("get abayertnr v2 attri ret:%d done:%d \n\n", ret, get_bayertnr_attr.sync.done);
+    return ret;
+}
 
 XCamReturn sample_abayertnr_setReg_v2(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode_sync_e sync_mode)
 {
@@ -1009,6 +1318,186 @@ XCamReturn sample_abayertnr_setReg_v23(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_
     return ret;
 }
 
+XCamReturn sample_abayertnr_setReg_v23Lite(const rk_aiq_sys_ctx_t* ctx,
+                                           rk_aiq_uapi_mode_sync_e sync_mode) {
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    rk_aiq_bayertnr_attrib_v23L_t bayertnr_attr;
+    bayertnr_attr.sync.sync_mode = sync_mode;
+    ret                          = rk_aiq_user_api2_abayertnrV23Lite_GetAttrib(ctx, &bayertnr_attr);
+    bayertnr_attr.sync.sync_mode = sync_mode;
+    bayertnr_attr.eMode          = ABAYERTNRV23_OP_MODE_REG_MANUAL;
+
+    // BAY3D_BAY3D_CTRL 0x2c00
+    bayertnr_attr.stManual.st3DFix.soft_st     = 0;
+    bayertnr_attr.stManual.st3DFix.soft_mode   = 0;
+    bayertnr_attr.stManual.st3DFix.bwsaving_en = 0;
+
+    bayertnr_attr.stManual.st3DFix.loswitch_protect  = 0;
+    bayertnr_attr.stManual.st3DFix.glbpk_en          = 0;
+    bayertnr_attr.stManual.st3DFix.logaus3_bypass_en = 0;
+    bayertnr_attr.stManual.st3DFix.logaus5_bypass_en = 0;
+
+    bayertnr_attr.stManual.st3DFix.lomed_bypass_en  = 0;
+    bayertnr_attr.stManual.st3DFix.hichnsplit_en    = 0;
+    bayertnr_attr.stManual.st3DFix.hiabs_possel     = 1;
+    bayertnr_attr.stManual.st3DFix.higaus_bypass_en = 0;
+
+    bayertnr_attr.stManual.st3DFix.himed_bypass_en = 0;
+    bayertnr_attr.stManual.st3DFix.lobypass_en     = 0;
+    bayertnr_attr.stManual.st3DFix.hibypass_en     = 0;
+    bayertnr_attr.stManual.st3DFix.bypass_en       = 0;
+    bayertnr_attr.stManual.st3DFix.bay3d_en        = 1;
+
+    // BAY3D_BAY3D_KALRATIO 0x2c04
+    bayertnr_attr.stManual.st3DFix.softwgt  = 0x100;
+    bayertnr_attr.stManual.st3DFix.hidif_th = 0xffff;
+
+    // BAY3D_BAY3D_GLBPK2 0x2c08
+    bayertnr_attr.stManual.st3DFix.glbpk2 = 0x0000800;
+
+    // BAY3D_BAY3D_CTRL1 0x2c0c
+    bayertnr_attr.stManual.st3DFix.hiwgt_opt_en   = 0;
+    bayertnr_attr.stManual.st3DFix.hichncor_en    = 0;
+    bayertnr_attr.stManual.st3DFix.bwopt_gain_dis = 0;
+    bayertnr_attr.stManual.st3DFix.lo4x8_en       = 1;
+    bayertnr_attr.stManual.st3DFix.lo4x4_en       = 0;
+
+    bayertnr_attr.stManual.st3DFix.hisig_ind_sel = 0;
+    bayertnr_attr.stManual.st3DFix.pksig_ind_sel = 0;
+    bayertnr_attr.stManual.st3DFix.iirwr_rnd_en  = 1;
+    bayertnr_attr.stManual.st3DFix.curds_high_en = 0;
+    bayertnr_attr.stManual.st3DFix.higaus3_mode  = 0;
+    bayertnr_attr.stManual.st3DFix.higaus5x5_en  = 0;
+    bayertnr_attr.stManual.st3DFix.wgtmix_opt_en = 0;
+
+    // BAY3D_BAY3D_WGTLMT 0x2c10
+    bayertnr_attr.stManual.st3DFix.wgtlmt   = 0x380;
+    bayertnr_attr.stManual.st3DFix.wgtratio = 0x000;
+
+    // BAY3D_BAY3D_SIG_X0  0x2c14 - 0x2c30
+    bayertnr_attr.stManual.st3DFix.sig0_x[0]  = 0x200;
+    bayertnr_attr.stManual.st3DFix.sig0_x[1]  = 0x400;
+    bayertnr_attr.stManual.st3DFix.sig0_x[2]  = 0x600;
+    bayertnr_attr.stManual.st3DFix.sig0_x[3]  = 0x800;
+    bayertnr_attr.stManual.st3DFix.sig0_x[4]  = 0xc00;
+    bayertnr_attr.stManual.st3DFix.sig0_x[5]  = 0x1000;
+    bayertnr_attr.stManual.st3DFix.sig0_x[6]  = 0x1400;
+    bayertnr_attr.stManual.st3DFix.sig0_x[7]  = 0x1800;
+    bayertnr_attr.stManual.st3DFix.sig0_x[8]  = 0x1c00;
+    bayertnr_attr.stManual.st3DFix.sig0_x[9]  = 0x2000;
+    bayertnr_attr.stManual.st3DFix.sig0_x[10] = 0x2400;
+    bayertnr_attr.stManual.st3DFix.sig0_x[11] = 0x2800;
+    bayertnr_attr.stManual.st3DFix.sig0_x[12] = 0x2c00;
+    bayertnr_attr.stManual.st3DFix.sig0_x[13] = 0x3000;
+    bayertnr_attr.stManual.st3DFix.sig0_x[14] = 0x3400;
+    bayertnr_attr.stManual.st3DFix.sig0_x[15] = 0x3800;
+
+    // BAY3D_BAY3D_SIG0_Y0 0x2c34 - 0x2c50
+    bayertnr_attr.stManual.st3DFix.sig0_y[0]  = 0x0300;
+    bayertnr_attr.stManual.st3DFix.sig0_y[1]  = 0x0300;
+    bayertnr_attr.stManual.st3DFix.sig0_y[2]  = 0x0300;
+    bayertnr_attr.stManual.st3DFix.sig0_y[3]  = 0x0300;
+    bayertnr_attr.stManual.st3DFix.sig0_y[4]  = 0x0300;
+    bayertnr_attr.stManual.st3DFix.sig0_y[5]  = 0x0300;
+    bayertnr_attr.stManual.st3DFix.sig0_y[6]  = 0x0300;
+    bayertnr_attr.stManual.st3DFix.sig0_y[7]  = 0x0300;
+    bayertnr_attr.stManual.st3DFix.sig0_y[8]  = 0x0300;
+    bayertnr_attr.stManual.st3DFix.sig0_y[9]  = 0x0300;
+    bayertnr_attr.stManual.st3DFix.sig0_y[10] = 0x0300;
+    bayertnr_attr.stManual.st3DFix.sig0_y[11] = 0x0300;
+    bayertnr_attr.stManual.st3DFix.sig0_y[12] = 0x0300;
+    bayertnr_attr.stManual.st3DFix.sig0_y[13] = 0x0300;
+    bayertnr_attr.stManual.st3DFix.sig0_y[14] = 0x0300;
+    bayertnr_attr.stManual.st3DFix.sig0_y[15] = 0x0300;
+
+    // BAY3D_BAY3D_SIG_X0  0x2c54 - 0x2c70
+    bayertnr_attr.stManual.st3DFix.sig1_x[0]  = 0x200;
+    bayertnr_attr.stManual.st3DFix.sig1_x[1]  = 0x400;
+    bayertnr_attr.stManual.st3DFix.sig1_x[2]  = 0x600;
+    bayertnr_attr.stManual.st3DFix.sig1_x[3]  = 0x800;
+    bayertnr_attr.stManual.st3DFix.sig1_x[4]  = 0xc00;
+    bayertnr_attr.stManual.st3DFix.sig1_x[5]  = 0x1000;
+    bayertnr_attr.stManual.st3DFix.sig1_x[6]  = 0x1400;
+    bayertnr_attr.stManual.st3DFix.sig1_x[7]  = 0x1800;
+    bayertnr_attr.stManual.st3DFix.sig1_x[8]  = 0x1c00;
+    bayertnr_attr.stManual.st3DFix.sig1_x[9]  = 0x2000;
+    bayertnr_attr.stManual.st3DFix.sig1_x[10] = 0x2400;
+    bayertnr_attr.stManual.st3DFix.sig1_x[11] = 0x2800;
+    bayertnr_attr.stManual.st3DFix.sig1_x[12] = 0x2c00;
+    bayertnr_attr.stManual.st3DFix.sig1_x[13] = 0x3000;
+    bayertnr_attr.stManual.st3DFix.sig1_x[14] = 0x3400;
+    bayertnr_attr.stManual.st3DFix.sig1_x[15] = 0x3800;
+
+    // ISP_BAYNR_3A00_SIGMAY0-15
+    bayertnr_attr.stManual.st3DFix.sig1_y[0]  = 0x0400;
+    bayertnr_attr.stManual.st3DFix.sig1_y[1]  = 0x0400;
+    bayertnr_attr.stManual.st3DFix.sig1_y[2]  = 0x0400;
+    bayertnr_attr.stManual.st3DFix.sig1_y[3]  = 0x0400;
+    bayertnr_attr.stManual.st3DFix.sig1_y[4]  = 0x0400;
+    bayertnr_attr.stManual.st3DFix.sig1_y[5]  = 0x0400;
+    bayertnr_attr.stManual.st3DFix.sig1_y[6]  = 0x0400;
+    bayertnr_attr.stManual.st3DFix.sig1_y[7]  = 0x0400;
+    bayertnr_attr.stManual.st3DFix.sig1_y[8]  = 0x0400;
+    bayertnr_attr.stManual.st3DFix.sig1_y[9]  = 0x0400;
+    bayertnr_attr.stManual.st3DFix.sig1_y[10] = 0x0400;
+    bayertnr_attr.stManual.st3DFix.sig1_y[11] = 0x0400;
+    bayertnr_attr.stManual.st3DFix.sig1_y[12] = 0x0400;
+    bayertnr_attr.stManual.st3DFix.sig1_y[13] = 0x0400;
+    bayertnr_attr.stManual.st3DFix.sig1_y[14] = 0x0400;
+    bayertnr_attr.stManual.st3DFix.sig1_y[15] = 0x0400;
+
+    // ISP_BAYNR_3A00_SIGMAY0-15
+    bayertnr_attr.stManual.st3DFix.sig2_y[0]  = 0x080;
+    bayertnr_attr.stManual.st3DFix.sig2_y[1]  = 0x080;
+    bayertnr_attr.stManual.st3DFix.sig2_y[2]  = 0x080;
+    bayertnr_attr.stManual.st3DFix.sig2_y[3]  = 0x080;
+    bayertnr_attr.stManual.st3DFix.sig2_y[4]  = 0x080;
+    bayertnr_attr.stManual.st3DFix.sig2_y[5]  = 0x080;
+    bayertnr_attr.stManual.st3DFix.sig2_y[6]  = 0x080;
+    bayertnr_attr.stManual.st3DFix.sig2_y[7]  = 0x080;
+    bayertnr_attr.stManual.st3DFix.sig2_y[8]  = 0x080;
+    bayertnr_attr.stManual.st3DFix.sig2_y[9]  = 0x080;
+    bayertnr_attr.stManual.st3DFix.sig2_y[10] = 0x080;
+    bayertnr_attr.stManual.st3DFix.sig2_y[11] = 0x080;
+    bayertnr_attr.stManual.st3DFix.sig2_y[12] = 0x080;
+    bayertnr_attr.stManual.st3DFix.sig2_y[13] = 0x080;
+    bayertnr_attr.stManual.st3DFix.sig2_y[14] = 0x080;
+    bayertnr_attr.stManual.st3DFix.sig2_y[15] = 0x080;
+
+    /* BAY3D_HISIGRAT */
+    bayertnr_attr.stManual.st3DFix.hisigrat0 = 0x00;
+    bayertnr_attr.stManual.st3DFix.hisigrat1 = 0x00;
+
+    /* BAY3D_HISIGOFF */
+    bayertnr_attr.stManual.st3DFix.hisigoff0 = 0x100;
+    bayertnr_attr.stManual.st3DFix.hisigoff1 = 0x400;
+
+    /* BAY3D_LOSIG */
+    bayertnr_attr.stManual.st3DFix.losigoff = 0x00;
+    bayertnr_attr.stManual.st3DFix.losigrat = 0x100;
+
+    /* BAY3D_SIGPK */
+    bayertnr_attr.stManual.st3DFix.rgain_off = 0x00;
+    bayertnr_attr.stManual.st3DFix.bgain_off = 0x00;
+
+    /* BAY3D_SIGGAUS */
+    bayertnr_attr.stManual.st3DFix.siggaus0 = 0x10;
+    bayertnr_attr.stManual.st3DFix.siggaus1 = 0x8;
+    bayertnr_attr.stManual.st3DFix.siggaus2 = 0x4;
+    bayertnr_attr.stManual.st3DFix.siggaus3 = 0x0;
+
+    ret = rk_aiq_user_api2_abayertnrV23Lite_SetAttrib(ctx, &bayertnr_attr);
+    printf("set bayertnr v23Lite attri manual ret:%d \n\n", ret);
+
+    rk_aiq_bayertnr_attrib_v23L_t get_bayertnr_attr;
+    get_bayertnr_attr.sync.sync_mode = sync_mode;
+    ret = rk_aiq_user_api2_abayertnrV23Lite_GetAttrib(ctx, &get_bayertnr_attr);
+    printf("get abayertnr v23Lite attri ret:%d done:%d \n\n", ret, get_bayertnr_attr.sync.done);
+
+    return ret;
+}
+
 XCamReturn sample_abayertnr_setStrength_v2(const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode_sync_e sync_mode, float fStrength)
 {
     XCamReturn ret = XCAM_RETURN_NO_ERROR;
@@ -1077,6 +1566,22 @@ XCamReturn sample_abayertnr_setDefault_v23(const rk_aiq_sys_ctx_t* ctx, rk_aiq_u
     return ret;
 }
 
+XCamReturn sample_abayertnr_setDefault_v23Lite(
+    const rk_aiq_sys_ctx_t* ctx, rk_aiq_uapi_mode_sync_e sync_mode,
+    rk_aiq_bayertnr_attrib_v23L_t& default_bayertnr_attr) {
+    XCamReturn ret = XCAM_RETURN_NO_ERROR;
+
+    default_bayertnr_attr.sync.sync_mode = sync_mode;
+    ret = rk_aiq_user_api2_abayertnrV23Lite_SetAttrib(ctx, &default_bayertnr_attr);
+    printf("set bayertnr v23Lite default attri ret:%d \n\n", ret);
+
+    rk_aiq_bayertnr_attrib_v23L_t get_bayertnr_attr;
+    get_bayertnr_attr.sync.sync_mode = sync_mode;
+    ret = rk_aiq_user_api2_abayertnrV23Lite_GetAttrib(ctx, &get_bayertnr_attr);
+    printf("get abayertnr v23Lite attri ret:%d done:%d \n\n", ret, get_bayertnr_attr.sync.done);
+    return ret;
+}
+
 XCamReturn sample_abayertnr_module (const void *arg)
 {
     int key = -1;
@@ -1110,6 +1615,12 @@ XCamReturn sample_abayertnr_module (const void *arg)
         printf("get abayertnr v2 default attri ret:%d \n\n", ret);
     }
 
+    rk_aiq_bayertnr_attrib_v23L_t default_bayertnrV23_attr_lite;
+    if (CHECK_ISP_HW_V32_LITE()) {
+        ret = rk_aiq_user_api2_abayertnrV23Lite_GetAttrib(ctx, &default_bayertnrV23_attr_lite);
+        printf("get abayertnr v2 default attri ret:%d \n\n", ret);
+    }
+
     do {
         sample_abayertnr_usage ();
 
@@ -1126,12 +1637,15 @@ XCamReturn sample_abayertnr_module (const void *arg)
             if (CHECK_ISP_HW_V32()) {
                 sample_abayertnr_getAttr_v23(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
+            if (CHECK_ISP_HW_V32_LITE()) {
+                sample_abayertnr_getAttr_v23Lite(ctx, RK_AIQ_UAPI_MODE_SYNC);
+            }
             break;
         case '1':
             if (CHECK_ISP_HW_V30()) {
                 sample_abayertnr_getStrength_v2(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayertnr_getStrength_v23(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
@@ -1142,6 +1656,9 @@ XCamReturn sample_abayertnr_module (const void *arg)
             if (CHECK_ISP_HW_V32()) {
                 sample_abayertnr_setAuto_v23(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
+            if (CHECK_ISP_HW_V32_LITE()) {
+                sample_abayertnr_setAuto_v23Lite(ctx, RK_AIQ_UAPI_MODE_SYNC);
+            }
             break;
         case '3':
             if (CHECK_ISP_HW_V30()) {
@@ -1149,6 +1666,9 @@ XCamReturn sample_abayertnr_module (const void *arg)
             }
             if (CHECK_ISP_HW_V32()) {
                 sample_abayertnr_setManual_v23(ctx, RK_AIQ_UAPI_MODE_SYNC);
+            }
+            if (CHECK_ISP_HW_V32_LITE()) {
+                sample_abayertnr_setManual_v23Lite(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
             break;
         case '4':
@@ -1158,12 +1678,15 @@ XCamReturn sample_abayertnr_module (const void *arg)
             if (CHECK_ISP_HW_V32()) {
                 sample_abayertnr_setReg_v23(ctx, RK_AIQ_UAPI_MODE_SYNC);
             }
+            if (CHECK_ISP_HW_V32_LITE()) {
+                sample_abayertnr_setReg_v23Lite(ctx, RK_AIQ_UAPI_MODE_SYNC);
+            }
             break;
         case '5':
             if (CHECK_ISP_HW_V30()) {
                 sample_abayertnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_SYNC, 1.0);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayertnr_setStrength_v23(ctx, RK_AIQ_UAPI_MODE_SYNC, 1.0);
             }
             break;
@@ -1171,7 +1694,7 @@ XCamReturn sample_abayertnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayertnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_SYNC, 0.0);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayertnr_setStrength_v23(ctx, RK_AIQ_UAPI_MODE_SYNC, 0.0);
             }
             break;
@@ -1179,7 +1702,7 @@ XCamReturn sample_abayertnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayertnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_SYNC, 0.5);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayertnr_setStrength_v23(ctx, RK_AIQ_UAPI_MODE_SYNC, 0.5);
             }
             break;
@@ -1190,6 +1713,10 @@ XCamReturn sample_abayertnr_module (const void *arg)
             if (CHECK_ISP_HW_V32()) {
                 sample_abayertnr_setDefault_v23(ctx, RK_AIQ_UAPI_MODE_SYNC, default_bayertnrV23_attr);
             }
+            if (CHECK_ISP_HW_V32_LITE()) {
+                sample_abayertnr_setDefault_v23Lite(ctx, RK_AIQ_UAPI_MODE_SYNC,
+                                                    default_bayertnrV23_attr_lite);
+            }
             break;
         case 'a':
             if (CHECK_ISP_HW_V30()) {
@@ -1198,12 +1725,15 @@ XCamReturn sample_abayertnr_module (const void *arg)
             if (CHECK_ISP_HW_V32()) {
                 sample_abayertnr_getAttr_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
+            if (CHECK_ISP_HW_V32_LITE()) {
+                sample_abayertnr_getAttr_v23Lite(ctx, RK_AIQ_UAPI_MODE_ASYNC);
+            }
             break;
         case 'b':
             if (CHECK_ISP_HW_V30()) {
                 sample_abayertnr_getStrength_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayertnr_getStrength_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
             break;
@@ -1214,6 +1744,9 @@ XCamReturn sample_abayertnr_module (const void *arg)
             if (CHECK_ISP_HW_V32()) {
                 sample_abayertnr_setAuto_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
+            if (CHECK_ISP_HW_V32_LITE()) {
+                sample_abayertnr_setAuto_v23Lite(ctx, RK_AIQ_UAPI_MODE_ASYNC);
+            }
             break;
         case 'd':
             if (CHECK_ISP_HW_V30()) {
@@ -1221,6 +1754,9 @@ XCamReturn sample_abayertnr_module (const void *arg)
             }
             if (CHECK_ISP_HW_V32()) {
                 sample_abayertnr_setManual_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC);
+            }
+            if (CHECK_ISP_HW_V32_LITE()) {
+                sample_abayertnr_setManual_v23Lite(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
             break;
         case 'e':
@@ -1230,12 +1766,15 @@ XCamReturn sample_abayertnr_module (const void *arg)
             if (CHECK_ISP_HW_V32()) {
                 sample_abayertnr_setReg_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC);
             }
+            if (CHECK_ISP_HW_V32_LITE()) {
+                sample_abayertnr_setReg_v23Lite(ctx, RK_AIQ_UAPI_MODE_ASYNC);
+            }
             break;
         case 'f':
             if (CHECK_ISP_HW_V30()) {
                 sample_abayertnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC, 1.0);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayertnr_setStrength_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC, 1.0);
             }
             break;
@@ -1243,7 +1782,7 @@ XCamReturn sample_abayertnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayertnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC, 0.0);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayertnr_setStrength_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC, 0.0);
             }
             break;
@@ -1251,7 +1790,7 @@ XCamReturn sample_abayertnr_module (const void *arg)
             if (CHECK_ISP_HW_V30()) {
                 sample_abayertnr_setStrength_v2(ctx, RK_AIQ_UAPI_MODE_ASYNC, 0.5);
             }
-            if (CHECK_ISP_HW_V32()) {
+            if (CHECK_ISP_HW_V32() || CHECK_ISP_HW_V32_LITE()) {
                 sample_abayertnr_setStrength_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC, 0.5);
             }
             break;
@@ -1261,6 +1800,10 @@ XCamReturn sample_abayertnr_module (const void *arg)
             }
             if (CHECK_ISP_HW_V32()) {
                 sample_abayertnr_setDefault_v23(ctx, RK_AIQ_UAPI_MODE_ASYNC, default_bayertnrV23_attr);
+            }
+            if (CHECK_ISP_HW_V32_LITE()) {
+                sample_abayertnr_setDefault_v23Lite(ctx, RK_AIQ_UAPI_MODE_ASYNC,
+                                                    default_bayertnrV23_attr_lite);
             }
             break;
         default:

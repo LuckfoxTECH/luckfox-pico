@@ -112,11 +112,13 @@ typedef enum {
 typedef enum {
 	RK_WIFI_LP_LONG_PRESS,			//长按
 	RK_WIFI_LP_SHORT_PRESS,			//短按
+	RK_WIFI_LP_DOORBELL,			//门铃
 	RK_WIFI_LP_KEEPALIVE_OK,		//保活成功
-	RK_WIFI_LP_KEEPALIVE_FAILED,	//保活失败
+	RK_WIFI_LP_KEEPALIVE_FAILED,		//保活失败
 	RK_WIFI_LP_BAT_LEVEL,			//电池电量
 	RK_WIFI_LP_PIR_DETECT,			//PIR触发
 	RK_WIFI_LP_WAKEUP_REASON,		//唤醒reason
+	RK_WIFI_LP_ANTIDISASSEMBLY,		//防拆除
 	RK_WIFI_LP_END,
 } RK_WIFI_LP_Event_Type_e;
 
@@ -224,7 +226,7 @@ int RK_wifi_register_callback(RK_wifi_state_callback cb);
 //获取当前连接信息
 int RK_wifi_running_getConnectionInfo(RK_WIFI_INFO_Connection_s* pInfo);
 
-//打开WiFi
+//WiFi使能或失能，1 使能，0 失能
 int RK_wifi_enable(int enable);
 
 //扫描
@@ -272,11 +274,17 @@ int RK_wifi_set_ccode(void);
 //传输ota固件
 int Rk_wifi_ota(char *path);
 
+//wifi重启
+int RK_wifi_reboot(void);
+
+//获取平台PIR电平值：1为触发PIR，0为无触发
+int RK_get_pirstate(unsigned int *pir_ret);
+
 /*
  * 低功耗专用API
  */
 //进入低功耗
-int RK_wifi_enter_sleep(void);
+int RK_wifi_enter_sleep(int argc, char *argv[]);
 //退出低功耗
 int RK_wifi_exit_sleep(void);
 //启动保活
@@ -288,6 +296,12 @@ int RK_wifi_set_BeaconListenInterval(int dtim);
 
 //特殊: Rockchip配网demo使用，目前仅用于传统WiFi
 char *RK_wifi_scan_for_softap(void);
+//获取电量，结果通过低功耗事件回调返回
+int RK_wifi_get_batlevel();
+//获取唤醒信息，结果通过低功耗事件回调返回
+int RK_wifi_get_wkreason();
+//同步阻塞获取utc时间
+int RK_wifi_get_utc(unsigned long long *utc);
 
 //配置PIR
 int RK_wifi_set_pir(int enable);

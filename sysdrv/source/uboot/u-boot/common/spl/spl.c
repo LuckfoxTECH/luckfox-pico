@@ -17,6 +17,7 @@
 #include <version.h>
 #include <image.h>
 #include <malloc.h>
+#include <mp_boot.h>
 #include <dm/root.h>
 #include <linux/compiler.h>
 #include <fdt_support.h>
@@ -547,6 +548,10 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 
 	memset(&spl_image, '\0', sizeof(spl_image));
 
+#ifdef CONFIG_MP_BOOT
+	mpb_init_x(0);
+#endif
+
 #if CONFIG_IS_ENABLED(ATF)
 	/*
 	 * Bl32 ep is optional, initial it as an invalid value.
@@ -574,6 +579,10 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 	}
 
 	spl_perform_fixups(&spl_image);
+
+#ifdef CONFIG_MP_BOOT
+	mpb_init_x(2);
+#endif
 
 #ifdef CONFIG_CPU_V7M
 	spl_image.entry_point |= 0x1;
@@ -652,8 +661,13 @@ void preloader_console_init(void)
 
 	gd->have_console = 1;
 
+#ifdef BUILD_SPL_TAG
+	puts("\nU-Boot SPL " PLAIN_VERSION " (" U_BOOT_DATE " - " \
+			U_BOOT_TIME "), fwver: "BUILD_SPL_TAG"\n");
+#else
 	puts("\nU-Boot SPL " PLAIN_VERSION " (" U_BOOT_DATE " - " \
 			U_BOOT_TIME ")\n");
+#endif
 #ifdef CONFIG_SPL_DISPLAY_PRINT
 	spl_display_print();
 #endif
@@ -710,7 +724,7 @@ ulong spl_relocate_stack_gd(void)
 /* cleanup before jump to next stage */
 void spl_cleanup_before_jump(struct spl_image_info *spl_image)
 {
-	ulong us;
+	ulong us, tt_us;
 
 	spl_board_prepare_for_jump(spl_image);
 
@@ -738,5 +752,6 @@ void spl_cleanup_before_jump(struct spl_image_info *spl_image)
 	isb();
 
 	us = (get_ticks() - gd->sys_start_tick) / 24UL;
-	printf("Total: %ld.%ld ms\n\n", us / 1000, us % 1000);
+	tt_us = get_ticks() / (COUNTER_FREQUENCY / 1000000);
+	printf("Total: %ld.%ld/%ld.%ld ms\n\n", us / 1000, us % 1000, tt_us / 1000, tt_us % 1000);
 }

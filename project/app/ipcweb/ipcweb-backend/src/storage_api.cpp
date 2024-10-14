@@ -14,7 +14,7 @@ namespace cgi {
 
 nlohmann::json get_snap_plan_0() {
   nlohmann::json param;
-  char *tmp = new char[20];
+  char *tmp = new char[256];
   int value = 0;
 
   param.emplace("id", 0);

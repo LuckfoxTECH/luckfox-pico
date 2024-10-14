@@ -154,7 +154,7 @@
 		rockchip,pvtm-error = <1000>;
 		rockchip,pvtm-ref-temp = <35>;
 		rockchip,pvtm-temp-prop = <(-18) (-18)>;
-		rockchip,thermal-zone = "soc-thermal";
+		rockchip,thermal-zone = "cpu-thermal";
 
 		opp-126000000 {
 			opp-hz = /bits/ 64 <126000000>;
@@ -611,7 +611,7 @@
 			thermal-sensors = <&tsadc 0>;
 		};
 
-		cpu_thermal: cpu_thermal {
+		cpu_thermal: cpu-thermal {
 			polling-delay-passive = <100>; /* milliseconds */
 			polling-delay = <5000>; /* milliseconds */
 
@@ -725,7 +725,7 @@
 
 	usb_host0_ehci: usb@ff500000 {
 		compatible = "generic-ehci";
-		reg = <0x0 0xff500000 0x0 0x20000>;
+		reg = <0x0 0xff500000 0x0 0x100>;
 		interrupts = <GIC_SPI 24 IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&cru HCLK_USBHOST0>, <&usbphy1>;
 		clock-names = "usbhost", "utmi";
@@ -1341,6 +1341,7 @@
 		power-domains = <&power RK3288_PD_VIO>;
 		resets = <&cru SRST_RGA_CORE>, <&cru SRST_RGA_AXI>, <&cru SRST_RGA_AHB>;
 		reset-names = "core", "axi", "ahb";
+		status = "disabled";
 	};
 
 	vopb: vop@ff930000 {
@@ -1786,6 +1787,10 @@
 			3               61
 		>;
 
+		opp-100000000 {
+			opp-hz = /bits/ 64 <100000000>;
+			opp-microvolt = <950000>;
+		};
 		opp-200000000 {
 			opp-hz = /bits/ 64 <200000000>;
 			opp-microvolt = <950000>;

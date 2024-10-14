@@ -4,8 +4,8 @@
 #ifndef _TEST_UTILS_H_
 #define _TEST_UTILS_H_
 
-#include <stdbool.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -20,3 +20,4 @@ const char *test_mode_name(uint32_t mode);
 const char *test_op_name(uint32_t operation);
 
 #endif
+

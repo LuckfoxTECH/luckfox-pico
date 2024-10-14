@@ -25,23 +25,23 @@
 #include "rt_metadata.h"
 
 typedef struct RTTaskNodeOption {
-  const char *cmd;
-  const char *name;
-  const char *detail;
-  INT32 offset;
+    const char *cmd;
+    const char *name;
+    const char *detail;
+    INT32       offset;
 
-  enum RtMetaData::Type type;
+    enum RtMetaData::Type type;
 
-  /**
-   * the default value for scalar options
-   */
-  union {
-    INT32 i64;
-    double dbl;
-    const void *str;
-  } defaultVal;
-  double min; ///< minimum valid value for the option
-  double max; ///< maximum valid value for the option
+    /**
+     * the default value for scalar options
+     */
+    union {
+        INT32 i64;
+        double dbl;
+        const void *str;
+    } defaultVal;
+    double min;                 ///< minimum valid value for the option
+    double max;                 ///< maximum valid value for the option
 } RTTaskNodeOption;
 
-#endif // SRC_RT_TASK_TASK_GRAPH_RTTASKNODEOPTIONS_H_
+#endif  // SRC_RT_TASK_TASK_GRAPH_RTTASKNODEOPTIONS_H_

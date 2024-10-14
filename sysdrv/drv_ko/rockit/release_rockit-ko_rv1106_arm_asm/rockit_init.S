@@ -53,9 +53,12 @@ rockit_load:
 	bl	vrga_init
 	bl	venc_init
 	bl	rockit_rkisp_init
+	bl	rockit_rkcif_init
 	bl	vvi_init
 	bl	vpss_init
 	bl	vrgn_init
+	bl	avs_init
+	bl	aiisp_init
 	movs	r2, #0
 	str	r2, [r5]
 	ldr	r2, .L12+8
@@ -143,10 +146,13 @@ rockit_exit:
 	@ frame_needed = 0, uses_anonymous_args = 0
 	push	{r3, lr}
 	.save {r3, lr}
+	bl	aiisp_exit
+	bl	avs_exit
 	bl	vrgn_exit
 	bl	vpss_exit
 	bl	vvi_exit
 	bl	rockit_rkisp_exit
+	bl	rockit_rkcif_exit
 	bl	venc_exit
 	bl	vrga_exit
 	bl	vsys_exit
@@ -198,9 +204,9 @@ __exitcall_rockit_exit:
 	.word	rockit_exit
 	.section	.initcall6s.init,"aw"
 	.align	2
-	.type	__initcall__kmod_rockit__228_97_rockit_load6s, %object
-	.size	__initcall__kmod_rockit__228_97_rockit_load6s, 4
-__initcall__kmod_rockit__228_97_rockit_load6s:
+	.type	__initcall__kmod_rockit__228_109_rockit_load6s, %object
+	.size	__initcall__kmod_rockit__228_109_rockit_load6s, 4
+__initcall__kmod_rockit__228_109_rockit_load6s:
 	.word	rockit_load
 	.section	.modinfo,"a"
 	.type	__UNIQUE_ID_import_ns232, %object

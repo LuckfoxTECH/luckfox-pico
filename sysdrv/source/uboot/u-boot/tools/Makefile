@@ -59,15 +59,9 @@ hostprogs-$(CONFIG_FIT_SIGNATURE) += fit_info fit_check_sign
 
 # Rockchip pack tools
 ifdef CONFIG_ARCH_ROCKCHIP
-hostprogs-y += boot_merger
-hostprogs-y += trust_merger
-hostprogs-y += loaderimage
 hostprogs-y += resource_tool
 hostprogs-y += bmp2gray16
 
-boot_merger-objs := rockchip/boot_merger.o rockchip/sha2.o lib/sha256.o
-trust_merger-objs := rockchip/trust_merger.o rockchip/sha2.o lib/sha256.o
-loaderimage-objs := rockchip/loaderimage.o rockchip/sha.o lib/sha256.o rockchip/crc32_rk.o
 resource_tool-objs := rockchip/resource_tool.o
 bmp2gray16-objs := rockchip/bmp2gray16.o
 endif

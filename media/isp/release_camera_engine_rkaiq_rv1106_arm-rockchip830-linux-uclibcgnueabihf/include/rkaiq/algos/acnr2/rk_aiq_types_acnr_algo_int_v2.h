@@ -27,6 +27,7 @@
 #include "RkAiqCalibDbTypes.h"
 #include "acnr2/rk_aiq_types_acnr_algo_v2.h"
 #include "cnr_head_v2.h"
+#include "cnr_uapi_head_v2.h"
 
 
 //RKAIQ_BEGIN_DECLARE
@@ -59,7 +60,7 @@
 
 #define     RK_CNR_V2_SIGMA_FIX_BIT         8
 
-#define     RKCNR_V2_SGM_ADJ_TABLE_LEN      13
+//#define     RKCNR_V2_SGM_ADJ_TABLE_LEN      13
 
 #define     RKCNR_V2_SIGMA_FIX_BIT          8
 #define     RKCNR_V2_LOCAL_GAIN_FIX_BITS    4
@@ -106,16 +107,7 @@ typedef enum AcnrV2_ParamMode_e {
     ACNRV2_PARAM_MODE_MAX                                      /**< max */
 } AcnrV2_ParamMode_t;
 
-typedef struct AcnrV2_ExpInfo_s {
-    int hdr_mode;
-    float arTime[3];
-    float arAGain[3];
-    float arDGain[3];
-    int   arIso[3];
-    int   snr_mode;
-    int rawWidth;
-    int rawHeight;
-} AcnrV2_ExpInfo_t;
+
 
 typedef struct RK_CNR_Params_V2_s
 {
@@ -165,6 +157,7 @@ typedef struct RK_CNR_Params_V2_s
     float kernel_5x5[5];
 } RK_CNR_Params_V2_t;
 
+#if 0
 typedef struct RK_CNR_Params_V2_Select_s
 {
     int enable;
@@ -216,7 +209,7 @@ typedef struct RK_CNR_Params_V2_Select_s
     float kernel_5x5[5];
 
 } RK_CNR_Params_V2_Select_t;
-
+#endif
 
 typedef struct Acnr_Manual_Attr_V2_s
 {
@@ -238,12 +231,10 @@ typedef struct Acnr_Auto_Attr_V2_s
 typedef struct Acnr_ProcResult_V2_s {
 
     //for sw simultaion
-    RK_CNR_Params_V2_Select_t stSelect;
+    //RK_CNR_Params_V2_Select_t stSelect;
 
     //for hw register
-    RK_CNR_Fix_V2_t stFix;
-
-    bool isNeedUpdate;
+    RK_CNR_Fix_V2_t* stFix;
 
 } Acnr_ProcResult_V2_t;
 
@@ -267,6 +258,7 @@ typedef struct rk_aiq_cnr_attrib_v2_s {
 typedef struct rk_aiq_cnr_strength_v2_s {
     rk_aiq_uapi_sync_t sync;
     float percent;
+    bool strength_enable;
 } rk_aiq_cnr_strength_v2_t;
 
 

@@ -22,94 +22,94 @@
 #ifndef SRC_RT_BASE_INCLUDE_RT_THREAD_H_
 #define SRC_RT_BASE_INCLUDE_RT_THREAD_H_
 
-#define MAX_COND_TIMETOUT 33 * 1000
-#define MIN_COND_TIMETOUT 5 * 1000
-#define MAX_BIND_CPUS_NUM 32
+#define MAX_COND_TIMETOUT       33*1000
+#define MIN_COND_TIMETOUT       5*1000
+#define MAX_BIND_CPUS_NUM       32
 
 // RtTaskSlot: atomic task, short time consumption
 class RtRunnable {
-public:
-  virtual ~RtRunnable() {}
-  virtual void runTask(void *args) = 0;
+ public:
+    virtual ~RtRunnable() {}
+    virtual void runTask(void* args) = 0;
 };
 
 typedef enum {
-  THREAD_IDLE = 0,
-  THREAD_LOOP,
-  THREAD_EXIT,
-  THREAD_MAX,
+    THREAD_IDLE  = 0,
+    THREAD_LOOP,
+    THREAD_EXIT,
+    THREAD_MAX,
 } ThreadState;
 
 typedef enum _RTThreadSched {
-  RT_SCHED_OTHER,
-  RT_SCHED_RR,
-  RT_SCHED_FIFO,
-  RT_SCHED_MAX,
+    RT_SCHED_OTHER,
+    RT_SCHED_RR,
+    RT_SCHED_FIFO,
+    RT_SCHED_MAX,
 } RTThreadSched;
 
 typedef enum _RTThreadInheritSched {
-  RT_INHERIT_SCHED,
-  RT_EXPLICIT_SCHED,
+    RT_INHERIT_SCHED,
+    RT_EXPLICIT_SCHED,
 } RTThreadInheritSched;
 
 class RtThread {
-public:
-  // RtTaskSlot: atomic task, short time consumption
-  typedef void *(*RtTaskSlot)(void *);
+ public:
+    // RtTaskSlot: atomic task, short time consumption
+    typedef void* (*RtTaskSlot)(void*);
 
-  explicit RtThread(RtTaskSlot taskslot, void *data = NULL);
-  explicit RtThread(RtRunnable *runnable, void *data = NULL);
+    explicit RtThread(RtTaskSlot  taskslot, void* data = NULL);
+    explicit RtThread(RtRunnable* runnable, void* data = NULL);
 
-  /**
-   * Non-virtual, do not subclass.
-   */
-  ~RtThread();
+    /**
+     * Non-virtual, do not subclass.
+     */
+    ~RtThread();
 
-  /**
-   * Starts the thread. Returns false if the thread could not be started.
-   */
-  RT_BOOL start();
+    /**
+     * Starts the thread. Returns false if the thread could not be started.
+     */
+    RT_BOOL start();
 
-  RT_BOOL postCond(const char *optName);
-  RT_BOOL waitCond(const char *optName);
-  RT_BOOL waitCond(const char *optName, UINT64 timeoutUs);
+    RT_BOOL postCond(const char* optName);
+    RT_BOOL waitCond(const char* optName);
+    RT_BOOL waitCond(const char* optName, UINT64 timeoutUs);
 
-  /**
-   * Set and Get Thread Name.
-   */
-  void setName(const char *name);
-  const char *getName();
-  INT32 getState();
+    /**
+     * Set and Get Thread Name.
+     */
+    void        setName(const char* name);
+    const char* getName();
+    INT32       getState();
 
-  /**
-   * Waits for the thread to finish.
-   * If the thread has not started, returns immediately.
-   */
-  void join();
-  void requestInterruption();
+    /**
+     * Waits for the thread to finish.
+     * If the thread has not started, returns immediately.
+     */
+    void join();
+    void requestInterruption();
 
-  /*
-   * set schedule policy for thread
-   * there are three policy : SCHED_FIFO, SCHED_RR and SCHED_OTHER
-   */
-  RT_RET setSchedPolicy(RTThreadSched schedPolicy);
-  RTThreadSched getSchedPolicy();
-  RT_RET setInheritSched(RTThreadInheritSched inherit);
-  RTThreadInheritSched getInheritSched();
-  INT32 setPriority(INT32 prior);
-  INT32 getPriority();
-  INT32 getMinPriority();
-  INT32 getMaxPriority();
-  RT_RET bindCpus(INT32 *selectedCpus, INT32 size);
+    /*
+     * set schedule policy for thread
+     * there are three policy : SCHED_FIFO, SCHED_RR and SCHED_OTHER
+     */
+    RT_RET          setSchedPolicy(RTThreadSched schedPolicy);
+    RTThreadSched   getSchedPolicy();
+    RT_RET          setInheritSched(RTThreadInheritSched inherit);
+    RTThreadInheritSched getInheritSched();
+    INT32           setPriority(INT32 prior);
+    INT32           getPriority();
+    INT32           getMinPriority();
+    INT32           getMaxPriority();
+    RT_RET          bindCpus(INT32 *selectedCpus, INT32 size);
 
-public:
-  static INT32 getThreadID();
+ public:
+    static INT32 getThreadID();
 
-public:
-  void *mData;
-  RtMutex *mLock;
-  RtMutex *mCondLock;
-  RtCondition *mCondition;
+ public:
+    void          *mData;
+    RtMutex       *mLock;
+    RtMutex       *mCondLock;
+    RtCondition   *mCondition;
 };
 
-#endif // SRC_RT_BASE_INCLUDE_RT_THREAD_H_
+#endif  // SRC_RT_BASE_INCLUDE_RT_THREAD_H_

@@ -90,6 +90,90 @@ mpp_packet_vsm_buf_free:
 	.fnend
 	.size	mpp_packet_vsm_buf_free, .-mpp_packet_vsm_buf_free
 	.align	1
+	.global	mpp_packet_pool_init
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpp_packet_pool_init, %function
+mpp_packet_pool_init:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, lr}
+	.save {r4, lr}
+	mov	r3, r0
+	ldr	r4, .L19
+	ldr	r2, [r4]
+	cbnz	r2, .L18
+	movs	r2, #112
+	ldr	r1, .L19+4
+	ldr	r0, .L19+8
+	bl	mpp_mem_get_pool_f
+	str	r0, [r4]
+.L18:
+	movs	r0, #0
+	pop	{r4, pc}
+.L20:
+	.align	2
+.L19:
+	.word	.LANCHOR0
+	.word	.LC0
+	.word	.LANCHOR1
+	.fnend
+	.size	mpp_packet_pool_init, .-mpp_packet_pool_init
+	.align	1
+	.global	mpp_packet_pool_deinit
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpp_packet_pool_deinit, %function
+mpp_packet_pool_deinit:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, lr}
+	.save {r4, lr}
+	ldr	r4, .L26
+	ldr	r1, [r4]
+	cbz	r1, .L22
+	ldr	r0, .L26+4
+	bl	mpp_mem_put_pool_f
+	movs	r3, #0
+	str	r3, [r4]
+.L22:
+	movs	r0, #0
+	pop	{r4, pc}
+.L27:
+	.align	2
+.L26:
+	.word	.LANCHOR0
+	.word	.LANCHOR1+21
+	.fnend
+	.size	mpp_packet_pool_deinit, .-mpp_packet_pool_deinit
+	.align	1
+	.global	mpp_packet_pool_info_show
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpp_packet_pool_info_show, %function
+mpp_packet_pool_info_show:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	@ link register save eliminated.
+	ldr	r3, .L29
+	ldr	r1, [r3]
+	b	mpp_mem_pool_info_show
+.L30:
+	.align	2
+.L29:
+	.word	.LANCHOR0
+	.fnend
+	.size	mpp_packet_pool_info_show, .-mpp_packet_pool_info_show
+	.align	1
 	.global	check_is_mpp_packet
 	.syntax unified
 	.thumb
@@ -103,27 +187,27 @@ check_is_mpp_packet:
 	push	{r3, lr}
 	.save {r3, lr}
 	mov	r3, r0
-	cbz	r0, .L18
+	cbz	r0, .L32
 	ldr	r1, [r0]
-	ldr	r2, .L24
+	ldr	r2, .L38
 	cmp	r1, r2
-	beq	.L20
-.L18:
-	movs	r2, #38
-	ldr	r1, .L24+4
-	ldr	r0, .L24+8
+	beq	.L34
+.L32:
+	movs	r2, #64
+	ldr	r1, .L38+4
+	ldr	r0, .L38+8
 	bl	printk
 	mov	r0, #-1
-.L17:
+.L31:
 	pop	{r3, pc}
-.L20:
+.L34:
 	movs	r0, #0
-	b	.L17
-.L25:
+	b	.L31
+.L39:
 	.align	2
-.L24:
+.L38:
 	.word	.LC0
-	.word	.LANCHOR0
+	.word	.LANCHOR1+44
 	.word	.LC1
 	.fnend
 	.size	check_is_mpp_packet, .-check_is_mpp_packet
@@ -141,38 +225,43 @@ mpp_packet_new:
 	push	{r4, lr}
 	.save {r4, lr}
 	mov	r4, r0
-	cbnz	r0, .L27
-	ldr	r1, .L31
-	movs	r2, #48
-	ldr	r0, .L31+4
-.L30:
+	cbnz	r0, .L41
+	ldr	r1, .L45
+	movs	r2, #74
+	ldr	r0, .L45+4
+.L44:
 	bl	printk
 	mvn	r0, #2
-.L26:
+.L40:
 	pop	{r4, pc}
-.L27:
-	bl	mpp_packet_mem_alloc
-	cbnz	r0, .L29
-	movs	r2, #54
-	ldr	r1, .L31
-	ldr	r0, .L31+8
-	b	.L30
-.L29:
+.L41:
+	ldr	r3, .L45+8
+	ldr	r0, .L45+12
+	ldr	r1, [r3]
+	bl	mpp_mem_pool_get_f
+	cbnz	r0, .L43
+	movs	r2, #80
+	ldr	r1, .L45
+	ldr	r0, .L45+16
+	b	.L44
+.L43:
 	str	r0, [r4]
 	add	r3, r0, #12
 	str	r3, [r0, #12]
 	str	r3, [r0, #16]
 	movs	r3, #1
 	str	r3, [r0, #20]
-	ldr	r3, .L31+12
+	ldr	r3, .L45+20
 	str	r3, [r0]
 	movs	r0, #0
-	b	.L26
-.L32:
+	b	.L40
+.L46:
 	.align	2
-.L31:
-	.word	.LANCHOR0+20
+.L45:
+	.word	.LANCHOR1+64
 	.word	.LC2
+	.word	.LANCHOR0
+	.word	.LANCHOR1+79
 	.word	.LC3
 	.word	.LC0
 	.fnend
@@ -186,164 +275,177 @@ mpp_packet_new:
 	.type	mpp_packet_new_ring_buf, %function
 mpp_packet_new_ring_buf:
 	.fnstart
-	@ args = 4, pretend = 0, frame = 16
+	@ args = 4, pretend = 0, frame = 24
 	@ frame_needed = 0, uses_anonymous_args = 0
 	push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
 	.save {r4, r5, r6, r7, r8, r9, r10, fp, lr}
-	mov	r6, r1
-	.pad #28
-	sub	sp, sp, #28
-	mov	r5, r2
+	.pad #36
+	sub	sp, sp, #36
+	mov	r5, r1
+	mov	r8, r2
 	mov	r7, r3
-	mov	fp, r0
-	cbnz	r0, .L34
-	movs	r2, #156
-	ldr	r1, .L53
-	ldr	r0, .L53+4
+	str	r0, [sp, #12]
+	cbnz	r0, .L48
+	movs	r2, #182
+	ldr	r1, .L68
+	ldr	r0, .L68+4
 	bl	printk
-.L45:
+.L59:
 	mvn	r0, #2
-	b	.L33
-.L34:
-	bl	mpp_packet_mem_alloc
+	b	.L47
+.L48:
+	ldr	r6, .L68+8
+	ldr	r0, .L68+12
+	ldr	r1, [r6]
+	mov	fp, r6
+	bl	mpp_mem_pool_get_f
 	mov	r4, r0
 	cmp	r0, #0
-	beq	.L45
+	beq	.L59
 	add	r3, r0, #12
 	str	r3, [r0, #12]
 	str	r3, [r0, #16]
 	movs	r3, #1
 	str	r3, [r0, #20]
-	cbz	r6, .L36
+	cbz	r5, .L50
 	str	r3, [sp]
 	add	r1, r0, #72
-	ubfx	r3, r5, #0, #10
+	ubfx	r3, r8, #0, #10
 	movs	r2, #128
-	mov	r0, r6
+	mov	r0, r5
 	bl	ring_buf_get_free
 	cmp	r0, #0
-	beq	.L37
-.L39:
-	mov	r0, r4
-	bl	mpp_packet_mem_free
+	beq	.L51
+	ldr	r1, [r6]
+	mov	r2, r4
+.L67:
+	ldr	r0, .L68+12
+	bl	mpp_mem_pool_put_f
 	mvn	r0, #3
-.L33:
-	add	sp, sp, #28
+.L47:
+	add	sp, sp, #36
 	@ sp needed
 	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
-.L36:
+.L50:
 	bl	get_vsm_ops
-	strd	r6, r6, [sp, #12]
+	strd	r5, r5, [sp, #20]
 	mov	r9, r0
-	str	r6, [sp, #20]
-	cbnz	r0, .L38
-	movs	r1, #77
-	ldr	r0, .L53+8
+	str	r5, [sp, #28]
+	cbnz	r0, .L52
+	movs	r1, #103
+	ldr	r0, .L68+16
 	bl	printk
-	b	.L39
-.L38:
-	ldr	r5, [r0]
-	cmp	r5, #0
-	beq	.L39
-	ldr	r3, [sp, #64]
-	mov	r2, r6
+.L53:
+	mov	r2, r4
+	ldr	r1, [fp]
+	b	.L67
+.L52:
+	ldr	r6, [r0]
+	cmp	r6, #0
+	beq	.L53
+	ldr	r3, [sp, #72]
+	mov	r2, r5
 	mov	r1, r7
-	add	r0, sp, #12
-	blx	r5
+	add	r0, sp, #20
+	blx	r6
 	cmp	r0, #0
-	blt	.L39
-	ldr	r7, [sp, #12]
+	blt	.L53
+	ldr	r6, [sp, #20]
 	mov	r1, #3264
-	ldr	r3, [sp, #20]
-	subs	r5, r7, #1
-	str	r6, [r4, #84]
-	add	r5, r5, r3
-	mvn	r5, r5, lsr #12
-	mvn	r5, r5, lsl #12
-	adds	r5, r5, #1
-	sub	r8, r5, r7
-	lsr	r8, r8, #12
-	add	r8, r8, #1
-	lsl	r0, r8, #2
+	ldr	r2, [sp, #28]
+	subs	r3, r6, #1
+	str	r5, [r4, #84]
+	add	r3, r3, r2
+	mvn	r3, r3, lsr #12
+	mvn	r3, r3, lsl #12
+	add	r10, r3, #1
+	sub	r7, r10, r6
+	lsrs	r7, r7, #12
+	adds	r7, r7, #1
+	lsls	r0, r7, #2
 	bl	__kmalloc
-	mov	r10, r0
+	mov	r8, r0
 	cmp	r0, #0
-	bne	.L46
+	bne	.L60
 	ldr	r3, [r9, #8]
 	cmp	r3, #0
-	beq	.L39
-	ldr	r1, [sp, #64]
-	add	r0, sp, #12
+	beq	.L53
+	ldr	r1, [sp, #72]
+	add	r0, sp, #20
 	blx	r3
-	b	.L39
-.L44:
-	cmp	r8, r9
-	bgt	.L43
-	movs	r1, #102
-	ldr	r3, .L53+12
+	b	.L53
+.L58:
+	cmp	r7, r9
+	bgt	.L57
+	movs	r1, #128
+	ldr	r3, .L68+20
 	str	r1, [sp]
-	ldr	r2, .L53+16
-	ldr	r0, .L53+20
+	mov	r0, fp
+	ldr	r2, .L68+24
 	bl	printk
-.L43:
-	ldr	r3, .L53+24
+.L57:
+	ldr	r3, .L68+28
 	ldr	r2, [r3]
-	ldr	r3, .L53+28
-	rsb	r2, r2, r7, lsr #12
-	add	r7, r7, #4096
+	ldr	r3, .L68+32
+	rsb	r2, r2, r6, lsr #12
+	add	r6, r6, #4096
 	ldr	r3, [r3]
 	add	r3, r3, r2, lsl #5
-	str	r3, [r10, r9, lsl #2]
+	str	r3, [r8, r9, lsl #2]
 	add	r9, r9, #1
-.L41:
-	cmp	r5, r7
-	bhi	.L44
-	ldr	r3, .L53+32
+.L55:
+	cmp	r10, r6
+	bhi	.L58
+	ldr	r3, .L68+36
 	movs	r2, #4
 	mov	r1, r9
-	mov	r0, r10
+	mov	r0, r8
 	ldr	r3, [r3]
 	orr	r3, r3, #512
 	bl	vmap
-	ldr	r2, [sp, #12]
+	ldr	r2, [sp, #20]
 	ubfx	r3, r2, #0, #12
 	add	r0, r0, r3
-	ldr	r3, [sp, #20]
+	ldr	r3, [sp, #28]
 	strd	r2, r0, [r4, #76]
-	mov	r0, r10
+	mov	r0, r8
 	str	r3, [r4, #96]
 	ldr	r3, [r4, #60]
 	orr	r3, r3, #8
 	str	r3, [r4, #60]
 	bl	kfree
-.L37:
+.L51:
 	ldr	r3, [r4, #80]
 	movs	r0, #0
-	str	r6, [r4, #104]
+	str	r5, [r4, #104]
 	str	r0, [r4, #36]
 	strd	r3, r3, [r4, #24]
 	ldr	r3, [r4, #96]
 	str	r3, [r4, #32]
-	ldr	r3, .L53+36
+	ldr	r3, .L68+40
 	str	r3, [r4]
-	str	r4, [fp]
-	b	.L33
-.L46:
-	mov	r9, r6
-	b	.L41
-.L54:
+	ldr	r3, [sp, #12]
+	str	r4, [r3]
+	b	.L47
+.L60:
+	mov	r9, r5
+	ldr	fp, .L68+44
+	b	.L55
+.L69:
 	.align	2
-.L53:
-	.word	.LANCHOR0+35
+.L68:
+	.word	.LANCHOR1+94
 	.word	.LC2
+	.word	.LANCHOR0
+	.word	.LANCHOR1+118
 	.word	.LC4
-	.word	.LANCHOR0+59
+	.word	.LANCHOR1+142
 	.word	.LC5
-	.word	.LC6
 	.word	__pv_phys_pfn_offset
 	.word	mem_map
 	.word	pgprot_kernel
 	.word	.LC0
+	.word	.LC6
 	.fnend
 	.size	mpp_packet_new_ring_buf, .-mpp_packet_new_ring_buf
 	.align	1
@@ -365,49 +467,49 @@ mpp_packet_ring_buf_put_used:
 	mov	r6, r2
 	str	r3, [r0, #92]
 	ldr	r0, [r0, #104]
-	cbz	r0, .L56
+	cbz	r0, .L71
 	ldr	r2, [r4, #96]
 	cmp	r3, r2
-	bls	.L57
-	movs	r1, #200
-	ldr	r0, .L71
+	bls	.L72
+	movs	r1, #225
+	ldr	r0, .L86
 	bl	printk
 	mov	r0, #-1
-.L55:
+.L70:
 	pop	{r4, r5, r6, pc}
-.L57:
+.L72:
 	add	r1, r4, #72
 	bl	ring_buf_put_use
-.L56:
+.L71:
 	ldr	r3, [r4, #60]
 	lsls	r3, r3, #28
-	bpl	.L59
+	bpl	.L74
 	ldr	r3, [r4, #36]
-	cbz	r3, .L60
+	cbz	r3, .L75
 	mov	r0, r6
 	bl	mpp_get_dev
 	movs	r3, #2
 	ldr	r2, [r4, #36]
 	ldr	r1, [r4, #76]
 	bl	dma_sync_single_for_device
-.L60:
+.L75:
 	mov	r1, r5
 	mov	r0, r4
 	bl	mpp_packet_vsm_buf_free
-.L59:
+.L74:
 	ldr	r0, [r4, #72]
 	cmp	r0, #0
-	beq	.L55
-	ldr	r1, .L71+4
+	beq	.L70
+	ldr	r1, .L86+4
 	add	r0, r4, #72
 	bl	mpp_buffer_flush_for_cpu_with_caller
 	movs	r0, #0
-	b	.L55
-.L72:
+	b	.L70
+.L87:
 	.align	2
-.L71:
+.L86:
 	.word	.LC7
-	.word	.LANCHOR0+84
+	.word	.LANCHOR1+167
 	.fnend
 	.size	mpp_packet_ring_buf_put_used, .-mpp_packet_ring_buf_put_used
 	.align	1
@@ -426,33 +528,33 @@ mpp_packet_init:
 	mov	r6, r1
 	mov	r5, r2
 	mov	r7, r0
-	cbnz	r0, .L74
-	movs	r2, #225
-	ldr	r1, .L77
-	ldr	r0, .L77+4
+	cbnz	r0, .L89
+	movs	r2, #251
+	ldr	r1, .L92
+	ldr	r0, .L92+4
 	mvn	r4, #2
 	bl	printk
-.L73:
+.L88:
 	mov	r0, r4
 	pop	{r3, r4, r5, r6, r7, pc}
-.L74:
+.L89:
 	bl	mpp_packet_new
 	mov	r4, r0
-	cbz	r0, .L76
-	movs	r2, #231
-	ldr	r1, .L77
-	ldr	r0, .L77+8
+	cbz	r0, .L91
+	movw	r2, #257
+	ldr	r1, .L92
+	ldr	r0, .L92+8
 	bl	printk
-	b	.L73
-.L76:
+	b	.L88
+.L91:
 	ldr	r3, [r7]
 	strd	r6, r6, [r3, #24]
 	strd	r5, r5, [r3, #32]
-	b	.L73
-.L78:
+	b	.L88
+.L93:
 	.align	2
-.L77:
-	.word	.LANCHOR0+113
+.L92:
+	.word	.LANCHOR1+196
 	.word	.LC8
 	.word	.LC9
 	.fnend
@@ -473,52 +575,52 @@ mpp_packet_init_with_buffer:
 	.pad #8
 	mov	r4, r1
 	mov	r5, r0
-	cbz	r0, .L80
-	cbnz	r1, .L81
-.L80:
+	cbz	r0, .L95
+	cbnz	r1, .L96
+.L95:
 	str	r4, [sp]
 	mov	r3, r5
-	movs	r2, #248
-	ldr	r1, .L87
-	ldr	r0, .L87+4
+	mov	r2, #274
+	ldr	r1, .L102
+	ldr	r0, .L102+4
 	mvn	r6, #2
 	bl	printk
-.L79:
+.L94:
 	mov	r0, r6
 	add	sp, sp, #8
 	@ sp needed
 	pop	{r4, r5, r6, pc}
-.L81:
+.L96:
 	bl	mpp_packet_new
 	mov	r6, r0
-	cbz	r0, .L83
-	movs	r2, #254
-	ldr	r1, .L87
-	ldr	r0, .L87+8
+	cbz	r0, .L98
+	mov	r2, #280
+	ldr	r1, .L102
+	ldr	r0, .L102+8
 	bl	printk
-	b	.L79
-.L83:
-	ldr	r1, .L87+12
+	b	.L94
+.L98:
+	ldr	r1, .L102+12
 	mov	r0, r4
 	ldr	r5, [r5]
 	bl	mpp_buffer_get_ptr_with_caller
-	ldr	r1, .L87+12
+	ldr	r1, .L102+12
 	strd	r0, r0, [r5, #24]
 	mov	r0, r4
 	bl	mpp_buffer_get_size_with_caller
 	str	r4, [r5, #68]
-	ldr	r1, .L87+12
+	ldr	r1, .L102+12
 	strd	r0, r0, [r5, #32]
 	mov	r0, r4
 	bl	mpp_buffer_inc_ref_with_caller
-	b	.L79
-.L88:
+	b	.L94
+.L103:
 	.align	2
-.L87:
-	.word	.LANCHOR0+129
+.L102:
+	.word	.LANCHOR1+212
 	.word	.LC10
 	.word	.LC9
-	.word	.LANCHOR0+157
+	.word	.LANCHOR1+240
 	.fnend
 	.size	mpp_packet_init_with_buffer, .-mpp_packet_init_with_buffer
 	.align	1
@@ -535,59 +637,63 @@ mpp_packet_deinit:
 	push	{r4, r5, r6, lr}
 	.save {r4, r5, r6, lr}
 	mov	r5, r0
-	cbnz	r0, .L90
-.L92:
-	mov	r2, #272
-	ldr	r1, .L109
-	ldr	r0, .L109+4
+	cbnz	r0, .L105
+.L107:
+	mov	r2, #298
+	ldr	r1, .L124
+	ldr	r0, .L124+4
 	mvn	r6, #2
 	bl	printk
-.L89:
+.L104:
 	mov	r0, r6
 	pop	{r4, r5, r6, pc}
-.L90:
+.L105:
 	ldr	r0, [r0]
 	bl	check_is_mpp_packet
 	mov	r6, r0
 	cmp	r0, #0
-	bne	.L92
+	bne	.L107
 	ldr	r4, [r5]
 	ldr	r0, [r4, #68]
-	cbz	r0, .L93
-	ldr	r1, .L109+8
+	cbz	r0, .L108
+	ldr	r1, .L124+8
 	bl	mpp_buffer_put_with_caller
-.L93:
+.L108:
 	ldr	r3, [r4, #60]
 	lsls	r2, r3, #29
-	bpl	.L94
+	bpl	.L109
 	ldr	r1, [r4, #24]
-	ldr	r0, .L109+8
+	ldr	r0, .L124+8
 	bl	mpp_osal_free
-.L94:
+.L109:
 	ldr	r0, [r4, #104]
-	cbz	r0, .L95
+	cbz	r0, .L110
 	add	r1, r4, #72
 	bl	ring_buf_put_free
 	movs	r3, #0
 	str	r3, [r4, #104]
-.L95:
+.L110:
 	ldr	r3, [r4, #60]
 	lsls	r3, r3, #28
-	bpl	.L96
+	bpl	.L111
 	ldr	r0, [r4, #80]
 	bl	vunmap
-.L96:
-	mov	r0, r4
-	bl	mpp_packet_mem_free
+.L111:
+	ldr	r3, .L124+12
+	mov	r2, r4
+	ldr	r0, .L124+8
+	ldr	r1, [r3]
+	bl	mpp_mem_pool_put_f
 	movs	r3, #0
 	str	r3, [r5]
-	b	.L89
-.L110:
+	b	.L104
+.L125:
 	.align	2
-.L109:
-	.word	.LANCHOR0+185
+.L124:
+	.word	.LANCHOR1+268
 	.word	.LC11
-	.word	.LANCHOR0+203
+	.word	.LANCHOR1+286
+	.word	.LANCHOR0
 	.fnend
 	.size	mpp_packet_deinit, .-mpp_packet_deinit
 	.align	1
@@ -607,7 +713,7 @@ mpp_packet_set_pos:
 	mov	r4, r0
 	mov	r5, r1
 	bl	check_is_mpp_packet
-	cbnz	r0, .L111
+	cbnz	r0, .L126
 	ldrd	r1, r3, [r4, #24]
 	str	r5, [r4, #28]
 	subs	r2, r5, r3
@@ -620,31 +726,31 @@ mpp_packet_set_pos:
 	subcc	r3, r2, r3
 	cmp	r1, r5
 	str	r3, [r4, #36]
-	bls	.L116
-	movw	r1, #323
-	ldr	r3, .L118
+	bls	.L131
+	movw	r1, #349
+	ldr	r3, .L133
 	str	r1, [sp]
-	ldr	r2, .L118+4
-	ldr	r0, .L118+8
+	ldr	r2, .L133+4
+	ldr	r0, .L133+8
 	bl	printk
-.L116:
+.L131:
 	ldrd	r2, r3, [r4, #32]
 	cmp	r2, r3
-	bcs	.L111
-	mov	r1, #324
-	ldr	r3, .L118
+	bcs	.L126
+	mov	r1, #350
+	ldr	r3, .L133
 	str	r1, [sp]
-	ldr	r2, .L118+12
-	ldr	r0, .L118+8
+	ldr	r2, .L133+12
+	ldr	r0, .L133+8
 	bl	printk
-.L111:
+.L126:
 	add	sp, sp, #12
 	@ sp needed
 	pop	{r4, r5, pc}
-.L119:
+.L134:
 	.align	2
-.L118:
-	.word	.LANCHOR0+221
+.L133:
+	.word	.LANCHOR1+304
 	.word	.LC12
 	.word	.LC6
 	.word	.LC13
@@ -665,13 +771,13 @@ mpp_packet_get_pos:
 	.save {r4, lr}
 	mov	r4, r0
 	bl	check_is_mpp_packet
-	cbnz	r0, .L122
+	cbnz	r0, .L137
 	ldr	r0, [r4, #28]
-.L120:
+.L135:
 	pop	{r4, pc}
-.L122:
+.L137:
 	movs	r0, #0
-	b	.L120
+	b	.L135
 	.fnend
 	.size	mpp_packet_get_pos, .-mpp_packet_get_pos
 	.align	1
@@ -689,15 +795,15 @@ mpp_packet_set_eos:
 	.save {r4, lr}
 	mov	r4, r0
 	bl	check_is_mpp_packet
-	cbnz	r0, .L125
+	cbnz	r0, .L140
 	ldr	r3, [r4, #60]
 	orr	r3, r3, #1
 	str	r3, [r4, #60]
-.L123:
+.L138:
 	pop	{r4, pc}
-.L125:
+.L140:
 	mvn	r0, #1
-	b	.L123
+	b	.L138
 	.fnend
 	.size	mpp_packet_set_eos, .-mpp_packet_set_eos
 	.align	1
@@ -715,15 +821,15 @@ mpp_packet_clr_eos:
 	.save {r4, lr}
 	mov	r4, r0
 	bl	check_is_mpp_packet
-	cbnz	r0, .L128
+	cbnz	r0, .L143
 	ldr	r3, [r4, #60]
 	bic	r3, r3, #1
 	str	r3, [r4, #60]
-.L126:
+.L141:
 	pop	{r4, pc}
-.L128:
+.L143:
 	mvn	r0, #1
-	b	.L126
+	b	.L141
 	.fnend
 	.size	mpp_packet_clr_eos, .-mpp_packet_clr_eos
 	.align	1
@@ -741,14 +847,14 @@ mpp_packet_get_eos:
 	.save {r4, lr}
 	mov	r4, r0
 	bl	check_is_mpp_packet
-	cbnz	r0, .L131
+	cbnz	r0, .L146
 	ldr	r0, [r4, #60]
 	and	r0, r0, #1
-.L129:
+.L144:
 	pop	{r4, pc}
-.L131:
+.L146:
 	movs	r0, #0
-	b	.L129
+	b	.L144
 	.fnend
 	.size	mpp_packet_get_eos, .-mpp_packet_get_eos
 	.align	1
@@ -767,26 +873,26 @@ mpp_packet_reset:
 	mov	r4, r0
 	bl	check_is_mpp_packet
 	mov	r5, r0
-	cbnz	r0, .L134
+	cbnz	r0, .L149
 	mov	r1, r0
 	movs	r2, #108
 	adds	r0, r4, #4
 	ldr	r6, [r4, #24]
 	ldr	r7, [r4, #32]
 	bl	memset
-	ldr	r3, .L135
+	ldr	r3, .L150
 	strd	r6, r6, [r4, #24]
 	str	r7, [r4, #32]
 	str	r3, [r4]
-.L132:
+.L147:
 	mov	r0, r5
 	pop	{r3, r4, r5, r6, r7, pc}
-.L134:
+.L149:
 	mvn	r5, #1
-	b	.L132
-.L136:
+	b	.L147
+.L151:
 	.align	2
-.L135:
+.L150:
 	.word	.LC0
 	.fnend
 	.size	mpp_packet_reset, .-mpp_packet_reset
@@ -820,13 +926,13 @@ mpp_packet_get_buffer:
 	.save {r4, lr}
 	mov	r4, r0
 	bl	check_is_mpp_packet
-	cbnz	r0, .L140
+	cbnz	r0, .L155
 	ldr	r0, [r4, #68]
-.L138:
+.L153:
 	pop	{r4, pc}
-.L140:
+.L155:
 	movs	r0, #0
-	b	.L138
+	b	.L153
 	.fnend
 	.size	mpp_packet_get_buffer, .-mpp_packet_get_buffer
 	.align	1
@@ -845,13 +951,13 @@ mpp_packet_set_status:
 	mov	r4, r0
 	mov	r5, r1
 	bl	check_is_mpp_packet
-	cbnz	r0, .L143
+	cbnz	r0, .L158
 	str	r5, [r4, #56]
-.L141:
+.L156:
 	pop	{r3, r4, r5, pc}
-.L143:
+.L158:
 	mvn	r0, #1
-	b	.L141
+	b	.L156
 	.fnend
 	.size	mpp_packet_set_status, .-mpp_packet_set_status
 	.align	1
@@ -870,15 +976,15 @@ mpp_packet_get_status:
 	mov	r5, r0
 	mov	r4, r1
 	bl	check_is_mpp_packet
-	cbnz	r0, .L146
+	cbnz	r0, .L161
 	ldr	r3, [r5, #56]
-.L145:
+.L160:
 	str	r3, [r4]
 	pop	{r3, r4, r5, pc}
-.L146:
+.L161:
 	movs	r3, #0
 	mvn	r0, #1
-	b	.L145
+	b	.L160
 	.fnend
 	.size	mpp_packet_get_status, .-mpp_packet_get_status
 	.align	1
@@ -896,14 +1002,14 @@ mpp_packet_is_partition:
 	.save {r4, lr}
 	mov	r4, r0
 	bl	check_is_mpp_packet
-	cbnz	r0, .L149
+	cbnz	r0, .L164
 	ldrb	r0, [r4, #56]	@ zero_extendqisi2
 	ubfx	r0, r0, #4, #1
-.L147:
+.L162:
 	pop	{r4, pc}
-.L149:
+.L164:
 	movs	r0, #0
-	b	.L147
+	b	.L162
 	.fnend
 	.size	mpp_packet_is_partition, .-mpp_packet_is_partition
 	.align	1
@@ -921,14 +1027,14 @@ mpp_packet_is_soi:
 	.save {r4, lr}
 	mov	r4, r0
 	bl	check_is_mpp_packet
-	cbnz	r0, .L152
+	cbnz	r0, .L167
 	ldrb	r0, [r4, #56]	@ zero_extendqisi2
 	ubfx	r0, r0, #5, #1
-.L150:
+.L165:
 	pop	{r4, pc}
-.L152:
+.L167:
 	movs	r0, #0
-	b	.L150
+	b	.L165
 	.fnend
 	.size	mpp_packet_is_soi, .-mpp_packet_is_soi
 	.align	1
@@ -946,14 +1052,14 @@ mpp_packet_is_eoi:
 	.save {r4, lr}
 	mov	r4, r0
 	bl	check_is_mpp_packet
-	cbnz	r0, .L155
+	cbnz	r0, .L170
 	ldrb	r0, [r4, #56]	@ zero_extendqisi2
 	ubfx	r0, r0, #6, #1
-.L153:
+.L168:
 	pop	{r4, pc}
-.L155:
+.L170:
 	movs	r0, #0
-	b	.L153
+	b	.L168
 	.fnend
 	.size	mpp_packet_is_eoi, .-mpp_packet_is_eoi
 	.align	1
@@ -976,46 +1082,46 @@ mpp_packet_read:
 	mov	r7, r3
 	bl	check_is_mpp_packet
 	mov	r4, r0
-	cbnz	r0, .L157
-	cbnz	r5, .L158
-.L157:
+	cbnz	r0, .L172
+	cbnz	r5, .L173
+.L172:
 	str	r5, [sp]
 	mov	r3, r6
-	mov	r2, #484
-	ldr	r1, .L164
-	ldr	r0, .L164+4
+	mov	r2, #510
+	ldr	r1, .L179
+	ldr	r0, .L179+4
 	mvn	r4, #1
 	bl	printk
-.L156:
+.L171:
 	mov	r0, r4
 	add	sp, sp, #8
 	@ sp needed
 	pop	{r4, r5, r6, r7, r8, pc}
-.L158:
+.L173:
 	cmp	r7, #0
-	beq	.L156
+	beq	.L171
 	mov	r0, r6
 	bl	check_is_mpp_packet
 	ldr	r6, [r6, #24]
-	cbnz	r6, .L160
-	mov	r1, #492
-	ldr	r3, .L164+8
+	cbnz	r6, .L175
+	movw	r1, #518
+	ldr	r3, .L179+8
 	str	r1, [sp]
-	ldr	r2, .L164+12
-	ldr	r0, .L164+16
+	ldr	r2, .L179+12
+	ldr	r0, .L179+16
 	bl	printk
-.L160:
+.L175:
 	mov	r2, r7
 	add	r1, r6, r8
 	mov	r0, r5
 	bl	memcpy
-	b	.L156
-.L165:
+	b	.L171
+.L180:
 	.align	2
-.L164:
-	.word	.LANCHOR0+240
+.L179:
+	.word	.LANCHOR1+323
 	.word	.LC14
-	.word	.LANCHOR0+256
+	.word	.LANCHOR1+339
 	.word	.LC15
 	.word	.LC6
 	.fnend
@@ -1040,46 +1146,46 @@ mpp_packet_write:
 	mov	r7, r3
 	bl	check_is_mpp_packet
 	mov	r4, r0
-	cbnz	r0, .L167
-	cbnz	r5, .L168
-.L167:
+	cbnz	r0, .L182
+	cbnz	r5, .L183
+.L182:
 	str	r5, [sp]
 	mov	r3, r6
-	mov	r2, #502
-	ldr	r1, .L174
-	ldr	r0, .L174+4
+	mov	r2, #528
+	ldr	r1, .L189
+	ldr	r0, .L189+4
 	mvn	r4, #1
 	bl	printk
-.L166:
+.L181:
 	mov	r0, r4
 	add	sp, sp, #8
 	@ sp needed
 	pop	{r4, r5, r6, r7, r8, pc}
-.L168:
+.L183:
 	cmp	r7, #0
-	beq	.L166
+	beq	.L181
 	mov	r0, r6
 	bl	check_is_mpp_packet
 	ldr	r6, [r6, #24]
-	cbnz	r6, .L170
-	mov	r1, #510
-	ldr	r3, .L174+8
+	cbnz	r6, .L185
+	mov	r1, #536
+	ldr	r3, .L189+8
 	str	r1, [sp]
-	ldr	r2, .L174+12
-	ldr	r0, .L174+16
+	ldr	r2, .L189+12
+	ldr	r0, .L189+16
 	bl	printk
-.L170:
+.L185:
 	mov	r2, r7
 	mov	r1, r5
 	add	r0, r6, r8
 	bl	memcpy
-	b	.L166
-.L175:
+	b	.L181
+.L190:
 	.align	2
-.L174:
-	.word	.LANCHOR0+272
+.L189:
+	.word	.LANCHOR1+355
 	.word	.LC14
-	.word	.LANCHOR0+289
+	.word	.LANCHOR1+372
 	.word	.LC16
 	.word	.LC6
 	.fnend
@@ -1101,37 +1207,37 @@ mpp_packet_copy:
 	mov	r6, r0
 	mov	r4, r1
 	bl	check_is_mpp_packet
-	cbz	r0, .L177
-.L179:
+	cbz	r0, .L192
+.L194:
 	str	r4, [sp]
 	mov	r3, r6
-	movw	r2, #521
-	ldr	r1, .L180
-	ldr	r0, .L180+4
+	movw	r2, #547
+	ldr	r1, .L195
+	ldr	r0, .L195+4
 	mvn	r5, #1
 	bl	printk
-.L176:
+.L191:
 	mov	r0, r5
 	add	sp, sp, #8
 	@ sp needed
 	pop	{r4, r5, r6, pc}
-.L177:
+.L192:
 	mov	r0, r4
 	bl	check_is_mpp_packet
 	mov	r5, r0
 	cmp	r0, #0
-	bne	.L179
+	bne	.L194
 	ldr	r2, [r4, #36]
 	ldr	r1, [r4, #28]
 	ldr	r0, [r6, #28]
 	bl	memcpy
 	ldr	r3, [r4, #36]
 	str	r3, [r6, #36]
-	b	.L176
-.L181:
+	b	.L191
+.L196:
 	.align	2
-.L180:
-	.word	.LANCHOR0+306
+.L195:
+	.word	.LANCHOR1+389
 	.word	.LC17
 	.fnend
 	.size	mpp_packet_copy, .-mpp_packet_copy
@@ -1152,26 +1258,26 @@ mpp_packet_append:
 	mov	r4, r0
 	mov	r5, r1
 	bl	check_is_mpp_packet
-	cbz	r0, .L183
-.L185:
+	cbz	r0, .L198
+.L200:
 	str	r5, [sp]
 	mov	r3, r4
-	movw	r2, #539
-	ldr	r1, .L186
-	ldr	r0, .L186+4
+	movw	r2, #565
+	ldr	r1, .L201
+	ldr	r0, .L201+4
 	mvn	r6, #1
 	bl	printk
-.L182:
+.L197:
 	mov	r0, r6
 	add	sp, sp, #8
 	@ sp needed
 	pop	{r4, r5, r6, pc}
-.L183:
+.L198:
 	mov	r0, r5
 	bl	check_is_mpp_packet
 	mov	r6, r0
 	cmp	r0, #0
-	bne	.L185
+	bne	.L200
 	ldr	r3, [r4, #36]
 	ldr	r0, [r4, #28]
 	ldr	r2, [r5, #36]
@@ -1182,11 +1288,11 @@ mpp_packet_append:
 	ldr	r2, [r5, #36]
 	add	r3, r3, r2
 	str	r3, [r4, #36]
-	b	.L182
-.L187:
+	b	.L197
+.L202:
 	.align	2
-.L186:
-	.word	.LANCHOR0+322
+.L201:
+	.word	.LANCHOR1+405
 	.word	.LC17
 	.fnend
 	.size	mpp_packet_append, .-mpp_packet_append
@@ -1206,22 +1312,22 @@ mpp_packet_set_flag:
 	mov	r4, r0
 	mov	r5, r1
 	bl	check_is_mpp_packet
-	cbz	r0, .L189
+	cbz	r0, .L204
 	mov	r3, r4
-	mov	r2, #556
-	ldr	r1, .L190
-	ldr	r0, .L190+4
+	movw	r2, #582
+	ldr	r1, .L205
+	ldr	r0, .L205+4
 	pop	{r4, r5, r6, lr}
 	b	printk
-.L189:
+.L204:
 	ldr	r3, [r4, #60]
 	orrs	r3, r3, r5
 	str	r3, [r4, #60]
 	pop	{r4, r5, r6, pc}
-.L191:
+.L206:
 	.align	2
-.L190:
-	.word	.LANCHOR0+340
+.L205:
+	.word	.LANCHOR1+423
 	.word	.LC18
 	.fnend
 	.size	mpp_packet_set_flag, .-mpp_packet_set_flag
@@ -1240,22 +1346,22 @@ mpp_packet_get_flag:
 	.save {r4, lr}
 	mov	r4, r0
 	bl	check_is_mpp_packet
-	cbz	r0, .L193
+	cbz	r0, .L208
 	mov	r3, r4
-	mov	r2, #568
-	ldr	r1, .L195
-	ldr	r0, .L195+4
+	movw	r2, #594
+	ldr	r1, .L210
+	ldr	r0, .L210+4
 	bl	printk
 	movs	r0, #0
-.L192:
+.L207:
 	pop	{r4, pc}
-.L193:
+.L208:
 	ldr	r0, [r4, #60]
-	b	.L192
-.L196:
+	b	.L207
+.L211:
 	.align	2
-.L195:
-	.word	.LANCHOR0+360
+.L210:
+	.word	.LANCHOR1+443
 	.word	.LC18
 	.fnend
 	.size	mpp_packet_get_flag, .-mpp_packet_get_flag
@@ -1496,83 +1602,106 @@ mpp_packet_set_temporal_id:
 	.fnend
 	.size	mpp_packet_set_temporal_id, .-mpp_packet_set_temporal_id
 	.section	.rodata
-	.set	.LANCHOR0,. + 0
-	.type	__func__.34500, %object
-	.size	__func__.34500, 20
-__func__.34500:
+	.set	.LANCHOR1,. + 0
+	.type	__FUNCTION__.34634, %object
+	.size	__FUNCTION__.34634, 21
+__FUNCTION__.34634:
+	.ascii	"mpp_packet_pool_init\000"
+	.type	__FUNCTION__.34638, %object
+	.size	__FUNCTION__.34638, 23
+__FUNCTION__.34638:
+	.ascii	"mpp_packet_pool_deinit\000"
+	.type	__func__.34645, %object
+	.size	__func__.34645, 20
+__func__.34645:
 	.ascii	"check_is_mpp_packet\000"
-	.type	__func__.34507, %object
-	.size	__func__.34507, 15
-__func__.34507:
+	.type	__func__.34652, %object
+	.size	__func__.34652, 15
+__func__.34652:
 	.ascii	"mpp_packet_new\000"
-	.type	__func__.34541, %object
-	.size	__func__.34541, 24
-__func__.34541:
+	.type	__FUNCTION__.34653, %object
+	.size	__FUNCTION__.34653, 15
+__FUNCTION__.34653:
+	.ascii	"mpp_packet_new\000"
+	.type	__func__.34687, %object
+	.size	__func__.34687, 24
+__func__.34687:
 	.ascii	"mpp_packet_new_ring_buf\000"
-	.type	__FUNCTION__.34520, %object
-	.size	__FUNCTION__.34520, 25
-__FUNCTION__.34520:
+	.type	__FUNCTION__.34688, %object
+	.size	__FUNCTION__.34688, 24
+__FUNCTION__.34688:
+	.ascii	"mpp_packet_new_ring_buf\000"
+	.type	__FUNCTION__.34666, %object
+	.size	__FUNCTION__.34666, 25
+__FUNCTION__.34666:
 	.ascii	"mpp_packet_vsm_buf_alloc\000"
-	.type	__FUNCTION__.34549, %object
-	.size	__FUNCTION__.34549, 29
-__FUNCTION__.34549:
+	.type	__FUNCTION__.34696, %object
+	.size	__FUNCTION__.34696, 29
+__FUNCTION__.34696:
 	.ascii	"mpp_packet_ring_buf_put_used\000"
-	.type	__func__.34557, %object
-	.size	__func__.34557, 16
-__func__.34557:
+	.type	__func__.34704, %object
+	.size	__func__.34704, 16
+__func__.34704:
 	.ascii	"mpp_packet_init\000"
-	.type	__func__.34564, %object
-	.size	__func__.34564, 28
-__func__.34564:
+	.type	__func__.34711, %object
+	.size	__func__.34711, 28
+__func__.34711:
 	.ascii	"mpp_packet_init_with_buffer\000"
-	.type	__FUNCTION__.34565, %object
-	.size	__FUNCTION__.34565, 28
-__FUNCTION__.34565:
+	.type	__FUNCTION__.34712, %object
+	.size	__FUNCTION__.34712, 28
+__FUNCTION__.34712:
 	.ascii	"mpp_packet_init_with_buffer\000"
-	.type	__func__.34570, %object
-	.size	__func__.34570, 18
-__func__.34570:
+	.type	__func__.34717, %object
+	.size	__func__.34717, 18
+__func__.34717:
 	.ascii	"mpp_packet_deinit\000"
-	.type	__FUNCTION__.34571, %object
-	.size	__FUNCTION__.34571, 18
-__FUNCTION__.34571:
+	.type	__FUNCTION__.34718, %object
+	.size	__FUNCTION__.34718, 18
+__FUNCTION__.34718:
 	.ascii	"mpp_packet_deinit\000"
-	.type	__FUNCTION__.34579, %object
-	.size	__FUNCTION__.34579, 19
-__FUNCTION__.34579:
+	.type	__FUNCTION__.34726, %object
+	.size	__FUNCTION__.34726, 19
+__FUNCTION__.34726:
 	.ascii	"mpp_packet_set_pos\000"
-	.type	__func__.34642, %object
-	.size	__func__.34642, 16
-__func__.34642:
+	.type	__func__.34789, %object
+	.size	__func__.34789, 16
+__func__.34789:
 	.ascii	"mpp_packet_read\000"
-	.type	__FUNCTION__.34643, %object
-	.size	__FUNCTION__.34643, 16
-__FUNCTION__.34643:
+	.type	__FUNCTION__.34790, %object
+	.size	__FUNCTION__.34790, 16
+__FUNCTION__.34790:
 	.ascii	"mpp_packet_read\000"
-	.type	__func__.34653, %object
-	.size	__func__.34653, 17
-__func__.34653:
+	.type	__func__.34800, %object
+	.size	__func__.34800, 17
+__func__.34800:
 	.ascii	"mpp_packet_write\000"
-	.type	__FUNCTION__.34654, %object
-	.size	__FUNCTION__.34654, 17
-__FUNCTION__.34654:
+	.type	__FUNCTION__.34801, %object
+	.size	__FUNCTION__.34801, 17
+__FUNCTION__.34801:
 	.ascii	"mpp_packet_write\000"
-	.type	__func__.34663, %object
-	.size	__func__.34663, 16
-__func__.34663:
+	.type	__func__.34810, %object
+	.size	__func__.34810, 16
+__func__.34810:
 	.ascii	"mpp_packet_copy\000"
-	.type	__func__.34670, %object
-	.size	__func__.34670, 18
-__func__.34670:
+	.type	__func__.34817, %object
+	.size	__func__.34817, 18
+__func__.34817:
 	.ascii	"mpp_packet_append\000"
-	.type	__func__.34676, %object
-	.size	__func__.34676, 20
-__func__.34676:
+	.type	__func__.34823, %object
+	.size	__func__.34823, 20
+__func__.34823:
 	.ascii	"mpp_packet_set_flag\000"
-	.type	__func__.34681, %object
-	.size	__func__.34681, 20
-__func__.34681:
+	.type	__func__.34828, %object
+	.size	__func__.34828, 20
+__func__.34828:
 	.ascii	"mpp_packet_get_flag\000"
+	.bss
+	.align	2
+	.set	.LANCHOR0,. + 0
+	.type	g_packet_pool, %object
+	.size	g_packet_pool, 4
+g_packet_pool:
+	.space	4
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:
 	.ascii	"mpp_packet\000"

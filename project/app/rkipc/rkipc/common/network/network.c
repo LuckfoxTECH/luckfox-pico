@@ -215,7 +215,7 @@ int rk_network_ipv4_set(char *interface, char *method, char *address, char *netm
 		// Ether_info.v4_is_dhcp = true;
 		memcpy(netmode, method, strlen(method));
 		snprintf(netmode, sizeof(netmode), "%s", method);
-		system("udhcpc &");
+		system("udhcpc -n &");
 	}
 
 	return 0;

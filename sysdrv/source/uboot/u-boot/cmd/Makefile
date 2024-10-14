@@ -91,8 +91,7 @@ obj-$(CONFIG_CMD_LOG) += log.o
 obj-$(CONFIG_ID_EEPROM) += mac.o
 obj-$(CONFIG_CMD_MD5SUM) += md5sum.o
 obj-$(CONFIG_CMD_MEMORY) += mem.o
-obj-$(CONFIG_CMD_MEMTESTER) += memtester/
-obj-$(CONFIG_CMD_DDR_TEST_TOOL) += ddr_tool/
+obj-$(CONFIG_CMD_DDR_TOOL) += ddr_tool/
 obj-$(CONFIG_CMD_IO) += io.o
 obj-$(CONFIG_CMD_MFSL) += mfsl.o
 obj-$(CONFIG_CMD_MII) += mii.o
@@ -114,6 +113,7 @@ ifdef CONFIG_PCI
 obj-$(CONFIG_CMD_PCI) += pci.o
 endif
 obj-y += pcmcia.o
+obj-$(CONFIG_CMD_PINMUX) += pinmux.o
 obj-$(CONFIG_CMD_PXE) += pxe.o
 obj-$(CONFIG_CMD_QFW) += qfw.o
 obj-$(CONFIG_CMD_READ) += read.o
@@ -149,6 +149,7 @@ obj-$(CONFIG_CMD_UNIVERSE) += universe.o
 obj-$(CONFIG_CMD_UNZIP) += unzip.o
 obj-$(CONFIG_CMD_LZMADEC) += lzmadec.o
 obj-$(CONFIG_CMD_SCRIPT_UPDATE) += script_update.o
+obj-$(CONFIG_CMD_UFS) += ufs.o
 obj-$(CONFIG_CMD_USB) += usb.o disk.o
 obj-$(CONFIG_CMD_FASTBOOT) += fastboot.o
 obj-$(CONFIG_CMD_FS_UUID) += fs_uuid.o

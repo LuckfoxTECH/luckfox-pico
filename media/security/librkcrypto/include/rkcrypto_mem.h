@@ -6,9 +6,9 @@
 #define __RKCRYPTO_MEM_H__
 
 typedef struct {
-  void *vaddr;
-  int dma_fd;
-  size_t size;
+	void		*vaddr;
+	int		dma_fd;
+	size_t		size;
 } rk_crypto_mem;
 
 int rk_crypto_mem_init(void);

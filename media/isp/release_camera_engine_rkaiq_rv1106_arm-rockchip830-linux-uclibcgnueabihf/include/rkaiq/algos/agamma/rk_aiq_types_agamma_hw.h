@@ -37,7 +37,7 @@ typedef struct AgammaProcResV11_s {
 } AgammaProcResV11_t;
 
 typedef struct AgammaProcRes_s {
-    bool update;
+    //bool update;
 #if RKAIQ_HAVE_GAMMA_V10
     AgammaProcResV10_t Gamma_v10;
 #endif

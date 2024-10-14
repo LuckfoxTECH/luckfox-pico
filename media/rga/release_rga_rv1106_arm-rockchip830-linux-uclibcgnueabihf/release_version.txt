@@ -1,10 +1,8 @@
-commit 6dcee5b53480cb16bc41d17c5fb0b6253d9872e3
+commit 8f3e18eb5b18c14c90f6e2f8468e506fd0b52fb5
 Author: Yu Qiaowei <cerf.yu@rock-chips.com>
-Date:   Tue Sep 27 21:09:26 2022 +0800
+Date:   Wed Apr 3 18:19:48 2024 +0800
 
-    im2d_api: support RK3562
-    
-    version: 1.9.1_[0]
+    docs: FAQ: fix network disk link cannot be opened
     
     Signed-off-by: Yu Qiaowei <cerf.yu@rock-chips.com>
-    Change-Id: I8d6515a1ec61c202a3a198618925c438c6c8076b
+    Change-Id: I6ffd4741ee473738e862670450943b2c09206301

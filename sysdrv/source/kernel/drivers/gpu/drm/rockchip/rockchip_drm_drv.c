@@ -197,6 +197,30 @@ uint32_t rockchip_drm_get_bpp(const struct drm_format_info *info)
 }
 EXPORT_SYMBOL(rockchip_drm_get_bpp);
 
+uint32_t rockchip_drm_get_cycles_per_pixel(uint32_t bus_format)
+{
+	switch (bus_format) {
+	case MEDIA_BUS_FMT_RGB565_1X16:
+	case MEDIA_BUS_FMT_RGB666_1X18:
+	case MEDIA_BUS_FMT_RGB888_1X24:
+	case MEDIA_BUS_FMT_RGB666_1X24_CPADHI:
+		return 1;
+	case MEDIA_BUS_FMT_RGB565_2X8_LE:
+	case MEDIA_BUS_FMT_BGR565_2X8_LE:
+		return 2;
+	case MEDIA_BUS_FMT_RGB666_3X6:
+	case MEDIA_BUS_FMT_RGB888_3X8:
+	case MEDIA_BUS_FMT_BGR888_3X8:
+		return 3;
+	case MEDIA_BUS_FMT_RGB888_DUMMY_4X8:
+	case MEDIA_BUS_FMT_BGR888_DUMMY_4X8:
+		return 4;
+	default:
+		return 1;
+	}
+}
+EXPORT_SYMBOL(rockchip_drm_get_cycles_per_pixel);
+
 /**
  * rockchip_drm_of_find_possible_crtcs - find the possible CRTCs for an active
  * encoder port
@@ -397,6 +421,40 @@ int rockchip_drm_add_modes_noedid(struct drm_connector *connector)
 	return num_modes;
 }
 EXPORT_SYMBOL(rockchip_drm_add_modes_noedid);
+
+static const struct rockchip_drm_width_dclk {
+	int width;
+	u32 dclk_khz;
+} rockchip_drm_dclk[] = {
+	{1920, 148500},
+	{2048, 200000},
+	{2560, 280000},
+	{3840, 594000},
+	{4096, 594000},
+	{7680, 2376000},
+};
+
+u32 rockchip_drm_get_dclk_by_width(int width)
+{
+	int i = 0;
+	u32 dclk_khz;
+
+	for (i = 0; i < ARRAY_SIZE(rockchip_drm_dclk); i++) {
+		if (width == rockchip_drm_dclk[i].width) {
+			dclk_khz = rockchip_drm_dclk[i].dclk_khz;
+			break;
+		}
+	}
+
+	if (i == ARRAY_SIZE(rockchip_drm_dclk)) {
+		DRM_ERROR("Can't not find %d width solution and use 148500 khz as max dclk\n", width);
+
+		dclk_khz = 148500;
+	}
+
+	return dclk_khz;
+}
+EXPORT_SYMBOL(rockchip_drm_get_dclk_by_width);
 
 static int
 cea_db_tag(const u8 *db)
@@ -952,6 +1010,50 @@ int rockchip_drm_parse_next_hdr(struct next_hdr_sink_data *sink_data,
 	return 0;
 }
 EXPORT_SYMBOL(rockchip_drm_parse_next_hdr);
+
+#define COLORIMETRY_DATA_BLOCK		0x5
+#define USE_EXTENDED_TAG		0x07
+
+static bool cea_db_is_hdmi_colorimetry_data_block(const u8 *db)
+{
+	if (cea_db_tag(db) != USE_EXTENDED_TAG)
+		return false;
+
+	if (db[1] != COLORIMETRY_DATA_BLOCK)
+		return false;
+
+	return true;
+}
+
+int
+rockchip_drm_parse_colorimetry_data_block(u8 *colorimetry, const struct edid *edid)
+{
+	const u8 *edid_ext;
+	int i, start, end;
+
+	if (!colorimetry || !edid)
+		return -EINVAL;
+
+	*colorimetry = 0;
+
+	edid_ext = find_cea_extension(edid);
+	if (!edid_ext)
+		return -EINVAL;
+
+	if (cea_db_offsets(edid_ext, &start, &end))
+		return -EINVAL;
+
+	for_each_cea_db(edid_ext, i, start, end) {
+		const u8 *db = &edid_ext[i];
+
+		if (cea_db_is_hdmi_colorimetry_data_block(db))
+			/* As per CEA 861-G spec */
+			*colorimetry = ((db[3] & (0x1 << 7)) << 1) | db[2];
+	}
+
+	return 0;
+}
+EXPORT_SYMBOL(rockchip_drm_parse_colorimetry_data_block);
 
 /*
  * Attach a (component) device to the shared drm dma mapping from master drm
@@ -1632,26 +1734,6 @@ static int rockchip_drm_gem_dmabuf_end_cpu_access(struct dma_buf *dma_buf,
 	return rockchip_gem_prime_end_cpu_access(obj, dir);
 }
 
-static int rockchip_drm_gem_begin_cpu_access_partial(
-	struct dma_buf *dma_buf,
-	enum dma_data_direction dir,
-	unsigned int offset, unsigned int len)
-{
-	struct drm_gem_object *obj = dma_buf->priv;
-
-	return rockchip_gem_prime_begin_cpu_access_partial(obj, dir, offset, len);
-}
-
-static int rockchip_drm_gem_end_cpu_access_partial(
-	struct dma_buf *dma_buf,
-	enum dma_data_direction dir,
-	unsigned int offset, unsigned int len)
-{
-	struct drm_gem_object *obj = dma_buf->priv;
-
-	return rockchip_gem_prime_end_cpu_access_partial(obj, dir, offset, len);
-}
-
 static const struct dma_buf_ops rockchip_drm_gem_prime_dmabuf_ops = {
 	.cache_sgt_mapping = true,
 	.attach = drm_gem_map_attach,
@@ -1665,8 +1747,6 @@ static const struct dma_buf_ops rockchip_drm_gem_prime_dmabuf_ops = {
 	.get_uuid = drm_gem_dmabuf_get_uuid,
 	.begin_cpu_access = rockchip_drm_gem_dmabuf_begin_cpu_access,
 	.end_cpu_access = rockchip_drm_gem_dmabuf_end_cpu_access,
-	.begin_cpu_access_partial = rockchip_drm_gem_begin_cpu_access_partial,
-	.end_cpu_access_partial = rockchip_drm_gem_end_cpu_access_partial,
 };
 
 static struct drm_gem_object *rockchip_drm_gem_prime_import_dev(struct drm_device *dev,

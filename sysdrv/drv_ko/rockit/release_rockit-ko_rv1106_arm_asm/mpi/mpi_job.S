@@ -64,7 +64,7 @@ atomic_set_if:
 	pld	[r0]
 .L2:
 	.syntax unified
-@ 114 "./arch/arm/include/asm/atomic.h" 1
+@ 114 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_cmpxchg
 ldrex	r3, [r0]
 mov	r4, #0
@@ -543,7 +543,7 @@ mpi_job_pool_alloc:
 	mov	r0, r4
 	bl	mpi_obj_register
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r1, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
@@ -556,7 +556,7 @@ mpi_job_pool_alloc:
 	str	r3, [r2]
 	str	r3, [r5, #44]
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r1	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -621,7 +621,7 @@ mpi_job_pool_flush:
 	bl	synchronize_rcu
 	cbz	r4, .L71
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r8, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
@@ -635,7 +635,7 @@ mpi_job_pool_flush:
 	cmp	r3, r6
 	bne	.L76
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r8	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -649,7 +649,7 @@ mpi_job_pool_flush:
 	strmi	r3, [r5, #12]
 	pld	[r4]
 	.syntax unified
-@ 223 "./arch/arm/include/asm/atomic.h" 1
+@ 223 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_add
 1:	ldrex	r3, [r4]
 	add	r3, r3, #1
@@ -662,7 +662,7 @@ mpi_job_pool_flush:
 	adds	r6, r4, #4
 	pld	[r6]
 	.syntax unified
-@ 223 "./arch/arm/include/asm/atomic.h" 1
+@ 223 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_add
 1:	ldrex	r3, [r6]
 	add	r3, r3, #1
@@ -684,7 +684,7 @@ mpi_job_pool_flush:
 	mov	r0, r7
 	bl	wait_for_completion
 	.syntax unified
-@ 224 "./arch/arm/include/asm/atomic.h" 1
+@ 224 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_sub
 1:	ldrex	r3, [r6]
 	sub	r3, r3, #1
@@ -696,7 +696,7 @@ mpi_job_pool_flush:
 	.syntax unified
 	pld	[r4]
 	.syntax unified
-@ 224 "./arch/arm/include/asm/atomic.h" 1
+@ 224 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_sub_return
 1:	ldrex	r3, [r4]
 	sub	r3, r3, #1
@@ -1060,84 +1060,84 @@ mpi_job_pool_create:
 	.size	mpi_job_pool_create, .-mpi_job_pool_create
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__func__.36167, %object
-	.size	__func__.36167, 18
-__func__.36167:
+	.type	__func__.35666, %object
+	.size	__func__.35666, 18
+__func__.35666:
 	.ascii	"mpi_job_set_ready\000"
-	.type	__func__.36268, %object
-	.size	__func__.36268, 16
-__func__.36268:
+	.type	__func__.35767, %object
+	.size	__func__.35767, 16
+__func__.35767:
 	.ascii	"mpi_job_release\000"
-	.type	__func__.36195, %object
-	.size	__func__.36195, 18
-__func__.36195:
+	.type	__func__.35694, %object
+	.size	__func__.35694, 18
+__func__.35694:
 	.ascii	"mpi_job_do_cancel\000"
-	.type	__func__.36242, %object
-	.size	__func__.36242, 13
-__func__.36242:
+	.type	__func__.35741, %object
+	.size	__func__.35741, 13
+__func__.35741:
 	.ascii	"mpi_job_done\000"
-	.type	__func__.36416, %object
-	.size	__func__.36416, 21
-__func__.36416:
+	.type	__func__.35915, %object
+	.size	__func__.35915, 21
+__func__.35915:
 	.ascii	"mpi_job_pool_release\000"
-	.type	__func__.36290, %object
-	.size	__func__.36290, 19
-__func__.36290:
+	.type	__func__.35789, %object
+	.size	__func__.35789, 19
+__func__.35789:
 	.ascii	"mpi_job_pool_alloc\000"
-	.type	__func__.36473, %object
-	.size	__func__.36473, 19
-__func__.36473:
+	.type	__func__.35972, %object
+	.size	__func__.35972, 19
+__func__.35972:
 	.ascii	"mpi_job_pool_flush\000"
-	.type	__func__.36183, %object
-	.size	__func__.36183, 20
-__func__.36183:
+	.type	__func__.35682, %object
+	.size	__func__.35682, 20
+__func__.35682:
 	.ascii	"mpi_job_set_running\000"
-	.type	__func__.36306, %object
-	.size	__func__.36306, 25
-__func__.36306:
+	.type	__func__.35805, %object
+	.size	__func__.35805, 25
+__func__.35805:
 	.ascii	"mpi_job_pool_request_job\000"
-	.type	__func__.36493, %object
-	.size	__func__.36493, 21
-__func__.36493:
+	.type	__func__.35992, %object
+	.size	__func__.35992, 21
+__func__.35992:
 	.ascii	"mpi_job_pool_destroy\000"
-	.type	__func__.36504, %object
-	.size	__func__.36504, 20
-__func__.36504:
+	.type	__func__.36003, %object
+	.size	__func__.36003, 20
+__func__.36003:
 	.ascii	"mpi_job_pool_create\000"
 	.bss
 	.set	.LANCHOR1,. + 0
-	.type	__key.10560, %object
-	.size	__key.10560, 0
-__key.10560:
+	.type	__key.10574, %object
+	.size	__key.10574, 0
+__key.10574:
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:
-	.ascii	"%s,%d:job(%d) ready for dev(%s)\000"
+	.ascii	"job(%d) ready for dev(%s)\000"
 .LC1:
-	.ascii	"%s,%d:job(%d) release\000"
+	.ascii	"job(%d) release\000"
 .LC2:
-	.ascii	"%s,%d:job(%d) canceled\000"
+	.ascii	"job(%d) canceled\000"
 .LC3:
-	.ascii	"%s,%d:job(%d) done(%d)\000"
+	.ascii	"job(%d) done(%d)\000"
 .LC4:
-	.ascii	"%s,%d:job pool(%d) released\000"
+	.ascii	"job pool(%d) released\000"
 .LC5:
-	.ascii	"%s,%d:job pool(%d) failed to alloc job\000"
+	.ascii	"job pool(%d) failed to alloc job\000"
 .LC6:
 	.ascii	"&x->wait\000"
 .LC7:
-	.ascii	"%s,%d:job pool(%d) allocated job(%d)\000"
+	.ascii	"job pool(%d) allocated job(%d)\000"
 .LC8:
-	.ascii	"%s,%d:job pool(%d) flushing\000"
+	.ascii	"job pool(%d) flushing\000"
 .LC9:
-	.ascii	"%s,%d:job(%d) run for dev(%s)\000"
+	.ascii	"job(%d) run for dev(%s)\000"
 .LC10:
-	.ascii	"%s,%d:job pool(%d) request job, status: %d\000"
+	.ascii	"job pool(%d) request job, status: %d\000"
 .LC11:
-	.ascii	"%s,%d:job pool(%d) return job(%d)\000"
+	.ascii	"job pool(%d) return job(%d)\000"
 .LC12:
-	.ascii	"%s,%d:job pool(%d) destroying\000"
+	.ascii	"job pool(%d) destroying\000"
 .LC13:
-	.ascii	"%s,%d:job pool(%d) registered\000"
+	.ascii	"job pool(%d) registered\000"
 	.section	___ksymtab_gpl+mpi_job_cancel,"a"
 	.align	2
 	.type	__ksymtab_mpi_job_cancel, %object

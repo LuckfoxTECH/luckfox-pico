@@ -28,6 +28,8 @@
 #include "algos/acac/rk_aiq_types_acac_algo.h"
 #include "asharpV33/rk_aiq_types_asharp_algo_v33.h"
 #include "aynrV22/rk_aiq_types_aynr_algo_v22.h"
+#include "awb/rk_aiq_types_awb_algo.h"
+#include "accm/rk_aiq_types_accm_algo.h"
 #include "rk_aiq_comm.h"
 #include "rk_aiq_mems_sensor.h"
 
@@ -47,33 +49,15 @@ typedef struct rk_aiq_isp_bay3d_v32_s {
 
 typedef struct rk_aiq_isp_cac_v32_s {
     bool enable;
-    rkaiq_cac_v11_hw_param_t cfg;
+    rkaiq_cac_v11_hw_param_t cfg[2];
 } rk_aiq_isp_cac_v32_t;
 
 
 typedef AdebayerHwConfigV2_t rk_aiq_isp_debayer_v32_t;
 
-typedef struct rk_aiq_isp_ccm_v32_s {
-} rk_aiq_isp_ccm_v32_t;
-
 typedef RkAiqAdehazeProcResult_t rk_aiq_isp_dehaze_v32_t;
 
-typedef struct rk_aiq_isp_ldch_v21_s {
-    int32_t ldch_en;
-    int32_t lut_h_size;
-    int32_t lut_v_size;
-    int32_t lut_size;
-    uint32_t lut_mem_fd;
-
-    uint8_t frm_end_dis;
-    uint8_t zero_interp_en;
-    uint8_t sample_avr_en;
-    uint8_t bic_mode_en;
-    uint8_t force_map_en;
-    uint8_t map13p3_en;
-
-    uint8_t bicubic[ISP32_LDCH_BIC_NUM];
-} rk_aiq_isp_ldch_v21_t;
+typedef ldch_v21_process_result_t rk_aiq_isp_ldch_v21_t;
 
 typedef RK_YNR_Fix_V22_t rk_aiq_isp_ynr_v32_t ;
 
@@ -92,5 +76,9 @@ typedef RK_Bayer2dnr_Fix_V23_t rk_aiq_isp_baynr_v32_t;
 typedef RK_Bayertnr_Fix_V23_t rk_aiq_isp_tnr_v32_t ;
 
 typedef rk_aiq_af_algo_meas_v31_t rk_aiq_isp_af_v31_t;
+typedef rk_aiq_af_algo_meas_v32_t rk_aiq_isp_af_v32_t;
+
+typedef rk_aiq_wb_gain_v32_t rk_aiq_isp_wb_gain_v32_t;
+typedef rk_aiq_ccm_cfg_v2_t rk_aiq_isp_ccm_v32_t;
 
 #endif

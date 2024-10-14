@@ -1,0 +1,10 @@
+Import('RTT_ROOT')
+Import('rtconfig')
+from building import *
+
+cwd = GetCurrentDir()
+src = Glob('*.c')
+
+group = DefineGroup('Applications', src, depend = ['RT_USING_CYW90721'])
+
+Return('group')

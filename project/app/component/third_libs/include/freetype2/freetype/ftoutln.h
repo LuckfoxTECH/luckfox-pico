@@ -116,8 +116,7 @@ FT_BEGIN_HEADER
  *   should filter this out, too.
  */
 FT_EXPORT(FT_Error)
-FT_Outline_Decompose(FT_Outline *outline,
-                     const FT_Outline_Funcs *func_interface, void *user);
+FT_Outline_Decompose(FT_Outline *outline, const FT_Outline_Funcs *func_interface, void *user);
 
 /**************************************************************************
  *
@@ -153,8 +152,7 @@ FT_Outline_Decompose(FT_Outline *outline,
  *   use the library's memory allocator.
  */
 FT_EXPORT(FT_Error)
-FT_Outline_New(FT_Library library, FT_UInt numPoints, FT_Int numContours,
-               FT_Outline *anoutline);
+FT_Outline_New(FT_Library library, FT_UInt numPoints, FT_Int numContours, FT_Outline *anoutline);
 
 /**************************************************************************
  *
@@ -426,8 +424,7 @@ FT_Outline_Reverse(FT_Outline *outline);
  *   levels, you have to use @FT_Outline_Render directly.
  */
 FT_EXPORT(FT_Error)
-FT_Outline_Get_Bitmap(FT_Library library, FT_Outline *outline,
-                      const FT_Bitmap *abitmap);
+FT_Outline_Get_Bitmap(FT_Library library, FT_Outline *outline, const FT_Bitmap *abitmap);
 
 /**************************************************************************
  *
@@ -468,8 +465,7 @@ FT_Outline_Get_Bitmap(FT_Library library, FT_Outline *outline,
  *   @FT_Raster_Params structure for more details.
  */
 FT_EXPORT(FT_Error)
-FT_Outline_Render(FT_Library library, FT_Outline *outline,
-                  FT_Raster_Params *params);
+FT_Outline_Render(FT_Library library, FT_Outline *outline, FT_Raster_Params *params);
 
 /**************************************************************************
  *
@@ -507,11 +503,11 @@ FT_Outline_Render(FT_Library library, FT_Outline *outline,
  *
  */
 typedef enum FT_Orientation_ {
-  FT_ORIENTATION_TRUETYPE = 0,
-  FT_ORIENTATION_POSTSCRIPT = 1,
-  FT_ORIENTATION_FILL_RIGHT = FT_ORIENTATION_TRUETYPE,
-  FT_ORIENTATION_FILL_LEFT = FT_ORIENTATION_POSTSCRIPT,
-  FT_ORIENTATION_NONE
+	FT_ORIENTATION_TRUETYPE = 0,
+	FT_ORIENTATION_POSTSCRIPT = 1,
+	FT_ORIENTATION_FILL_RIGHT = FT_ORIENTATION_TRUETYPE,
+	FT_ORIENTATION_FILL_LEFT = FT_ORIENTATION_POSTSCRIPT,
+	FT_ORIENTATION_NONE
 
 } FT_Orientation;
 

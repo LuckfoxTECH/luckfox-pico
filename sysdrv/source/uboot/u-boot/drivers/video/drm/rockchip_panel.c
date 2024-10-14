@@ -12,6 +12,7 @@
 #include <malloc.h>
 #include <video.h>
 #include <backlight.h>
+#include <spi.h>
 #include <asm/gpio.h>
 #include <dm/device.h>
 #include <dm/read.h>
@@ -64,6 +65,7 @@ struct rockchip_panel_priv {
 	bool enabled;
 	struct udevice *power_supply;
 	struct udevice *backlight;
+	struct spi_slave *spi_slave;
 	struct gpio_desc enable_gpio;
 	struct gpio_desc reset_gpio;
 
@@ -187,24 +189,48 @@ static int rockchip_panel_send_spi_cmds(struct rockchip_panel *panel, struct dis
 {
 	struct rockchip_panel_priv *priv = dev_get_priv(panel->dev);
 	int i;
+	int ret;
 
 	if (!cmds)
 		return -EINVAL;
 
+	if (priv->spi_slave) {
+		ret = spi_claim_bus(priv->spi_slave);
+		if (ret) {
+			printf("%s: Failed to claim spi bus: %d\n", __func__, ret);
+			return -EINVAL;
+		}
+	}
+
 	for (i = 0; i < cmds->cmd_cnt; i++) {
 		struct rockchip_cmd_desc *desc = &cmds->cmds[i];
 		int value = 0;
+		u16 mask = 0;
+		u16 data = 0;
 
-		if (desc->header.payload_length == 2)
-			value = (desc->payload[0] << 8) | desc->payload[1];
-		else
-			value = desc->payload[0];
-		rockchip_panel_write_spi_cmds(priv,
-					      desc->header.data_type, value);
+		if (priv->spi_slave) {
+			mask = desc->header.data_type ? 0x100 : 0;
+			data = (mask | desc->payload[0]) << 7;;
+			data = ((data & 0xff) << 8) | (data >> 8);
+			value = mask | desc->payload[0];
+			ret = spi_xfer(priv->spi_slave, 9, &data, NULL, SPI_XFER_ONCE);
+			if (ret)
+				printf("%s: Failed to xfer spi cmd 0x%x: %d\n",
+				       __func__, desc->payload[0], ret);
+		} else {
+			if (desc->header.payload_length == 2)
+				value = (desc->payload[0] << 8) | desc->payload[1];
+			else
+				value = desc->payload[0];
+			rockchip_panel_write_spi_cmds(priv, desc->header.data_type, value);
+		}
 
 		if (desc->header.delay_ms)
 			mdelay(desc->header.delay_ms);
 	}
+
+	if (priv->spi_slave)
+		spi_release_bus(priv->spi_slave);
 
 	return 0;
 }
@@ -492,31 +518,47 @@ static int rockchip_panel_probe(struct udevice *dev)
 		priv->cmd_type = get_panel_cmd_type(cmd_type);
 
 	if (priv->cmd_type == CMD_TYPE_SPI) {
-		ret = gpio_request_by_name(dev, "spi-sdi-gpios", 0,
-					   &priv->spi_sdi_gpio, GPIOD_IS_OUT);
-		if (ret && ret != -ENOENT) {
-			printf("%s: Cannot get spi sdi GPIO: %d\n",
-			       __func__, ret);
-			return ret;
+		ofnode parent = ofnode_get_parent(dev->node);
+
+		if (ofnode_valid(parent)) {
+			struct dm_spi_slave_platdata *plat = dev_get_parent_platdata(dev);
+			struct udevice *spi = dev_get_parent(dev);
+
+			if (spi->seq < 0) {
+				printf("%s: Failed to get spi bus num\n", __func__);
+				return -EINVAL;
+			}
+
+			priv->spi_slave = spi_setup_slave(spi->seq, plat->cs, plat->max_hz,
+							  plat->mode);
+			if (!priv->spi_slave) {
+				printf("%s: Failed to setup spi slave: %d\n", __func__, ret);
+				return -EINVAL;
+			}
+		} else {
+			ret = gpio_request_by_name(dev, "spi-sdi-gpios", 0,
+						   &priv->spi_sdi_gpio, GPIOD_IS_OUT);
+			if (ret && ret != -ENOENT) {
+				printf("%s: Cannot get spi sdi GPIO: %d\n", __func__, ret);
+				return ret;
+			}
+			ret = gpio_request_by_name(dev, "spi-scl-gpios", 0,
+						   &priv->spi_scl_gpio, GPIOD_IS_OUT);
+			if (ret && ret != -ENOENT) {
+				printf("%s: Cannot get spi scl GPIO: %d\n", __func__, ret);
+				return ret;
+			}
+			ret = gpio_request_by_name(dev, "spi-cs-gpios", 0,
+						   &priv->spi_cs_gpio, GPIOD_IS_OUT);
+			if (ret && ret != -ENOENT) {
+				printf("%s: Cannot get spi cs GPIO: %d\n", __func__, ret);
+				return ret;
+			}
+			dm_gpio_set_value(&priv->spi_sdi_gpio, 1);
+			dm_gpio_set_value(&priv->spi_scl_gpio, 1);
+			dm_gpio_set_value(&priv->spi_cs_gpio, 1);
+			dm_gpio_set_value(&priv->reset_gpio, 0);
 		}
-		ret = gpio_request_by_name(dev, "spi-scl-gpios", 0,
-					   &priv->spi_scl_gpio, GPIOD_IS_OUT);
-		if (ret && ret != -ENOENT) {
-			printf("%s: Cannot get spi scl GPIO: %d\n",
-			       __func__, ret);
-			return ret;
-		}
-		ret = gpio_request_by_name(dev, "spi-cs-gpios", 0,
-					   &priv->spi_cs_gpio, GPIOD_IS_OUT);
-		if (ret && ret != -ENOENT) {
-			printf("%s: Cannot get spi cs GPIO: %d\n",
-			       __func__, ret);
-			return ret;
-		}
-		dm_gpio_set_value(&priv->spi_sdi_gpio, 1);
-		dm_gpio_set_value(&priv->spi_scl_gpio, 1);
-		dm_gpio_set_value(&priv->spi_cs_gpio, 1);
-		dm_gpio_set_value(&priv->reset_gpio, 0);
 	}
 
 	panel = calloc(1, sizeof(*panel));
@@ -535,6 +577,7 @@ static int rockchip_panel_probe(struct udevice *dev)
 static const struct udevice_id rockchip_panel_ids[] = {
 	{ .compatible = "simple-panel", },
 	{ .compatible = "simple-panel-dsi", },
+	{ .compatible = "simple-panel-spi", },
 	{}
 };
 

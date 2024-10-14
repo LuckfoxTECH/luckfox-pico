@@ -190,7 +190,7 @@ mpp_enc_hal_prepare:
 	.save {r4, lr}
 	mov	r3, r0
 	cbnz	r0, .L23
-	movs	r2, #124
+	movs	r2, #123
 	ldr	r1, .L27
 	ldr	r0, .L27+4
 	bl	printk
@@ -263,7 +263,7 @@ mpp_enc_hal_start:
 	cbnz	r1, .L36
 .L35:
 	str	r6, [sp]
-	movs	r2, #150
+	movs	r2, #148
 	ldr	r1, .L50
 	ldr	r0, .L50+4
 	bl	printk
@@ -325,7 +325,7 @@ mpp_enc_hal_ret_task:
 	cbnz	r1, .L54
 .L53:
 	str	r6, [sp]
-	movs	r2, #167
+	movs	r2, #166
 	ldr	r1, .L68
 	ldr	r0, .L68+4
 	bl	printk
@@ -487,7 +487,7 @@ mpp_enc_hal_wait:
 	cbnz	r1, .L94
 .L93:
 	str	r2, [sp]
-	movs	r2, #198
+	movs	r2, #197
 	ldr	r1, .L101
 	ldr	r0, .L101+4
 	bl	printk
@@ -537,7 +537,7 @@ mpp_enc_hal_part_start:
 	cbnz	r1, .L105
 .L104:
 	str	r2, [sp]
-	movs	r2, #199
+	movs	r2, #198
 	ldr	r1, .L112
 	ldr	r0, .L112+4
 	bl	printk
@@ -587,7 +587,7 @@ mpp_enc_hal_part_wait:
 	cbnz	r1, .L116
 .L115:
 	str	r2, [sp]
-	movs	r2, #200
+	movs	r2, #199
 	ldr	r1, .L123
 	ldr	r0, .L123+4
 	bl	printk
@@ -620,13 +620,13 @@ mpp_enc_hal_part_wait:
 	.section	.rodata
 	.align	2
 	.set	.LANCHOR0,. + 0
-	.type	__func__.8983, %object
-	.size	__func__.8983, 17
-__func__.8983:
+	.type	__func__.9049, %object
+	.size	__func__.9049, 17
+__func__.9049:
 	.ascii	"mpp_enc_hal_init\000"
-	.type	__FUNCTION__.8984, %object
-	.size	__FUNCTION__.8984, 17
-__FUNCTION__.8984:
+	.type	__FUNCTION__.9050, %object
+	.size	__FUNCTION__.9050, 17
+__FUNCTION__.9050:
 	.ascii	"mpp_enc_hal_init\000"
 	.space	2
 	.type	hw_enc_apis, %object
@@ -635,45 +635,45 @@ hw_enc_apis:
 	.word	hal_api_h265e_v2
 	.word	hal_api_h264e_v2
 	.word	hal_api_jpege_v2
-	.type	__func__.8993, %object
-	.size	__func__.8993, 19
-__func__.8993:
+	.type	__func__.9059, %object
+	.size	__func__.9059, 19
+__func__.9059:
 	.ascii	"mpp_enc_hal_deinit\000"
-	.type	__FUNCTION__.8994, %object
-	.size	__FUNCTION__.8994, 19
-__FUNCTION__.8994:
+	.type	__FUNCTION__.9060, %object
+	.size	__FUNCTION__.9060, 19
+__FUNCTION__.9060:
 	.ascii	"mpp_enc_hal_deinit\000"
-	.type	__func__.8999, %object
-	.size	__func__.8999, 20
-__func__.8999:
+	.type	__func__.9065, %object
+	.size	__func__.9065, 20
+__func__.9065:
 	.ascii	"mpp_enc_hal_prepare\000"
-	.type	__func__.9010, %object
-	.size	__func__.9010, 18
-__func__.9010:
+	.type	__func__.9076, %object
+	.size	__func__.9076, 18
+__func__.9076:
 	.ascii	"mpp_enc_hal_start\000"
-	.type	__func__.9017, %object
-	.size	__func__.9017, 21
-__func__.9017:
+	.type	__func__.9083, %object
+	.size	__func__.9083, 21
+__func__.9083:
 	.ascii	"mpp_enc_hal_ret_task\000"
-	.type	__func__.9023, %object
-	.size	__func__.9023, 21
-__func__.9023:
+	.type	__func__.9089, %object
+	.size	__func__.9089, 21
+__func__.9089:
 	.ascii	"mpp_enc_hal_get_task\000"
-	.type	__func__.9029, %object
-	.size	__func__.9029, 21
-__func__.9029:
+	.type	__func__.9095, %object
+	.size	__func__.9095, 21
+__func__.9095:
 	.ascii	"mpp_enc_hal_gen_regs\000"
-	.type	__func__.9035, %object
-	.size	__func__.9035, 17
-__func__.9035:
+	.type	__func__.9101, %object
+	.size	__func__.9101, 17
+__func__.9101:
 	.ascii	"mpp_enc_hal_wait\000"
-	.type	__func__.9041, %object
-	.size	__func__.9041, 23
-__func__.9041:
+	.type	__func__.9107, %object
+	.size	__func__.9107, 23
+__func__.9107:
 	.ascii	"mpp_enc_hal_part_start\000"
-	.type	__func__.9047, %object
-	.size	__func__.9047, 22
-__func__.9047:
+	.type	__func__.9113, %object
+	.size	__func__.9113, 22
+__func__.9113:
 	.ascii	"mpp_enc_hal_part_wait\000"
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:

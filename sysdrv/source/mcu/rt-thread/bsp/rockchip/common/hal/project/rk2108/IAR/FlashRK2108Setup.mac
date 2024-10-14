@@ -1,0 +1,14 @@
+
+__var os_reg;
+
+_ExecDevicePreReset()
+{
+
+}
+
+_ExecDeviceReset()
+{
+  __message "----- _ExecDeviceReset for Flashloader -----\n";
+  __writeMemory32(0xef08a53c, 0x40050400U, "Memory");
+  __writeMemory32(0xfdb9, 0x40050308U, "Memory");
+}

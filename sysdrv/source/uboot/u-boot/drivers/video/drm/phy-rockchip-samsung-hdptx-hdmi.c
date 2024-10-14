@@ -709,9 +709,6 @@ struct rockchip_hdptx_phy {
 	struct reset_ctl cmn_reset;
 	struct reset_ctl init_reset;
 	struct reset_ctl lane_reset;
-	struct reset_ctl phy_reset;
-	struct reset_ctl ropll_reset;
-	struct reset_ctl lcpll_reset;
 };
 
 struct clk_hdptx {
@@ -1035,10 +1032,6 @@ static int hdptx_lcpll_cmn_config(struct rockchip_hdptx_phy *hdptx, unsigned lon
 
 	hdptx_pre_power_up(hdptx);
 
-	reset_assert(&hdptx->lcpll_reset);
-	udelay(20);
-	reset_deassert(&hdptx->lcpll_reset);
-
 	hdptx_grf_write(hdptx, GRF_HDPTX_CON0, LC_REF_CLK_SEL << 16);
 
 	hdptx_update_bits(hdptx, CMN_REG0008, LCPLL_EN_MASK |
@@ -1212,10 +1205,6 @@ static int hdptx_ropll_cmn_config(struct rockchip_hdptx_phy *hdptx, unsigned lon
 
 	hdptx_pre_power_up(hdptx);
 
-	reset_assert(&hdptx->ropll_reset);
-	udelay(20);
-	reset_deassert(&hdptx->ropll_reset);
-
 	hdptx_grf_write(hdptx, GRF_HDPTX_CON0, LC_REF_CLK_SEL << 16);
 
 	hdptx_write(hdptx, CMN_REG0008, 0x00);
@@ -1278,9 +1267,9 @@ static int hdptx_ropll_cmn_config(struct rockchip_hdptx_phy *hdptx, unsigned lon
 	hdptx_write(hdptx, CMN_REG0043, 0x00);
 	hdptx_write(hdptx, CMN_REG0044, 0x46);
 	hdptx_write(hdptx, CMN_REG0045, 0x24);
-	hdptx_write(hdptx, CMN_REG0046, 0xff);
+	hdptx_write(hdptx, CMN_REG0046, 0xdd);
 	hdptx_write(hdptx, CMN_REG0047, 0x00);
-	hdptx_write(hdptx, CMN_REG0048, 0x44);
+	hdptx_write(hdptx, CMN_REG0048, 0x11);
 	hdptx_write(hdptx, CMN_REG0049, 0xfa);
 	hdptx_write(hdptx, CMN_REG004A, 0x08);
 	hdptx_write(hdptx, CMN_REG004B, 0x00);
@@ -1457,6 +1446,13 @@ static int hdptx_ropll_tmds_mode_config(struct rockchip_hdptx_phy *hdptx, u32 ra
 	hdptx_write(hdptx, LANE_REG0616, 0x02);
 	hdptx_write(hdptx, LANE_REG061B, 0x01);
 	hdptx_write(hdptx, LANE_REG061E, 0x08);
+
+	/* fix Inter-Pair Skew exceed the limits */
+	hdptx_write(hdptx, LANE_REG031E, 0x02);
+	hdptx_write(hdptx, LANE_REG041E, 0x02);
+	hdptx_write(hdptx, LANE_REG051E, 0x02);
+	hdptx_write(hdptx, LANE_REG061E, 0x0a);
+
 	hdptx_write(hdptx, LANE_REG061F, 0x15);
 	hdptx_write(hdptx, LANE_REG0620, 0xa0);
 
@@ -1487,14 +1483,6 @@ hdptx_lcpll_ropll_cmn_config(struct rockchip_hdptx_phy *hdptx,
 	hdptx->rate = rate * 100;
 
 	hdptx_pre_power_up(hdptx);
-
-	reset_assert(&hdptx->ropll_reset);
-	udelay(20);
-	reset_deassert(&hdptx->ropll_reset);
-
-	reset_assert(&hdptx->lcpll_reset);
-	udelay(20);
-	reset_deassert(&hdptx->lcpll_reset);
 
 	/* ROPLL input reference clock from LCPLL (cascade mode) */
 	val = (LC_REF_CLK_SEL << 16) | LC_REF_CLK_SEL;
@@ -1705,6 +1693,11 @@ static int hdptx_lcpll_ropll_frl_mode_config(struct rockchip_hdptx_phy *hdptx)
 	hdptx_write(hdptx, LANE_REG061F, 0x15);
 	hdptx_write(hdptx, LANE_REG0620, 0xa0);
 
+	hdptx_write(hdptx, LANE_REG031E, 0x02);
+	hdptx_write(hdptx, LANE_REG041E, 0x02);
+	hdptx_write(hdptx, LANE_REG051E, 0x02);
+	hdptx_write(hdptx, LANE_REG061E, 0x02);
+
 	hdptx_write(hdptx, LANE_REG0303, 0x2f);
 	hdptx_write(hdptx, LANE_REG0403, 0x2f);
 	hdptx_write(hdptx, LANE_REG0503, 0x2f);
@@ -1796,6 +1789,33 @@ static int hdptx_lcpll_frl_mode_config(struct rockchip_hdptx_phy *hdptx, u32 rat
 	hdptx_write(hdptx, LANE_REG061B, 0x01);
 	hdptx_write(hdptx, LANE_REG061F, 0x15);
 	hdptx_write(hdptx, LANE_REG0620, 0xa0);
+
+	hdptx_write(hdptx, LANE_REG031E, 0x02);
+	hdptx_write(hdptx, LANE_REG041E, 0x02);
+	hdptx_write(hdptx, LANE_REG051E, 0x02);
+	hdptx_write(hdptx, LANE_REG061E, 0x02);
+
+	hdptx_write(hdptx, LANE_REG0303, 0x2f);
+	hdptx_write(hdptx, LANE_REG0403, 0x2f);
+	hdptx_write(hdptx, LANE_REG0503, 0x2f);
+	hdptx_write(hdptx, LANE_REG0603, 0x2f);
+	hdptx_write(hdptx, LANE_REG0305, 0x03);
+	hdptx_write(hdptx, LANE_REG0405, 0x03);
+	hdptx_write(hdptx, LANE_REG0505, 0x03);
+	hdptx_write(hdptx, LANE_REG0605, 0x03);
+	hdptx_write(hdptx, LANE_REG0306, 0xfc);
+	hdptx_write(hdptx, LANE_REG0406, 0xfc);
+	hdptx_write(hdptx, LANE_REG0506, 0xfc);
+	hdptx_write(hdptx, LANE_REG0606, 0xfc);
+
+	hdptx_write(hdptx, LANE_REG0305, 0x4f);
+	hdptx_write(hdptx, LANE_REG0405, 0x4f);
+	hdptx_write(hdptx, LANE_REG0505, 0x4f);
+	hdptx_write(hdptx, LANE_REG0605, 0x4f);
+	hdptx_write(hdptx, LANE_REG0304, 0x14);
+	hdptx_write(hdptx, LANE_REG0404, 0x14);
+	hdptx_write(hdptx, LANE_REG0504, 0x14);
+	hdptx_write(hdptx, LANE_REG0604, 0x14);
 
 	return hdptx_post_enable_lane(hdptx);
 }
@@ -1942,18 +1962,6 @@ static int rockchip_hdptx_phy_hdmi_probe(struct udevice *dev)
 		return ret;
 	}
 
-	ret = reset_get_by_name(dev, "ropll", &hdptx->ropll_reset);
-	if (ret < 0) {
-		dev_err(dev, "failed to get ropll reset: %d\n", ret);
-		return ret;
-	}
-
-	ret = reset_get_by_name(dev, "lcpll", &hdptx->lcpll_reset);
-	if (ret < 0) {
-		dev_err(dev, "failed to get lane reset: %d\n", ret);
-		return ret;
-	}
-
 	return 0;
 }
 
@@ -1973,15 +1981,16 @@ static int rockchip_hdptx_phy_hdmi_bind(struct udevice *parent)
 
 	subnode = ofnode_find_subnode(parent->node, "clk-port");
 	if (!ofnode_valid(subnode)) {
-		free(str);
-		printf("%s: no subnode for %s", __func__, parent->name);
-		return -ENXIO;
+		ret = device_bind_driver_to_node(parent, "clk_hdptx", str,
+						 dev_ofnode(parent), NULL);
+	} else {
+		ret = device_bind_driver_to_node(parent, "clk_hdptx", str,
+						 subnode, &child);
 	}
 
-	ret = device_bind_driver_to_node(parent, "clk_hdptx", str, subnode, &child);
 	if (ret) {
 		free(str);
-		printf("%s: clk-port cannot bind its driver\n", __func__);
+		printf("%s: clk_hdptx cannot bind its driver\n", __func__);
 		return ret;
 	}
 

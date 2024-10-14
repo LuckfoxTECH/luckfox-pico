@@ -67,7 +67,8 @@ static RKADK_SI_CONFIG_MAP_S g_stCommCfgMapTable[] = {
 
 /* audio map table */
 static RKADK_SI_CONFIG_MAP_S g_stAudioCfgMapTable[] = {
-    DEFINE_MAP(audio, tagRKADK_PARAM_AUDIO_CFG_S, string_e, audio_node),
+    DEFINE_MAP(audio, tagRKADK_PARAM_AUDIO_CFG_S, string_e, ai_audio_node),
+    DEFINE_MAP(audio, tagRKADK_PARAM_AUDIO_CFG_S, int_e, ai_depth),
     DEFINE_MAP(audio, tagRKADK_PARAM_AUDIO_CFG_S, int_e, bit_width),
     DEFINE_MAP(audio, tagRKADK_PARAM_AUDIO_CFG_S, int_e, channels),
     DEFINE_MAP(audio, tagRKADK_PARAM_AUDIO_CFG_S, int_e, mic_type),
@@ -75,6 +76,7 @@ static RKADK_SI_CONFIG_MAP_S g_stAudioCfgMapTable[] = {
     DEFINE_MAP(audio, tagRKADK_PARAM_AUDIO_CFG_S, int_e, samples_per_frame),
     DEFINE_MAP(audio, tagRKADK_PARAM_AUDIO_CFG_S, int_e, bitrate),
     DEFINE_MAP(audio, tagRKADK_PARAM_AUDIO_CFG_S, int_e, vqe_mode),
+    DEFINE_MAP(audio, tagRKADK_PARAM_AUDIO_CFG_S, string_e, vqe_config_path),
     DEFINE_MAP(audio, tagRKADK_PARAM_AUDIO_CFG_S, int_e, codec_type),
 };
 
@@ -102,68 +104,78 @@ static RKADK_SI_CONFIG_MAP_S g_stRecCfgMapTable[] = {
     DEFINE_MAP(record, tagRKADK_PARAM_REC_CFG_S, int_e, pre_record_mode),
     DEFINE_MAP(record, tagRKADK_PARAM_REC_CFG_S, int_e, lapse_multiple),
     DEFINE_MAP(record, tagRKADK_PARAM_REC_CFG_S, int_e, file_num),
+    DEFINE_MAP(record, tagRKADK_PARAM_REC_CFG_S, bool_e, switch_res),
+    DEFINE_MAP(record, tagRKADK_PARAM_REC_CFG_S, bool_e, enable_audio),
 };
 
 static RKADK_SI_CONFIG_MAP_S g_stRecTimeCfgMapTable_0[] = {
-    DEFINE_MAP(record .0, tagRKADK_PARAM_REC_TIME_CFG_S, int_e, record_time),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_REC_TIME_CFG_S, int_e, splite_time),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_REC_TIME_CFG_S, int_e, lapse_interval),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_REC_TIME_CFG_S, int_e, record_time),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_REC_TIME_CFG_S, int_e, splite_time),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_REC_TIME_CFG_S, int_e, lapse_interval),
 };
 
 static RKADK_SI_CONFIG_MAP_S g_stRecCfgMapTable_0[] = {
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_ATTR_S, int_e, width),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_ATTR_S, int_e, height),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_ATTR_S, int_e, bufsize),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_ATTR_S, int_e, bitrate),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_ATTR_S, int_e, gop),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_ATTR_S, int_e, profile),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_ATTR_S, int_e, codec_type),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_ATTR_S, int_e, venc_chn),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_ATTR_S, int_e, vpss_grp),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_ATTR_S, int_e, vpss_chn),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_ATTR_S, string_e, rc_mode),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_ATTR_S, int_e, width),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_ATTR_S, int_e, height),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_ATTR_S, int_e, bufsize),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_ATTR_S, int_e, bitrate),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_ATTR_S, int_e, framerate),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_ATTR_S, int_e, gop),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_ATTR_S, int_e, profile),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_ATTR_S, int_e, codec_type),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_ATTR_S, int_e, venc_chn),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_ATTR_S, int_e, vpss_grp),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_ATTR_S, int_e, vpss_chn),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_ATTR_S, bool_e, post_aiisp),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_ATTR_S, string_e, rc_mode),
 };
 
 static RKADK_SI_CONFIG_MAP_S g_stRecParamMapTable_0[] = {
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_PARAM_S, int_e, max_qp),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_PARAM_S, int_e, min_qp),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_PARAM_S, bool_e, full_range),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_PARAM_S, bool_e, scaling_list),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_PARAM_S, bool_e, hier_qp_en),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_PARAM_S, string_e, hier_qp_delta),
-    DEFINE_MAP(record .0, tagRKADK_PARAM_VENC_PARAM_S, string_e,
-               hier_frame_num),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_PARAM_S, int_e, max_qp),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_PARAM_S, int_e, min_qp),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_PARAM_S, int_e, i_min_qp),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_PARAM_S, int_e, i_frame_min_qp),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_PARAM_S, int_e, frame_min_qp),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_PARAM_S, bool_e, full_range),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_PARAM_S, bool_e, scaling_list),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_PARAM_S, bool_e, hier_qp_en),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_PARAM_S, string_e, hier_qp_delta),
+    DEFINE_MAP(record.0, tagRKADK_PARAM_VENC_PARAM_S, string_e, hier_frame_num),
 };
 
 static RKADK_SI_CONFIG_MAP_S g_stRecTimeCfgMapTable_1[] = {
-    DEFINE_MAP(record .1, tagRKADK_PARAM_REC_TIME_CFG_S, int_e, record_time),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_REC_TIME_CFG_S, int_e, splite_time),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_REC_TIME_CFG_S, int_e, lapse_interval),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_REC_TIME_CFG_S, int_e, record_time),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_REC_TIME_CFG_S, int_e, splite_time),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_REC_TIME_CFG_S, int_e, lapse_interval),
 };
 
 static RKADK_SI_CONFIG_MAP_S g_stRecCfgMapTable_1[] = {
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_ATTR_S, int_e, width),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_ATTR_S, int_e, height),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_ATTR_S, int_e, bufsize),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_ATTR_S, int_e, bitrate),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_ATTR_S, int_e, gop),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_ATTR_S, int_e, profile),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_ATTR_S, int_e, codec_type),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_ATTR_S, int_e, venc_chn),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_ATTR_S, int_e, vpss_grp),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_ATTR_S, int_e, vpss_chn),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_ATTR_S, string_e, rc_mode),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_ATTR_S, int_e, width),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_ATTR_S, int_e, height),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_ATTR_S, int_e, bufsize),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_ATTR_S, int_e, bitrate),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_ATTR_S, int_e, framerate),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_ATTR_S, int_e, gop),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_ATTR_S, int_e, profile),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_ATTR_S, int_e, codec_type),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_ATTR_S, int_e, venc_chn),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_ATTR_S, int_e, vpss_grp),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_ATTR_S, int_e, vpss_chn),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_ATTR_S, bool_e, post_aiisp),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_ATTR_S, string_e, rc_mode),
 };
 
 static RKADK_SI_CONFIG_MAP_S g_stRecParamMapTable_1[] = {
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_PARAM_S, int_e, max_qp),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_PARAM_S, int_e, min_qp),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_PARAM_S, bool_e, full_range),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_PARAM_S, bool_e, scaling_list),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_PARAM_S, bool_e, hier_qp_en),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_PARAM_S, string_e, hier_qp_delta),
-    DEFINE_MAP(record .1, tagRKADK_PARAM_VENC_PARAM_S, string_e,
-               hier_frame_num),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_PARAM_S, int_e, max_qp),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_PARAM_S, int_e, min_qp),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_PARAM_S, int_e, i_min_qp),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_PARAM_S, int_e, i_frame_min_qp),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_PARAM_S, int_e, frame_min_qp),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_PARAM_S, bool_e, full_range),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_PARAM_S, bool_e, scaling_list),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_PARAM_S, bool_e, hier_qp_en),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_PARAM_S, string_e, hier_qp_delta),
+    DEFINE_MAP(record.1, tagRKADK_PARAM_VENC_PARAM_S, string_e, hier_frame_num),
 };
 
 /* preview map table */
@@ -172,18 +184,23 @@ static RKADK_SI_CONFIG_MAP_S g_stPreviewCfgMapTable[] = {
     DEFINE_MAP(preview, tagRKADK_PARAM_VENC_ATTR_S, int_e, height),
     DEFINE_MAP(preview, tagRKADK_PARAM_VENC_ATTR_S, int_e, bufsize),
     DEFINE_MAP(preview, tagRKADK_PARAM_VENC_ATTR_S, int_e, bitrate),
+    DEFINE_MAP(preview, tagRKADK_PARAM_VENC_ATTR_S, int_e, framerate),
     DEFINE_MAP(preview, tagRKADK_PARAM_VENC_ATTR_S, int_e, gop),
     DEFINE_MAP(preview, tagRKADK_PARAM_VENC_ATTR_S, int_e, profile),
     DEFINE_MAP(preview, tagRKADK_PARAM_VENC_ATTR_S, int_e, codec_type),
     DEFINE_MAP(preview, tagRKADK_PARAM_VENC_ATTR_S, int_e, venc_chn),
     DEFINE_MAP(preview, tagRKADK_PARAM_VENC_ATTR_S, int_e, vpss_grp),
     DEFINE_MAP(preview, tagRKADK_PARAM_VENC_ATTR_S, int_e, vpss_chn),
+    DEFINE_MAP(preview, tagRKADK_PARAM_VENC_ATTR_S, bool_e, post_aiisp),
     DEFINE_MAP(preview, tagRKADK_PARAM_VENC_ATTR_S, string_e, rc_mode),
 };
 
 static RKADK_SI_CONFIG_MAP_S g_stPreviewParamMapTable[] = {
     DEFINE_MAP(preview, tagRKADK_PARAM_VENC_PARAM_S, int_e, max_qp),
     DEFINE_MAP(preview, tagRKADK_PARAM_VENC_PARAM_S, int_e, min_qp),
+    DEFINE_MAP(preview, tagRKADK_PARAM_VENC_PARAM_S, int_e, i_min_qp),
+    DEFINE_MAP(preview, tagRKADK_PARAM_VENC_PARAM_S, int_e, i_frame_min_qp),
+    DEFINE_MAP(preview, tagRKADK_PARAM_VENC_PARAM_S, int_e, frame_min_qp),
     DEFINE_MAP(preview, tagRKADK_PARAM_VENC_PARAM_S, bool_e, full_range),
     DEFINE_MAP(preview, tagRKADK_PARAM_VENC_PARAM_S, bool_e, scaling_list),
     DEFINE_MAP(preview, tagRKADK_PARAM_VENC_PARAM_S, bool_e, hier_qp_en),
@@ -197,18 +214,23 @@ static RKADK_SI_CONFIG_MAP_S g_stLiveCfgMapTable[] = {
     DEFINE_MAP(live, tagRKADK_PARAM_VENC_ATTR_S, int_e, height),
     DEFINE_MAP(live, tagRKADK_PARAM_VENC_ATTR_S, int_e, bufsize),
     DEFINE_MAP(live, tagRKADK_PARAM_VENC_ATTR_S, int_e, bitrate),
+    DEFINE_MAP(live, tagRKADK_PARAM_VENC_ATTR_S, int_e, framerate),
     DEFINE_MAP(live, tagRKADK_PARAM_VENC_ATTR_S, int_e, gop),
     DEFINE_MAP(live, tagRKADK_PARAM_VENC_ATTR_S, int_e, profile),
     DEFINE_MAP(live, tagRKADK_PARAM_VENC_ATTR_S, int_e, codec_type),
     DEFINE_MAP(live, tagRKADK_PARAM_VENC_ATTR_S, int_e, venc_chn),
     DEFINE_MAP(live, tagRKADK_PARAM_VENC_ATTR_S, int_e, vpss_grp),
     DEFINE_MAP(live, tagRKADK_PARAM_VENC_ATTR_S, int_e, vpss_chn),
+    DEFINE_MAP(live, tagRKADK_PARAM_VENC_ATTR_S, bool_e, post_aiisp),
     DEFINE_MAP(live, tagRKADK_PARAM_VENC_ATTR_S, string_e, rc_mode),
 };
 
 static RKADK_SI_CONFIG_MAP_S g_stLiveParamMapTable[] = {
     DEFINE_MAP(live, tagRKADK_PARAM_VENC_PARAM_S, int_e, max_qp),
     DEFINE_MAP(live, tagRKADK_PARAM_VENC_PARAM_S, int_e, min_qp),
+    DEFINE_MAP(live, tagRKADK_PARAM_VENC_PARAM_S, int_e, i_min_qp),
+    DEFINE_MAP(live, tagRKADK_PARAM_VENC_PARAM_S, int_e, i_frame_min_qp),
+    DEFINE_MAP(live, tagRKADK_PARAM_VENC_PARAM_S, int_e, frame_min_qp),
     DEFINE_MAP(live, tagRKADK_PARAM_VENC_PARAM_S, bool_e, full_range),
     DEFINE_MAP(live, tagRKADK_PARAM_VENC_PARAM_S, bool_e, scaling_list),
     DEFINE_MAP(live, tagRKADK_PARAM_VENC_PARAM_S, bool_e, hier_qp_en),
@@ -220,71 +242,80 @@ static RKADK_SI_CONFIG_MAP_S g_stLiveParamMapTable[] = {
 static RKADK_SI_CONFIG_MAP_S g_stPhotoCfgMapTable[] = {
     DEFINE_MAP(photo, tagRKADK_PARAM_PHOTO_CFG_S, int_e, image_width),
     DEFINE_MAP(photo, tagRKADK_PARAM_PHOTO_CFG_S, int_e, image_height),
-    DEFINE_MAP(photo, tagRKADK_PARAM_PHOTO_CFG_S, int_e, snap_num),
     DEFINE_MAP(photo, tagRKADK_PARAM_PHOTO_CFG_S, int_e, venc_chn),
     DEFINE_MAP(photo, tagRKADK_PARAM_PHOTO_CFG_S, int_e, vpss_grp),
     DEFINE_MAP(photo, tagRKADK_PARAM_PHOTO_CFG_S, int_e, vpss_chn),
+    DEFINE_MAP(photo, tagRKADK_PARAM_PHOTO_CFG_S, bool_e, post_aiisp),
     DEFINE_MAP(photo, tagRKADK_PARAM_PHOTO_CFG_S, bool_e, enable_combo),
     DEFINE_MAP(photo, tagRKADK_PARAM_PHOTO_CFG_S, int_e, combo_venc_chn),
     DEFINE_MAP(photo, tagRKADK_PARAM_PHOTO_CFG_S, int_e, qfactor),
+    DEFINE_MAP(photo, tagRKADK_PARAM_PHOTO_CFG_S, bool_e, switch_res),
+    DEFINE_MAP(photo, tagRKADK_PARAM_PHOTO_CFG_S, bool_e, jpeg_slice),
+    DEFINE_MAP(photo, tagRKADK_PARAM_PHOTO_CFG_S, int_e, slice_height),
+    DEFINE_MAP(photo, tagRKADK_PARAM_PHOTO_CFG_S, int_e, max_slice_width),
+    DEFINE_MAP(photo, tagRKADK_PARAM_PHOTO_CFG_S, int_e, max_slice_height),
 };
 
 /* VI[0] ~ VI[3] map table */
 static RKADK_SI_CONFIG_MAP_S g_stViCfgMapTable_0[] = {
-    DEFINE_MAP(vi .0, tagRKADK_PARAM_VI_CFG_S, int_e, chn_id),
-    DEFINE_MAP(vi .0, tagRKADK_PARAM_VI_CFG_S, string_e, device_name),
-    DEFINE_MAP(vi .0, tagRKADK_PARAM_VI_CFG_S, int_e, buf_cnt),
-    DEFINE_MAP(vi .0, tagRKADK_PARAM_VI_CFG_S, int_e, width),
-    DEFINE_MAP(vi .0, tagRKADK_PARAM_VI_CFG_S, int_e, height),
-    DEFINE_MAP(vi .0, tagRKADK_PARAM_VI_CFG_S, string_e, pix_fmt),
-    DEFINE_MAP(vi .0, tagRKADK_PARAM_VI_CFG_S, string_e, module),
+    DEFINE_MAP(vi.0, tagRKADK_PARAM_VI_CFG_S, int_e, chn_id),
+    DEFINE_MAP(vi.0, tagRKADK_PARAM_VI_CFG_S, string_e, device_name),
+    DEFINE_MAP(vi.0, tagRKADK_PARAM_VI_CFG_S, int_e, buf_cnt),
+    DEFINE_MAP(vi.0, tagRKADK_PARAM_VI_CFG_S, int_e, width),
+    DEFINE_MAP(vi.0, tagRKADK_PARAM_VI_CFG_S, int_e, height),
+    DEFINE_MAP(vi.0, tagRKADK_PARAM_VI_CFG_S, int_e, depth),
+    DEFINE_MAP(vi.0, tagRKADK_PARAM_VI_CFG_S, string_e, pix_fmt),
+    DEFINE_MAP(vi.0, tagRKADK_PARAM_VI_CFG_S, string_e, module),
 };
 
 static RKADK_SI_CONFIG_MAP_S g_stViCfgMapTable_1[] = {
-    DEFINE_MAP(vi .1, tagRKADK_PARAM_VI_CFG_S, int_e, chn_id),
-    DEFINE_MAP(vi .1, tagRKADK_PARAM_VI_CFG_S, string_e, device_name),
-    DEFINE_MAP(vi .1, tagRKADK_PARAM_VI_CFG_S, int_e, buf_cnt),
-    DEFINE_MAP(vi .1, tagRKADK_PARAM_VI_CFG_S, int_e, width),
-    DEFINE_MAP(vi .1, tagRKADK_PARAM_VI_CFG_S, int_e, height),
-    DEFINE_MAP(vi .1, tagRKADK_PARAM_VI_CFG_S, string_e, pix_fmt),
-    DEFINE_MAP(vi .1, tagRKADK_PARAM_VI_CFG_S, string_e, module),
+    DEFINE_MAP(vi.1, tagRKADK_PARAM_VI_CFG_S, int_e, chn_id),
+    DEFINE_MAP(vi.1, tagRKADK_PARAM_VI_CFG_S, string_e, device_name),
+    DEFINE_MAP(vi.1, tagRKADK_PARAM_VI_CFG_S, int_e, buf_cnt),
+    DEFINE_MAP(vi.1, tagRKADK_PARAM_VI_CFG_S, int_e, width),
+    DEFINE_MAP(vi.1, tagRKADK_PARAM_VI_CFG_S, int_e, height),
+    DEFINE_MAP(vi.1, tagRKADK_PARAM_VI_CFG_S, int_e, depth),
+    DEFINE_MAP(vi.1, tagRKADK_PARAM_VI_CFG_S, string_e, pix_fmt),
+    DEFINE_MAP(vi.1, tagRKADK_PARAM_VI_CFG_S, string_e, module),
 };
 
 static RKADK_SI_CONFIG_MAP_S g_stViCfgMapTable_2[] = {
-    DEFINE_MAP(vi .2, tagRKADK_PARAM_VI_CFG_S, int_e, chn_id),
-    DEFINE_MAP(vi .2, tagRKADK_PARAM_VI_CFG_S, string_e, device_name),
-    DEFINE_MAP(vi .2, tagRKADK_PARAM_VI_CFG_S, int_e, buf_cnt),
-    DEFINE_MAP(vi .2, tagRKADK_PARAM_VI_CFG_S, int_e, width),
-    DEFINE_MAP(vi .2, tagRKADK_PARAM_VI_CFG_S, int_e, height),
-    DEFINE_MAP(vi .2, tagRKADK_PARAM_VI_CFG_S, string_e, pix_fmt),
-    DEFINE_MAP(vi .2, tagRKADK_PARAM_VI_CFG_S, string_e, module),
+    DEFINE_MAP(vi.2, tagRKADK_PARAM_VI_CFG_S, int_e, chn_id),
+    DEFINE_MAP(vi.2, tagRKADK_PARAM_VI_CFG_S, string_e, device_name),
+    DEFINE_MAP(vi.2, tagRKADK_PARAM_VI_CFG_S, int_e, buf_cnt),
+    DEFINE_MAP(vi.2, tagRKADK_PARAM_VI_CFG_S, int_e, width),
+    DEFINE_MAP(vi.2, tagRKADK_PARAM_VI_CFG_S, int_e, height),
+    DEFINE_MAP(vi.2, tagRKADK_PARAM_VI_CFG_S, int_e, depth),
+    DEFINE_MAP(vi.2, tagRKADK_PARAM_VI_CFG_S, string_e, pix_fmt),
+    DEFINE_MAP(vi.2, tagRKADK_PARAM_VI_CFG_S, string_e, module),
 };
 
 static RKADK_SI_CONFIG_MAP_S g_stViCfgMapTable_3[] = {
-    DEFINE_MAP(vi .3, tagRKADK_PARAM_VI_CFG_S, int_e, chn_id),
-    DEFINE_MAP(vi .3, tagRKADK_PARAM_VI_CFG_S, string_e, device_name),
-    DEFINE_MAP(vi .3, tagRKADK_PARAM_VI_CFG_S, int_e, buf_cnt),
-    DEFINE_MAP(vi .3, tagRKADK_PARAM_VI_CFG_S, int_e, width),
-    DEFINE_MAP(vi .3, tagRKADK_PARAM_VI_CFG_S, int_e, height),
-    DEFINE_MAP(vi .3, tagRKADK_PARAM_VI_CFG_S, string_e, pix_fmt),
-    DEFINE_MAP(vi .3, tagRKADK_PARAM_VI_CFG_S, string_e, module),
+    DEFINE_MAP(vi.3, tagRKADK_PARAM_VI_CFG_S, int_e, chn_id),
+    DEFINE_MAP(vi.3, tagRKADK_PARAM_VI_CFG_S, string_e, device_name),
+    DEFINE_MAP(vi.3, tagRKADK_PARAM_VI_CFG_S, int_e, buf_cnt),
+    DEFINE_MAP(vi.3, tagRKADK_PARAM_VI_CFG_S, int_e, width),
+    DEFINE_MAP(vi.3, tagRKADK_PARAM_VI_CFG_S, int_e, height),
+    DEFINE_MAP(vi.3, tagRKADK_PARAM_VI_CFG_S, int_e, depth),
+    DEFINE_MAP(vi.3, tagRKADK_PARAM_VI_CFG_S, string_e, pix_fmt),
+    DEFINE_MAP(vi.3, tagRKADK_PARAM_VI_CFG_S, string_e, module),
 };
 
 /* display map table */
 static RKADK_SI_CONFIG_MAP_S g_stDispCfgMapTable[] = {
+    DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, int_e, x),
+    DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, int_e, y),
     DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, int_e, width),
     DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, int_e, height),
-    DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, bool_e, enable_buf_pool),
-    DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, int_e, buf_pool_cnt),
-    DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, int_e, rotaion),
+    DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, int_e, frame_rate),
+    DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, int_e, rotation),
     DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, int_e, vpss_grp),
     DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, int_e, vpss_chn),
-    DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, string_e, device_node),
-#ifdef RKADK_ENABLE_DISP
-    DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, int_e, plane_type),
-#endif
     DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, string_e, img_type),
-    DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, int_e, z_pos),
+    DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, string_e, splice_mode),
+    DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, string_e, intf_type),
+    DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, int_e, vo_device),
+    DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, int_e, vo_layer),
     DEFINE_MAP(display, tagRKADK_PARAM_DISP_CFG_S, int_e, vo_chn),
 };
 
@@ -297,10 +328,10 @@ static RKADK_SI_CONFIG_MAP_S g_stThumbCfgMapTable[] = {
     DEFINE_MAP(thumb, tagRKADK_PARAM_THUMB_CFG_S, int_e, record_sub_venc_chn),
     DEFINE_MAP(thumb, tagRKADK_PARAM_THUMB_CFG_S, int_e, vpss_grp),
     DEFINE_MAP(thumb, tagRKADK_PARAM_THUMB_CFG_S, int_e, vpss_chn),
+    DEFINE_MAP(thumb, tagRKADK_PARAM_THUMB_CFG_S, int_e, qfactor),
 };
 
-RKADK_MAP_TABLE_CFG_S *
-RKADK_PARAM_GetMapTable(RKADK_U32 u32Camid, RKADK_PARAM_MAP_TYPE_E eMapTable);
+RKADK_MAP_TABLE_CFG_S *RKADK_PARAM_GetMapTable(RKADK_U32 u32Camid, RKADK_PARAM_MAP_TYPE_E eMapTable);
 
 #ifdef __cplusplus
 }

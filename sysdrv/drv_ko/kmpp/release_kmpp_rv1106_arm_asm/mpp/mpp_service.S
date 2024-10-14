@@ -131,7 +131,7 @@ mpp_show_support_device:
 	lsls	r3, r3, #31
 	bpl	.L27
 	.syntax unified
-@ 87 "./arch/arm/include/asm/barrier.h" 1
+@ 87 "/home/cww/ipc-sdk/otter3/sysdrv/source/kernel/arch/arm/include/asm/barrier.h" 1
 	cmp	r4, #29
 	sbc	r3, r4, r4
 .inst.w 0xf3af8014
@@ -272,7 +272,7 @@ mpp_show_support_cmd:
 	ldr	r1, .L43+72
 	bl	seq_printf
 	mov	r0, r4
-	movw	r2, #1028
+	movw	r2, #1029
 	ldr	r1, .L43+76
 	bl	seq_printf
 	movs	r0, #0
@@ -345,10 +345,10 @@ mpp_show_session_summary:
 	mov	r0, r6
 	bl	mutex_lock
 	ldr	r0, [r4]
-	ldr	r5, [r0], #-180
-	subs	r5, r5, #180
+	ldr	r5, [r0], #-168
+	subs	r5, r5, #168
 .L49:
-	add	r3, r0, #180
+	add	r3, r0, #168
 	cmp	r3, r4
 	bne	.L51
 	mov	r0, r6
@@ -356,7 +356,7 @@ mpp_show_session_summary:
 	movs	r0, #0
 	pop	{r3, r4, r5, r6, r7, pc}
 .L51:
-	ldr	r3, [r0, #196]
+	ldr	r3, [r0, #184]
 	cbz	r3, .L50
 	ldr	r3, [r0, #12]
 	cbz	r3, .L50
@@ -366,13 +366,12 @@ mpp_show_session_summary:
 	mov	r1, r7
 	blx	r3
 .L50:
-	ldr	r3, [r5, #180]
+	ldr	r3, [r5, #168]
 	mov	r0, r5
-	sub	r5, r3, #180
+	sub	r5, r3, #168
 	b	.L49
 	.fnend
 	.size	mpp_show_session_summary, .-mpp_show_session_summary
-	.section	.text.unlikely
 	.align	1
 	.syntax unified
 	.thumb
@@ -406,19 +405,23 @@ mpp_add_driver:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 8
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r0, r1, r2, r4, r5, r6, r7, r8, r9, lr}
-	.save {r4, r5, r6, r7, r8, r9, lr}
+	push	{r0, r1, r2, r4, r5, r6, r7, r8, r9, r10, fp, lr}
+	.save {r4, r5, r6, r7, r8, r9, r10, fp, lr}
 	.pad #12
-	mov	r9, r3
-	ldr	r3, [r0, #4]
-	mov	r4, r0
-	mov	r5, r1
+	mov	r5, r0
+	ldr	r0, [r0, #4]
+	mov	r6, r1
+	mov	r9, r2
+	mov	fp, r3
+	bl	mpp_dev_of_node
+	movs	r3, #12
 	ldr	r1, .L67
-	mov	r7, r2
-	ldr	r6, [r3, #356]
+	mul	r4, r3, r6
 	movs	r3, #0
+	add	r7, r4, #88
+	add	r7, r7, r5
+	mov	r10, r0
 	strd	r3, r3, [sp]
-	mov	r0, r6
 	bl	syscon_regmap_lookup_by_phandle
 	mov	r8, r0
 	cbz	r0, .L64
@@ -426,42 +429,39 @@ mpp_add_driver:
 	bhi	.L64
 	mov	r2, sp
 	ldr	r1, .L67+4
-	mov	r0, r6
+	mov	r0, r10
 	bl	of_property_read_u32
 	cbnz	r0, .L64
-	mov	r2, r9
+	mov	r2, fp
 	ldr	r1, .L67+8
-	mov	r0, r6
+	mov	r0, r10
 	bl	of_property_match_string
 	subs	r2, r0, #0
 	blt	.L64
 	add	r3, sp, #4
 	ldr	r1, .L67+12
-	mov	r0, r6
+	mov	r0, r10
 	bl	of_property_read_u32_index
 	cbnz	r0, .L64
-	movs	r0, #12
 	ldr	r2, [sp]
-	muls	r0, r5, r0
-	adds	r3, r4, r0
-	adds	r0, r0, #88
-	add	r0, r0, r4
+	adds	r3, r5, r4
+	mov	r0, r7
+	str	r8, [r3, #96]
 	str	r2, [r3, #88]
 	ldr	r2, [sp, #4]
-	str	r8, [r3, #96]
 	str	r2, [r3, #92]
 	bl	mpp_set_grf
 .L64:
 	movs	r1, #0
-	mov	r0, r7
+	mov	r0, r9
 	bl	__platform_driver_register
 	cbnz	r0, .L62
-	adds	r5, r5, #70
-	str	r7, [r4, r5, lsl #2]
+	adds	r6, r6, #70
+	str	r9, [r5, r6, lsl #2]
 .L62:
 	add	sp, sp, #12
 	@ sp needed
-	pop	{r4, r5, r6, r7, r8, r9, pc}
+	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
 .L68:
 	.align	2
 .L67:
@@ -486,12 +486,14 @@ mpp_service_probe:
 	add	r7, r0, #16
 	.pad #28
 	sub	sp, sp, #28
-	ldr	r2, .L106
-	ldr	r8, [r0, #372]
 	mov	r5, r0
-	ldr	r1, .L106+4
 	mov	r0, r7
-	movs	r3, #90
+	bl	mpp_dev_of_node
+	ldr	r2, .L106
+	ldr	r1, .L106+4
+	movs	r3, #95
+	mov	r8, r0
+	mov	r0, r7
 	str	r3, [sp, #20]
 	bl	_dev_info
 	ldr	r1, .L106+8
@@ -745,7 +747,7 @@ mpp_service_probe:
 	.word	.LC41
 	.word	.LC42
 	.word	.LC43
-	.word	.LANCHOR0+82
+	.word	.LANCHOR0+1
 	.word	.LC44
 	.word	.LC49
 	.word	rockchip_rkvenc540c_driver
@@ -773,15 +775,14 @@ mpp_service_probe:
 	.align	2
 	.set	.LANCHOR0,. + 0
 	.type	mpp_version, %object
-	.size	mpp_version, 82
+	.size	mpp_version, 1
 mpp_version:
-	.ascii	"0cf529e0 author: Zhihua Wang 2022-12-30 [vcodec]: a"
-	.ascii	"dd packet num module parameter\000"
-	.type	__func__.37169, %object
-	.size	__func__.37169, 16
-__func__.37169:
+	.space	1
+	.type	__func__.37271, %object
+	.size	__func__.37271, 16
+__func__.37271:
 	.ascii	"mpp_procfs_init\000"
-	.space	2
+	.space	3
 	.type	mpp_dt_ids, %object
 	.size	mpp_dt_ids, 392
 mpp_dt_ids:
@@ -810,18 +811,18 @@ mpp_service_driver:
 	.bss
 	.align	2
 	.set	.LANCHOR1,. + 0
-	.type	__key.37183, %object
-	.size	__key.37183, 0
-__key.37183:
-	.type	__key.37186, %object
-	.size	__key.37186, 0
-__key.37186:
-	.type	__key.37195, %object
-	.size	__key.37195, 0
-__key.37195:
-	.type	__key.37200, %object
-	.size	__key.37200, 0
-__key.37200:
+	.type	__key.37285, %object
+	.size	__key.37285, 0
+__key.37285:
+	.type	__key.37288, %object
+	.size	__key.37288, 0
+__key.37288:
+	.type	__key.37297, %object
+	.size	__key.37297, 0
+__key.37297:
+	.type	__key.37302, %object
+	.size	__key.37302, 0
+__key.37302:
 	.type	mpp_dev_debug, %object
 	.size	mpp_dev_debug, 4
 mpp_dev_debug:

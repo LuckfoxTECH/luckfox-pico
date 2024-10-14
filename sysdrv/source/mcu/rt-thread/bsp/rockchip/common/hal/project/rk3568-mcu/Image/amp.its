@@ -1,0 +1,42 @@
+/*
+ * Copyright (C) 2023 Rockchip Electronics Co., Ltd
+ *
+ * SPDX-License-Identifier: GPL-2.0
+ */
+
+/dts-v1/;
+/ {
+	description = "Rockchip AMP FIT Image";
+	#address-cells = <1>;
+
+	images {
+		mcu {
+			description  = "mcu";
+			data         = /incbin/("./mcu.bin");
+			type         = "standalone";	// must be "standalone"
+			compression  = "none";
+			arch         = "arm";		// "arm64" or "arm", the same as U-Boot state
+			load         = <0x08200000>;
+			udelay       = <1000000>;
+			hash {
+				algo = "sha256";
+			};
+		};
+	};
+
+	configurations {
+		default = "conf";
+		conf {
+			description = "Rockchip AMP images";
+			rollback-index = <0x0>;
+			loadables = "mcu";
+
+			signature {
+				algo = "sha256,rsa2048";
+				padding = "pss";
+				key-name-hint = "dev";
+				sign-images = "loadables";
+			};
+		};
+	};
+};

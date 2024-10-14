@@ -204,13 +204,10 @@ typedef struct Asharp_ProcResult_V3_s {
     int sharpEn;
 
     //for sw simultaion
-    RK_SHARP_Params_V3_Select_t stSelect;
+    //RK_SHARP_Params_V3_Select_t stSelect;
 
     //for hw register
-    RK_SHARP_Fix_V3_t stFix;
-
-    bool isNeedUpdate;
-
+    RK_SHARP_Fix_V3_t* stFix;
 } Asharp_ProcResult_V3_t;
 
 

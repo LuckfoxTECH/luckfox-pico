@@ -21,6 +21,7 @@
 #define __CALIBDBV2_CNRV30_HEADER_H__
 
 #include "rk_aiq_comm.h"
+// clang-format off
 
 RKAIQ_BEGIN_DECLARE
 
@@ -30,10 +31,20 @@ typedef struct CalibDbV2_CNRV30_T_ISO_s {
     float iso;
 
     ///////////new/////////////
-    // M4_NUMBER_DESC("down_scale_x", "u8", M4_RANGE(2, 8), "8", M4_DIGIT(0))
+#if defined(ISP_HW_V32)
+    // M4_NUMBER_DESC("down_scale_x", "u8", M4_RANGE(2, 8), "4", M4_DIGIT(0))
+#else
+    // M4_NUMBER_DESC("down_scale_x", "u8", M4_RANGE(4, 8), "4", M4_DIGIT(0))
+#endif
     uint8_t down_scale_x;
-    // M4_NUMBER_DESC("down_scale_y", "u8", M4_RANGE(2, 6), "6", M4_DIGIT(0))
+
+#if defined(ISP_HW_V32)
+    // M4_NUMBER_DESC("down_scale_y", "u8", M4_RANGE(2, 6), "4", M4_DIGIT(0))
+#else
+	// M4_NUMBER_DESC("down_scale_y", "u8", M4_RANGE(4, 4), "4", M4_DIGIT(0))
+#endif
     uint8_t down_scale_y;
+
 
     // M4_NUMBER_DESC("thumb_sigma", "f32", M4_RANGE(0.0, 1.0), "0.0039", M4_DIGIT(4))
     float thumb_sigma;
@@ -122,5 +133,6 @@ typedef struct CalibDbV2_CNRV30_s {
 } CalibDbV2_CNRV30_t;
 
 RKAIQ_END_DECLARE
+// clang-format on
 
 #endif

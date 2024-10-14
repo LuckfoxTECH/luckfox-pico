@@ -974,7 +974,9 @@ static ulong rk3308_clk_get_rate(struct clk *clk)
 	case SCLK_SPI1:
 		rate = rk3308_spi_get_clk(clk);
 		break;
-	case SCLK_PWM:
+	case SCLK_PWM0:
+	case SCLK_PWM1:
+	case SCLK_PWM2:
 		rate = rk3308_pwm_get_clk(clk);
 		break;
 	case DCLK_VOP:
@@ -1059,7 +1061,9 @@ static ulong rk3308_clk_set_rate(struct clk *clk, ulong rate)
 	case SCLK_SPI1:
 		ret = rk3308_spi_set_clk(clk, rate);
 		break;
-	case SCLK_PWM:
+	case SCLK_PWM0:
+	case SCLK_PWM1:
+	case SCLK_PWM2:
 		ret = rk3308_pwm_set_clk(clk, rate);
 		break;
 	case DCLK_VOP:

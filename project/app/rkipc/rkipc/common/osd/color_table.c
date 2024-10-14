@@ -5,7 +5,7 @@
 #include "color_table.h"
 
 /* argb(lower address -> high address) */
-const unsigned int rgb888_palette_table[PALETTE_TABLE_LEN] = {
+const uint32_t rgb888_palette_table[PALETTE_TABLE_LEN] = {
     0xffffffff, 0xd7ffffff, 0xafffffff, 0x87ffffff, 0x5fffffff, 0x00ffffff, 0xffd7ffff, 0xd7d7ffff,
     0xafd7ffff, 0x87d7ffff, 0x5fd7ffff, 0x00d7ffff, 0xffafffff, 0xd7afffff, 0xafafffff, 0x87afffff,
     0x5fafffff, 0x00afffff, 0xff87ffff, 0xd787ffff, 0xaf87ffff, 0x8787ffff, 0x5f87ffff, 0x0087ffff,
@@ -40,7 +40,7 @@ const unsigned int rgb888_palette_table[PALETTE_TABLE_LEN] = {
     0xccccccff, 0x99ccccff, 0x9999ccff, 0x3366ccff, 0x0033ccff, 0x3300ccff, 0x00ffccff, 0x08000000};
 
 /* yuva(lower address -> high address) */
-const unsigned int yuv444_palette_table[PALETTE_TABLE_LEN] = {
+const uint32_t yuv444_palette_table[PALETTE_TABLE_LEN] = {
     0xff8080eb, 0xff826ee9, 0xff835de6, 0xff854be4, 0xff863ae1, 0xff8a10db, 0xff908ed2, 0xff927cd0,
     0xff936acd, 0xff9559cb, 0xff9647c9, 0xff9a1ec3, 0xffa09bba, 0xffa28ab7, 0xffa378b5, 0xffa566b2,
     0xffa655b0, 0xffaa2baa, 0xffb0a9a1, 0xffb1979f, 0xffb3859c, 0xffb5749a, 0xffb66297, 0xffba3991,
@@ -75,7 +75,7 @@ const unsigned int yuv444_palette_table[PALETTE_TABLE_LEN] = {
     0xff8080bf, 0xff826abc, 0xff967b9d, 0xffaf5f77, 0xffc55a55, 0xffd88238, 0xff7415d2, 0x008080eb};
 
 /*
-static int RGB888ToYuvMap(unsigned int *buffer, int w, int h) {
+static int RGB888ToYuvMap(uint32_t *buffer, int w, int h) {
   int offset;
   unsigned char sR, sG, sB, sA;
   for (int j = 0; j < h; j++) {
@@ -97,8 +97,8 @@ static int RGB888ToYuvMap(unsigned int *buffer, int w, int h) {
 */
 
 /* Match an RGB value to a particular palette index */
-unsigned char find_color(const unsigned int *pal, unsigned int len, unsigned char r,
-                         unsigned char g, unsigned char b) {
+unsigned char find_color(const uint32_t *pal, unsigned int len, unsigned char r, unsigned char g,
+                         unsigned char b) {
 	unsigned int i = 0;
 	unsigned char pixel = 0;
 	unsigned int smallest = 0;

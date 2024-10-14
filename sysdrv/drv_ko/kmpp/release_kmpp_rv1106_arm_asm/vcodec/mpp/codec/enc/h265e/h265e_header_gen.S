@@ -1960,17 +1960,17 @@ h265e_get_extra_info:
 	.section	.rodata
 	.align	2
 	.set	.LANCHOR0,. + 0
-	.type	__FUNCTION__.9873, %object
-	.size	__FUNCTION__.9873, 16
-__FUNCTION__.9873:
+	.type	__FUNCTION__.9946, %object
+	.size	__FUNCTION__.9946, 16
+__FUNCTION__.9946:
 	.ascii	"h265e_nals_init\000"
-	.type	__FUNCTION__.10047, %object
-	.size	__FUNCTION__.10047, 22
-__FUNCTION__.10047:
+	.type	__FUNCTION__.10120, %object
+	.size	__FUNCTION__.10120, 22
+__FUNCTION__.10120:
 	.ascii	"h265e_init_extra_info\000"
-	.type	h265e_sei_uuid.10046, %object
-	.size	h265e_sei_uuid.10046, 16
-h265e_sei_uuid.10046:
+	.type	h265e_sei_uuid.10119, %object
+	.size	h265e_sei_uuid.10119, 16
+h265e_sei_uuid.10119:
 	.byte	103
 	.byte	-4
 	.byte	106
@@ -1987,25 +1987,25 @@ h265e_sei_uuid.10046:
 	.byte	-77
 	.byte	54
 	.byte	119
-	.type	__FUNCTION__.9877, %object
-	.size	__FUNCTION__.9877, 18
-__FUNCTION__.9877:
+	.type	__FUNCTION__.9950, %object
+	.size	__FUNCTION__.9950, 18
+__FUNCTION__.9950:
 	.ascii	"h265e_nals_deinit\000"
-	.type	__FUNCTION__.10052, %object
-	.size	__FUNCTION__.10052, 24
-__FUNCTION__.10052:
+	.type	__FUNCTION__.10125, %object
+	.size	__FUNCTION__.10125, 24
+__FUNCTION__.10125:
 	.ascii	"h265e_deinit_extra_info\000"
-	.type	__func__.10060, %object
-	.size	__func__.10060, 21
-__func__.10060:
+	.type	__func__.10133, %object
+	.size	__func__.10133, 21
+__func__.10133:
 	.ascii	"h265e_set_extra_info\000"
-	.type	__func__.9970, %object
-	.size	__func__.9970, 16
-__func__.9970:
+	.type	__func__.10043, %object
+	.size	__func__.10043, 16
+__func__.10043:
 	.ascii	"h265e_vps_write\000"
-	.type	__FUNCTION__.9974, %object
-	.size	__FUNCTION__.9974, 16
-__FUNCTION__.9974:
+	.type	__FUNCTION__.10047, %object
+	.size	__FUNCTION__.10047, 16
+__FUNCTION__.10047:
 	.ascii	"h265e_vps_write\000"
 	.space	3
 .LC0:
@@ -2018,37 +2018,37 @@ __FUNCTION__.9974:
 	.word	2
 	.word	1
 	.word	1
+	.type	__func__.10072, %object
+	.size	__func__.10072, 16
+__func__.10072:
+	.ascii	"h265e_sps_write\000"
+	.type	__FUNCTION__.10076, %object
+	.size	__FUNCTION__.10076, 16
+__FUNCTION__.10076:
+	.ascii	"h265e_sps_write\000"
+	.type	__func__.10092, %object
+	.size	__func__.10092, 16
+__func__.10092:
+	.ascii	"h265e_pps_write\000"
+	.type	__FUNCTION__.10099, %object
+	.size	__FUNCTION__.10099, 16
+__FUNCTION__.10099:
+	.ascii	"h265e_pps_write\000"
+	.type	__func__.9979, %object
+	.size	__func__.9979, 23
+__func__.9979:
+	.ascii	"h265e_encapsulate_nals\000"
+	.type	__func__.10143, %object
+	.size	__func__.10143, 18
+__func__.10143:
+	.ascii	"h265e_data_to_sei\000"
 	.type	__func__.9999, %object
 	.size	__func__.9999, 16
 __func__.9999:
-	.ascii	"h265e_sps_write\000"
-	.type	__FUNCTION__.10003, %object
-	.size	__FUNCTION__.10003, 16
-__FUNCTION__.10003:
-	.ascii	"h265e_sps_write\000"
-	.type	__func__.10019, %object
-	.size	__func__.10019, 16
-__func__.10019:
-	.ascii	"h265e_pps_write\000"
-	.type	__FUNCTION__.10026, %object
-	.size	__FUNCTION__.10026, 16
-__FUNCTION__.10026:
-	.ascii	"h265e_pps_write\000"
-	.type	__func__.9906, %object
-	.size	__func__.9906, 23
-__func__.9906:
-	.ascii	"h265e_encapsulate_nals\000"
-	.type	__func__.10070, %object
-	.size	__func__.10070, 18
-__func__.10070:
-	.ascii	"h265e_data_to_sei\000"
-	.type	__func__.9926, %object
-	.size	__func__.9926, 16
-__func__.9926:
 	.ascii	"h265e_sei_write\000"
-	.type	__func__.10078, %object
-	.size	__func__.10078, 21
-__func__.10078:
+	.type	__func__.10151, %object
+	.size	__func__.10151, 21
+__func__.10151:
 	.ascii	"h265e_get_extra_info\000"
 	.data
 	.align	2

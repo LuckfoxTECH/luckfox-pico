@@ -5,8 +5,8 @@
 #ifndef __RKCRYPTO_RANDOM_H__
 #define __RKCRYPTO_RANDOM_H__
 
-#include "rkcrypto_common.h"
 #include <stdint.h>
+#include "rkcrypto_common.h"
 
 RK_RES rk_get_random(uint8_t *data, uint32_t len);
 

@@ -21,7 +21,7 @@ char *display_options_get_banner_priv(bool newlines, const char *build_tag,
 	len = snprintf(buf, size, "%s%s", newlines ? "\n\n" : "",
 		       version_string);
 	if (build_tag && len < size)
-		len += snprintf(buf + len, size - len, ", Build: %s",
+		len += snprintf(buf + len, size - len, ", fwver: %s",
 				build_tag);
 	if (len > size - 3)
 		len = size - 3;

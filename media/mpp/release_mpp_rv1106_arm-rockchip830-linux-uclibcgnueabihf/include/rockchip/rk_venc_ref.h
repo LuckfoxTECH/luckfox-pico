@@ -17,8 +17,8 @@
 #ifndef __RK_VENC_REF_H__
 #define __RK_VENC_REF_H__
 
-#include "mpp_err.h"
 #include "rk_type.h"
+#include "mpp_err.h"
 
 /*
  * MPP reference management system follows the model of H.264/H.265 reference
@@ -33,43 +33,39 @@
  * MppEncRefMode defined the way for user to reference the required frame.
  *
  * Normal reference mode without argument
- *  REF_TO_PREV_REF_FRM   - refer to previous reference frame in encode order
- * (No matter Lt or St) REF_TO_PREV_ST_REF    - refer to previous short-term
- * reference frame REF_TO_PREV_LT_REF    - refer to previous long-term reference
- * frame REF_TO_PREV_INTRA     - refer to previous Intra / IDR frame
+ *  REF_TO_PREV_REF_FRM   - refer to previous reference frame in encode order (No matter Lt or St)
+ *  REF_TO_PREV_ST_REF    - refer to previous short-term reference frame
+ *  REF_TO_PREV_LT_REF    - refer to previous long-term reference frame
+ *  REF_TO_PREV_INTRA     - refer to previous Intra / IDR frame
  *  REF_TO_ST_REF_SETUP   - refer to refernce frame defined in StRefSetup
  *
  * Normal reference mode with argument
- *  REF_TO_TEMPORAL_LAYER - refer to previous reference frame with temporal id
- * argument REF_TO_LT_REF_IDX     - refer to long-term reference frame with
- * lt_ref_idx argument REF_TO_ST_PREV_N_REF    - refer to short-term reference
- * frame with diff frame_num argument
+ *  REF_TO_TEMPORAL_LAYER - refer to previous reference frame with temporal id argument
+ *  REF_TO_LT_REF_IDX     - refer to long-term reference frame with lt_ref_idx argument
+ *  REF_TO_ST_PREV_N_REF    - refer to short-term reference frame with diff frame_num argument
  *
  * Long-term reference only mode
- *  REF_TO_ST_REF_SETUP   - use corresponding mode of original short-term
- * reference frame
+ *  REF_TO_ST_REF_SETUP   - use corresponding mode of original short-term reference frame
  *
  * Short-term reference only mode
- *  REF_TO_LT_REF_SETUP   - indicate that this frame will be overwrited by
- * long-term config
+ *  REF_TO_LT_REF_SETUP   - indicate that this frame will be overwrited by long-term config
  *
- * By combining frames with these modes user can define many kinds of reference
- * hierarchy structure. But normally user should use simplified preset hierarchy
- * pattern.
+ * By combining frames with these modes user can define many kinds of reference hierarchy
+ * structure. But normally user should use simplified preset hierarchy pattern.
  *
  * The rules for virtual cpb management is similiar to H.264/H.265
- * 1. When one frame is marked as long-term reference frame it will be kept in
- * cpb until it is replaced by other frame with the same lt_idx or IDR frame.
- * 2. When one frame is marked as short-term reference frame it will be inert
- * into cpb when there is enough storage space. When the number of total sum of
- * long-term and short-term reference frame excess the cpb size limit the oldest
- * short-term frame will be removed. This is call sliding window in H.264.
+ * 1. When one frame is marked as long-term reference frame it will be kept in cpb until
+ *    it is replaced by other frame with the same lt_idx or IDR frame.
+ * 2. When one frame is marked as short-term reference frame it will be inert into cpb when
+ *    there is enough storage space. When the number of total sum of long-term and short-term
+ *    reference frame excess the cpb size limit the oldest short-term frame will be removed.
+ *    This is call sliding window in H.264.
  */
 
 /* max 4 temporal layer */
-#define MPP_ENC_MAX_TEMPORAL_LAYER_NUM 4
+#define MPP_ENC_MAX_TEMPORAL_LAYER_NUM      4
 /* max 4 long-term reference frame */
-#define MPP_ENC_MAX_LT_REF_NUM 16
+#define MPP_ENC_MAX_LT_REF_NUM              16
 
 /*
  * Group Of Picture (GOP) config is separated into three parts:
@@ -95,8 +91,8 @@
  *    reference frame will be generated for error recovery or smart hierarchy.
  *
  *    2.2 lt_delay
- *    The lt_delay is the delay time for generation of long-term reference
- * frame. The start point of lt_delay is the IDR/intra frame genertaed by igop.
+ *    The lt_delay is the delay time for generation of long-term reference frame.
+ *    The start point of lt_delay is the IDR/intra frame genertaed by igop.
  *
  *    2.4 ref_mode: Long-term refernce frame reference mode
  *    NOTE: temporal id of longterm reference frame is always zero.
@@ -152,92 +148,92 @@
  *
  */
 
-#define REF_MODE_MODE_MASK (0x1F)
-#define REF_MODE_ARG_MASK (0xFFFF0000)
+#define REF_MODE_MODE_MASK              (0x1F)
+#define REF_MODE_ARG_MASK               (0xFFFF0000)
 
 typedef enum MppEncRefMode_e {
-  /* max 32 mode in 32-bit */
-  /* for default ref global config */
-  REF_MODE_GLOBAL,
-  REF_TO_PREV_REF_FRM = REF_MODE_GLOBAL,
-  REF_TO_PREV_ST_REF,
-  REF_TO_PREV_LT_REF,
-  REF_TO_PREV_INTRA,
+    /* max 32 mode in 32-bit */
+    /* for default ref global config */
+    REF_MODE_GLOBAL,
+    REF_TO_PREV_REF_FRM                 = REF_MODE_GLOBAL,
+    REF_TO_PREV_ST_REF,
+    REF_TO_PREV_LT_REF,
+    REF_TO_PREV_INTRA,
 
-  /* for global config with args */
-  REF_MODE_GLOBAL_WITH_ARG = 0x4,
-  /* with ref arg as temporal layer id */
-  REF_TO_TEMPORAL_LAYER = REF_MODE_GLOBAL_WITH_ARG,
-  /* with ref arg as long-term reference picture index */
-  REF_TO_LT_REF_IDX,
-  /* with ref arg as short-term reference picture difference frame_num */
-  REF_TO_ST_PREV_N_REF,
-  REF_MODE_GLOBAL_BUTT,
+    /* for global config with args */
+    REF_MODE_GLOBAL_WITH_ARG            = 0x4,
+    /* with ref arg as temporal layer id */
+    REF_TO_TEMPORAL_LAYER               = REF_MODE_GLOBAL_WITH_ARG,
+    /* with ref arg as long-term reference picture index */
+    REF_TO_LT_REF_IDX,
+    /* with ref arg as short-term reference picture difference frame_num */
+    REF_TO_ST_PREV_N_REF,
+    REF_MODE_GLOBAL_BUTT,
 
-  /* for lt-ref */
-  REF_MODE_LT = 0x18,
-  REF_TO_ST_REF_SETUP,
-  REF_MODE_LT_BUTT,
+    /* for lt-ref */
+    REF_MODE_LT                         = 0x18,
+    REF_TO_ST_REF_SETUP,
+    REF_MODE_LT_BUTT,
 
-  /* for st-ref */
-  REF_MODE_ST = 0x1C,
-  REF_TO_LT_REF_SETUP,
-  REF_MODE_ST_BUTT,
+    /* for st-ref */
+    REF_MODE_ST                         = 0x1C,
+    REF_TO_LT_REF_SETUP,
+    REF_MODE_ST_BUTT,
 } MppEncRefMode;
 
 typedef struct MppEncRefLtFrmCfg_t {
-  RK_S32 lt_idx;      /* lt_idx of the reference frame */
-  RK_S32 temporal_id; /* temporal_id of the reference frame */
-  MppEncRefMode ref_mode;
-  RK_S32 ref_arg;
-  RK_S32 lt_gap;   /* gap between two lt-ref with same lt_idx */
-  RK_S32 lt_delay; /* delay offset to igop start frame */
+    RK_S32              lt_idx;         /* lt_idx of the reference frame */
+    RK_S32              temporal_id;    /* temporal_id of the reference frame */
+    MppEncRefMode       ref_mode;
+    RK_S32              ref_arg;
+    RK_S32              lt_gap;         /* gap between two lt-ref with same lt_idx */
+    RK_S32              lt_delay;       /* delay offset to igop start frame */
 } MppEncRefLtFrmCfg;
 
 typedef struct MppEncRefStFrmCfg_t {
-  RK_S32 is_non_ref;
-  RK_S32 temporal_id;
-  MppEncRefMode ref_mode;
-  RK_S32 ref_arg;
-  RK_S32 repeat; /* repeat times */
+    RK_S32              is_non_ref;
+    RK_S32              temporal_id;
+    MppEncRefMode       ref_mode;
+    RK_S32              ref_arg;
+    RK_S32              repeat;         /* repeat times */
 } MppEncRefStFrmCfg;
 
 typedef struct MppEncRefPreset_t {
-  /* input parameter for query */
-  const char *name;
-  RK_S32 max_lt_cnt;
-  RK_S32 max_st_cnt;
-  MppEncRefLtFrmCfg *lt_cfg;
-  MppEncRefStFrmCfg *st_cfg;
+    /* input parameter for query */
+    const char          *name;
+    RK_S32              max_lt_cnt;
+    RK_S32              max_st_cnt;
+    MppEncRefLtFrmCfg   *lt_cfg;
+    MppEncRefStFrmCfg   *st_cfg;
 
-  /* output parameter */
-  RK_S32 lt_cnt;
-  RK_S32 st_cnt;
+    /* output parameter */
+    RK_S32              lt_cnt;
+    RK_S32              st_cnt;
 } MppEncRefPreset;
 
-typedef void *MppEncRefCfg;
+typedef void* MppEncRefCfg;
 typedef enum MppEncRefCfgMode_e {
-  REF_IPPP,
-  REF_TSVC1,
-  REF_TSVC2,
-  REF_TSVC3,
-  REF_VI,
-  REF_HIR_SKIP,
-  REF_BUTT,
+    REF_IPPP,
+    REF_TSVC1,
+    REF_TSVC2,
+    REF_TSVC3,
+    REF_VI,
+    REF_HIR_SKIP,
+    REF_BUTT,
 } MppEncRefCfgMode;
 
 typedef struct MppEncRefParam_t {
 
-  MppEncRefCfgMode cfg_mode;
+    MppEncRefCfgMode  cfg_mode;
 
-  RK_S32 gop_len;
-  /*used for smartp ref*/
-  RK_S32 vi_len;
+    RK_S32            gop_len;
+    /*used for smartp ref*/
+    RK_S32      vi_len;
 
-  /*used for skip reg*/
-  RK_U32 base_N;
-  RK_U32 enh_M;
-  RK_U32 pre_en;
+    /*used for skip reg*/
+    RK_U32      base_N;
+    RK_U32      enh_M;
+    RK_U32      pre_en;
 
 } MppEncRefParam;
 
@@ -249,18 +245,15 @@ MPP_RET mpp_enc_ref_cfg_init(MppEncRefCfg *ref);
 MPP_RET mpp_enc_ref_cfg_deinit(MppEncRefCfg *ref);
 
 MPP_RET mpp_enc_ref_cfg_reset(MppEncRefCfg ref);
-MPP_RET mpp_enc_ref_cfg_set_cfg_cnt(MppEncRefCfg ref, RK_S32 lt_cnt,
-                                    RK_S32 st_cnt);
-MPP_RET mpp_enc_ref_cfg_add_lt_cfg(MppEncRefCfg ref, RK_S32 cnt,
-                                   MppEncRefLtFrmCfg *frm);
-MPP_RET mpp_enc_ref_cfg_add_st_cfg(MppEncRefCfg ref, RK_S32 cnt,
-                                   MppEncRefStFrmCfg *frm);
+MPP_RET mpp_enc_ref_cfg_set_cfg_cnt(MppEncRefCfg ref, RK_S32 lt_cnt, RK_S32 st_cnt);
+MPP_RET mpp_enc_ref_cfg_add_lt_cfg(MppEncRefCfg ref, RK_S32 cnt, MppEncRefLtFrmCfg *frm);
+MPP_RET mpp_enc_ref_cfg_add_st_cfg(MppEncRefCfg ref, RK_S32 cnt, MppEncRefStFrmCfg *frm);
 MPP_RET mpp_enc_ref_cfg_check(MppEncRefCfg ref);
 
 /*
  * A new reference configure will restart a new gop and clear cpb by default.
- * The keep cpb function will let encoder keeps the current cpb status and do
- * NOT reset all the reference frame in cpb.
+ * The keep cpb function will let encoder keeps the current cpb status and do NOT
+ * reset all the reference frame in cpb.
  */
 MPP_RET mpp_enc_ref_cfg_set_keep_cpb(MppEncRefCfg ref, RK_S32 keep);
 MPP_RET mpp_enc_ref_cfg_get_preset(MppEncRefPreset *preset);

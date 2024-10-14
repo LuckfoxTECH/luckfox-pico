@@ -26,7 +26,7 @@ static int bootdev_map[] = {
 	BOOT_TYPE_SPI_NAND,
 	BOOT_TYPE_SD0,
 	BOOT_TYPE_UNKNOWN,
-	BOOT_TYPE_UNKNOWN,
+	BOOT_TYPE_UFS,
 	BOOT_TYPE_UNKNOWN,
 	BOOT_TYPE_UNKNOWN,
 	BOOT_TYPE_UNKNOWN
@@ -51,7 +51,9 @@ static int spl_bootdev_map[] = {
 	BOOT_TYPE_UNKNOWN,
 	BOOT_TYPE_MTD_BLK_NAND,
 	BOOT_TYPE_MTD_BLK_SPI_NAND,
-	BOOT_TYPE_MTD_BLK_SPI_NOR
+	BOOT_TYPE_MTD_BLK_SPI_NOR,
+	BOOT_TYPE_UNKNOWN,
+	BOOT_TYPE_UFS
 };
 #endif
 
@@ -179,8 +181,9 @@ int atags_is_available(void)
 
 int atags_set_tag(u32 magic, void *tagdata)
 {
-	u32 length, size = 0, hash;
 	struct tag *t = (struct tag *)ATAGS_PHYS_BASE;
+	u32 length, size = 0, hash;
+	int append = 1; /* 0: override */
 
 #if !defined(CONFIG_TPL_BUILD) && !defined(CONFIG_FPGA_ROCKCHIP)
 	if (!atags_is_available())
@@ -216,8 +219,10 @@ int atags_set_tag(u32 magic, void *tagdata)
 				return -EINVAL;
 
 			/* This is an old tag, override it */
-			if (t->hdr.magic == magic)
+			if (t->hdr.magic == magic) {
+				append = 0;
 				break;
+			}
 
 			if (t->hdr.magic == ATAG_NONE)
 				break;
@@ -256,6 +261,9 @@ int atags_set_tag(u32 magic, void *tagdata)
 	case ATAG_PSTORE:
 		size = tag_size(tag_pstore);
 		break;
+	case ATAG_FWVER:
+		size = tag_size(tag_fwver);
+		break;
 	};
 
 	if (!size)
@@ -264,7 +272,7 @@ int atags_set_tag(u32 magic, void *tagdata)
 	if (atags_size_overflow(t, size))
 		return -ENOMEM;
 
-	/* It's okay to setup a new tag */
+	/* It's okay to setup a new tag or override tag */
 	t->hdr.magic = magic;
 	t->hdr.size = size;
 	length = (t->hdr.size << 2) - sizeof(struct tag_header) - HASH_LEN;
@@ -272,17 +280,41 @@ int atags_set_tag(u32 magic, void *tagdata)
 	hash = js_hash(t, (size << 2) - HASH_LEN);
 	memcpy((char *)&t->u + length, &hash, HASH_LEN);
 
-	/* Next tag */
-	t = tag_next(t);
+	if (append) {
+		/* Next tag */
+		t = tag_next(t);
 
-	/* Setup done */
-	t->hdr.magic = ATAG_NONE;
-	t->hdr.size = 0;
+		/* Setup done */
+		t->hdr.magic = ATAG_NONE;
+		t->hdr.size = 0;
+	}
 
 	return 0;
 }
 
 #ifndef CONFIG_TPL_BUILD
+int atags_set_shared_fwver(u32 fwid, char *ver)
+{
+	struct tag_fwver fw = {}, *pfw;
+	struct tag *t;
+
+	if (!ver || (strlen(ver) >= FWVER_LEN) || fwid >= FW_MAX)
+		return -EINVAL;
+
+	t = atags_get_tag(ATAG_FWVER);
+	if (!t) {
+		pfw = &fw;
+		pfw->version = 0;
+	} else {
+		pfw = &t->u.fwver;
+	}
+
+	strcpy(pfw->ver[fwid], ver);
+	atags_set_tag(ATAG_FWVER, pfw);
+
+	return 0;
+}
+
 struct tag *atags_get_tag(u32 magic)
 {
 	u32 *hash, calc_hash, size;

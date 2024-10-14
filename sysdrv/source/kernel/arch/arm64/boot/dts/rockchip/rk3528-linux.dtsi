@@ -6,7 +6,7 @@
 
 / {
 	chosen: chosen {
-		bootargs = "earlycon=uart8250,mmio32,0xff9f0000 console=ttyFIQ0";
+		bootargs = "earlycon=uart8250,mmio32,0xff9f0000 console=ttyFIQ0 root=PARTUUID=614e0000-0000 rw rootwait";
 	};
 
 	fiq-debugger {
@@ -20,6 +20,13 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&uart0m0_xfer>;
 		status = "okay";
+	};
+
+	firmware {
+		optee {
+			compatible = "linaro,optee-tz";
+			method = "smc";
+		};
 	};
 
 	reserved_memory: reserved-memory {
@@ -58,7 +65,7 @@
 
 	route {
 		route_hdmi: route-hdmi {
-			status = "disabled";
+			status = "okay";
 			logo,uboot = "logo.bmp";
 			logo,kernel = "logo_kernel.bmp";
 			logo,mode = "center";
@@ -66,7 +73,7 @@
 			connect = <&vp0_out_hdmi>;
 		};
 		route_tve: route-tve {
-			status = "disabled";
+			status = "okay";
 			logo,uboot = "logo.bmp";
 			logo,kernel = "logo_kernel.bmp";
 			logo,mode = "center";

@@ -653,8 +653,7 @@ FT_BEGIN_HEADER
 #define TT_MS_LANGID_ENGLISH_GENERAL 0x0009
 #define TT_MS_LANGID_ENGLISH_INDONESIA 0x3809
 #define TT_MS_LANGID_ENGLISH_HONG_KONG 0x3C09
-#define TT_MS_LANGID_SPANISH_SPAIN_INTERNATIONAL_SORT                          \
-  TT_MS_LANGID_SPANISH_SPAIN_MODERN_SORT
+#define TT_MS_LANGID_SPANISH_SPAIN_INTERNATIONAL_SORT TT_MS_LANGID_SPANISH_SPAIN_MODERN_SORT
 #define TT_MS_LANGID_SPANISH_LATIN_AMERICA 0xE40AU
 #define TT_MS_LANGID_FRENCH_WEST_INDIES 0x1C0C
 #define TT_MS_LANGID_FRENCH_REUNION 0x200C
@@ -719,10 +718,8 @@ FT_BEGIN_HEADER
 #define TT_MS_LANGID_EDO_NIGERIA 0x0466
 #define TT_MS_LANGID_FULFULDE_NIGERIA 0x0467
 #define TT_MS_LANGID_IBIBIO_NIGERIA 0x0469
-#define TT_MS_LANGID_SEPEDI_SOUTH_AFRICA                                       \
-  TT_MS_LANGID_SESOTHO_SA_LEBOA_SOUTH_AFRICA
-#define TT_MS_LANGID_SOTHO_SOUTHERN_SOUTH_AFRICA                               \
-  TT_MS_LANGID_SESOTHO_SA_LEBOA_SOUTH_AFRICA
+#define TT_MS_LANGID_SEPEDI_SOUTH_AFRICA TT_MS_LANGID_SESOTHO_SA_LEBOA_SOUTH_AFRICA
+#define TT_MS_LANGID_SOTHO_SOUTHERN_SOUTH_AFRICA TT_MS_LANGID_SESOTHO_SA_LEBOA_SOUTH_AFRICA
 #define TT_MS_LANGID_KANURI_NIGERIA 0x0471
 #define TT_MS_LANGID_OROMO_ETHIOPIA 0x0472
 #define TT_MS_LANGID_TIGRIGNA_ETHIOPIA 0x0473
@@ -813,11 +810,11 @@ FT_BEGIN_HEADER
 /* Bit  4   IPA Extensions                 */
 /*          Phonetic Extensions            */
 /*          Phonetic Extensions Supplement */
-#define TT_UCR_IPA_EXTENSIONS (1L << 4) /* U+0250-U+02AF */
-                                        /* U+1D00-U+1D7F */
-                                        /* U+1D80-U+1DBF */
-                                        /* Bit  5   Spacing Modifier Letters */
-                                        /*          Modifier Tone Letters    */
+#define TT_UCR_IPA_EXTENSIONS (1L << 4)   /* U+0250-U+02AF */
+                                          /* U+1D00-U+1D7F */
+                                          /* U+1D80-U+1DBF */
+                                          /* Bit  5   Spacing Modifier Letters */
+                                          /*          Modifier Tone Letters    */
 #define TT_UCR_SPACING_MODIFIER (1L << 5) /* U+02B0-U+02FF */
                                           /* U+A700-U+A71F */
 /* Bit  6   Combining Diacritical Marks            */
@@ -825,69 +822,69 @@ FT_BEGIN_HEADER
 #define TT_UCR_COMBINING_DIACRITICAL_MARKS (1L << 6) /* U+0300-U+036F */
                                                      /* U+1DC0-U+1DFF */
 /* Bit  7   Greek and Coptic */
-#define TT_UCR_GREEK (1L << 7)        /* U+0370-U+03FF */
-                                      /* Bit  8   Coptic */
-#define TT_UCR_COPTIC (1L << 8)       /* U+2C80-U+2CFF */
-                                      /* Bit  9   Cyrillic            */
-                                      /*          Cyrillic Supplement */
-                                      /*          Cyrillic Extended-A */
-                                      /*          Cyrillic Extended-B */
-#define TT_UCR_CYRILLIC (1L << 9)     /* U+0400-U+04FF */
-                                      /* U+0500-U+052F */
-                                      /* U+2DE0-U+2DFF */
-                                      /* U+A640-U+A69F */
-                                      /* Bit 10   Armenian */
-#define TT_UCR_ARMENIAN (1L << 10)    /* U+0530-U+058F */
-                                      /* Bit 11   Hebrew */
-#define TT_UCR_HEBREW (1L << 11)      /* U+0590-U+05FF */
-                                      /* Bit 12   Vai */
-#define TT_UCR_VAI (1L << 12)         /* U+A500-U+A63F */
-                                      /* Bit 13   Arabic            */
-                                      /*          Arabic Supplement */
-#define TT_UCR_ARABIC (1L << 13)      /* U+0600-U+06FF */
-                                      /* U+0750-U+077F */
-                                      /* Bit 14   NKo */
-#define TT_UCR_NKO (1L << 14)         /* U+07C0-U+07FF */
-                                      /* Bit 15   Devanagari */
-#define TT_UCR_DEVANAGARI (1L << 15)  /* U+0900-U+097F */
-                                      /* Bit 16   Bengali */
-#define TT_UCR_BENGALI (1L << 16)     /* U+0980-U+09FF */
-                                      /* Bit 17   Gurmukhi */
-#define TT_UCR_GURMUKHI (1L << 17)    /* U+0A00-U+0A7F */
-                                      /* Bit 18   Gujarati */
-#define TT_UCR_GUJARATI (1L << 18)    /* U+0A80-U+0AFF */
-                                      /* Bit 19   Oriya */
-#define TT_UCR_ORIYA (1L << 19)       /* U+0B00-U+0B7F */
-                                      /* Bit 20   Tamil */
-#define TT_UCR_TAMIL (1L << 20)       /* U+0B80-U+0BFF */
-                                      /* Bit 21   Telugu */
-#define TT_UCR_TELUGU (1L << 21)      /* U+0C00-U+0C7F */
-                                      /* Bit 22   Kannada */
-#define TT_UCR_KANNADA (1L << 22)     /* U+0C80-U+0CFF */
-                                      /* Bit 23   Malayalam */
-#define TT_UCR_MALAYALAM (1L << 23)   /* U+0D00-U+0D7F */
-                                      /* Bit 24   Thai */
-#define TT_UCR_THAI (1L << 24)        /* U+0E00-U+0E7F */
-                                      /* Bit 25   Lao */
-#define TT_UCR_LAO (1L << 25)         /* U+0E80-U+0EFF */
-                                      /* Bit 26   Georgian            */
-                                      /*          Georgian Supplement */
-#define TT_UCR_GEORGIAN (1L << 26)    /* U+10A0-U+10FF */
-                                      /* U+2D00-U+2D2F */
-                                      /* Bit 27   Balinese */
-#define TT_UCR_BALINESE (1L << 27)    /* U+1B00-U+1B7F */
-                                      /* Bit 28   Hangul Jamo */
-#define TT_UCR_HANGUL_JAMO (1L << 28) /* U+1100-U+11FF */
-                                      /* Bit 29   Latin Extended Additional */
-                                      /*          Latin Extended-C          */
-                                      /*          Latin Extended-D          */
+#define TT_UCR_GREEK (1L << 7)                      /* U+0370-U+03FF */
+                                                    /* Bit  8   Coptic */
+#define TT_UCR_COPTIC (1L << 8)                     /* U+2C80-U+2CFF */
+                                                    /* Bit  9   Cyrillic            */
+                                                    /*          Cyrillic Supplement */
+                                                    /*          Cyrillic Extended-A */
+                                                    /*          Cyrillic Extended-B */
+#define TT_UCR_CYRILLIC (1L << 9)                   /* U+0400-U+04FF */
+                                                    /* U+0500-U+052F */
+                                                    /* U+2DE0-U+2DFF */
+                                                    /* U+A640-U+A69F */
+                                                    /* Bit 10   Armenian */
+#define TT_UCR_ARMENIAN (1L << 10)                  /* U+0530-U+058F */
+                                                    /* Bit 11   Hebrew */
+#define TT_UCR_HEBREW (1L << 11)                    /* U+0590-U+05FF */
+                                                    /* Bit 12   Vai */
+#define TT_UCR_VAI (1L << 12)                       /* U+A500-U+A63F */
+                                                    /* Bit 13   Arabic            */
+                                                    /*          Arabic Supplement */
+#define TT_UCR_ARABIC (1L << 13)                    /* U+0600-U+06FF */
+                                                    /* U+0750-U+077F */
+                                                    /* Bit 14   NKo */
+#define TT_UCR_NKO (1L << 14)                       /* U+07C0-U+07FF */
+                                                    /* Bit 15   Devanagari */
+#define TT_UCR_DEVANAGARI (1L << 15)                /* U+0900-U+097F */
+                                                    /* Bit 16   Bengali */
+#define TT_UCR_BENGALI (1L << 16)                   /* U+0980-U+09FF */
+                                                    /* Bit 17   Gurmukhi */
+#define TT_UCR_GURMUKHI (1L << 17)                  /* U+0A00-U+0A7F */
+                                                    /* Bit 18   Gujarati */
+#define TT_UCR_GUJARATI (1L << 18)                  /* U+0A80-U+0AFF */
+                                                    /* Bit 19   Oriya */
+#define TT_UCR_ORIYA (1L << 19)                     /* U+0B00-U+0B7F */
+                                                    /* Bit 20   Tamil */
+#define TT_UCR_TAMIL (1L << 20)                     /* U+0B80-U+0BFF */
+                                                    /* Bit 21   Telugu */
+#define TT_UCR_TELUGU (1L << 21)                    /* U+0C00-U+0C7F */
+                                                    /* Bit 22   Kannada */
+#define TT_UCR_KANNADA (1L << 22)                   /* U+0C80-U+0CFF */
+                                                    /* Bit 23   Malayalam */
+#define TT_UCR_MALAYALAM (1L << 23)                 /* U+0D00-U+0D7F */
+                                                    /* Bit 24   Thai */
+#define TT_UCR_THAI (1L << 24)                      /* U+0E00-U+0E7F */
+                                                    /* Bit 25   Lao */
+#define TT_UCR_LAO (1L << 25)                       /* U+0E80-U+0EFF */
+                                                    /* Bit 26   Georgian            */
+                                                    /*          Georgian Supplement */
+#define TT_UCR_GEORGIAN (1L << 26)                  /* U+10A0-U+10FF */
+                                                    /* U+2D00-U+2D2F */
+                                                    /* Bit 27   Balinese */
+#define TT_UCR_BALINESE (1L << 27)                  /* U+1B00-U+1B7F */
+                                                    /* Bit 28   Hangul Jamo */
+#define TT_UCR_HANGUL_JAMO (1L << 28)               /* U+1100-U+11FF */
+                                                    /* Bit 29   Latin Extended Additional */
+                                                    /*          Latin Extended-C          */
+                                                    /*          Latin Extended-D          */
 #define TT_UCR_LATIN_EXTENDED_ADDITIONAL (1L << 29) /* U+1E00-U+1EFF */
                                                     /* U+2C60-U+2C7F */
                                                     /* U+A720-U+A7FF */
 /* Bit 30   Greek Extended */
-#define TT_UCR_GREEK_EXTENDED (1L << 30) /* U+1F00-U+1FFF */
-                                         /* Bit 31   General Punctuation      */
-                                         /*          Supplemental Punctuation */
+#define TT_UCR_GREEK_EXTENDED (1L << 30)      /* U+1F00-U+1FFF */
+                                              /* Bit 31   General Punctuation      */
+                                              /*          Supplemental Punctuation */
 #define TT_UCR_GENERAL_PUNCTUATION (1L << 31) /* U+2000-U+206F */
                                               /* U+2E00-U+2E7F */
 
@@ -925,8 +922,8 @@ FT_BEGIN_HEADER
                                                  /* Bit 40   Control Pictures */
 #define TT_UCR_CONTROL_PICTURES (1L << 8)        /* U+2400-U+243F */
 /* Bit 41   Optical Character Recognition */
-#define TT_UCR_OCR (1L << 9) /* U+2440-U+245F */
-                             /* Bit 42   Enclosed Alphanumerics */
+#define TT_UCR_OCR (1L << 9)                     /* U+2440-U+245F */
+                                                 /* Bit 42   Enclosed Alphanumerics */
 #define TT_UCR_ENCLOSED_ALPHANUMERICS (1L << 10) /* U+2460-U+24FF */
                                                  /* Bit 43   Box Drawing */
 #define TT_UCR_BOX_DRAWING (1L << 11)            /* U+2500-U+257F */
@@ -944,13 +941,13 @@ FT_BEGIN_HEADER
 #define TT_UCR_HIRAGANA (1L << 17)    /* U+3040-U+309F */
 /* Bit 50   Katakana                     */
 /*          Katakana Phonetic Extensions */
-#define TT_UCR_KATAKANA (1L << 18) /* U+30A0-U+30FF */
-                                   /* U+31F0-U+31FF */
-                                   /* Bit 51   Bopomofo          */
-                                   /*          Bopomofo Extended */
-#define TT_UCR_BOPOMOFO (1L << 19) /* U+3100-U+312F */
-                                   /* U+31A0-U+31BF */
-                                   /* Bit 52   Hangul Compatibility Jamo */
+#define TT_UCR_KATAKANA (1L << 18)                  /* U+30A0-U+30FF */
+                                                    /* U+31F0-U+31FF */
+                                                    /* Bit 51   Bopomofo          */
+                                                    /*          Bopomofo Extended */
+#define TT_UCR_BOPOMOFO (1L << 19)                  /* U+3100-U+312F */
+                                                    /* U+31A0-U+31BF */
+                                                    /* Bit 52   Hangul Compatibility Jamo */
 #define TT_UCR_HANGUL_COMPATIBILITY_JAMO (1L << 20) /* U+3130-U+318F */
                                                     /* Bit 53   Phags-Pa */
 #define TT_UCR_CJK_MISC (1L << 21)                  /* U+A840-U+A87F */
@@ -1101,22 +1098,22 @@ FT_BEGIN_HEADER
 /* --------------- */
 
 /* Bit 96   Buginese */
-#define TT_UCR_BUGINESE (1L << 0)     /* U+1A00-U+1A1F */
-                                      /* Bit 97   Glagolitic */
-#define TT_UCR_GLAGOLITIC (1L << 1)   /* U+2C00-U+2C5F */
-                                      /* Bit 98   Tifinagh */
-#define TT_UCR_TIFINAGH (1L << 2)     /* U+2D30-U+2D7F */
-                                      /* Bit 99   Yijing Hexagram Symbols */
-#define TT_UCR_YIJING (1L << 3)       /* U+4DC0-U+4DFF */
-                                      /* Bit 100  Syloti Nagri */
-#define TT_UCR_SYLOTI_NAGRI (1L << 4) /* U+A800-U+A82F */
-                                      /* Bit 101  Linear B Syllabary */
-                                      /*          Linear B Ideograms */
-                                      /*          Aegean Numbers     */
-#define TT_UCR_LINEAR_B (1L << 5)     /*U+10000-U+1007F*/
-                                      /*U+10080-U+100FF*/
-                                      /*U+10100-U+1013F*/
-                                      /* Bit 102  Ancient Greek Numbers */
+#define TT_UCR_BUGINESE (1L << 0)              /* U+1A00-U+1A1F */
+                                               /* Bit 97   Glagolitic */
+#define TT_UCR_GLAGOLITIC (1L << 1)            /* U+2C00-U+2C5F */
+                                               /* Bit 98   Tifinagh */
+#define TT_UCR_TIFINAGH (1L << 2)              /* U+2D30-U+2D7F */
+                                               /* Bit 99   Yijing Hexagram Symbols */
+#define TT_UCR_YIJING (1L << 3)                /* U+4DC0-U+4DFF */
+                                               /* Bit 100  Syloti Nagri */
+#define TT_UCR_SYLOTI_NAGRI (1L << 4)          /* U+A800-U+A82F */
+                                               /* Bit 101  Linear B Syllabary */
+                                               /*          Linear B Ideograms */
+                                               /*          Aegean Numbers     */
+#define TT_UCR_LINEAR_B (1L << 5)              /*U+10000-U+1007F*/
+                                               /*U+10080-U+100FF*/
+                                               /*U+10100-U+1013F*/
+                                               /* Bit 102  Ancient Greek Numbers */
 #define TT_UCR_ANCIENT_GREEK_NUMBERS (1L << 6) /*U+10140-U+1018F*/
                                                /* Bit 103  Ugaritic */
 #define TT_UCR_UGARITIC (1L << 7)              /*U+10380-U+1039F*/
@@ -1134,9 +1131,9 @@ FT_BEGIN_HEADER
 #define TT_UCR_TAI_XUAN_JING (1L << 13) /*U+1D300-U+1D35F*/
 /* Bit 110  Cuneiform                         */
 /*          Cuneiform Numbers and Punctuation */
-#define TT_UCR_CUNEIFORM (1L << 14) /*U+12000-U+123FF*/
-                                    /*U+12400-U+1247F*/
-                                    /* Bit 111  Counting Rod Numerals */
+#define TT_UCR_CUNEIFORM (1L << 14)             /*U+12000-U+123FF*/
+                                                /*U+12400-U+1247F*/
+                                                /* Bit 111  Counting Rod Numerals */
 #define TT_UCR_COUNTING_ROD_NUMERALS (1L << 15) /*U+1D360-U+1D37F*/
                                                 /* Bit 112  Sundanese */
 #define TT_UCR_SUNDANESE (1L << 16)             /* U+1B80-U+1BBF */

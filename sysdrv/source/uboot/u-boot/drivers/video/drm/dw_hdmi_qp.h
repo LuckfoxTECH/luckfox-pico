@@ -56,6 +56,9 @@
 #define I2CM_ADDR					0xff000
 #define I2CM_SLVADDR					0xfe0
 #define I2CM_WR_MASK					0x1e
+#define I2CM_NBYTES_MASK				(0xf << 20)
+#define I2CM_16BYTES					(0xf << 20)
+#define I2CM_1BYTES					(0 << 20)
 #define I2CM_EXT_READ					BIT(4)
 #define I2CM_SHORT_READ					BIT(3)
 #define I2CM_FM_READ					BIT(2)
@@ -929,15 +932,16 @@ enum drm_connector_status {
 	connector_status_connected = 1,
 };
 
-void rk3588_set_grf_cfg(void *data);
-void dw_hdmi_qp_set_iomux(void *data);
+void dw_hdmi_qp_set_grf_cfg(void *data);
+void dw_hdmi_qp_io_path_init(void *data);
 struct dw_hdmi_link_config *dw_hdmi_rockchip_get_link_cfg(void *data);
-void dw_hdmi_qp_selete_output(struct hdmi_edid_data *edid_data,
+void dw_hdmi_qp_select_output(struct hdmi_edid_data *edid_data,
 			      struct rockchip_connector *conn,
 			      unsigned int *bus_format,
 			      struct overscan *overscan,
 			      enum dw_hdmi_devtype dev_type,
 			      bool output_bus_format_rgb,
 			      void *data, struct display_state *state);
+bool dw_hdmi_qp_check_enable_gpio(void *data);
 
 #endif /* __DW_HDMI_QP_H__ */

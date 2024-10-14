@@ -12,7 +12,7 @@ set(CMAKE_C_EXTENSIONS ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if (ARCH STREQUAL "arm")
+if (ARCH STREQUAL "arm" AND CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mthumb -mthumb-interwork")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mthumb -mthumb-interwork")
 endif()
@@ -27,6 +27,11 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     endif ()
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    add_compile_options(-Wno-unused-variable
+                        -Wno-c99-designator
+                        -Wno-unused-parameter
+                        -Wno-unused-but-set-variable
+                        -Wno-unused-function)
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /stdlib=libc++")
 else ()
@@ -52,3 +57,6 @@ if (RKAIQ_ENABLE_ASAN)
     set(CMAKE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_LINKER_FLAGS_RELWITHDEBINFO} -fno-omit-frame-pointer -fsanitize=address")
 endif()
 
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Android")
+    add_compile_options(-DANDROID_OS)
+endif()

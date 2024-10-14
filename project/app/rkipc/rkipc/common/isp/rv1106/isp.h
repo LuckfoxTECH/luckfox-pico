@@ -8,6 +8,8 @@ int rk_isp_set_frame_rate_without_ini(int cam_id, int value);
 int rk_isp_set_from_ini(int cam_id);
 int rk_isp_fastboot_init(int cam_id);
 int rk_isp_fastboot_deinit(int cam_id);
+int rk_isp_set_group_ldch_level_form_buffer(int cam_id, void *ldch_0, void *ldch_1, int ldch_size_0,
+                                            int ldch_size_1);
 // isp scenario
 int rk_isp_get_scenario(int cam_id, const char **value);
 int rk_isp_set_scenario(int cam_id, const char *value);

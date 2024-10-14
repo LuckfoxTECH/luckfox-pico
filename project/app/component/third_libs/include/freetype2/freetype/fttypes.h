@@ -327,8 +327,8 @@ typedef ft_ptrdiff_t FT_PtrDist;
  *     Vertical coordinate.
  */
 typedef struct FT_UnitVector_ {
-  FT_F2Dot14 x;
-  FT_F2Dot14 y;
+	FT_F2Dot14 x;
+	FT_F2Dot14 y;
 
 } FT_UnitVector;
 
@@ -360,8 +360,8 @@ typedef struct FT_UnitVector_ {
  *     Matrix coefficient.
  */
 typedef struct FT_Matrix_ {
-  FT_Fixed xx, xy;
-  FT_Fixed yx, yy;
+	FT_Fixed xx, xy;
+	FT_Fixed yx, yy;
 
 } FT_Matrix;
 
@@ -381,8 +381,8 @@ typedef struct FT_Matrix_ {
  *     The length of the data in bytes.
  */
 typedef struct FT_Data_ {
-  const FT_Byte *pointer;
-  FT_Int length;
+	const FT_Byte *pointer;
+	FT_Int length;
 
 } FT_Data;
 
@@ -432,8 +432,8 @@ typedef void (*FT_Generic_Finalizer)(void *object);
  *     code will be called.
  */
 typedef struct FT_Generic_ {
-  void *data;
-  FT_Generic_Finalizer finalizer;
+	void *data;
+	FT_Generic_Finalizer finalizer;
 
 } FT_Generic;
 
@@ -450,9 +450,8 @@ typedef struct FT_Generic_ {
  *   The produced values **must** be 32-bit integers.  Don't redefine this
  *   macro.
  */
-#define FT_MAKE_TAG(_x1, _x2, _x3, _x4)                                        \
-  (FT_Tag)(((FT_ULong)_x1 << 24) | ((FT_ULong)_x2 << 16) |                     \
-           ((FT_ULong)_x3 << 8) | (FT_ULong)_x4)
+#define FT_MAKE_TAG(_x1, _x2, _x3, _x4)                                                            \
+	(FT_Tag)(((FT_ULong)_x1 << 24) | ((FT_ULong)_x2 << 16) | ((FT_ULong)_x3 << 8) | (FT_ULong)_x4)
 
 /*************************************************************************/
 /*************************************************************************/
@@ -510,9 +509,9 @@ typedef struct FT_ListRec_ *FT_List;
  *     A typeless pointer to the listed object.
  */
 typedef struct FT_ListNodeRec_ {
-  FT_ListNode prev;
-  FT_ListNode next;
-  void *data;
+	FT_ListNode prev;
+	FT_ListNode next;
+	void *data;
 
 } FT_ListNodeRec;
 
@@ -533,8 +532,8 @@ typedef struct FT_ListNodeRec_ {
  *     The tail (last element) of doubly-linked list.
  */
 typedef struct FT_ListRec_ {
-  FT_ListNode head;
-  FT_ListNode tail;
+	FT_ListNode head;
+	FT_ListNode tail;
 
 } FT_ListRec;
 

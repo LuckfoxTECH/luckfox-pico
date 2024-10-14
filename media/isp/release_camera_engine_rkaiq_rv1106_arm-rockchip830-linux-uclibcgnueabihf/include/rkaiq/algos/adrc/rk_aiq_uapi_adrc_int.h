@@ -23,5 +23,8 @@ XCamReturn rk_aiq_uapi_adrc_v11_GetAttrib(RkAiqAlgoContext* ctx, drcAttrV11_t* a
 XCamReturn rk_aiq_uapi_adrc_v12_SetAttrib(RkAiqAlgoContext* ctx, const drcAttrV12_t* attr,
                                           bool need_sync);
 XCamReturn rk_aiq_uapi_adrc_v12_GetAttrib(RkAiqAlgoContext* ctx, drcAttrV12_t* attr);
+XCamReturn rk_aiq_uapi_adrc_v12_lite_SetAttrib(RkAiqAlgoContext* ctx, const drcAttrV12Lite_t* attr,
+                                               bool need_sync);
+XCamReturn rk_aiq_uapi_adrc_v12_lite_GetAttrib(RkAiqAlgoContext* ctx, drcAttrV12Lite_t* attr);
 
 #endif

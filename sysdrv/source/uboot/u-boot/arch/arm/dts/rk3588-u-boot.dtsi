@@ -173,7 +173,8 @@
 &sdhci {
 	bus-width = <8>;
 	u-boot,dm-spl;
-	mmc-hs200-1_8v;
+	mmc-hs400-1_8v;
+	mmc-hs400-enhanced-strobe;
 	non-removable;
 	status = "okay";
 };
@@ -188,6 +189,24 @@
 };
 
 &u2phy0_otg {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&usb_grf{
+	u-boot,dm-pre-reloc;
+};
+
+&usbdpphy0_grf{
+	u-boot,dm-pre-reloc;
+};
+
+&usbdp_phy0{
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&usbdp_phy0_u3{
 	u-boot,dm-pre-reloc;
 	status = "okay";
 };

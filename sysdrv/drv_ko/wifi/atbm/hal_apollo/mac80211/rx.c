@@ -891,7 +891,8 @@ static void ieee80211_rx_reorder_ampdu(struct ieee80211_rx_data *rx,struct sk_bu
 	struct tid_ampdu_rx *tid_agg_rx;
 	u16 sc;
 	int tid;
-
+	struct ieee80211_rx_status *status = IEEE80211_SKB_RXCB(skb);
+	
 	if (!ieee80211_is_data_qos(hdr->frame_control))
 		goto dont_reorder;
 
@@ -923,10 +924,22 @@ static void ieee80211_rx_reorder_ampdu(struct ieee80211_rx_data *rx,struct sk_bu
 	/* if this mpdu is fragmented - terminate rx aggregation session */
 	sc = le16_to_cpu(hdr->seq_ctrl);
 	if (sc & IEEE80211_SCTL_FRAG) {
+/*
 		skb->pkt_type = IEEE80211_SDATA_QUEUE_TYPE_FRAME;
 		atbm_skb_queue_tail(&rx->sdata->skb_queue, skb);
 		ieee80211_queue_work(&local->hw, &rx->sdata->work);
 		return;
+*/
+		if((status->flag & RX_FLAG_AMPDU)&&(status->flag & RX_FLAG_HT)){
+			skb->pkt_type = IEEE80211_SDATA_QUEUE_TYPE_FRAME;
+			atbm_printk_err("ampdu not support frag\n");
+			atbm_skb_queue_tail(&rx->sdata->skb_queue, skb);
+			ieee80211_queue_work(&local->hw, &rx->sdata->work);
+			return;
+		}else {
+			atbm_printk_debug("Frag do not reorder\n");
+			goto dont_reorder;
+		}
 	}
 
 	/*
@@ -1563,6 +1576,7 @@ ieee80211_rx_h_uapsd_and_pspoll(struct ieee80211_rx_data *rx)
 		   ieee80211_has_pm(hdr->frame_control) &&
 		   (ieee80211_is_data_qos(hdr->frame_control) ||
 		    ieee80211_is_qos_nullfunc(hdr->frame_control))) {
+		    
 		tid = *ieee80211_get_qos_ctl(hdr) & IEEE80211_QOS_CTL_TID_MASK;
 		ac = ieee802_1d_to_ac[tid & 7];
 

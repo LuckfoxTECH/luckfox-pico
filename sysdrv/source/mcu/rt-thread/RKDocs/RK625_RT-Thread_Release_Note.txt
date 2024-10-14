@@ -1,0 +1,13 @@
+===========RK625_RT-Thread SDK Release Note===========
+
+[RK625_RT-Thead_SDK_Release_V1.0.0_20210531.xml change log]
+
+1. Release RK625 RT-Thread SDK;
+
+[RK625_RT-Thead_SDK_Beta_V0.1.0_20210312.xml change log]
+
+1. First init for RK625 platform;
+2. Release documents:
+     Rockchip_RK625_RT-Thread_SDK_Beta_V0.1.0_20210312_CN
+     Rockchip_RK625_Quick_Start_RT-Thread_CN
+

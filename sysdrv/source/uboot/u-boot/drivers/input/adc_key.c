@@ -11,13 +11,10 @@
 static int adc_key_ofdata_to_platdata(struct udevice *dev)
 {
 	struct dm_key_uclass_platdata *uc_key;
-	u32 chn[2], mV;
-	int vref, ret;
-#ifdef CONFIG_SARADC_ROCKCHIP_V2
-	int range = 4096;	/* 12-bit adc */
-#else
-	int range = 1024;	/* 10-bit adc */
-#endif
+	int t, down_threshold = -1, up_threshold;
+	int ret, num = 0, volt_margin = 150000;	/* will be div 2 */
+	u32 voltage, chn[2];
+	ofnode node;
 
 	uc_key = dev_get_uclass_platdata(dev);
 	if (!uc_key)
@@ -33,29 +30,50 @@ static int adc_key_ofdata_to_platdata(struct udevice *dev)
 		return -EINVAL;
 	}
 
-	vref = dev_read_u32_default(dev_get_parent(dev),
+	up_threshold = dev_read_u32_default(dev_get_parent(dev),
 				    "keyup-threshold-microvolt", -ENODATA);
-	if (vref < 0) {
-		printf("%s: read 'keyup-threshold-microvolt' failed, ret=%d\n",
-		       uc_key->name, vref);
-		return -EINVAL;
-	}
+	if (up_threshold < 0)
+		return -ENODATA;
 
 	uc_key->code = dev_read_u32_default(dev, "linux,code", -ENODATA);
-	if (uc_key->code < 0) {
-		printf("%s: read 'linux,code' failed\n", uc_key->name);
-		return -EINVAL;
+	if (uc_key->code < 0)
+		return -ENODATA;
+
+	voltage = dev_read_u32_default(dev, "press-threshold-microvolt", -ENODATA);
+	if (voltage < 0)
+		return -ENODATA;
+
+	dev_for_each_subnode(node, dev->parent) {
+		ret = ofnode_read_s32(node, "press-threshold-microvolt", &t);
+		if (ret)
+			return ret;
+
+		if (t > voltage && t < up_threshold)
+			up_threshold = t;
+		else if (t < voltage && t > down_threshold)
+			down_threshold = t;
+		num++;
 	}
 
-	mV = dev_read_u32_default(dev, "press-threshold-microvolt", -ENODATA);
-	if (mV < 0) {
-		printf("%s: read 'press-threshold-microvolt' failed\n",
-		       uc_key->name);
-		return -EINVAL;
+	/* although one node only, it doesn't mean only one key on hardware */
+	if (num == 1) {
+		down_threshold = voltage - volt_margin;
+		up_threshold = voltage + volt_margin;
 	}
 
+	uc_key->in_volt = 1;
 	uc_key->channel = chn[1];
-	uc_key->adcval = mV / (vref / range);
+	uc_key->center = voltage;
+	/*
+	 * Define the voltage range such that the button is only pressed
+	 * when the voltage is closest to its own press-threshold-microvolt
+	 */
+	if (down_threshold < 0)
+		uc_key->min = 0;
+	else
+		uc_key->min = down_threshold + (voltage - down_threshold) / 2;
+
+	uc_key->max = voltage + (up_threshold - voltage) / 2;
 
 	return 0;
 }

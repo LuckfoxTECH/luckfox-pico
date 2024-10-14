@@ -1892,14 +1892,6 @@
 		status = "disabled";
 	};
 
-	secure_otp: secure_otp@fe3a0000 {
-		compatible = "rockchip,rk3568-secure-otp";
-		reg = <0x0 0xfe3a0000 0x0 0x4000>;
-		secure_conf = <0xfdd18008>;
-		mask_addr = <0xfe880000>;
-		cru_rst_addr = <0xfdd20470>;
-	};
-
 	i2s0_8ch: i2s@fe400000 {
 		compatible = "rockchip,rk3568-i2s-tdm";
 		reg = <0x0 0xfe400000 0x0 0x1000>;

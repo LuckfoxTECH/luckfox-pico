@@ -22,13 +22,24 @@ else
 		fit_gen_boot_itb
 		fit_gen_boot_img
 	fi
-	fit_gen_uboot_itb
-	fit_gen_uboot_img
-	fit_gen_loader
+
+	if [ ! -z "${ARG_INI_TRUST}" ]; then
+		fit_gen_uboot_itb
+		fit_gen_uboot_img
+	fi
+
+	if [ ! -z "${ARG_INI_LOADER}" ]; then
+		fit_gen_loader
+	fi
 
 	echo
-	fit_msg_uboot
+
+	if [ ! -z "${ARG_INI_TRUST}" ]; then
+		fit_msg_uboot
+	fi
 	fit_msg_recovery
 	fit_msg_boot
-	fit_msg_loader
+	if [ ! -z "${ARG_INI_LOADER}" ]; then
+		fit_msg_loader
+	fi
 fi

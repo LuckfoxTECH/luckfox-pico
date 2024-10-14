@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2023 Rockchip Electronics Co., Ltd.
+ */
+
+/dts-v1/;
+
+#include "rv1106g-evb2-v10.dts"
+
+/ {
+	model = "Rockchip RV1106G EVB2 V12 Board";
+	compatible = "rockchip,rv1106g-evb2-v12-aov", "rockchip,rv1106";
+};
+
+&rkcif_mipi_lvds {
+	aov-reserved;
+	status = "okay";
+};

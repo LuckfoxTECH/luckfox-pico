@@ -65,6 +65,9 @@ typedef struct RK_Bayertnr_Fix_V23_s {
     uint8_t higaus5x5_en;
     uint8_t wgtmix_opt_en;
 
+    /*isp32 lite*/
+    uint8_t wgtmm_opt_en;
+    uint8_t wgtmm_sel_en;
 
     /* BAY3D_WGTLMT */
     uint16_t wgtlmt;
@@ -76,6 +79,9 @@ typedef struct RK_Bayertnr_Fix_V23_s {
     uint16_t sig1_x[16];
     uint16_t sig1_y[16];
     uint16_t sig2_y[16];
+
+    /*isp32 lite*/
+    uint16_t wgtmin;
 
     /* BAY3D_HISIGRAT */
     uint16_t hisigrat0;

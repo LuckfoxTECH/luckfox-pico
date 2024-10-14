@@ -22,7 +22,6 @@
 #define RTSP_URL_0 "/live/0"
 #define RTSP_URL_1 "/live/1"
 
-pthread_mutex_t g_rtsp_mutex = PTHREAD_MUTEX_INITIALIZER;
 int rkbar_capture_one = 0;
 int rkbar_retry_time = 0;
 static int g_video_run_ = 1;
@@ -30,8 +29,6 @@ static int pipe_id_ = 0;
 static int dev_id_ = 0;
 static int g_rtmp_start = 0;
 static int enable_npu;
-rtsp_demo_handle g_rtsplive = NULL;
-rtsp_session_handle g_rtsp_session_0, g_rtsp_session_1;
 static const char *tmp_output_data_type = "H.264";
 static const char *g_rc_mode;
 static const char *g_h264_profile;
@@ -165,17 +162,10 @@ static void *rkipc_get_vpss_bgr(void *arg) {
 			//          frame.stVFrame.u32Width, frame.stVFrame.u32Height, frame.stVFrame.u64PTS);
 			// rkipc_rockiva_write_rgb888_frame(frame.stVFrame.u32Width, frame.stVFrame.u32Height,
 			//                                  data);
-			int32_t fd = RK_MPI_MB_Handle2Fd(frame.stVFrame.pMbBlk);
-#if 0
-			FILE *fp = fopen("/data/test.bgr", "wb");
-			fwrite(data, 1, frame.stVFrame.u32Width * frame.stVFrame.u32Height * 3, fp);
-			fflush(fp);
-			fclose(fp);
-			exit(1);
-#endif
+			uint8_t *phy_addr = (uint8_t *)RK_MPI_MB_Handle2PhysAddr(frame.stVFrame.pMbBlk);
 			// long long last_nn_time = rkipc_get_curren_time_ms();
-			rkipc_rockiva_write_rgb888_frame_by_fd(frame.stVFrame.u32Width,
-			                                       frame.stVFrame.u32Height, loopCount, fd);
+			rkipc_rockiva_write_nv12_frame_by_phy_addr(
+			    frame.stVFrame.u32Width, frame.stVFrame.u32Height, loopCount, phy_addr);
 			// LOG_DEBUG("nn time-consuming is %lld\n",(rkipc_get_curren_time_ms() - last_nn_time));
 
 			ret = RK_MPI_VPSS_ReleaseChnFrame(VPSS_BGR, 0, &frame);
@@ -208,14 +198,7 @@ static void *rkipc_get_venc_0(void *arg) {
 				fwrite(data, 1, stFrame.pstPack->u32Len, fp);
 				fflush(fp);
 			}
-			if (g_rtsplive && g_rtsp_session_0) {
-				pthread_mutex_lock(&g_rtsp_mutex);
-				rtsp_tx_video(g_rtsp_session_0, data, stFrame.pstPack->u32Len,
-				              stFrame.pstPack->u64PTS);
-				rtsp_do_event(g_rtsplive);
-				pthread_mutex_unlock(&g_rtsp_mutex);
-			}
-
+			rkipc_rtsp_write_video_frame(0, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
 			if (rk_param_get_int("tuya:enable", 0)) {
 				if ((stFrame.pstPack->DataType.enH264EType == H264E_NALU_IDRSLICE) ||
 				    (stFrame.pstPack->DataType.enH264EType == H264E_NALU_ISLICE) ||
@@ -258,14 +241,7 @@ static void *rkipc_get_venc_1(void *arg) {
 		ret = RK_MPI_VENC_GetStream(VIDEO_PIPE_1, &stFrame, 1000);
 		if (ret == RK_SUCCESS) {
 			void *data = RK_MPI_MB_Handle2VirAddr(stFrame.pstPack->pMbBlk);
-			if (g_rtsplive && g_rtsp_session_1) {
-				pthread_mutex_lock(&g_rtsp_mutex);
-				rtsp_tx_video(g_rtsp_session_1, data, stFrame.pstPack->u32Len,
-				              stFrame.pstPack->u64PTS);
-				rtsp_do_event(g_rtsplive);
-				pthread_mutex_unlock(&g_rtsp_mutex);
-			}
-
+			rkipc_rtsp_write_video_frame(1, data, stFrame.pstPack->u32Len, stFrame.pstPack->u64PTS);
 			// 7.release the frame
 			ret = RK_MPI_VENC_ReleaseStream(VIDEO_PIPE_1, &stFrame);
 			if (ret != RK_SUCCESS) {
@@ -279,43 +255,6 @@ static void *rkipc_get_venc_1(void *arg) {
 	if (stFrame.pstPack)
 		free(stFrame.pstPack);
 
-	return 0;
-}
-
-int rkipc_rtsp_init() {
-	LOG_DEBUG("start\n");
-	g_rtsplive = create_rtsp_demo(554);
-	g_rtsp_session_0 = rtsp_new_session(g_rtsplive, RTSP_URL_0);
-	g_rtsp_session_1 = rtsp_new_session(g_rtsplive, RTSP_URL_1);
-	// g_rtsp_session_2 = rtsp_new_session(g_rtsplive, RTSP_URL_2);
-	tmp_output_data_type = rk_param_get_string("video.0:output_data_type", "H.264");
-	if (!strcmp(tmp_output_data_type, "H.264"))
-		rtsp_set_video(g_rtsp_session_0, RTSP_CODEC_ID_VIDEO_H264, NULL, 0);
-	else if (!strcmp(tmp_output_data_type, "H.265"))
-		rtsp_set_video(g_rtsp_session_0, RTSP_CODEC_ID_VIDEO_H265, NULL, 0);
-	else
-		LOG_DEBUG("0 tmp_output_data_type is %s, not support\n", tmp_output_data_type);
-
-	tmp_output_data_type = rk_param_get_string("video.1:output_data_type", "H.264");
-	if (!strcmp(tmp_output_data_type, "H.264"))
-		rtsp_set_video(g_rtsp_session_1, RTSP_CODEC_ID_VIDEO_H264, NULL, 0);
-	else if (!strcmp(tmp_output_data_type, "H.265"))
-		rtsp_set_video(g_rtsp_session_1, RTSP_CODEC_ID_VIDEO_H265, NULL, 0);
-	else
-		LOG_DEBUG("1 tmp_output_data_type is %s, not support\n", tmp_output_data_type);
-
-	rtsp_sync_video_ts(g_rtsp_session_0, rtsp_get_reltime(), rtsp_get_ntptime());
-	rtsp_sync_video_ts(g_rtsp_session_1, rtsp_get_reltime(), rtsp_get_ntptime());
-	LOG_DEBUG("end\n");
-
-	return 0;
-}
-
-int rkipc_rtsp_deinit() {
-	LOG_DEBUG("%s\n", __func__);
-	if (g_rtsplive)
-		rtsp_del_demo(g_rtsplive);
-	g_rtsplive = NULL;
 	return 0;
 }
 
@@ -997,7 +936,7 @@ int rk_video_init() {
 	// ret |= rkipc_vi_dev_init();
 	// ret |= rkipc_pipe_0_init();
 	ret |= rkipc_pipe_1_init();
-	ret |= rkipc_rtsp_init();
+	ret |= rkipc_rtsp_init(RTSP_URL_0, RTSP_URL_1, NULL);
 // 	if (enable_npu)
 // 		ret |= rkipc_vpss_bgr_init();
 #if 1

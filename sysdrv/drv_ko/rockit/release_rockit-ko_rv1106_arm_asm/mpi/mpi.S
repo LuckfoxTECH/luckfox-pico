@@ -13,6 +13,13 @@
 	.syntax unified
 	.syntax unified
 	.section "__ksymtab_strings","aMS",%progbits,1	
+__kstrtab_mpi_obj_lock:					
+	.asciz 	"mpi_obj_lock"					
+__kstrtabns_mpi_obj_lock:					
+	.asciz 	""					
+	.previous						
+
+	.section "__ksymtab_strings","aMS",%progbits,1	
 __kstrtab_mpi_dev_list:					
 	.asciz 	"mpi_dev_list"					
 __kstrtabns_mpi_dev_list:					
@@ -131,7 +138,7 @@ mpi_obj_referenced:
 	add	r2, r3, r2, lsl #2
 	ldr	r2, [r2, #20]
 	str	r2, [sp, #4]
-	movs	r2, #184
+	movs	r2, #185
 	str	r2, [sp]
 	ldr	r2, .L7+4
 	bl	vlog
@@ -168,7 +175,7 @@ mpi_obj_from_id:
 	.save {r3, r4, r5, lr}
 	mov	r5, r1
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r4, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
@@ -184,7 +191,7 @@ mpi_obj_from_id:
 	movne	r0, #0
 .L10:
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r4	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -211,7 +218,7 @@ mpi_dev_find_by_name:
 	.save {r3, r4, r5, r6, r7, lr}
 	mov	r7, r0
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r6, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
@@ -225,7 +232,7 @@ mpi_dev_find_by_name:
 	cmp	r3, r5
 	bne	.L21
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r6	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -238,7 +245,7 @@ mpi_dev_find_by_name:
 	bl	strcmp
 	cbnz	r0, .L19
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r6	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -270,7 +277,7 @@ mpi_allocator_find_by_name:
 	.save {r3, r4, r5, r6, r7, lr}
 	mov	r7, r0
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r6, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
@@ -284,7 +291,7 @@ mpi_allocator_find_by_name:
 	cmp	r3, r5
 	bne	.L29
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r6	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -297,7 +304,7 @@ mpi_allocator_find_by_name:
 	bl	strcmp
 	cbnz	r0, .L27
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r6	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -332,7 +339,7 @@ mpi_obj_ref:
 	add	r3, r0, #16
 	pld	[r3]
 	.syntax unified
-@ 223 "./arch/arm/include/asm/atomic.h" 1
+@ 223 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_add
 1:	ldrex	r2, [r3]
 	add	r2, r2, #1
@@ -368,7 +375,7 @@ mpi_obj_unref:
 	ldr	r0, [r0, #16]
 	ldr	r2, [r5]
 	cbnz	r0, .L41
-	movs	r3, #243
+	movs	r3, #244
 	str	r2, [sp, #4]
 	str	r3, [sp]
 	movs	r1, #2
@@ -390,14 +397,14 @@ mpi_obj_unref:
 	adds	r3, r3, #52
 	ldr	r2, [r2, #20]
 	str	r2, [sp, #4]
-	movs	r2, #248
+	movs	r2, #249
 	str	r2, [sp]
 	ldr	r2, .L58+12
 	bl	vlog
 	add	r3, r5, #16
 	pld	[r3]
 	.syntax unified
-@ 224 "./arch/arm/include/asm/atomic.h" 1
+@ 224 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_sub_return
 1:	ldrex	r2, [r3]
 	sub	r2, r2, #1
@@ -413,7 +420,7 @@ mpi_obj_unref:
 	cbz	r4, .L43
 	pld	[r4]
 	.syntax unified
-@ 223 "./arch/arm/include/asm/atomic.h" 1
+@ 223 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_add
 1:	ldrex	r3, [r4]
 	add	r3, r3, #1
@@ -438,7 +445,7 @@ mpi_obj_unref:
 .L45:
 	pld	[r4]
 	.syntax unified
-@ 224 "./arch/arm/include/asm/atomic.h" 1
+@ 224 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_sub_return
 1:	ldrex	r3, [r4]
 	sub	r3, r3, #1
@@ -508,7 +515,7 @@ mpi_obj_register:
 	ands	r3, r3, #16
 	bne	.L62
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r5, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
@@ -524,7 +531,7 @@ mpi_obj_register:
 	str	r0, [r4]
 	bge	.L63
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r5	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -560,7 +567,7 @@ mpi_obj_register:
 	str	r2, [r1]
 .L65:
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r5	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -577,7 +584,7 @@ mpi_obj_register:
 	adds	r3, r3, #66
 	ldr	r2, [r2, #20]
 	str	r2, [sp, #4]
-	movs	r2, #141
+	movs	r2, #142
 	str	r2, [sp]
 	ldr	r2, .L76+20
 	bl	vlog
@@ -645,7 +652,7 @@ mpi_obj_unregister:
 	lsls	r2, r3, #27
 	bmi	.L79
 	.syntax unified
-@ 29 "./arch/arm/include/asm/irqflags.h" 1
+@ 29 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		mrs	r6, cpsr	@ arch_local_irq_save
 	cpsid	i
 @ 0 "" 2
@@ -678,7 +685,7 @@ mpi_obj_unregister:
 	bl	idr_replace
 .L84:
 	.syntax unified
-@ 171 "./arch/arm/include/asm/irqflags.h" 1
+@ 171 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/irqflags.h" 1
 		msr	cpsr_c, r6	@ local_irq_restore
 @ 0 "" 2
 	.thumb
@@ -687,7 +694,7 @@ mpi_obj_unregister:
 	cbz	r5, .L86
 	pld	[r5]
 	.syntax unified
-@ 224 "./arch/arm/include/asm/atomic.h" 1
+@ 224 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_sub_return
 1:	ldrex	r3, [r5]
 	sub	r3, r3, #1
@@ -711,7 +718,7 @@ mpi_obj_unregister:
 	add	r3, r5, r3, lsl #2
 	ldr	r3, [r3, #20]
 	str	r3, [sp, #4]
-	movs	r3, #171
+	movs	r3, #172
 	str	r3, [sp]
 	add	r3, r5, #83
 	bl	vlog
@@ -726,7 +733,7 @@ mpi_obj_unregister:
 	add	r3, r5, r3, lsl #2
 	ldr	r3, [r3, #20]
 	str	r3, [sp, #4]
-	movs	r3, #174
+	movs	r3, #175
 	str	r3, [sp]
 	add	r3, r5, #83
 	bl	vlog
@@ -773,7 +780,7 @@ mpi_obj_ref_if_unused:
 	movs	r1, #1
 .L97:
 	.syntax unified
-@ 114 "./arch/arm/include/asm/atomic.h" 1
+@ 114 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_cmpxchg
 ldrex	r4, [r3]
 mov	r2, #0
@@ -813,7 +820,7 @@ mpi_obj_ref_if_used:
 	pld	[r1]
 	movs	r5, #0
 	.syntax unified
-@ 136 "./arch/arm/include/asm/atomic.h" 1
+@ 136 "/home/gzc/otter_ipc_linux-bat-e3/sysdrv/source/kernel/arch/arm/include/asm/atomic.h" 1
 	@ atomic_add_unless
 1:	ldrex	r2, [r1]
 	teq	r2, r5
@@ -887,17 +894,18 @@ mpi_deinit:
 	.global	mpi_buf_list
 	.global	mpi_node_list
 	.global	mpi_dev_list
+	.global	mpi_obj_lock
 	.section	.rodata
 	.align	2
 	.set	.LANCHOR0,. + 0
-	.type	__func__.36325, %object
-	.size	__func__.36325, 19
-__func__.36325:
+	.type	__func__.35829, %object
+	.size	__func__.35829, 19
+__func__.35829:
 	.ascii	"mpi_obj_referenced\000"
 	.space	1
-	.type	names.36271, %object
-	.size	names.36271, 32
-names.36271:
+	.type	names.35775, %object
+	.size	names.35775, 32
+names.35775:
 	.word	.LC8
 	.word	.LC9
 	.word	.LC10
@@ -906,17 +914,17 @@ names.36271:
 	.word	.LC13
 	.word	.LC14
 	.word	.LC15
-	.type	__func__.36354, %object
-	.size	__func__.36354, 14
-__func__.36354:
+	.type	__func__.35858, %object
+	.size	__func__.35858, 14
+__func__.35858:
 	.ascii	"mpi_obj_unref\000"
-	.type	__func__.36292, %object
-	.size	__func__.36292, 17
-__func__.36292:
+	.type	__func__.35796, %object
+	.size	__func__.35796, 17
+__func__.35796:
 	.ascii	"mpi_obj_register\000"
-	.type	__func__.36312, %object
-	.size	__func__.36312, 19
-__func__.36312:
+	.type	__func__.35816, %object
+	.size	__func__.35816, 19
+__func__.35816:
 	.ascii	"mpi_obj_unregister\000"
 	.data
 	.align	2
@@ -955,25 +963,28 @@ mpi_buf_pool_list:
 	.word	mpi_buf_pool_list
 	.bss
 	.set	.LANCHOR2,. + 0
-	.type	__key.10560, %object
-	.size	__key.10560, 0
-__key.10560:
+	.type	__key.10574, %object
+	.size	__key.10574, 0
+__key.10574:
+	.type	mpi_obj_lock, %object
+	.size	mpi_obj_lock, 0
+mpi_obj_lock:
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:
-	.ascii	"%s,%d:%s(%d) ref from %d\000"
+	.ascii	"%s(%d) ref from %d\000"
 .LC1:
-	.ascii	"\033[31m\033[1m%s,%d:mpi buf multiple unref buf id "
-	.ascii	"= %d\033[0m\000"
+	.ascii	"\033[1;31mmpi buf multiple unref buf id = %d\033[0m"
+	.ascii	"\000"
 .LC2:
-	.ascii	"%s,%d:%s(%d) unref from %d\000"
+	.ascii	"%s(%d) unref from %d\000"
 .LC3:
 	.ascii	"&x->wait\000"
 .LC4:
-	.ascii	"%s,%d:%s(%d|%p) registered\000"
+	.ascii	"%s(%d|%p) registered\000"
 .LC5:
-	.ascii	"%s,%d:%s(%d) unregistered\000"
+	.ascii	"%s(%d) unregistered\000"
 .LC6:
-	.ascii	"%s,%d:%s(%d) freed\000"
+	.ascii	"%s(%d) freed\000"
 .LC7:
 	.ascii	"vlog\000"
 .LC8:
@@ -1056,6 +1067,14 @@ __ksymtab_mpi_obj_from_id:
 	.word	mpi_obj_from_id
 	.word	__kstrtab_mpi_obj_from_id
 	.word	__kstrtabns_mpi_obj_from_id
+	.section	___ksymtab_gpl+mpi_obj_lock,"a"
+	.align	2
+	.type	__ksymtab_mpi_obj_lock, %object
+	.size	__ksymtab_mpi_obj_lock, 12
+__ksymtab_mpi_obj_lock:
+	.word	mpi_obj_lock
+	.word	__kstrtab_mpi_obj_lock
+	.word	__kstrtabns_mpi_obj_lock
 	.section	___ksymtab_gpl+mpi_obj_ref,"a"
 	.align	2
 	.type	__ksymtab_mpi_obj_ref, %object

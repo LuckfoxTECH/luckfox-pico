@@ -164,7 +164,9 @@ ENTRY(cpu_init_cp15)
 	mrc	p15, 0, r0, c1, c0, 0
 	bic	r0, r0, #0x00002000	@ clear bits 13 (--V-)
 	bic	r0, r0, #0x00000007	@ clear bits 2:0 (-CAM)
+#if 0 /* There is unalign access when decompress firmware. */
 	orr	r0, r0, #0x00000002	@ set bit 1 (--A-) Align
+#endif
 	orr	r0, r0, #0x00000800	@ set bit 11 (Z---) BTB
 #ifdef CONFIG_SYS_ICACHE_OFF
 	bic	r0, r0, #0x00001000	@ clear bit 12 (I) I-cache

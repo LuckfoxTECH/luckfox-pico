@@ -1,0 +1,34 @@
+Import('RTT_ROOT')
+Import('rtconfig')
+from building import *
+
+cwd = GetCurrentDir()
+src = []
+depend = []
+
+CPPPATH = [cwd + '/../include']
+group = []
+
+if GetDepend(['RT_USING_MTD']):
+    src += ['mtd.c']
+    depend += ['RT_USING_MTD']
+
+    if GetDepend(['MTD_USING_NOR']):
+        src += ['mtdnor.c']
+        depend += ['MTD_USING_NOR']
+    if GetDepend(['MTD_USING_NAND']):
+        src += ['mtdnand.c']
+        depend += ['MTD_USING_NAND']
+
+if GetDepend(['RT_USING_MTD_NOR']):
+    src += ['mtd_nor.c']
+    depend += ['RT_USING_MTD_NOR']
+
+if GetDepend(['RT_USING_MTD_NAND']):
+    src += ['mtd_nand.c']
+    depend += ['RT_USING_MTD_NAND']
+
+if src:
+    group = DefineGroup('DeviceDrivers', src, depend = depend, CPPPATH = CPPPATH)
+
+Return('group')

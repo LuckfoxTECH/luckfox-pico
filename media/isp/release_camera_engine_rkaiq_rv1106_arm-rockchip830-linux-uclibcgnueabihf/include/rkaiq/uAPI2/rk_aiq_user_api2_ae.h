@@ -20,7 +20,10 @@
 
 #include "ae/rk_aiq_uapi_ae_int.h"
 
+#ifndef RK_AIQ_SYS_CTX_T
+#define RK_AIQ_SYS_CTX_T
 typedef struct rk_aiq_sys_ctx_s rk_aiq_sys_ctx_t;
+#endif
 
 RKAIQ_BEGIN_DECLARE
 
@@ -44,6 +47,8 @@ XCamReturn rk_aiq_user_api2_ae_getSyncTestAttr(const rk_aiq_sys_ctx_t* ctx, Uapi
 XCamReturn rk_aiq_user_api2_ae_queryExpResInfo(const rk_aiq_sys_ctx_t* ctx, Uapi_ExpQueryInfo_t* pExpResInfo);
 XCamReturn rk_aiq_user_api2_ae_setExpWinAttr(const rk_aiq_sys_ctx_t* ctx, const Uapi_ExpWin_t ExpWinAttr);
 XCamReturn rk_aiq_user_api2_ae_getExpWinAttr(const rk_aiq_sys_ctx_t* ctx, Uapi_ExpWin_t* pExpWinAttr);
+XCamReturn rk_aiq_user_api2_ae_setAecStatsCfg(const rk_aiq_sys_ctx_t* ctx, const Uapi_AecStatsCfg_t AecStatsCfg);
+XCamReturn rk_aiq_user_api2_ae_getAecStatsCfg(const rk_aiq_sys_ctx_t* ctx, Uapi_AecStatsCfg_t* pAecStatsCfg);
 
 RKAIQ_END_DECLARE
 

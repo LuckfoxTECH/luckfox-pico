@@ -18,19 +18,19 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA 
  */
 
 #ifndef _HTTPCONTENTHEADER_H_
 #define _HTTPCONTENTHEADER_H_ 1
 
 #ifdef __GNUG__
-#pragma interface
+#  pragma interface
 #endif
 
 /*! \file HTTPContentHeader.h
  * \brief Class for sending data of a specific MIME type
- *
+ * 
  */
 
 #include <string>
@@ -38,41 +38,44 @@
 #include "HTTPHeader.h"
 
 namespace cgicc {
-
-// ============================================================
-// Class HTTPContentHeader
-// ============================================================
-/*! \class HTTPContentHeader HTTPContentHeader.h cgicc/HTTPContentHeader.h
- * \brief HTTP header for data of a specified MIME type.
- *
- */
-class CGICC_API HTTPContentHeader : public HTTPHeader {
-public:
-  /*! \name Constructor and Destructor */
-  //@{
-
-  /*!
-   * \brief Create a new MIME type header.
-   * \param mimeType The MIME type of the data which will be sent.
-   */
-  HTTPContentHeader(const std::string &mimeType);
-
-  /*!
-   * \brief Destructor
+  
+  // ============================================================
+  // Class HTTPContentHeader
+  // ============================================================
+  /*! \class HTTPContentHeader HTTPContentHeader.h cgicc/HTTPContentHeader.h
+   * \brief HTTP header for data of a specified MIME type. 
    *
    */
-  virtual ~HTTPContentHeader();
-  //@}
-
-  /*! \name Inherited Methods */
-  //@{
-  virtual void render(std::ostream &out) const;
-  //@}
-
-private:
-  HTTPContentHeader();
-};
-
+  class CGICC_API HTTPContentHeader : public HTTPHeader 
+  {
+  public:
+    
+    /*! \name Constructor and Destructor */
+    //@{
+    
+    /*!
+     * \brief Create a new MIME type header.
+     * \param mimeType The MIME type of the data which will be sent.
+     */
+    HTTPContentHeader(const std::string& mimeType);
+    
+    /*!
+     * \brief Destructor 
+     *
+     */
+    virtual ~HTTPContentHeader();
+    //@}
+    
+    /*! \name Inherited Methods */
+    //@{ 
+    virtual void 
+    render(std::ostream& out) 			const;
+    //@}
+    
+  private:
+    HTTPContentHeader();
+  };
+  
 } // namespace cgicc
 
 #endif /* ! _HTTPCONTENTHEADER_H_ */

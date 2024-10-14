@@ -126,6 +126,7 @@ crypto_comp_decompress(const struct ubifs_info *c, struct crypto_comp *tfm,
 {
 	struct ubifs_compressor *compr = ubifs_compressors[tfm->compressor];
 	int err;
+	size_t tmp_len = *dlen;
 
 	if (compr->compr_type == UBIFS_COMPR_NONE) {
 		memcpy(dst, src, slen);
@@ -133,11 +134,12 @@ crypto_comp_decompress(const struct ubifs_info *c, struct crypto_comp *tfm,
 		return 0;
 	}
 
-	err = compr->decompress(src, slen, dst, (size_t *)dlen);
+	err = compr->decompress(src, slen, dst, &tmp_len);
 	if (err)
 		ubifs_err(c, "cannot decompress %d bytes, compressor %s, "
 			  "error %d", slen, compr->name, err);
 
+	*dlen = tmp_len;
 	return err;
 
 	return 0;
@@ -466,14 +468,10 @@ out:
 		dbg_gen("cannot find next direntry, error %d", err);
 
 out_free:
-	if (file->private_data)
-		kfree(file->private_data);
-	if (file)
-		free(file);
-	if (dentry)
-		free(dentry);
-	if (dir)
-		free(dir);
+	kfree(file->private_data);
+	free(file);
+	free(dentry);
+	free(dir);
 
 	return ret;
 }
@@ -801,6 +799,8 @@ static int do_readpage(struct ubifs_info *c, struct inode *inode,
 
 				if (last_block_size)
 					dlen = last_block_size;
+				else if (ret)
+					dlen = UBIFS_BLOCK_SIZE;
 				else
 					dlen = le32_to_cpu(dn->size);
 

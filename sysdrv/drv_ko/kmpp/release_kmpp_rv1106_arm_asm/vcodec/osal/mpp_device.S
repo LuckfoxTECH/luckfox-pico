@@ -28,15 +28,12 @@ mpp_dev_init:
 	push	{r0, r1, r2, r3, r4, r5, r6, r7, r8, lr}
 	.save {r4, r5, r6, r7, r8, lr}
 	.pad #16
-	mov	r7, r0
 	mov	r8, r1
-	ldr	r0, .L14
-	movs	r1, #12
-	bl	mpp_osal_calloc
-	cbnz	r7, .L2
-	movs	r2, #36
-	ldr	r1, .L14+4
-	ldr	r0, .L14+8
+	mov	r7, r0
+	cbnz	r0, .L2
+	movs	r2, #38
+	ldr	r1, .L14
+	ldr	r0, .L14+4
 	bl	printk
 	mvn	r0, #2
 .L1:
@@ -46,13 +43,13 @@ mpp_dev_init:
 .L2:
 	movs	r3, #0
 	movs	r1, #12
-	str	r3, [r7]
-	ldr	r0, .L14
+	str	r3, [r0]
+	ldr	r0, .L14+8
 	bl	mpp_osal_calloc
 	ldr	r6, .L14+12
 	ldr	r1, [r6, #4]
 	mov	r4, r0
-	ldr	r0, .L14
+	ldr	r0, .L14+8
 	bl	mpp_osal_calloc
 	mov	r5, r0
 	cbz	r4, .L4
@@ -60,18 +57,18 @@ mpp_dev_init:
 .L4:
 	str	r5, [sp]
 	mov	r3, r4
-	movs	r2, #46
-	ldr	r1, .L14+4
+	movs	r2, #48
+	ldr	r1, .L14
 	ldr	r0, .L14+16
 	bl	printk
 	cbz	r4, .L6
 	mov	r1, r4
-	ldr	r0, .L14
+	ldr	r0, .L14+8
 	bl	mpp_osal_free
 .L6:
 	cbz	r5, .L7
 	mov	r1, r5
-	ldr	r0, .L14
+	ldr	r0, .L14+8
 	bl	mpp_osal_free
 .L7:
 	mvn	r0, #3
@@ -91,8 +88,8 @@ mpp_dev_init:
 	.align	2
 .L14:
 	.word	.LANCHOR0
-	.word	.LANCHOR0+13
 	.word	.LC0
+	.word	.LANCHOR0+13
 	.word	mpp_service_api
 	.word	.LC1
 	.fnend
@@ -112,7 +109,7 @@ mpp_dev_deinit:
 	.save {r3, r4, r5, lr}
 	mov	r5, r0
 	cbnz	r0, .L17
-	movs	r2, #66
+	movs	r2, #68
 	ldr	r1, .L27
 	ldr	r0, .L27+4
 	mvn	r4, #2
@@ -165,14 +162,15 @@ mpp_dev_ioctl:
 	mov	r1, r2
 	push	{r4, lr}
 	.save {r4, lr}
-	cbz	r0, .L51
+	cbz	r0, .L53
 	ldr	r4, [r0, #8]
-	cbz	r4, .L41
+	cbz	r4, .L42
 	ldr	r0, [r0, #4]
-	cmp	r3, #6
+	cmp	r3, #7
 	bhi	.L31
 	tbb	[pc, r3]
 .L33:
+	.byte	(.L40-.L33)/2
 	.byte	(.L39-.L33)/2
 	.byte	(.L38-.L33)/2
 	.byte	(.L37-.L33)/2
@@ -181,51 +179,54 @@ mpp_dev_ioctl:
 	.byte	(.L34-.L33)/2
 	.byte	(.L32-.L33)/2
 	.p2align 1
-.L39:
+.L40:
 	ldr	r2, [r4, #16]
 	cbz	r2, .L30
 	pop	{r4, lr}
 	bx	r2
-.L38:
+.L39:
 	ldr	r3, [r4, #20]
+.L59:
+	cbz	r3, .L30
+	pop	{r4, lr}
+	bx	r3
+.L38:
+	ldr	r3, [r4, #24]
+	b	.L59
+.L37:
+	ldr	r3, [r4, #28]
+	b	.L59
+.L36:
+	ldr	r3, [r4, #32]
+	b	.L59
+.L35:
+	ldr	r3, [r4, #36]
 .L57:
 	cbz	r3, .L30
 	pop	{r4, lr}
 	bx	r3
-.L37:
-	ldr	r3, [r4, #24]
-	b	.L57
-.L36:
-	ldr	r3, [r4, #28]
-	b	.L57
-.L35:
-	ldr	r3, [r4, #32]
-	b	.L57
 .L34:
-	ldr	r3, [r4, #36]
-.L61:
-	cbz	r3, .L30
-	pop	{r4, lr}
-	bx	r3
-.L32:
 	ldr	r3, [r4, #40]
-	b	.L61
+	b	.L57
+.L32:
+	ldr	r3, [r4, #56]
+	b	.L59
 .L31:
-	movs	r2, #126
-	ldr	r1, .L62
-	ldr	r0, .L62+4
+	movs	r2, #133
+	ldr	r1, .L63
+	ldr	r0, .L63+4
 	bl	printk
-.L51:
+.L53:
 	movs	r3, #0
 .L30:
 	mov	r0, r3
 	pop	{r4, pc}
-.L41:
+.L42:
 	mov	r3, r4
 	b	.L30
-.L63:
+.L64:
 	.align	2
-.L62:
+.L63:
 	.word	.LANCHOR0+56
 	.word	.LC2
 	.fnend
@@ -271,54 +272,54 @@ mpp_dev_get_iova_address:
 	mov	r8, r2
 	ldrd	r7, r9, [r0, #4]
 	mov	r5, r1
-	cbnz	r1, .L66
-	movs	r2, #154
-	ldr	r1, .L76
-	ldr	r0, .L76+4
+	cbnz	r1, .L67
+	movs	r2, #161
+	ldr	r1, .L77
+	ldr	r0, .L77+4
 	bl	printk
 	mvn	r0, #21
-.L65:
+.L66:
 	add	sp, sp, #12
 	@ sp needed
 	pop	{r4, r5, r6, r7, r8, r9, pc}
-.L66:
-	ldr	r1, .L76+8
+.L67:
+	ldr	r1, .L77+8
 	mov	r0, r5
 	bl	mpp_buffer_get_phy_caller
 	adds	r2, r0, #1
 	mov	r4, r0
-	bne	.L68
-	ldr	r1, .L76+8
+	bne	.L69
+	ldr	r1, .L77+8
 	mov	r0, r5
 	bl	mpp_buffer_get_dma_with_caller
 	mov	r6, r0
-	cbnz	r0, .L69
-	movs	r1, #161
-	ldr	r3, .L76+8
+	cbnz	r0, .L70
+	movs	r1, #168
+	ldr	r3, .L77+8
 	str	r1, [sp]
-	ldr	r2, .L76+12
-	ldr	r0, .L76+16
+	ldr	r2, .L77+12
+	ldr	r0, .L77+16
 	bl	printk
-.L69:
+.L70:
 	ldr	r3, [r9, #44]
-	cbz	r3, .L68
+	cbz	r3, .L69
 	mov	r2, r8
 	mov	r1, r6
 	mov	r0, r7
 	blx	r3
 	adds	r3, r0, #1
 	mov	r4, r0
-	beq	.L68
+	beq	.L69
 	mov	r1, r0
-	ldr	r2, .L76+8
+	ldr	r2, .L77+8
 	mov	r0, r5
 	bl	mpp_buffer_set_phy_caller
-.L68:
+.L69:
 	mov	r0, r4
-	b	.L65
-.L77:
+	b	.L66
+.L78:
 	.align	2
-.L76:
+.L77:
 	.word	.LANCHOR0+70
 	.word	.LC3
 	.word	.LANCHOR0+95
@@ -343,16 +344,16 @@ mpp_dev_get_iova_address2:
 	mov	r6, r2
 	ldrd	r5, r7, [r0, #4]
 	mov	r4, r1
-	cbnz	r1, .L79
-	movs	r1, #176
-	ldr	r3, .L81
+	cbnz	r1, .L80
+	movs	r1, #183
+	ldr	r3, .L82
 	str	r1, [sp]
-	ldr	r2, .L81+4
-	ldr	r0, .L81+8
+	ldr	r2, .L82+4
+	ldr	r0, .L82+8
 	bl	printk
-.L79:
+.L80:
 	ldr	r3, [r7, #44]
-	cbz	r3, .L80
+	cbz	r3, .L81
 	mov	r2, r6
 	mov	r1, r4
 	mov	r0, r5
@@ -360,14 +361,14 @@ mpp_dev_get_iova_address2:
 	@ sp needed
 	pop	{r4, r5, r6, r7, lr}
 	bx	r3
-.L80:
+.L81:
 	mvn	r0, #21
 	add	sp, sp, #12
 	@ sp needed
 	pop	{r4, r5, r6, r7, pc}
-.L82:
+.L83:
 	.align	2
-.L81:
+.L82:
 	.word	.LANCHOR0+120
 	.word	.LC4
 	.word	.LC5
@@ -387,34 +388,37 @@ mpp_dev_get_mpi_ioaddress:
 	push	{r0, r1, r2, r4, r5, r6, r7, lr}
 	.save {r4, r5, r6, r7, lr}
 	.pad #12
+	mov	r4, r1
 	mov	r6, r2
 	ldrd	r5, r7, [r0, #4]
-	mov	r0, r1
-	cbnz	r1, .L84
-	movs	r2, #189
-	ldr	r1, .L89
-	ldr	r0, .L89+4
+	bl	get_mpibuf_ops
+	cbnz	r4, .L85
+	movs	r2, #199
+	ldr	r1, .L99
+	ldr	r0, .L99+4
 	bl	printk
-.L83:
 	mvn	r0, #21
+.L84:
 	add	sp, sp, #12
 	@ sp needed
 	pop	{r4, r5, r6, r7, pc}
-.L84:
-	ldr	r1, .L89+8
+.L85:
+	cbnz	r0, .L87
+.L90:
+	mov	r0, r4
+	ldr	r1, .L99+8
 	bl	mpi_buf_get_dma_with_caller
 	mov	r4, r0
-	cbnz	r0, .L86
-	movs	r1, #193
-	ldr	r3, .L89+8
+	cbnz	r0, .L89
+	movs	r1, #207
+	ldr	r3, .L99+8
 	str	r1, [sp]
-	ldr	r2, .L89+12
-	ldr	r0, .L89+16
+	ldr	r2, .L99+12
+	ldr	r0, .L99+16
 	bl	printk
-.L86:
+.L89:
 	ldr	r3, [r7, #44]
-	cmp	r3, #0
-	beq	.L83
+	cbz	r3, .L92
 	mov	r2, r6
 	mov	r1, r4
 	mov	r0, r5
@@ -422,9 +426,21 @@ mpp_dev_get_mpi_ioaddress:
 	@ sp needed
 	pop	{r4, r5, r6, r7, lr}
 	bx	r3
-.L90:
+.L87:
+	ldr	r3, [r0, #24]
+	cmp	r3, #0
+	beq	.L90
+	mov	r0, r4
+	blx	r3
+	adds	r3, r0, #1
+	bne	.L84
+	b	.L90
+.L92:
+	mov	r0, #-1
+	b	.L84
+.L100:
 	.align	2
-.L89:
+.L99:
 	.word	.LANCHOR0+146
 	.word	.LC3
 	.word	.LANCHOR0+172
@@ -446,10 +462,10 @@ mpp_dev_chnl_register:
 	@ link register save eliminated.
 	ldr	r3, [r0, #8]
 	ldr	r3, [r3, #48]
-	cbz	r3, .L91
+	cbz	r3, .L101
 	ldr	r0, [r0, #4]
 	bx	r3	@ indirect register sibling call
-.L91:
+.L101:
 	bx	lr
 	.fnend
 	.size	mpp_dev_chnl_register, .-mpp_dev_chnl_register
@@ -467,56 +483,102 @@ mpp_get_dev:
 	@ link register save eliminated.
 	ldr	r3, [r0, #8]
 	ldr	r3, [r3, #52]
-	cbz	r3, .L94
+	cbz	r3, .L104
 	ldr	r0, [r0, #4]
 	bx	r3
-.L94:
+.L104:
 	mov	r0, r3
 	bx	lr
 	.fnend
 	.size	mpp_get_dev, .-mpp_get_dev
+	.align	1
+	.global	mpp_dev_chnl_check_running
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpp_dev_chnl_check_running, %function
+mpp_dev_chnl_check_running:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	@ link register save eliminated.
+	ldr	r3, [r0, #8]
+	ldr	r3, [r3, #60]
+	cbz	r3, .L106
+	ldr	r0, [r0, #4]
+	bx	r3
+.L106:
+	mov	r0, r3
+	bx	lr
+	.fnend
+	.size	mpp_dev_chnl_check_running, .-mpp_dev_chnl_check_running
+	.align	1
+	.global	mpp_dev_chnl_unbind_jpeg_task
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpp_dev_chnl_unbind_jpeg_task, %function
+mpp_dev_chnl_unbind_jpeg_task:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	@ link register save eliminated.
+	ldr	r3, [r0, #8]
+	ldr	r3, [r3, #64]
+	cbz	r3, .L108
+	movs	r2, #0
+	movw	r1, #1028
+	ldr	r0, [r0, #4]
+	bx	r3
+.L108:
+	mov	r0, r3
+	bx	lr
+	.fnend
+	.size	mpp_dev_chnl_unbind_jpeg_task, .-mpp_dev_chnl_unbind_jpeg_task
 	.global	mpp_device_debug
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__FUNCTION__.7781, %object
-	.size	__FUNCTION__.7781, 13
-__FUNCTION__.7781:
+	.type	__func__.8083, %object
+	.size	__func__.8083, 13
+__func__.8083:
 	.ascii	"mpp_dev_init\000"
-	.type	__func__.7783, %object
-	.size	__func__.7783, 13
-__func__.7783:
+	.type	__FUNCTION__.8084, %object
+	.size	__FUNCTION__.8084, 13
+__FUNCTION__.8084:
 	.ascii	"mpp_dev_init\000"
-	.type	__func__.7789, %object
-	.size	__func__.7789, 15
-__func__.7789:
+	.type	__func__.8090, %object
+	.size	__func__.8090, 15
+__func__.8090:
 	.ascii	"mpp_dev_deinit\000"
-	.type	__FUNCTION__.7790, %object
-	.size	__FUNCTION__.7790, 15
-__FUNCTION__.7790:
+	.type	__FUNCTION__.8091, %object
+	.size	__FUNCTION__.8091, 15
+__FUNCTION__.8091:
 	.ascii	"mpp_dev_deinit\000"
-	.type	__func__.7809, %object
-	.size	__func__.7809, 14
-__func__.7809:
+	.type	__func__.8111, %object
+	.size	__func__.8111, 14
+__func__.8111:
 	.ascii	"mpp_dev_ioctl\000"
-	.type	__func__.7826, %object
-	.size	__func__.7826, 25
-__func__.7826:
+	.type	__func__.8128, %object
+	.size	__func__.8128, 25
+__func__.8128:
 	.ascii	"mpp_dev_get_iova_address\000"
-	.type	__FUNCTION__.7827, %object
-	.size	__FUNCTION__.7827, 25
-__FUNCTION__.7827:
+	.type	__FUNCTION__.8129, %object
+	.size	__FUNCTION__.8129, 25
+__FUNCTION__.8129:
 	.ascii	"mpp_dev_get_iova_address\000"
-	.type	__FUNCTION__.7838, %object
-	.size	__FUNCTION__.7838, 26
-__FUNCTION__.7838:
+	.type	__FUNCTION__.8140, %object
+	.size	__FUNCTION__.8140, 26
+__FUNCTION__.8140:
 	.ascii	"mpp_dev_get_iova_address2\000"
-	.type	__func__.7850, %object
-	.size	__func__.7850, 26
-__func__.7850:
+	.type	__func__.8154, %object
+	.size	__func__.8154, 26
+__func__.8154:
 	.ascii	"mpp_dev_get_mpi_ioaddress\000"
-	.type	__FUNCTION__.7851, %object
-	.size	__FUNCTION__.7851, 26
-__FUNCTION__.7851:
+	.type	__FUNCTION__.8155, %object
+	.size	__FUNCTION__.8155, 26
+__FUNCTION__.8155:
 	.ascii	"mpp_dev_get_mpi_ioaddress\000"
 	.bss
 	.align	2

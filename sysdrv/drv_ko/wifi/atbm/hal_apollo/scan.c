@@ -143,7 +143,12 @@ static bool atbm_scan_split_running(struct atbm_common *hw_priv)
 
 	return true;
 #else
-	BUG_ON(hw_priv == NULL);
+//	BUG_ON(hw_priv == NULL);
+	
+	if(hw_priv == NULL){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv is NULL\n",__func__,__LINE__);
+		return false;
+	}
 	return false;
 #endif
 }
@@ -314,7 +319,12 @@ int atbm_hw_scan(struct ieee80211_hw *hw,
 			ATBM_APOLLO_SCAN_MEASUREMENT_ACTIVE) &&
 		(priv->join_status == ATBM_APOLLO_JOIN_STATUS_STA) &&
 		(channel_hw_value(hw_priv->channel) == advance_scan_req_channel)) {
-		BUG_ON(hw_priv->scan.req);
+
+		if(hw_priv->scan.req){
+			atbm_printk_err("%s %d ,ERROR !!! hw_priv->scan.req runing\n",__func__,__LINE__);
+			mutex_unlock(&hw_priv->conf_mutex);
+			return -EBUSY;
+		}
 		/* wsm_lock_tx(hw_priv); */
 		wsm_vif_lock_tx(priv);
 		hw_priv->scan.if_id = priv->if_id;
@@ -379,7 +389,11 @@ int atbm_hw_scan(struct ieee80211_hw *hw,
 		wsm_lock_tx_async(hw_priv);
 		wsm_flush_tx(hw_priv);
 		
-		BUG_ON(hw_priv->scan.req);
+		if(hw_priv->scan.req){
+			atbm_printk_err("%s %d ,ERROR !!! hw_priv->scan.req runing\n",__func__,__LINE__);
+			mutex_unlock(&hw_priv->conf_mutex);
+			return -EBUSY;
+		}
 		hw_priv->scan.req = req_wrap->req;
 		hw_priv->scan.req_wrap = req_wrap;
 		hw_priv->scan.n_ssids = 0;
@@ -412,7 +426,12 @@ int atbm_hw_scan(struct ieee80211_hw *hw,
 		for (i = 0; i < req_wrap->req->n_ssids; ++i) {
 			struct wsm_ssid *dst =
 				&hw_priv->scan.ssids[hw_priv->scan.n_ssids];
-			BUG_ON(req_wrap->req->ssids[i].ssid_len > sizeof(dst->ssid));
+			
+			if(req_wrap->req->ssids[i].ssid_len > sizeof(dst->ssid)){
+				atbm_printk_err("%s %d ,WARING !!! ssid=%s ssidlen=%d, allow len = 32\n",
+					__func__,__LINE__,req_wrap->req->ssids[i].ssid,req_wrap->req->ssids[i].ssid_len);
+				req_wrap->req->ssids[i].ssid_len = sizeof(dst->ssid);
+			}
 			memcpy(&dst->ssid[0], req_wrap->req->ssids[i].ssid,
 				sizeof(dst->ssid));
 			dst->length = req_wrap->req->ssids[i].ssid_len;
@@ -493,7 +512,12 @@ int atbm_hw_sched_scan_start(struct ieee80211_hw *hw,
 
 	wsm_lock_tx(hw_priv);
 
-	BUG_ON(hw_priv->scan.req);
+
+	if(hw_priv->scan.req){
+		atbm_printk_err("%s %d ,ERROR !!! hw_priv->scan.req is running\n",__func__,__LINE__);
+		mutex_unlock(&hw_priv->conf_mutex);
+		return -1;
+	}
 	hw_priv->scan.sched_req = req;
 	hw_priv->scan.n_ssids = 0;
 	hw_priv->scan.status = 0;
@@ -505,7 +529,12 @@ int atbm_hw_sched_scan_start(struct ieee80211_hw *hw,
 	for (i = 0; i < req->n_ssids; ++i) {
 		struct wsm_ssid *dst =
 			&hw_priv->scan.ssids[hw_priv->scan.n_ssids];
-		BUG_ON(req->ssids[i].ssid_len > sizeof(dst->ssid));
+
+		if(req->ssids[i].ssid_len > sizeof(dst->ssid)){
+				atbm_printk_err("%s %d ,WARING !!! ssid=%s ssidlen=%d, allow len = 32\n",
+					__func__,__LINE__,req->ssids[i].ssid,req->ssids[i].ssid_len);
+				req->ssids[i].ssid_len = sizeof(dst->ssid);
+			}
 		memcpy(&dst->ssid[0], req->ssids[i].ssid,
 			sizeof(dst->ssid));
 		dst->length = req->ssids[i].ssid_len;
@@ -1240,7 +1269,7 @@ static void atbm_scan_complete(struct atbm_common *hw_priv, int if_id)
 		atbm_scan_work(&hw_priv->scan.work);
 	}else {
 #ifndef CONFIG_ATBM_SCAN_SPLIT
-		BUG_ON(1);	
+		atbm_printk_err("%s %d ,WARING !!! unknow reson\n",__func__,__LINE__);
 #endif
 	}
 
@@ -1468,15 +1497,26 @@ void atbm_probe_work(struct atbm_work_struct *work)
 	int i;
 #endif
 	atbm_printk_scan("[SCAN] Direct probe work.\n");
-	BUG_ON(queueId >= 4);
-	BUG_ON(!hw_priv->channel);
+
+	if((queueId >= 4) || (!hw_priv->channel)){
+		atbm_printk_err("%s %d ,ERROR !!! queueId >= 4 or hw_priv->channel is NULL\n",__func__,__LINE__);
+		return;
+	}
+	
 	if(atbm_bh_is_term(hw_priv))
 	{
 		#ifdef CONFIG_ATBM_APOLLO_TESTMODE
-		BUG_ON(atbm_queue_remove(hw_priv, queue,
-				hw_priv->pending_frame_id));
+		
+		if(atbm_queue_remove(hw_priv, queue,hw_priv->pending_frame_id)){
+			atbm_printk_err("%s %d ,ERROR !!! atbm_queue_remove err\n",__func__,__LINE__);
+
+		}
+				
 		#else
-		BUG_ON(atbm_queue_remove(queue, hw_priv->pending_frame_id));
+
+		if(atbm_queue_remove(queue, hw_priv->pending_frame_id)){
+			atbm_printk_err("%s %d ,ERROR !!! atbm_queue_remove err\n",__func__,__LINE__);
+		}
 		#endif
 		wsm_unlock_tx(hw_priv);
 		return;
@@ -1493,10 +1533,16 @@ void atbm_probe_work(struct atbm_work_struct *work)
 		}
 		else{
 			#ifdef CONFIG_ATBM_APOLLO_TESTMODE
-			BUG_ON(atbm_queue_remove(hw_priv, queue,
-					hw_priv->pending_frame_id));
+				if(atbm_queue_remove(hw_priv, queue,hw_priv->pending_frame_id)){
+				atbm_printk_err("%s %d ,ERROR !!! atbm_queue_remove err\n",__func__,__LINE__);
+			}
+					
 			#else
-			BUG_ON(atbm_queue_remove(queue, hw_priv->pending_frame_id));
+
+				if(atbm_queue_remove(queue, hw_priv->pending_frame_id)){
+					atbm_printk_err("%s %d ,ERROR !!! atbm_queue_remove err\n",__func__,__LINE__);
+				}
+		
 			#endif
 			wsm_unlock_tx(hw_priv);
 			mutex_unlock(&hw_priv->conf_mutex);

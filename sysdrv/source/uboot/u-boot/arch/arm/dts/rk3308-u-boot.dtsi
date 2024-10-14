@@ -14,6 +14,14 @@
 		stdout-path = &uart2;
 		u-boot,spl-boot-order = &sdmmc, &spi_nand, &spi_nor, &nandc, &emmc;
 	};
+
+	secure-otp@ff2a8000 {
+		compatible = "rockchip,rk3308-secure-otp";
+		reg = <0x0 0xff2a8000 0x0 0x4000>;
+		secure_conf = <0xff2b0004>;
+		mask_addr = <0xff540000>;
+		u-boot,dm-pre-reloc;
+	};
 };
 
 &psci {
@@ -121,10 +129,6 @@
 &saradc {
 	u-boot,dm-pre-reloc;
 	status = "okay";
-};
-
-&secure_otp {
-	u-boot,dm-pre-reloc;
 };
 
 &uart0 {

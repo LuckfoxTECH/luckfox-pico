@@ -284,9 +284,7 @@ void rk_tuya_get_net_status_cb(unsigned char stat) {
 		cloud_connected_ = 1;
 		break;
 	}
-	default: {
-		break;
-	}
+	default: { break; }
 	}
 }
 

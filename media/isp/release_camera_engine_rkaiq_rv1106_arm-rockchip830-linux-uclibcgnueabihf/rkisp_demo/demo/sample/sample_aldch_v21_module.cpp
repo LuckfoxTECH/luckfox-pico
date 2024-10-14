@@ -17,6 +17,8 @@
 
 #include "sample_comm.h"
 
+#include "uAPI2/rk_aiq_user_api2_aldch_v21.h"
+
 static const uint8_t default_bic_table[9][4] = {
     {0x00, 0x80, 0x00, 0x00}, // table0: 0, 0, 128, 0
     {0xfc, 0x7f, 0x05, 0x00}, // table1: 0, 5, 127, -4

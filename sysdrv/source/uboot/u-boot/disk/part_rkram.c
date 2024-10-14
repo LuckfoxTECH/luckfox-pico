@@ -99,7 +99,7 @@ static int part_get_info_rkram_part(struct blk_desc *dev_desc, int idx,
 {
 	struct rkram_part *p = NULL;
 	struct list_head *node;
-	int part_num = 1;
+	int part_num = 0;
 
 	if (idx < 1) {
 		printf("Invalid partition no.%d\n", idx);
@@ -111,9 +111,9 @@ static int part_get_info_rkram_part(struct blk_desc *dev_desc, int idx,
 
 	list_for_each(node, &parts_head) {
 		p = list_entry(node, struct rkram_part, node);
+		part_num++;
 		if (idx == part_num)
 			break;
-		part_num++;
 	}
 
 	if (part_num < idx) {

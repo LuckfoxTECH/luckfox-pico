@@ -1,0 +1,8 @@
+from building import *
+  
+cwd     = GetCurrentDir()
+src     = Glob('*.c')
+CPPPATH = [cwd]
+group   = DefineGroup('Linpack', src, depend = ['RT_USING_LINPACK'], CPPPATH = CPPPATH)
+
+Return('group')

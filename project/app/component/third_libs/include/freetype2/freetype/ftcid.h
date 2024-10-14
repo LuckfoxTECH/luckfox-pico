@@ -80,8 +80,7 @@ FT_BEGIN_HEADER
  *    2.3.6
  */
 FT_EXPORT(FT_Error)
-FT_Get_CID_Registry_Ordering_Supplement(FT_Face face, const char **registry,
-                                        const char **ordering,
+FT_Get_CID_Registry_Ordering_Supplement(FT_Face face, const char **registry, const char **ordering,
                                         FT_Int *supplement);
 
 /**************************************************************************

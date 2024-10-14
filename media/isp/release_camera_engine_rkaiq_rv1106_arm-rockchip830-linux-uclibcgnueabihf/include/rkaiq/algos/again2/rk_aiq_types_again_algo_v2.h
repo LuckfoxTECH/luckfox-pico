@@ -20,6 +20,7 @@
 #ifndef _RK_AIQ_TYPE_AGAIN_ALGO_V2_H_
 #define _RK_AIQ_TYPE_AGAIN_ALGO_V2_H_
 #include "again2/rk_aiq_types_again_hw_v2.h"
+#include "again2/rk_aiq_types_again_stat.h"
 
 RKAIQ_BEGIN_DECLARE
 

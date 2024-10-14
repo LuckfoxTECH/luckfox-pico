@@ -13,9 +13,11 @@
 #ifdef CONFIG_ARM64
 #define ARM_PSCI_1_0_SYSTEM_SUSPEND	ARM_PSCI_1_0_FN64_SYSTEM_SUSPEND
 #define ARM_PSCI_0_2_CPU_ON		ARM_PSCI_0_2_FN64_CPU_ON
+#define ARM_PSCI_0_2_CPU_OFF		ARM_PSCI_0_2_FN_CPU_OFF
 #else
 #define ARM_PSCI_1_0_SYSTEM_SUSPEND	ARM_PSCI_1_0_FN_SYSTEM_SUSPEND
 #define ARM_PSCI_0_2_CPU_ON		ARM_PSCI_0_2_FN_CPU_ON
+#define ARM_PSCI_0_2_CPU_OFF		ARM_PSCI_0_2_FN_CPU_OFF
 #endif
 
 #define SIZE_PAGE(n)	((n) << 12)
@@ -40,6 +42,15 @@ int psci_cpu_on(unsigned long cpuid, unsigned long entry_point)
 	return res.a0;
 }
 
+int psci_cpu_off(uint32_t state)
+{
+	struct arm_smccc_res res;
+
+	res = __invoke_sip_fn_smc(ARM_PSCI_0_2_CPU_OFF, state, 0, 0);
+
+	return res.a0;
+}
+
 #ifdef CONFIG_ARM_CPU_SUSPEND
 int psci_system_suspend(unsigned long unused)
 {
@@ -58,6 +69,15 @@ int sip_smc_set_suspend_mode(unsigned long ctrl,
 	struct arm_smccc_res res;
 
 	res = __invoke_sip_fn_smc(SIP_SUSPEND_MODE, ctrl, config1, config2);
+	return res.a0;
+}
+
+int sip_smc_remotectl_config(unsigned long func, unsigned long data)
+{
+	struct arm_smccc_res res;
+
+	res = __invoke_sip_fn_smc(SIP_REMOTECTL_CFG, func, data, 0);
+
 	return res.a0;
 }
 
@@ -141,4 +161,12 @@ int sip_smc_set_sip_version(unsigned long version)
 	}
 
 	return 0;
+}
+
+int sip_smc_mcu_config(unsigned long mcu_id, unsigned long func, unsigned long arg2)
+{
+	struct arm_smccc_res res;
+
+	res = __invoke_sip_fn_smc(SIP_MCU_CFG, mcu_id, func, arg2);
+	return res.a0;
 }

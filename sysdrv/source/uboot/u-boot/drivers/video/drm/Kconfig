@@ -28,15 +28,6 @@ config DRM_MAXIM_MAX96745
 	help
 	  Driver for Maxim MAX96745 GMSL2 Serializer with eDP1.4a/DP1.4 Input.
 
-config DRM_MAXIM_MAX96752F
-	bool "Maxim max96752F GMSL2 Deserializer"
-	depends on DRM_ROCKCHIP
-	select I2C_MUX_MAX96752F
-	select PINCTRL_MAX96752F
-	select GPIO_MAX96752F
-	help
-	  Driver for Maxim MAX96752F GMSL2 Deserializer with Dual LVDS Output.
-
 config DRM_MAXIM_MAX96755F
 	bool "Maxim max96755F GMSL2 Serializer"
 	depends on DRM_ROCKCHIP
@@ -45,11 +36,19 @@ config DRM_MAXIM_MAX96755F
 	help
 	  Driver for Maxim MAX96755F GMSL2 Serializer with MIPI-DSI Input.
 
-config DRM_PANEL_MAXIM_DESERIALIZER
-	bool "Maxim deserializer panel driver"
+config DRM_PANEL_ROHM_BU18RL82
+	bool "Rohm BU18RL82-based panels"
 	depends on DRM_ROCKCHIP
 	help
-	  Driver for Maxim deserializer panels.
+	  Say Y if you want to enable support for panels based on the
+	  Rohm BU18RL82.
+
+config DRM_PANEL_MAXIM_MAX96752F
+	bool "Maxim MAX96752F-based panels"
+	depends on DRM_ROCKCHIP
+	help
+	  Say Y if you want to enable support for panels based on the
+	  Maxim MAX96752F.
 
 config DRM_ROCKCHIP_PANEL
 	bool "Rockchip Panel Support"
@@ -229,3 +228,12 @@ config ROCKCHIP_CUBIC_LUT_SIZE
 	default 0
 	help
 	  Used to calc cubic lut size.
+
+config DRM_SII902X
+	bool "Silicon Image sii902x RGB/HDMI bridge"
+	depends on DRM_ROCKCHIP
+	help
+	  Silicon Image sii902x bridge chip driver.
+
+source "drivers/video/drm/display-serdes/Kconfig"
+

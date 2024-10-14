@@ -531,9 +531,28 @@ extern int g_rkaiq_isp_hw_ver;
 #define CHECK_ISP_HW_V32() \
     (g_rkaiq_isp_hw_ver == 32 ? true : false)
 
+#define CHECK_ISP_HW_V32_LITE() \
+    (g_rkaiq_isp_hw_ver == 321 ? true : false)
+
 #define CHECK_ISP_HW_V3X() \
     (g_rkaiq_isp_hw_ver == 30 ? true : \
      g_rkaiq_isp_hw_ver == 31 ? true : false)
+
+#ifndef AIQ_MAYBE_UNUSED
+#ifdef __GNUC__
+#define AIQ_MAYBE_UNUSED __attribute__((unused))
+#else
+#define AIQ_MAYBE_UNUSED
+#endif
+#endif  // AIQ_MAYBE_UNUSED
+
+#ifndef AIQ_UNUSED_PARAM
+#ifdef __cplusplus
+#define AIQ_UNUSED_PARAM(x) static_cast<void>(x)
+#else
+#define AIQ_UNUSED_PARAM(x) (void)(x)
+#endif
+#endif  // AIQ_UNUSED_PARAM
 
 RKAIQ_END_DECLARE
 

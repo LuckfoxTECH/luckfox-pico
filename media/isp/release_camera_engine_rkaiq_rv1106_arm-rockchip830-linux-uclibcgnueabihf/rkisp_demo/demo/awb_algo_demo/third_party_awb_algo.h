@@ -12,5 +12,4 @@ int32_t custom_awb_run(void* ctx, const void* pstAwbInfo,
 int32_t custom_awb_ctrl(void* ctx, uint32_t u32Cmd, void *pValue);
 int32_t custom_awb_exit(void* ctx);
 
-#include "third_party_awb_algo.cpp"
 #endif

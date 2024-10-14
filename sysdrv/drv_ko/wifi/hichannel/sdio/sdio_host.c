@@ -21,16 +21,6 @@
 #include <linux/sched/clock.h>
 #include <linux/rfkill-wlan.h>
 
-#if defined(RFKILL_RK)
-#else
-int rockchip_wifi_get_oob_irq(void)
-{
-	pr_info("rockchip_wifi_get_oob_irq number: %d\n", hi_rk_irq_gpio);
-
-	return gpio_to_irq(hi_rk_irq_gpio);
-}
-#endif
-
 #if 0
 #if (_PRE_OS_PLATFORM == _PRE_PLATFORM_JZ)
 #include <mach/jzmmc.h>
@@ -48,9 +38,9 @@ extern "C" {
 #define FUNC_NUM_SHIFT_BIT          28
 #define REGISTER_ADDR_SHIFT_BIT     9
 
-#define SDIO_PROBLE_TIMES           3
+#define SDIO_PROBLE_TIMES           2  //sdio detect cnt
 #define DELAY_10_US                 10
-#define TIMEOUT_MUTIPLE_10          10
+#define TIMEOUT_MUTIPLE_10          2  //2S
 #define TIMEOUT_MUTIPLE_5           5
 #define HCC_TASK_RX_ISR_NAME        "rx_isr"
 #define HCC_TASK_RX_ISR_PRIO        3
@@ -1082,7 +1072,7 @@ int oal_sdio_interrupt_register(oal_channel_stru *hi_sdio)
 
     irq = gpio_to_irq(WLAN_GPIO_INT);
 #else
-    irq = rockchip_wifi_get_oob_irq();
+    irq = gpio_to_irq(hi_rk_irq_gpio);
 #endif
 
     hi_sdio->ul_wlan_irq = irq;

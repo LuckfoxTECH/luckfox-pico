@@ -48,10 +48,11 @@ typedef struct _rkMpiAOCtx {
     RK_S32      s32DeviceChannel;
     RK_S32      s32BitWidth;
     RK_S32      s32DevId;
-    RK_S32      s32PeriodCount;
-    RK_S32      s32PeriodSize;
+    RK_S32      s32FrameNumber;
+    RK_S32      s32FrameLength;
     char       *chCardName;
     RK_S32      s32ChnIndex;
+    RK_S32      s32SetVolumeCurve;
     RK_S32      s32SetVolume;
     RK_S32      s32SetMute;
     RK_S32      s32SetFadeRate;
@@ -67,6 +68,8 @@ typedef struct _rkMpiAOCtx {
     RK_S32      s32ClrPubAttr;
     RK_S32      s32GetPubAttr;
     RK_S32      s32LoopbackMode;
+    RK_S32      s32VqeEnable;
+    const char *pVqeCfgPath;
     TEST_AO_MODE_E enMode;
     const char *adecFilePath;
     ADEC_CHN_ATTR_S pstChnAttr;
@@ -149,8 +152,8 @@ RK_S32 test_open_device_ao(TEST_AO_CTX_S *ctx) {
         goto __FAILED;
     }
     aoAttr.enSoundmode = soundMode;
-    aoAttr.u32FrmNum = ctx->s32PeriodCount;
-    aoAttr.u32PtNumPerFrm = ctx->s32PeriodSize;
+    aoAttr.u32FrmNum = ctx->s32FrameNumber;
+    aoAttr.u32PtNumPerFrm = ctx->s32FrameLength;
 
     aoAttr.u32EXFlag = 0;
     aoAttr.u32ChnCnt = 2;
@@ -164,8 +167,47 @@ __FAILED:
     return RK_FAILURE;
 }
 
+RK_S32 test_init_ao_vqe(TEST_AO_CTX_S *params) {
+    RK_S32 ret = RK_SUCCESS;
+    if (params->s32VqeEnable) {
+        AO_VQE_CONFIG_S vqe_config;
+        memset(&vqe_config, 0, sizeof(AO_VQE_CONFIG_S));
+        if (params->pVqeCfgPath != RK_NULL) {
+            vqe_config.enCfgMode = AIO_VQE_CONFIG_LOAD_FILE;
+            memcpy(vqe_config.aCfgFile, params->pVqeCfgPath, strlen(params->pVqeCfgPath));
+        }
+
+        RK_LOGD("enCfgMode = %d", vqe_config.enCfgMode);
+        ret = RK_MPI_AO_SetVqeAttr(params->s32DevId, params->s32ChnIndex, &vqe_config);
+        if (ret) {
+            RK_LOGE("ao set vqe attr fail, aoChn = %d, reason = %X", params->s32ChnIndex, ret);
+            return ret;
+        }
+
+        ret = RK_MPI_AO_EnableVqe(params->s32DevId, params->s32ChnIndex);
+        if (ret) {
+            RK_LOGE("ao enable vqe fail, aoChn = %d, reason = %X", params->s32ChnIndex, ret);
+            return ret;
+        }
+    }
+
+    return RK_SUCCESS;
+}
+
 RK_S32 test_init_mpi_ao(TEST_AO_CTX_S *params) {
     RK_S32 result;
+
+    result = test_init_ao_vqe(params);
+    if (result != 0) {
+        RK_LOGE("ao enable vqe fail, aoChn = %d, reason = %X", params->s32ChnIndex, result);
+        return RK_FAILURE;
+    }
+
+    if (params->s32SetTrackMode) {
+        RK_LOGI("test info : set track mode = %d", params->s32SetTrackMode);
+        RK_MPI_AO_SetTrackMode(params->s32DevId, (AUDIO_TRACK_MODE_E)params->s32SetTrackMode);
+        params->s32SetTrackMode = 0;
+    }
 
     result =  RK_MPI_AO_EnableChn(params->s32DevId, params->s32ChnIndex);
     if (result != 0) {
@@ -179,6 +221,25 @@ RK_S32 test_init_mpi_ao(TEST_AO_CTX_S *params) {
     if (result != 0) {
         RK_LOGE("ao enable channel fail, reason = %x, aoChn = %d", result, params->s32ChnIndex);
         return RK_FAILURE;
+    }
+
+    RK_LOGI("Set volume curve type: %d", params->s32SetVolumeCurve);
+    if ((params->s32SetVolumeCurve == AUDIO_CURVE_LOGARITHM) ||
+        (params->s32SetVolumeCurve == AUDIO_CURVE_CUSTOMIZE)) {
+        AUDIO_VOLUME_CURVE_S volumeCurve;
+
+        volumeCurve.enCurveType = (AUDIO_VOLUME_CURVE_E)params->s32SetVolumeCurve;
+        volumeCurve.s32Resolution = 101;
+        volumeCurve.fMinDB = -51.0f;
+        volumeCurve.fMaxDB = 0.0f;
+        volumeCurve.pCurveTable = RK_NULL; // here none means using default logarithm curve by default.
+        if (volumeCurve.enCurveType == AUDIO_CURVE_CUSTOMIZE) {
+            volumeCurve.pCurveTable = (RK_U32 *)calloc(volumeCurve.s32Resolution, sizeof(RK_U32));
+            RK_ASSERT(volumeCurve.pCurveTable != RK_NULL);
+            // TODO: fill your customize table of volume curve folllowing to:
+            // volumeCurve.pCurveTable[0, resolution-1]
+        }
+        RK_MPI_AO_SetVolumeCurve(params->s32DevId, &volumeCurve);
     }
 
     return RK_SUCCESS;
@@ -281,7 +342,7 @@ void* sendDataThread(void * ptr) {
 __RETRY:
         result = RK_MPI_AO_SendFrame(params->s32DevId, params->s32ChnIndex, &frame, s32MilliSec);
         if (result < 0) {
-            RK_LOGE("send frame fail, result = %d, TimeStamp = %lld, s32MilliSec = %d",
+            RK_LOGE("send frame fail, result = %X, TimeStamp = %lld, s32MilliSec = %d",
                 result, frame.u64TimeStamp, s32MilliSec);
             goto __RETRY;
         }
@@ -315,12 +376,6 @@ void* commandThread(void * ptr) {
         RK_LOGI("test info : mute = %d, volume = %d", mute, params->s32SetVolume);
         RK_MPI_AO_SetMute(params->s32DevId, mute, &aFade);
         RK_MPI_AO_SetVolume(params->s32DevId, params->s32SetVolume);
-    }
-
-    if (params->s32SetTrackMode) {
-        RK_LOGI("test info : set track mode = %d", params->s32SetTrackMode);
-        RK_MPI_AO_SetTrackMode(params->s32DevId, (AUDIO_TRACK_MODE_E)params->s32SetTrackMode);
-        params->s32SetTrackMode = 0;
     }
 
     if (params->s32GetVolume) {
@@ -422,8 +477,12 @@ RK_S32 unit_test_mpi_ao(TEST_AO_CTX_S *ctx) {
         memcpy(&(params[i]), ctx, sizeof(TEST_AO_CTX_S));
         params[i].s32ChnIndex = i;
 
-        test_set_channel_params_ao(&params[i]);
-        test_init_mpi_ao(&params[i]);
+        if (test_set_channel_params_ao(&params[i]))
+            goto __FAILED;
+
+        if (test_init_mpi_ao(&params[i]))
+            goto __FAILED;
+
         pthread_create(&tidSend[i], RK_NULL, sendDataThread, reinterpret_cast<void *>(&params[i]));
         pthread_create(&tidReceive[i], RK_NULL, commandThread, reinterpret_cast<void *>(&params[i]));
     }
@@ -601,10 +660,11 @@ static void mpi_ao_test_show_options(const TEST_AO_CTX_S *ctx) {
     RK_PRINT("input stream rate     : %d\n", ctx->s32ReSmpSampleRate);
     RK_PRINT("input channel         : %d\n", ctx->s32Channel);
     RK_PRINT("bit_width             : %d\n", ctx->s32BitWidth);
-    RK_PRINT("period_count          : %d\n", ctx->s32PeriodCount);
-    RK_PRINT("period_size           : %d\n", ctx->s32PeriodSize);
+    RK_PRINT("frame_number          : %d\n", ctx->s32FrameNumber);
+    RK_PRINT("frame_length          : %d\n", ctx->s32FrameLength);
     RK_PRINT("sound card name       : %s\n", ctx->chCardName);
     RK_PRINT("device id             : %d\n", ctx->s32DevId);
+    RK_PRINT("set volume curve      : %d\n", ctx->s32SetVolumeCurve);
     RK_PRINT("set volume            : %d\n", ctx->s32SetVolume);
     RK_PRINT("set mute              : %d\n", ctx->s32SetMute);
     RK_PRINT("set track_mode        : %d\n", ctx->s32SetTrackMode);
@@ -619,6 +679,10 @@ static void mpi_ao_test_show_options(const TEST_AO_CTX_S *ctx) {
     RK_PRINT("get attribute         : %d\n", ctx->s32GetPubAttr);
     RK_PRINT("clear attribute       : %d\n", ctx->s32ClrPubAttr);
     RK_PRINT("set loopback mode     : %d\n", ctx->s32LoopbackMode);
+    RK_PRINT("vqe enable            : %d\n", ctx->s32VqeEnable);
+    if (ctx->pVqeCfgPath != RK_NULL) {
+        RK_PRINT("vqe config file         : %s\n", ctx->pVqeCfgPath);
+    }
     RK_PRINT("adec input file name  : %s\n", ctx->adecFilePath);
 }
 
@@ -639,10 +703,11 @@ int main(int argc, const char **argv) {
     ctx->s32DeviceChannel   = 2;
     ctx->s32Channel         = 0;
     ctx->s32BitWidth        = 16;
-    ctx->s32PeriodCount     = 4;
-    ctx->s32PeriodSize      = 1024;
+    ctx->s32FrameNumber     = 4;
+    ctx->s32FrameLength      = 1024;
     ctx->chCardName         = RK_NULL;
     ctx->s32DevId           = 0;
+    ctx->s32SetVolumeCurve  = 0;
     ctx->s32SetVolume       = 100;
     ctx->s32SetMute         = 0;
     ctx->s32SetTrackMode    = 0;
@@ -658,6 +723,8 @@ int main(int argc, const char **argv) {
     ctx->s32ClrPubAttr      = 0;
     ctx->s32GetPubAttr      = 0;
     ctx->s32LoopbackMode    = AUDIO_LOOPBACK_NONE;
+    ctx->s32VqeEnable       = 0;
+    ctx->pVqeCfgPath        = RK_NULL;
     ctx->enMode = TEST_AO_MODE_AO_ONLY;
 
     struct argparse_option options[] = {
@@ -681,12 +748,14 @@ int main(int argc, const char **argv) {
                     "the count of ao channel. default(1).", NULL, 0, 0),
         OPT_INTEGER('\0', "bit", &(ctx->s32BitWidth),
                     "the bit width of open sound card, range(8, 16, 24), default(16)", NULL, 0, 0),
-        OPT_INTEGER('\0', "period_size", &(ctx->s32PeriodSize),
-                    "the period size for open sound card, default(1024)", NULL, 0, 0),
-        OPT_INTEGER('\0', "period_count", &(ctx->s32PeriodCount),
-                    "the period count for open sound card, default(4)", NULL, 0, 0),
+        OPT_INTEGER('\0', "frame_length", &(ctx->s32FrameLength),
+                    "the frame length for open sound card, default(1024)", NULL, 0, 0),
+        OPT_INTEGER('\0', "frame_number", &(ctx->s32FrameNumber),
+                    "the frame number for open sound card, default(4)", NULL, 0, 0),
         OPT_STRING('\0', "sound_card_name", &(ctx->chCardName),
                     "the sound name for open sound card, default(NULL)", NULL, 0, 0),
+        OPT_INTEGER('\0', "set_volume_curve", &(ctx->s32SetVolumeCurve),
+                    "set volume curve(builtin linear), 0:unset 1:linear 2:logarithm 3:customize. default(0).", NULL, 0, 0),
         OPT_INTEGER('\0', "set_volume", &(ctx->s32SetVolume),
                     "set volume test, range(0, 100), default(100)", NULL, 0, 0),
         OPT_INTEGER('\0', "set_mute", &(ctx->s32SetMute),
@@ -695,7 +764,7 @@ int main(int argc, const char **argv) {
                     "set fade rate, range(0, 7), default(0)", NULL, 0, 0),
         OPT_INTEGER('\0', "set_track_mode", &(ctx->s32SetTrackMode),
                     "set track mode test, range(0:normal, 1:both_left, 2:both_right, 3:exchange, 4:mix,"
-                    "5:left_mute, 6:right_mute, 7:both_mute), default(0)", NULL, 0, 0),
+                    "5:left_mute, 6:right_mute, 7:both_mute, 8: only left, 9: only right, 10:out stereo), default(0)", NULL, 0, 0),
         OPT_INTEGER('\0', "get_volume", &(ctx->s32GetVolume),
                     "get volume test, range(0, 1), default(0)", NULL, 0, 0),
         OPT_INTEGER('\0', "get_mute", &(ctx->s32GetMute),
@@ -718,6 +787,10 @@ int main(int argc, const char **argv) {
                     "get attribute of device, range(0, 1), default(0)", NULL, 0, 0),
         OPT_INTEGER('\0', "loopback_mode", &(ctx->s32LoopbackMode),
                     "configure the loopback mode during ao runtime", NULL, 0, 0),
+        OPT_INTEGER('\0', "vqe_enable", &(ctx->s32VqeEnable),
+                    "the vqe enable, 0:disable 1:enable. default(0).", NULL, 0, 0),
+        OPT_STRING('\0', "vqe_cfg", &(ctx->pVqeCfgPath),
+                    "the vqe config file, default(NULL)", NULL, 0, 0),
         OPT_INTEGER('m', "mode", &(ctx->enMode),
                     "test mode(default 0; \n\t"
                     "0:ao send frame \n\t"

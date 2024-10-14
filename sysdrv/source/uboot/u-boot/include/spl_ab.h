@@ -6,6 +6,7 @@
 #ifndef _SPL_AB_H_
 #define _SPL_AB_H_
 
+#include <spl.h>
 #include <android_avb/libavb_ab.h>
 #include <android_avb/avb_ab_flow.h>
 
@@ -44,5 +45,23 @@ int spl_ab_append_part_slot(struct blk_desc *dev_desc,
  * return: 0 success, others fail.
  */
 int spl_ab_decrease_tries(struct blk_desc *dev_desc);
+
+/*
+ * spl_ab_decrease_reset
+ *
+ * @dev_desc: block description
+ *
+ * return: 0 success, others fail.
+ */
+int spl_ab_decrease_reset(struct blk_desc *dev_desc);
+
+/**
+ * Append ab slot info to bootargs
+ *
+ * @param fdt		FDT address in memory
+ * @param slot		slot info
+ * @return 0 if ok, else error
+ */
+int spl_ab_bootargs_append_slot(void *fdt, char *slot);
 
  #endif

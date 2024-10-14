@@ -1,0 +1,11 @@
+# Import('RTT_ROOT')
+# Import('rtconfig')
+from building import *
+
+src  = Glob('*.c')
+cwd  = GetCurrentDir()
+LOCAL_CPPPATH = [cwd]
+
+group = DefineGroup('Applications', src, depend = ['RT_USING_TOUCH'], LOCAL_CPPPATH = LOCAL_CPPPATH)
+
+Return('group')

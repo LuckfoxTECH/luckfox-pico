@@ -1,0 +1,11 @@
+Import('RTT_ROOT')
+Import('rtconfig')
+from building import *
+
+cwd = GetCurrentDir()
+src	= Glob('*.c')
+CPPPATH = [cwd, str(Dir('#'))]
+
+group = DefineGroup('FileTest', src, depend = ['RT_USING_FILE_TEST'], CPPPATH = CPPPATH)
+
+Return('group')

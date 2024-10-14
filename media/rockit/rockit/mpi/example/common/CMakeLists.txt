@@ -6,6 +6,7 @@ set(RK_TEST_MOD_SRC
 
 set(RK_TEST_COMMON_SRC
     test_comm_argparse.cpp
+    test_comm_avs.cpp
     test_comm_utils.cpp
     test_comm_bmp.cpp
     test_comm_imgproc.cpp

@@ -138,13 +138,10 @@ typedef struct Abayer2dnr_Auto_Attr_V23_s
 typedef struct Abayer2dnr_ProcResult_V23_s {
 
     //for sw simultaion
-    RK_Bayer2dnrV23_Params_Select_t st2DSelect;
+    //RK_Bayer2dnrV23_Params_Select_t st2DSelect;
 
     //for hw register
-    RK_Bayer2dnr_Fix_V23_t st2DFix;
-
-    bool isNeedUpdate;
-
+    RK_Bayer2dnr_Fix_V23_t* st2DFix;
 } Abayer2dnr_ProcResult_V23_t;
 
 

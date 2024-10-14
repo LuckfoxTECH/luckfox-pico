@@ -680,6 +680,32 @@ config HASH
 	  and the algorithms it supports are defined in common/hash.c. See
 	  also CMD_HASH for command-line access.
 
+config BOARD_RNG_SEED
+	bool "Provide /chosen/rng-seed property to the linux kernel"
+	help
+	  Selecting this option requires the board to define a
+	  board_rng_seed() function, which should return a buffer
+	  which will be used to populate the /chosen/rng-seed property
+	  in the device tree for the OS being booted.
+
+	  It is up to the board code (and more generally the whole
+	  BSP) where and how to store (or generate) such a seed, how
+	  to ensure a given seed is only used once, how to create a
+	  new seed for use on subsequent boots, and whether or not the
+	  kernel should account any entropy from the given seed.
+
+endmenu
+
+menu "MT support"
+
+config MP_BOOT
+	bool "Support MT boot"
+	default n
+
+config MP_BOOT_BOOTM
+	bool "MT simple bootm image"
+	depends on MP_BOOT
+
 endmenu
 
 source "common/spl/Kconfig"

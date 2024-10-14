@@ -15,6 +15,11 @@
 #include "adrc_head.h"
 #include "adrc_uapi_head.h"
 
+typedef struct adrc_blcRes_V32_s {
+    bool blc_ob_enable;
+    float isp_ob_predgain;
+} adrc_blcRes_V32_t;
+
 typedef enum drc_OpMode_s {
     DRC_OPMODE_AUTO   = 0,  // run auto drc
     DRC_OPMODE_MANUAL = 1,  // run manual drc
@@ -50,5 +55,15 @@ typedef struct drcAttrV12_s {
     mdrcAttr_V12_t stManual;
     DrcInfoV12_t Info;
 } drcAttrV12_t;
+
+// drc attr V12 lite
+typedef struct drcAttrV12Lite_s {
+    rk_aiq_uapi_sync_t sync;
+
+    drc_OpMode_t opMode;
+    CalibDbV2_drc_v12_lite_t stAuto;
+    mdrcAttr_v12_lite_t stManual;
+    DrcInfoV12Lite_t Info;
+} drcAttrV12Lite_t;
 
 #endif

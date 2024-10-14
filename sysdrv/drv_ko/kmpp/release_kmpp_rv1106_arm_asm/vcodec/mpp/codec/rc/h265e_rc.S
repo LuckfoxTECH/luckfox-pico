@@ -22,7 +22,7 @@
 default_h265e:
 	.word	.LC0
 	.word	16777220
-	.word	664
+	.word	688
 	.word	rc_model_v2_init
 	.word	rc_model_v2_deinit
 	.word	0

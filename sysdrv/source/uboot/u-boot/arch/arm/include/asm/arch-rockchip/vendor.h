@@ -46,4 +46,7 @@ int flash_vendor_dev_ops_register(int (*read)(struct blk_desc *dev_desc,
 					       void *p_data));
 
 int vendor_handle_hdcp(struct vendor_item *vhead);
+
+void vendor_storage_fixup(void *blob);
+
 #endif /* _ROCKCHIP_VENDOR_ */

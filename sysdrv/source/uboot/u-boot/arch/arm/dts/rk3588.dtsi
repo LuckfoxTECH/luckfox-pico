@@ -34,6 +34,8 @@
 			resets = <&cru SRST_A_USB3OTG1>;
 			reset-names = "usb3-otg";
 			dr_mode = "host";
+			phys = <&u2phy1_otg>;
+			phy-names = "usb2-phy";
 			phy_type = "utmi_wide";
 			snps,dis_enblslpm_quirk;
 			snps,dis-u2-freeclk-exists-quirk;
@@ -69,6 +71,8 @@
 			compatible = "rockchip,rk3588-usb2phy";
 			reg = <0x4000 0x10>;
 			interrupts = <GIC_SPI 394 IRQ_TYPE_LEVEL_HIGH>;
+			resets = <&cru SRST_OTGPHY_U3_1>, <&cru SRST_P_USB2PHY_U3_1_GRF0>;
+			reset-names = "phy", "apb";
 			clocks = <&cru CLK_USB2PHY_HDPTXRXPHY_REF>;
 			clock-names = "phyclk";
 			#clock-cells = <0>;
@@ -463,6 +467,7 @@
 	usbdp_phy1: phy@fed90000 {
 		compatible = "rockchip,rk3588-usbdp-phy";
 		reg = <0x0 0xfed90000 0x0 0x10000>;
+		rockchip,u2phy-grf = <&usb2phy1_grf>;
 		rockchip,usb-grf = <&usb_grf>;
 		rockchip,usbdpphy-grf = <&usbdpphy1_grf>;
 		rockchip,vo-grf = <&vo0_grf>;

@@ -187,6 +187,10 @@ int rk_board_init(void)
 #define QOS_PRIORITY_P1_P0(p1, p0)	((((p1) & 0x3) << 8) |\
 					(((p0) & 0x3) << 0))
 
+#define CRU_CLKGATE_CON10		0x0328
+#define CRU_CLKGATE_CON11		0x032c
+#define CRU_CLKGATE_CON12		0x0330
+
 enum {
 	IOVSEL4_SHIFT           = 4,
 	IOVSEL4_MASK            = BIT(4),
@@ -202,6 +206,18 @@ int arch_cpu_init(void)
 
 	/* Set CRYPTO SDMMC EMMC NAND SFC USB master bus to be secure access */
 	rk_clrreg(&sgrf->con_secure0, 0x2b83);
+#else /* uboot */
+
+	/*
+	 * Gate I2Sx_MCLK default
+	 *
+	 * It's safe to gate mclk default to avoid high freq glitch
+	 * which may make devices work unexpected. And then enabled by
+	 * kernel stage or any state where user use it.
+	 */
+	writel(0x80008000, CRU_BASE + CRU_CLKGATE_CON10);
+	writel(0x88888888, CRU_BASE + CRU_CLKGATE_CON11);
+	writel(0x88888888, CRU_BASE + CRU_CLKGATE_CON12);
 #endif
 #else /* defined(CONFIG_TPL_BUILD) */
 	static struct rk3308_cru * const cru = (void *)CRU_BASE;

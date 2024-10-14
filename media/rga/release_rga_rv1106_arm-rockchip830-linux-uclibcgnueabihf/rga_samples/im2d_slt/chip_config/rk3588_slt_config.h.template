@@ -1,0 +1,60 @@
+/*
+ * Copyright (C) 2021 Rockchip Electronics Co., Ltd.
+ * Authors:
+ *  Cerf Yu <cerf.yu@rock-chips.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* im2d_slt config */
+#define IM2D_SLT_THREAD_EN                  1   /* Enable multi-threaded mode. */
+#define IM2D_SLT_THREAD_MAX                 10  /* Maximum number of threads. */
+#define IM2D_SLT_WHILE_EN                   1   /* Enable while mode, 1: while, 0 single. */
+#define IM2D_SLT_WHILE_NUM                  500 /* Number of while mode. */
+
+/* raster test */
+#define IM2D_SLT_TEST_RGA2_0_EN             1   /* Enable rga2_core0 case. */
+#define IM2D_SLT_TEST_RGA2_1_EN             0   /* Enable rga2_core1 case. */
+#define IM2D_SLT_TEST_RGA3_0_EN             1   /* Enable rga3_core0 case. */
+#define IM2D_SLT_TEST_RGA3_1_EN             1   /* Enable rga3_core1 case. */
+
+#define IM2D_SLT_TEST_SPECIAL_EN            1   /* Enable special test. */
+/* special test */
+#define IM2D_SLT_TEST_RGA2_0_TILE_EN        0   /* Enable rga2_core0 TILE4x4 case. */
+#define IM2D_SLT_TEST_RGA2_0_AFBC32x8_EN    0   /* Enable rga2_core0 AFBC32x8 split mode case. */
+#define IM2D_SLT_TEST_RGA2_0_RKFBC64x4_EN   0   /* Enable rga2_core0 AFBC32x8 split mode case. */
+#define IM2D_SLT_TEST_RGA2_1_TILE_EN        0   /* Enable rga2_core1 TILE4x4 case. */
+#define IM2D_SLT_TEST_RGA2_1_AFBC32x8_EN    0   /* Enable rga2_core0 AFBC32x8 split mode case. */
+#define IM2D_SLT_TEST_RGA2_1_RKFBC64x4_EN   0   /* Enable rga2_core0 AFBC32x8 split mode case. */
+#define IM2D_SLT_TEST_RGA3_0_FBC_EN         1   /* Enable rga3_core0 AFBC16x16 case. */
+#define IM2D_SLT_TEST_RGA3_1_FBC_EN         1   /* Enable rga3_core1 AFBC16x16 case. */
+
+#define IM2D_SLT_TEST_PERF_EN               1   /* Enable perf test. */
+
+#define IM2D_SLT_DEFAULT_WIDTH              1280                        /* Default image width. */
+#define IM2D_SLT_DEFAULT_HEIGHT             720                         /* Default image height. */
+#if IM2D_SLT_GRAPHICBUFFER_EN
+#define IM2D_SLT_DEFAULT_FORMAT             HAL_PIXEL_FORMAT_RGBA_8888  /* Default image format. */
+#else
+#define IM2D_SLT_DEFAULT_FORMAT             RK_FORMAT_RGBA_8888         /* Default image format. */
+#endif
+
+#define DEFAULT_DMA_HEAP_PATH              "/dev/dma_heap/system-uncached"
+#define DEFAULT_DMA32_HEAP_PATH            "/dev/dma_heap/system-uncached-dma32"
+#define RV1106_DEFAULT_DMA_HEAP_PATH       "/dev/rk_dma_heap/rk-dma-heap-cma"
+
+#define IM2D_SLT_DMA_HEAP_PATH              DEFAULT_DMA32_HEAP_PATH
+
+#define IM2D_SLT_DEFAULT_INPUT_PATH         "/data/rga_slt"
+#define IM2D_SLT_DEFAULT_OUTPUT_PATH        "/data/rga_slt"
+#define IM2D_SLT_DEFAULT_GOLDEN_PATH        "/data/rga_slt/golden"

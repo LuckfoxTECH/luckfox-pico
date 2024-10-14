@@ -153,6 +153,7 @@ typedef struct RK_SHARP_Params_V33_Select_s {
 // sharp params
 typedef struct RK_SHARP_Params_V33_s {
     int enable;
+    int sharp_ratio_seperate_en;
     int kernel_sigma_enable;
     char version[64];
 
@@ -181,16 +182,49 @@ typedef struct Asharp_Auto_Attr_V33_s {
 
 } Asharp_Auto_Attr_V33_t;
 
-typedef struct Asharp_ProcResult_V33_s {
+// for isp32 lite version
+typedef struct RK_SHARP_Params_V33LT_s {
+    int enable;
+    int sharp_ratio_seperate_en;
+    int kernel_sigma_enable;
+    char version[64];
 
-    // for sw simultaion
-    RK_SHARP_Params_V33_Select_t stSelect;
+    int Center_Mode;
+    int center_x;
+    int center_y;
 
-    // for hw register
+    int iso[RK_SHARP_V33_MAX_ISO_NUM];
+    RK_SHARP_Params_V33LT_Select_t sharpParamsISO[RK_SHARP_V33_MAX_ISO_NUM];
+
+} RK_SHARP_Params_V33LT_t;
+
+typedef struct Asharp_Manual_Attr_V33LT_s {
+    RK_SHARP_Params_V33LT_Select_t stSelect;
+
     RK_SHARP_Fix_V33_t stFix;
 
-    bool isNeedUpdate;
+} Asharp_Manual_Attr_V33LT_t;
 
+typedef struct Asharp_Auto_Attr_V33LT_s {
+    // all ISO params and select param
+
+    RK_SHARP_Params_V33LT_t stParams;
+    RK_SHARP_Params_V33LT_Select_t stSelect;
+
+} Asharp_Auto_Attr_V33LT_t;
+
+typedef struct Asharp_ProcResult_V33_s {
+#if RKAIQ_HAVE_SHARP_V33
+    // for sw simultaion
+    // RK_SHARP_Params_V33_Select_t stSelect;
+#else
+    // for isp32 lite version
+    // for sw simultaion
+    //RK_SHARP_Params_V33LT_Select_t stSelect;
+#endif
+
+    // for hw register
+    RK_SHARP_Fix_V33_t* stFix;
 } Asharp_ProcResult_V33_t;
 
 typedef struct Asharp_Config_V33_s {
@@ -207,6 +241,14 @@ typedef struct rk_aiq_sharp_attrib_v33_s {
     Asharp_Auto_Attr_V33_t stAuto;
     Asharp_Manual_Attr_V33_t stManual;
 } rk_aiq_sharp_attrib_v33_t;
+
+typedef struct rk_aiq_sharp_attrib_v33LT_s {
+    rk_aiq_uapi_sync_t sync;
+
+    Asharp_OPMode_V33_t eMode;
+    Asharp_Auto_Attr_V33LT_t stAuto;
+    Asharp_Manual_Attr_V33LT_t stManual;
+} rk_aiq_sharp_attrib_v33LT_t;
 
 typedef struct rk_aiq_sharp_strength_v33_s {
     rk_aiq_uapi_sync_t sync;

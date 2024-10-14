@@ -24,13 +24,8 @@ extern "C" {
 #include "rkadk_common.h"
 
 typedef struct {
-  RKADK_RECT_S stInRect;
-  RKADK_RECT_S stOutRect;
-} RKADK_DISP_RECT_S;
-
-typedef struct {
-  RKADK_DISP_RECT_S stVpssRect;
-  RKADK_DISP_RECT_S stVoRect;
+  RKADK_RECT_S stVpssCropRect;
+  RKADK_RECT_S stVoRect;
 } RKADK_DISP_ATTR_S;
 
 RKADK_S32 RKADK_DISP_Init(RKADK_U32 u32CamId);

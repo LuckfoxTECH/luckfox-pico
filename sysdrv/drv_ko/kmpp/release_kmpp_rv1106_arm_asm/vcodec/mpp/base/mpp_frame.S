@@ -15,6 +15,90 @@
 	.thumb
 	.syntax unified
 	.align	1
+	.global	mpp_frame_pool_init
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpp_frame_pool_init, %function
+mpp_frame_pool_init:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, lr}
+	.save {r4, lr}
+	mov	r3, r0
+	ldr	r4, .L3
+	ldr	r2, [r4]
+	cbnz	r2, .L2
+	movs	r2, #184
+	ldr	r1, .L3+4
+	ldr	r0, .L3+8
+	bl	mpp_mem_get_pool_f
+	str	r0, [r4]
+.L2:
+	movs	r0, #0
+	pop	{r4, pc}
+.L4:
+	.align	2
+.L3:
+	.word	.LANCHOR0
+	.word	.LC0
+	.word	.LANCHOR1
+	.fnend
+	.size	mpp_frame_pool_init, .-mpp_frame_pool_init
+	.align	1
+	.global	mpp_frame_pool_deinit
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpp_frame_pool_deinit, %function
+mpp_frame_pool_deinit:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, lr}
+	.save {r4, lr}
+	ldr	r4, .L10
+	ldr	r1, [r4]
+	cbz	r1, .L6
+	ldr	r0, .L10+4
+	bl	mpp_mem_put_pool_f
+	movs	r3, #0
+	str	r3, [r4]
+.L6:
+	movs	r0, #0
+	pop	{r4, pc}
+.L11:
+	.align	2
+.L10:
+	.word	.LANCHOR0
+	.word	.LANCHOR1+20
+	.fnend
+	.size	mpp_frame_pool_deinit, .-mpp_frame_pool_deinit
+	.align	1
+	.global	mpp_frame_pool_info_show
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpp_frame_pool_info_show, %function
+mpp_frame_pool_info_show:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	@ link register save eliminated.
+	ldr	r3, .L13
+	ldr	r1, [r3]
+	b	mpp_mem_pool_info_show
+.L14:
+	.align	2
+.L13:
+	.word	.LANCHOR0
+	.fnend
+	.size	mpp_frame_pool_info_show, .-mpp_frame_pool_info_show
+	.align	1
 	.global	check_is_mpp_frame
 	.syntax unified
 	.thumb
@@ -28,27 +112,27 @@ check_is_mpp_frame:
 	push	{r3, lr}
 	.save {r3, lr}
 	mov	r3, r0
-	cbz	r0, .L2
+	cbz	r0, .L16
 	ldr	r1, [r0]
-	ldr	r2, .L8
+	ldr	r2, .L22
 	cmp	r1, r2
-	beq	.L4
-.L2:
-	movs	r2, #30
-	ldr	r1, .L8+4
-	ldr	r0, .L8+8
+	beq	.L18
+.L16:
+	movs	r2, #58
+	ldr	r1, .L22+4
+	ldr	r0, .L22+8
 	bl	printk
 	mov	r0, #-1
-.L1:
+.L15:
 	pop	{r3, pc}
-.L4:
+.L18:
 	movs	r0, #0
-	b	.L1
-.L9:
+	b	.L15
+.L23:
 	.align	2
-.L8:
+.L22:
 	.word	.LC0
-	.word	.LANCHOR0
+	.word	.LANCHOR1+42
 	.word	.LC1
 	.fnend
 	.size	check_is_mpp_frame, .-check_is_mpp_frame
@@ -66,36 +150,38 @@ mpp_frame_init:
 	push	{r4, lr}
 	.save {r4, lr}
 	mov	r4, r0
-	cbnz	r0, .L11
-	ldr	r1, .L15
-	movs	r2, #40
-	ldr	r0, .L15+4
-.L14:
+	cbnz	r0, .L25
+	ldr	r1, .L29
+	movs	r2, #69
+	ldr	r0, .L29+4
+.L28:
 	bl	printk
 	mvn	r0, #2
-.L10:
+.L24:
 	pop	{r4, pc}
-.L11:
-	movs	r1, #176
-	ldr	r0, .L15+8
-	bl	mpp_osal_calloc
-	cbnz	r0, .L13
-	movs	r2, #46
-	ldr	r1, .L15
-	ldr	r0, .L15+12
-	b	.L14
-.L13:
-	ldr	r3, .L15+16
+.L25:
+	ldr	r3, .L29+8
+	ldr	r0, .L29+12
+	ldr	r1, [r3]
+	bl	mpp_mem_pool_get_f
+	cbnz	r0, .L27
+	movs	r2, #75
+	ldr	r1, .L29
+	ldr	r0, .L29+16
+	b	.L28
+.L27:
+	ldr	r3, .L29+20
 	str	r3, [r0]
 	str	r0, [r4]
 	movs	r0, #0
-	b	.L10
-.L16:
+	b	.L24
+.L30:
 	.align	2
-.L15:
-	.word	.LANCHOR0+19
+.L29:
+	.word	.LANCHOR1+61
 	.word	.LC2
-	.word	.LANCHOR0+34
+	.word	.LANCHOR0
+	.word	.LANCHOR1+76
 	.word	.LC3
 	.word	.LC0
 	.fnend
@@ -111,71 +197,74 @@ mpp_frame_deinit:
 	.fnstart
 	@ args = 0, pretend = 0, frame = 0
 	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, r7, r8, r9, r10, lr}
-	.save {r4, r5, r6, r7, r8, r9, r10, lr}
+	push	{r3, r4, r5, r6, r7, r8, r9, r10, fp, lr}
+	.save {r3, r4, r5, r6, r7, r8, r9, r10, fp, lr}
 	mov	r4, r0
-	cbnz	r0, .L18
-.L20:
-	movs	r2, #61
-	ldr	r1, .L39
-	ldr	r0, .L39+4
+	cbnz	r0, .L32
+.L34:
+	movs	r2, #90
+	ldr	r1, .L53
+	ldr	r0, .L53+4
 	mvn	r6, #2
 	bl	printk
-.L17:
+.L31:
 	mov	r0, r6
-	pop	{r4, r5, r6, r7, r8, r9, r10, pc}
-.L18:
+	pop	{r3, r4, r5, r6, r7, r8, r9, r10, fp, pc}
+.L32:
 	ldr	r0, [r0]
 	bl	check_is_mpp_frame
 	mov	r6, r0
 	cmp	r0, #0
-	bne	.L20
-	ldr	r5, [r4]
-	ldr	r0, [r5, #136]
-	cbz	r0, .L21
-	ldr	r1, .L39+8
+	bne	.L34
+	ldr	r7, [r4]
+	ldr	r0, [r7, #136]
+	cbz	r0, .L35
+	ldr	r1, .L53+8
 	bl	mpp_buffer_put_with_caller
-.L21:
-	ldr	r8, [r5, #152]
-	cmp	r8, #0
-	beq	.L22
-	ldr	r9, .L39+8
-	mov	r5, r8
-	ldr	r10, .L39+12
-	movs	r7, #0
-.L23:
-	ldr	r3, [r8, #4]
-	cmp	r3, r7
-	bhi	.L26
-.L22:
-	ldr	r1, [r4]
-	ldr	r0, .L39+8
-	bl	mpp_osal_free
+.L35:
+	ldr	r9, [r7, #152]
+	cmp	r9, #0
+	beq	.L36
+	ldr	r10, .L53+8
+	mov	r5, r9
+	ldr	fp, .L53+16
+	mov	r8, #0
+.L37:
+	ldr	r3, [r9, #4]
+	cmp	r3, r8
+	bhi	.L40
+.L36:
+	ldr	r3, .L53+12
+	mov	r2, r7
+	ldr	r0, .L53+8
+	ldr	r1, [r3]
+	bl	mpp_mem_pool_put_f
 	movs	r3, #0
 	str	r3, [r4]
-	b	.L17
-.L26:
-	ldr	r0, [r5, #136]
-	cbz	r0, .L24
-	mov	r2, r9
-	mov	r1, r10
-	bl	mpi_buf_unref_with_tag
-.L24:
-	ldr	r0, [r5, #88]
-	cbz	r0, .L25
-	mov	r2, r9
-	mov	r1, r10
-	bl	mpi_buf_unref_with_tag
-.L25:
-	adds	r7, r7, #1
-	adds	r5, r5, #140
-	b	.L23
+	b	.L31
 .L40:
-	.align	2
+	ldr	r0, [r5, #136]
+	cbz	r0, .L38
+	mov	r2, r10
+	mov	r1, fp
+	bl	mpi_buf_unref_with_tag
+.L38:
+	ldr	r0, [r5, #88]
+	cbz	r0, .L39
+	mov	r2, r10
+	mov	r1, fp
+	bl	mpi_buf_unref_with_tag
 .L39:
-	.word	.LANCHOR0+49
+	add	r8, r8, #1
+	adds	r5, r5, #140
+	b	.L37
+.L54:
+	.align	2
+.L53:
+	.word	.LANCHOR1+91
 	.word	.LC2
-	.word	.LANCHOR0+66
+	.word	.LANCHOR1+108
+	.word	.LANCHOR0
 	.word	.LC0
 	.fnend
 	.size	mpp_frame_deinit, .-mpp_frame_deinit
@@ -194,13 +283,13 @@ mpp_frame_get_next:
 	.save {r4, lr}
 	mov	r4, r0
 	bl	check_is_mpp_frame
-	cbnz	r0, .L43
+	cbnz	r0, .L57
 	ldr	r0, [r4, #172]
-.L41:
+.L55:
 	pop	{r4, pc}
-.L43:
+.L57:
 	movs	r0, #0
-	b	.L41
+	b	.L55
 	.fnend
 	.size	mpp_frame_get_next, .-mpp_frame_get_next
 	.align	1
@@ -219,13 +308,13 @@ mpp_frame_set_next:
 	mov	r4, r0
 	mov	r5, r1
 	bl	check_is_mpp_frame
-	cbnz	r0, .L46
+	cbnz	r0, .L60
 	str	r5, [r4, #172]
-.L44:
+.L58:
 	pop	{r3, r4, r5, pc}
-.L46:
+.L60:
 	mvn	r0, #1
-	b	.L44
+	b	.L58
 	.fnend
 	.size	mpp_frame_set_next, .-mpp_frame_set_next
 	.align	1
@@ -243,13 +332,13 @@ mpp_frame_get_buffer:
 	.save {r4, lr}
 	mov	r4, r0
 	bl	check_is_mpp_frame
-	cbnz	r0, .L49
+	cbnz	r0, .L63
 	ldr	r0, [r4, #136]
-.L47:
+.L61:
 	pop	{r4, pc}
-.L49:
+.L63:
 	movs	r0, #0
-	b	.L47
+	b	.L61
 	.fnend
 	.size	mpp_frame_get_buffer, .-mpp_frame_get_buffer
 	.align	1
@@ -268,27 +357,27 @@ mpp_frame_set_buffer:
 	mov	r5, r0
 	mov	r4, r1
 	bl	check_is_mpp_frame
-	cbnz	r0, .L50
+	cbnz	r0, .L64
 	ldr	r3, [r5, #136]
 	cmp	r3, r4
-	beq	.L50
-	cbz	r4, .L52
-	ldr	r1, .L60
+	beq	.L64
+	cbz	r4, .L66
+	ldr	r1, .L74
 	mov	r0, r4
 	bl	mpp_buffer_inc_ref_with_caller
-.L52:
+.L66:
 	ldr	r0, [r5, #136]
-	cbz	r0, .L53
-	ldr	r1, .L60
+	cbz	r0, .L67
+	ldr	r1, .L74
 	bl	mpp_buffer_put_with_caller
-.L53:
+.L67:
 	str	r4, [r5, #136]
-.L50:
+.L64:
 	pop	{r3, r4, r5, pc}
-.L61:
+.L75:
 	.align	2
-.L60:
-	.word	.LANCHOR0+83
+.L74:
+	.word	.LANCHOR1+125
 	.fnend
 	.size	mpp_frame_set_buffer, .-mpp_frame_set_buffer
 	.align	1
@@ -325,14 +414,14 @@ mpp_frame_add_roi:
 	mov	r5, r0
 	mov	r4, r1
 	bl	check_is_mpp_frame
-	cbnz	r0, .L66
-	cbz	r4, .L66
+	cbnz	r0, .L80
+	cbz	r4, .L80
 	str	r4, [r5, #148]
-.L63:
+.L77:
 	pop	{r3, r4, r5, pc}
-.L66:
+.L80:
 	mvn	r0, #2
-	b	.L63
+	b	.L77
 	.fnend
 	.size	mpp_frame_add_roi, .-mpp_frame_add_roi
 	.align	1
@@ -350,13 +439,13 @@ mpp_frame_get_roi:
 	.save {r4, lr}
 	mov	r4, r0
 	bl	check_is_mpp_frame
-	cbnz	r0, .L69
+	cbnz	r0, .L83
 	ldr	r0, [r4, #148]
-.L67:
+.L81:
 	pop	{r4, pc}
-.L69:
+.L83:
 	movs	r0, #0
-	b	.L67
+	b	.L81
 	.fnend
 	.size	mpp_frame_get_roi, .-mpp_frame_get_roi
 	.align	1
@@ -376,43 +465,43 @@ mpp_frame_add_osd:
 	mov	r5, r1
 	bl	check_is_mpp_frame
 	mov	r4, r0
-	cbnz	r0, .L77
-	cbz	r5, .L77
-	ldr	r8, .L84
+	cbnz	r0, .L91
+	cbz	r5, .L91
+	ldr	r8, .L98
 	mov	r7, r0
-	ldr	r9, .L84+4
+	ldr	r9, .L98+4
 	str	r5, [r6, #152]
 	mov	r6, r5
-.L72:
+.L86:
 	ldr	r3, [r5, #4]
 	cmp	r3, r7
-	bhi	.L75
-.L70:
+	bhi	.L89
+.L84:
 	mov	r0, r4
 	pop	{r3, r4, r5, r6, r7, r8, r9, pc}
-.L75:
+.L89:
 	ldr	r0, [r6, #136]
-	cbz	r0, .L73
+	cbz	r0, .L87
 	mov	r2, r8
 	mov	r1, r9
 	bl	mpi_buf_ref_with_tag
-.L73:
+.L87:
 	ldr	r0, [r6, #88]
-	cbz	r0, .L74
+	cbz	r0, .L88
 	mov	r2, r8
 	mov	r1, r9
 	bl	mpi_buf_ref_with_tag
-.L74:
+.L88:
 	adds	r7, r7, #1
 	adds	r6, r6, #140
-	b	.L72
-.L77:
+	b	.L86
+.L91:
 	mvn	r4, #2
-	b	.L70
-.L85:
+	b	.L84
+.L99:
 	.align	2
-.L84:
-	.word	.LANCHOR0+104
+.L98:
+	.word	.LANCHOR1+146
 	.word	.LC0
 	.fnend
 	.size	mpp_frame_add_osd, .-mpp_frame_add_osd
@@ -431,13 +520,13 @@ mpp_frame_get_osd:
 	.save {r4, lr}
 	mov	r4, r0
 	bl	check_is_mpp_frame
-	cbnz	r0, .L88
+	cbnz	r0, .L102
 	ldr	r0, [r4, #152]
-.L86:
+.L100:
 	pop	{r4, pc}
-.L88:
+.L102:
 	movs	r0, #0
-	b	.L86
+	b	.L100
 	.fnend
 	.size	mpp_frame_get_osd, .-mpp_frame_get_osd
 	.align	1
@@ -456,14 +545,14 @@ mpp_frame_add_ppinfo:
 	mov	r5, r0
 	mov	r4, r1
 	bl	check_is_mpp_frame
-	cbnz	r0, .L92
-	cbz	r4, .L92
+	cbnz	r0, .L106
+	cbz	r4, .L106
 	str	r4, [r5, #168]
-.L89:
+.L103:
 	pop	{r3, r4, r5, pc}
-.L92:
+.L106:
 	mvn	r0, #2
-	b	.L89
+	b	.L103
 	.fnend
 	.size	mpp_frame_add_ppinfo, .-mpp_frame_add_ppinfo
 	.align	1
@@ -481,13 +570,13 @@ mpp_frame_get_ppinfo:
 	.save {r4, lr}
 	mov	r4, r0
 	bl	check_is_mpp_frame
-	cbnz	r0, .L95
+	cbnz	r0, .L109
 	ldr	r0, [r4, #168]
-.L93:
+.L107:
 	pop	{r4, pc}
-.L95:
+.L109:
 	movs	r0, #0
-	b	.L93
+	b	.L107
 	.fnend
 	.size	mpp_frame_get_ppinfo, .-mpp_frame_get_ppinfo
 	.align	1
@@ -539,36 +628,36 @@ mpp_frame_copy:
 	.pad #8
 	mov	r6, r1
 	mov	r5, r0
-	cbnz	r0, .L99
-.L101:
+	cbnz	r0, .L113
+.L115:
 	str	r6, [sp]
 	mov	r3, r5
-	movw	r2, #261
-	ldr	r1, .L102
-	ldr	r0, .L102+4
+	movw	r2, #303
+	ldr	r1, .L116
+	ldr	r0, .L116+4
 	mvn	r4, #1
 	bl	printk
-.L98:
+.L112:
 	mov	r0, r4
 	add	sp, sp, #8
 	@ sp needed
 	pop	{r4, r5, r6, pc}
-.L99:
+.L113:
 	mov	r0, r1
 	bl	check_is_mpp_frame
 	mov	r4, r0
 	cmp	r0, #0
-	bne	.L101
-	movs	r2, #176
+	bne	.L115
+	movs	r2, #184
 	mov	r1, r6
 	mov	r0, r5
 	bl	memcpy
 	str	r4, [r5, #152]
-	b	.L98
-.L103:
+	b	.L112
+.L117:
 	.align	2
-.L102:
-	.word	.LANCHOR0+122
+.L116:
+	.word	.LANCHOR1+164
 	.word	.LC4
 	.fnend
 	.size	mpp_frame_copy, .-mpp_frame_copy
@@ -588,53 +677,53 @@ mpp_frame_info_cmp:
 	mov	r4, r0
 	mov	r5, r1
 	bl	check_is_mpp_frame
-	cbz	r0, .L105
-.L107:
-	movw	r2, #295
-	ldr	r1, .L113
-	ldr	r0, .L113+4
+	cbz	r0, .L119
+.L121:
+	mov	r2, #338
+	ldr	r1, .L127
+	ldr	r0, .L127+4
 	bl	printk
 	mvn	r0, #2
-.L104:
+.L118:
 	pop	{r3, r4, r5, pc}
-.L105:
+.L119:
 	mov	r0, r4
 	bl	check_is_mpp_frame
 	cmp	r0, #0
-	bne	.L107
+	bne	.L121
 	ldr	r2, [r4, #4]
 	ldr	r3, [r5, #4]
 	cmp	r2, r3
-	bne	.L112
+	bne	.L126
 	ldr	r2, [r4, #8]
 	ldr	r3, [r5, #8]
 	cmp	r2, r3
-	bne	.L112
+	bne	.L126
 	ldr	r2, [r4, #12]
 	ldr	r3, [r5, #12]
 	cmp	r2, r3
-	bne	.L112
+	bne	.L126
 	ldr	r2, [r4, #16]
 	ldr	r3, [r5, #16]
 	cmp	r2, r3
-	bne	.L112
+	bne	.L126
 	ldr	r2, [r4, #96]
 	ldr	r3, [r5, #96]
 	cmp	r2, r3
-	bne	.L112
+	bne	.L126
 	ldr	r0, [r4, #140]
 	ldr	r3, [r5, #140]
 	subs	r0, r0, r3
 	it	ne
 	movne	r0, #-1
-	b	.L104
-.L112:
+	b	.L118
+.L126:
 	mov	r0, #-1
-	b	.L104
-.L114:
+	b	.L118
+.L128:
 	.align	2
-.L113:
-	.word	.LANCHOR0+137
+.L127:
+	.word	.LANCHOR1+179
 	.word	.LC2
 	.fnend
 	.size	mpp_frame_info_cmp, .-mpp_frame_info_cmp
@@ -653,12 +742,12 @@ mpp_frame_get_fbc_offset:
 	.save {r4, lr}
 	mov	r4, r0
 	bl	check_is_mpp_frame
-	cbnz	r0, .L119
+	cbnz	r0, .L133
 	ldr	r3, [r4, #96]
 	ands	r3, r3, #15728640
-	beq	.L117
+	beq	.L131
 	cmp	r3, #1048576
-	bne	.L118
+	bne	.L132
 	ldr	r0, [r4, #4]
 	ldr	r3, [r4, #8]
 	adds	r0, r0, #15
@@ -670,15 +759,15 @@ mpp_frame_get_fbc_offset:
 	addw	r0, r0, #4095
 	bic	r0, r0, #4080
 	bic	r0, r0, #15
-.L118:
+.L132:
 	str	r0, [r4, #144]
-.L117:
+.L131:
 	ldr	r0, [r4, #144]
-.L115:
+.L129:
 	pop	{r4, pc}
-.L119:
+.L133:
 	movs	r0, #0
-	b	.L115
+	b	.L129
 	.fnend
 	.size	mpp_frame_get_fbc_offset, .-mpp_frame_get_fbc_offset
 	.align	1
@@ -696,15 +785,15 @@ mpp_frame_get_fbc_stride:
 	.save {r4, lr}
 	mov	r4, r0
 	bl	check_is_mpp_frame
-	cbnz	r0, .L126
+	cbnz	r0, .L140
 	ldr	r0, [r4, #4]
 	adds	r0, r0, #15
 	bic	r0, r0, #15
-.L124:
+.L138:
 	pop	{r4, pc}
-.L126:
+.L140:
 	movs	r0, #0
-	b	.L124
+	b	.L138
 	.fnend
 	.size	mpp_frame_get_fbc_stride, .-mpp_frame_get_fbc_stride
 	.align	1
@@ -1880,44 +1969,98 @@ mpp_frame_set_phy_addr:
 	pop	{r3, r4, r5, pc}
 	.fnend
 	.size	mpp_frame_set_phy_addr, .-mpp_frame_set_phy_addr
+	.align	1
+	.global	mpp_frame_get_idr_request
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpp_frame_get_idr_request, %function
+mpp_frame_get_idr_request:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r4, lr}
+	.save {r4, lr}
+	mov	r4, r0
+	bl	check_is_mpp_frame
+	ldr	r0, [r4, #176]
+	pop	{r4, pc}
+	.fnend
+	.size	mpp_frame_get_idr_request, .-mpp_frame_get_idr_request
+	.align	1
+	.global	mpp_frame_set_idr_request
+	.syntax unified
+	.thumb
+	.thumb_func
+	.fpu softvfp
+	.type	mpp_frame_set_idr_request, %function
+mpp_frame_set_idr_request:
+	.fnstart
+	@ args = 0, pretend = 0, frame = 0
+	@ frame_needed = 0, uses_anonymous_args = 0
+	push	{r3, r4, r5, lr}
+	.save {r3, r4, r5, lr}
+	mov	r4, r0
+	mov	r5, r1
+	bl	check_is_mpp_frame
+	str	r5, [r4, #176]
+	pop	{r3, r4, r5, pc}
+	.fnend
+	.size	mpp_frame_set_idr_request, .-mpp_frame_set_idr_request
 	.section	.rodata
-	.set	.LANCHOR0,. + 0
-	.type	__func__.8675, %object
-	.size	__func__.8675, 19
-__func__.8675:
+	.set	.LANCHOR1,. + 0
+	.type	__FUNCTION__.8743, %object
+	.size	__FUNCTION__.8743, 20
+__FUNCTION__.8743:
+	.ascii	"mpp_frame_pool_init\000"
+	.type	__FUNCTION__.8747, %object
+	.size	__FUNCTION__.8747, 22
+__FUNCTION__.8747:
+	.ascii	"mpp_frame_pool_deinit\000"
+	.type	__func__.8757, %object
+	.size	__func__.8757, 19
+__func__.8757:
 	.ascii	"check_is_mpp_frame\000"
-	.type	__func__.8682, %object
-	.size	__func__.8682, 15
-__func__.8682:
+	.type	__func__.8764, %object
+	.size	__func__.8764, 15
+__func__.8764:
 	.ascii	"mpp_frame_init\000"
-	.type	__FUNCTION__.8683, %object
-	.size	__FUNCTION__.8683, 15
-__FUNCTION__.8683:
+	.type	__FUNCTION__.8765, %object
+	.size	__FUNCTION__.8765, 15
+__FUNCTION__.8765:
 	.ascii	"mpp_frame_init\000"
-	.type	__func__.8688, %object
-	.size	__func__.8688, 17
-__func__.8688:
-	.ascii	"mpp_frame_deinit\000"
-	.type	__FUNCTION__.8689, %object
-	.size	__FUNCTION__.8689, 17
-__FUNCTION__.8689:
-	.ascii	"mpp_frame_deinit\000"
-	.type	__FUNCTION__.8713, %object
-	.size	__FUNCTION__.8713, 21
-__FUNCTION__.8713:
-	.ascii	"mpp_frame_set_buffer\000"
-	.type	__FUNCTION__.8734, %object
-	.size	__FUNCTION__.8734, 18
-__FUNCTION__.8734:
-	.ascii	"mpp_frame_add_osd\000"
-	.type	__func__.8763, %object
-	.size	__func__.8763, 15
-__func__.8763:
-	.ascii	"mpp_frame_copy\000"
 	.type	__func__.8770, %object
-	.size	__func__.8770, 19
+	.size	__func__.8770, 17
 __func__.8770:
+	.ascii	"mpp_frame_deinit\000"
+	.type	__FUNCTION__.8771, %object
+	.size	__FUNCTION__.8771, 17
+__FUNCTION__.8771:
+	.ascii	"mpp_frame_deinit\000"
+	.type	__FUNCTION__.8795, %object
+	.size	__FUNCTION__.8795, 21
+__FUNCTION__.8795:
+	.ascii	"mpp_frame_set_buffer\000"
+	.type	__FUNCTION__.8816, %object
+	.size	__FUNCTION__.8816, 18
+__FUNCTION__.8816:
+	.ascii	"mpp_frame_add_osd\000"
+	.type	__func__.8845, %object
+	.size	__func__.8845, 15
+__func__.8845:
+	.ascii	"mpp_frame_copy\000"
+	.type	__func__.8852, %object
+	.size	__func__.8852, 19
+__func__.8852:
 	.ascii	"mpp_frame_info_cmp\000"
+	.bss
+	.align	2
+	.set	.LANCHOR0,. + 0
+	.type	g_frame_pool, %object
+	.size	g_frame_pool, 4
+g_frame_pool:
+	.space	4
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:
 	.ascii	"mpp_frame\000"

@@ -34,6 +34,7 @@ alsa_lib-build: pre-built
 		cp -af $(CURRENT_DIR)/$(PATCH_DIR)/* ./; \
 		$(SHELL) ./alsa-lib.patch.sh; \
 		autoreconf -f -i; \
+		CFLAGS="$(RK_MEDIA_CROSS_CFLAGS)" \
 		./configure --target=$(RK_MEDIA_CROSS) \
 					--host=$(RK_MEDIA_CROSS) \
 					--prefix=$(CURRENT_DIR)/$(PKG_BIN)/ \

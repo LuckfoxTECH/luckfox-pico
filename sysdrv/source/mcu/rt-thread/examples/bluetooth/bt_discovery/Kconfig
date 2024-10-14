@@ -1,0 +1,6 @@
+menu "Example 'BT DISCOVERY' Config"
+
+    config BT_DISCOVERY_EXAMPLES
+        bool "init bluetooth or open scan mode"
+        default n
+endmenu

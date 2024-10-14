@@ -1406,7 +1406,7 @@ rkisp_stats_isr_v2x(struct rkisp_isp_stats_vdev *stats_vdev,
 		work.frame_id = cur_frame_id;
 		work.isp_ris = temp_isp_ris | isp_ris;
 		work.isp3a_ris = temp_isp3a_ris | iq_3a_mask;
-		work.timestamp = ktime_get_ns();
+		work.timestamp = rkisp_time_get_ns(dev);
 
 		if (!IS_HDR_RDBK(dev->hdr.op_mode)) {
 			if (!kfifo_is_full(&stats_vdev->rd_kfifo))
@@ -1458,10 +1458,19 @@ rkisp_stats_rdbk_enable_v2x(struct rkisp_isp_stats_vdev *stats_vdev, bool en)
 	stats_vdev->rdbk_mode = en;
 }
 
+static void
+rkisp_get_stat_size_v2x(struct rkisp_isp_stats_vdev *stats_vdev,
+			unsigned int sizes[])
+{
+	sizes[0] = sizeof(struct rkisp_isp2x_stat_buffer);
+	stats_vdev->vdev_fmt.fmt.meta.buffersize = sizes[0];
+}
+
 static struct rkisp_isp_stats_ops rkisp_isp_stats_ops_tbl = {
 	.isr_hdl = rkisp_stats_isr_v2x,
 	.send_meas = rkisp_stats_send_meas_v2x,
 	.rdbk_enable = rkisp_stats_rdbk_enable_v2x,
+	.get_stat_size = rkisp_get_stat_size_v2x,
 };
 
 void rkisp_stats_first_ddr_config_v2x(struct rkisp_isp_stats_vdev *stats_vdev)
@@ -1491,11 +1500,6 @@ void rkisp_stats_first_ddr_config_v2x(struct rkisp_isp_stats_vdev *stats_vdev)
 
 void rkisp_init_stats_vdev_v2x(struct rkisp_isp_stats_vdev *stats_vdev)
 {
-	stats_vdev->vdev_fmt.fmt.meta.dataformat =
-		V4L2_META_FMT_RK_ISP1_STAT_3A;
-	stats_vdev->vdev_fmt.fmt.meta.buffersize =
-		sizeof(struct rkisp_isp2x_stat_buffer);
-
 	stats_vdev->ops = &rkisp_isp_stats_ops_tbl;
 	stats_vdev->priv_ops = &rkisp_stats_reg_ops_v2x;
 

@@ -42,6 +42,8 @@ XCamReturn rk_aiq_uapi_ae_getIrisAttr(RkAiqAlgoContext* ctx, Uapi_IrisAttrV2_t* 
 XCamReturn rk_aiq_uapi_ae_queryExpInfo(RkAiqAlgoContext* ctx, Uapi_ExpQueryInfo_t* pExpInfo, bool isGroupAe);
 XCamReturn rk_aiq_uapi_ae_setExpWinAttr(RkAiqAlgoContext* ctx, const Uapi_ExpWin_t* pExpWinAttr, bool need_sync);
 XCamReturn rk_aiq_uapi_ae_getExpWinAttr(RkAiqAlgoContext* ctx, Uapi_ExpWin_t* pExpWinAttr);
-
+XCamReturn rk_aiq_uapi_ae_setAecStatsCfg(RkAiqAlgoContext* ctx, const Uapi_AecStatsCfg_t* pAecStatsCfg, bool isGroupAe, bool need_sync);
+XCamReturn rk_aiq_uapi_ae_getAecStatsCfg(RkAiqAlgoContext* ctx, Uapi_AecStatsCfg_t* pAecStatsCfg, bool isGroupAe);
+XCamReturn rk_aiq_uapi_ae_setAOV(RkAiqAlgoContext* ctx, bool enAOV);
 
 #endif /*__RK_AIQ_UAPI_AE_INT_H__*/

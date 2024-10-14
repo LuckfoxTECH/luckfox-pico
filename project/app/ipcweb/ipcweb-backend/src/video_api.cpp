@@ -26,7 +26,7 @@ nlohmann::json video_param_get(int stream_id) {
   nlohmann::json param;
   param.emplace("id", stream_id);
 
-  char *tmp = new char[20];
+  char *tmp = new char[256];
 
   int gop = 0;
   rk_video_get_gop(stream_id, &gop);
@@ -454,7 +454,7 @@ void VideoApiHandler::handler(const HttpRequest &Req, HttpResponse &Resp) {
       int id = stoi(path_stream_resource.substr(0, 1));
       if (path_specific_resource.empty()) { // path example is video/0
         // id and sStreamType must correspond
-        char *stream_type = new char[20];
+        char *stream_type = new char[32];
         strcpy(stream_type,
                (video_config.at("sStreamType").get<std::string>()).c_str());
         if ((id == 0) && (strcmp(stream_type, "mainStream")))

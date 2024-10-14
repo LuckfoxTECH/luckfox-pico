@@ -1,0 +1,22 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2024 Rockchip Electronics Co., Ltd.
+ */
+
+/dts-v1/;
+
+#include "rv1106g-evb2-v12-wakeup.dts"
+
+/ {
+	model = "Rockchip RV1106G EVB2 V14 Board";
+	compatible = "rockchip,rv1106g-evb2-v14-wakeup", "rockchip,rv1106";
+
+	vcc3v3_sd: vcc3v3-sd {
+		enable-active-high;
+	};
+};
+
+&acodec {
+	pa-ctl-gpios = <&gpio1 RK_PB1 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+};

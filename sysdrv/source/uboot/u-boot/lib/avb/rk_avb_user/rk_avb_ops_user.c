@@ -158,6 +158,7 @@ int rk_avb_write_lock_state(uint8_t lock_state)
 int rk_avb_read_lock_state(uint8_t *lock_state)
 {
 #ifdef CONFIG_OPTEE_CLIENT
+	uint8_t vboot_flag = 0;
 	int ret;
 
 	ret = trusty_read_lock_state(lock_state);
@@ -167,7 +168,16 @@ int rk_avb_read_lock_state(uint8_t *lock_state)
 	case TEE_ERROR_GENERIC:
 	case TEE_ERROR_NO_DATA:
 	case TEE_ERROR_ITEM_NOT_FOUND:
-		*lock_state = 1;
+		if (trusty_read_vbootkey_enable_flag(&vboot_flag)) {
+			printf("Can't read vboot flag\n");
+			return -1;
+		}
+
+		if (vboot_flag)
+			*lock_state = 0;
+		else
+			*lock_state = 1;
+
 		if (rk_avb_write_lock_state(*lock_state)) {
 			printf("avb_write_lock_state error!");
 			ret = -1;

@@ -1,0 +1,52 @@
+menuconfig RT_USING_AUPIPE
+    bool "Enable Audio Pipeline for rt-thread"
+    default n
+
+if RT_USING_AUPIPE
+
+    menu "Audio Pipeline Plug-in Select"
+
+        config RT_USING_AUPIPE_AUDIOSRC
+            bool "Enable audiosrc"
+            depends on RT_USING_AUPIPE
+            default n
+
+        config RT_USING_AUPIPE_AUDIOSINK
+            bool "Enable audiosink"
+            depends on RT_USING_AUPIPE
+            default n
+
+        config RT_USING_AUPIPE_QUEUE
+            bool "Enable queue"
+            depends on RT_USING_AUPIPE
+            default n
+
+        config RT_USING_AUPIPE_AUDIOROUTE
+            bool "Enable audioroute"
+            depends on RT_USING_AUPIPE
+            default n
+
+        config RT_USING_AUPIPE_AUDIOTEE
+            bool "Enable audiotee"
+            depends on RT_USING_AUPIPE
+            default n
+
+        config RT_USING_AUPIPE_FILESRC
+            bool "Enable filesrc"
+            depends on RT_USING_AUPIPE
+            default n
+
+        config RT_USING_AUPIPE_FILESINK
+            bool "Enable filesink"
+            depends on RT_USING_AUPIPE
+            default n
+
+        config RT_USING_AUPIPE_ECNR
+            bool "Enable ECNR"
+            depends on RT_USING_AUPIPE
+            depends on RT_USING_RPMSG_LITE
+            default n
+
+    endmenu
+
+endif

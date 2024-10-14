@@ -52,7 +52,7 @@ struct _raw_format
     unsigned char byte_order;
 }__attribute__ ((packed));
 
-struct _frame_info
+typedef struct rk_aiq_frame_info_s
 {
     unsigned short tag;
     unsigned int size;
@@ -81,6 +81,6 @@ struct _frame_info
 
     float awg_rgain;
     float awg_bgain;
-}__attribute__ ((packed));
+}__attribute__ ((packed)) rk_aiq_frame_info_t;
 
 #endif

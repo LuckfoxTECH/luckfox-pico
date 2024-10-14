@@ -515,7 +515,7 @@ static int set_gpt_info(struct blk_desc *dev_desc,
 			parts[i].size = 0;
 		} else {
 			size_ll = ustrtoull(p, &p, 0);
-			parts[i].size = lldiv(size_ll, dev_desc->blksz);
+			parts[i].size = lldiv(size_ll, dev_desc->rawblksz);
 		}
 
 		free(val);
@@ -526,7 +526,7 @@ static int set_gpt_info(struct blk_desc *dev_desc,
 			if (extract_env(val, &p))
 				p = val;
 			start_ll = ustrtoull(p, &p, 0);
-			parts[i].start = lldiv(start_ll, dev_desc->blksz);
+			parts[i].start = lldiv(start_ll, dev_desc->rawblksz);
 			free(val);
 		}
 
@@ -580,8 +580,7 @@ static int gpt_default(struct blk_desc *blk_dev_desc, const char *str_part)
 
 static int gpt_verify(struct blk_desc *blk_dev_desc, const char *str_part)
 {
-	ALLOC_CACHE_ALIGN_BUFFER_PAD(gpt_header, gpt_head, 1,
-				     blk_dev_desc->blksz);
+	ALLOC_CACHE_ALIGN_BUFFER_PAD(gpt_header, gpt_head, 1, blk_dev_desc->rawblksz);
 	disk_partition_t *partitions = NULL;
 	gpt_entry *gpt_pte = NULL;
 	char *str_disk_guid;
@@ -838,6 +837,11 @@ static int do_gpt(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		printf("%s: %s dev %d NOT available\n",
 		       __func__, argv[2], dev);
 		return CMD_RET_FAILURE;
+	}
+
+	if (!blk_dev_desc->rawblksz || !blk_dev_desc->rawlba) {
+		blk_dev_desc->rawblksz = blk_dev_desc->blksz;
+		blk_dev_desc->rawlba = blk_dev_desc->lba;
 	}
 
 	if ((strcmp(argv[1], "write") == 0) && (argc == 5)) {

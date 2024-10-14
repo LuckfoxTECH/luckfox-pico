@@ -9,6 +9,9 @@
 #ifndef __CHARSET_H_
 #define __CHARSET_H_
 
+#include <linux/kernel.h>
+#include <linux/types.h>
+
 #define MAX_UTF8_PER_UTF16 4
 
 /**

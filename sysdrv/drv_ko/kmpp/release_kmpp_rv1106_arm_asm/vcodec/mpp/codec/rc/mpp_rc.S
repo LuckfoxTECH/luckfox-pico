@@ -323,7 +323,6 @@ mpp_pid_update:
 	@ frame_needed = 0, uses_anonymous_args = 0
 	@ link register save eliminated.
 	ldr	r3, [r0]
-	ldr	r2, [r0, #28]
 	subs	r3, r1, r3
 	str	r3, [r0, #8]
 	ldr	r3, [r0, #4]
@@ -332,12 +331,15 @@ mpp_pid_update:
 	ldr	r3, [r0, #32]
 	adds	r3, r3, #1
 	str	r3, [r0, #32]
+	cbz	r2, .L49
+	ldr	r2, [r0, #28]
 	cmp	r3, r2
 	itttt	ge
 	movge	r3, #0
 	strdge	r3, r3, [r0]
 	strge	r3, [r0, #8]
 	strge	r3, [r0, #32]
+.L49:
 	bx	lr
 	.fnend
 	.size	mpp_pid_update, .-mpp_pid_update
@@ -377,25 +379,25 @@ mpp_pid_calc:
 	.size	mpp_pid_calc, .-mpp_pid_calc
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__func__.8407, %object
-	.size	__func__.8407, 14
-__func__.8407:
+	.type	__func__.8458, %object
+	.size	__func__.8458, 14
+__func__.8458:
 	.ascii	"mpp_data_init\000"
-	.type	__FUNCTION__.8408, %object
-	.size	__FUNCTION__.8408, 14
-__FUNCTION__.8408:
+	.type	__FUNCTION__.8459, %object
+	.size	__FUNCTION__.8459, 14
+__FUNCTION__.8459:
 	.ascii	"mpp_data_init\000"
-	.type	__FUNCTION__.8412, %object
-	.size	__FUNCTION__.8412, 16
-__FUNCTION__.8412:
+	.type	__FUNCTION__.8463, %object
+	.size	__FUNCTION__.8463, 16
+__FUNCTION__.8463:
 	.ascii	"mpp_data_deinit\000"
-	.type	__FUNCTION__.8417, %object
-	.size	__FUNCTION__.8417, 16
-__FUNCTION__.8417:
+	.type	__FUNCTION__.8468, %object
+	.size	__FUNCTION__.8468, 16
+__FUNCTION__.8468:
 	.ascii	"mpp_data_update\000"
-	.type	__FUNCTION__.8429, %object
-	.size	__FUNCTION__.8429, 13
-__FUNCTION__.8429:
+	.type	__FUNCTION__.8480, %object
+	.size	__FUNCTION__.8480, 13
+__FUNCTION__.8480:
 	.ascii	"mpp_data_avg\000"
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:

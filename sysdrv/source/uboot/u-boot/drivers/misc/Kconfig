@@ -85,6 +85,12 @@ config ROCKCHIP_HW_DECOMPRESS
 	  This driver support Decompress IP built-in Rockchip SoC, support
 	  LZ4, GZIP, PNG, ZLIB.
 
+config ROCKCHIP_PM_CONFIG
+	bool "Rockchip PM Config Support"
+	depends on ARM_CPU_SUSPEND
+	help
+	  This driver supports to configure parameters of system sleep.
+
 config SPL_ROCKCHIP_HW_DECOMPRESS
 	bool "Rockchip HardWare Decompress Support"
 	depends on SPL_MISC_DECOMPRESS

@@ -1,0 +1,5 @@
+config AIC8800_NETDRV_SUPPORT
+    tristate "AIC8800 NETDRV Support"
+    default y
+    ---help---
+        This is support for AIC vnet driver

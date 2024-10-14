@@ -41,7 +41,7 @@ typedef struct CalibDbV2_SharpV4_kernel_s {
 
     // M4_ARRAY_DESC("prefilter_coeff", "f32", M4_SIZE(1,3), M4_RANGE(0,1), "[0.2042,0.1238,0.0751]", M4_DIGIT(4), M4_DYNAMIC(0))
     float prefilter_coeff[3];
-    // M4_ARRAY_DESC("GaussianFilter_coeff", "f32", M4_SIZE(1,6), M4_RANGE(0,1), "[0.2042,0.1238,0.0751]", M4_DIGIT(4), M4_DYNAMIC(0))
+    // M4_ARRAY_DESC("GaussianFilter_coeff", "f32", M4_SIZE(1,6), M4_RANGE(0,1), "[0.2042,0.1238,0.0751,0,0,0]", M4_DIGIT(4), M4_DYNAMIC(0))
     float GaussianFilter_coeff[6];
     // M4_ARRAY_DESC("hfBilateralFilter_coeff", "f32", M4_SIZE(1,3), M4_RANGE(0,1), "[0.2042,0.1238,0.0751]", M4_DIGIT(4), M4_DYNAMIC(0))
     float hfBilateralFilter_coeff[3];

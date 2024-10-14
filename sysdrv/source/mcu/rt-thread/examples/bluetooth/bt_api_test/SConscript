@@ -1,0 +1,11 @@
+Import('RTT_ROOT')
+Import('rtconfig')
+from building import *
+
+src = Glob('*.c')
+
+CPPPATH = ""
+
+group = DefineGroup('examples', src, depend = ['BT_API_TEST'], CPPPATH = CPPPATH)
+
+Return('group')

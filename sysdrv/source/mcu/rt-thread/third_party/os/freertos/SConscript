@@ -1,0 +1,13 @@
+from building import *
+import rtconfig
+
+cwd      = GetCurrentDir()
+src      = Glob('Source/*.c')
+src     += Glob('Source/portable/MemMang/heap_6.c')
+src     += Glob('Source/portable/GCC/ARM_CM4F/*.c')
+src     += Glob('adapt/*.c')
+path     = [cwd, cwd + '/adapt', cwd + '/Source/include', cwd + '/Source/portable/GCC/ARM_CM4F']
+
+group = DefineGroup('core_freertos', src, depend = ['RT_USING_CORE_FREERTOS'], CPPPATH = path)
+
+Return('group')

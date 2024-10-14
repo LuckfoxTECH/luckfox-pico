@@ -111,10 +111,10 @@ typedef struct FT_IncrementalRec_ *FT_Incremental;
  *
  */
 typedef struct FT_Incremental_MetricsRec_ {
-  FT_Long bearing_x;
-  FT_Long bearing_y;
-  FT_Long advance;
-  FT_Long advance_v; /* since 2.3.12 */
+	FT_Long bearing_x;
+	FT_Long bearing_y;
+	FT_Long advance;
+	FT_Long advance_v; /* since 2.3.12 */
 
 } FT_Incremental_MetricsRec;
 
@@ -170,8 +170,7 @@ typedef struct FT_Incremental_MetricsRec_ *FT_Incremental_Metrics;
  *   compound glyphs.
  *
  */
-typedef FT_Error (*FT_Incremental_GetGlyphDataFunc)(FT_Incremental incremental,
-                                                    FT_UInt glyph_index,
+typedef FT_Error (*FT_Incremental_GetGlyphDataFunc)(FT_Incremental incremental, FT_UInt glyph_index,
                                                     FT_Data *adata);
 
 /**************************************************************************
@@ -193,8 +192,7 @@ typedef FT_Error (*FT_Incremental_GetGlyphDataFunc)(FT_Incremental incremental,
  *     as a read-only byte block).
  *
  */
-typedef void (*FT_Incremental_FreeGlyphDataFunc)(FT_Incremental incremental,
-                                                 FT_Data *data);
+typedef void (*FT_Incremental_FreeGlyphDataFunc)(FT_Incremental incremental, FT_Data *data);
 
 /**************************************************************************
  *
@@ -228,9 +226,9 @@ typedef void (*FT_Incremental_FreeGlyphDataFunc)(FT_Incremental incremental,
  *     The replacement glyph metrics in font units.
  *
  */
-typedef FT_Error (*FT_Incremental_GetGlyphMetricsFunc)(
-    FT_Incremental incremental, FT_UInt glyph_index, FT_Bool vertical,
-    FT_Incremental_MetricsRec *ametrics);
+typedef FT_Error (*FT_Incremental_GetGlyphMetricsFunc)(FT_Incremental incremental,
+                                                       FT_UInt glyph_index, FT_Bool vertical,
+                                                       FT_Incremental_MetricsRec *ametrics);
 
 /**************************************************************************
  *
@@ -254,9 +252,9 @@ typedef FT_Error (*FT_Incremental_GetGlyphMetricsFunc)(
  *
  */
 typedef struct FT_Incremental_FuncsRec_ {
-  FT_Incremental_GetGlyphDataFunc get_glyph_data;
-  FT_Incremental_FreeGlyphDataFunc free_glyph_data;
-  FT_Incremental_GetGlyphMetricsFunc get_glyph_metrics;
+	FT_Incremental_GetGlyphDataFunc get_glyph_data;
+	FT_Incremental_FreeGlyphDataFunc free_glyph_data;
+	FT_Incremental_GetGlyphMetricsFunc get_glyph_metrics;
 
 } FT_Incremental_FuncsRec;
 
@@ -297,8 +295,8 @@ typedef struct FT_Incremental_FuncsRec_ {
  *
  */
 typedef struct FT_Incremental_InterfaceRec_ {
-  const FT_Incremental_FuncsRec *funcs;
-  FT_Incremental object;
+	const FT_Incremental_FuncsRec *funcs;
+	FT_Incremental object;
 
 } FT_Incremental_InterfaceRec;
 

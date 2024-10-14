@@ -638,7 +638,7 @@ static ulong rk3128_clk_set_rate(struct clk *clk, ulong rate)
 		ret = rk3128_bus_set_clk(priv, clk->id, rate);
 		break;
 	case SCLK_SPI0:
-		rate = rk3128_spi_set_clk(priv, rate);
+		ret = rk3128_spi_set_clk(priv, rate);
 		break;
 #ifndef CONFIG_SPL_BUILD
 	case SCLK_SARADC:

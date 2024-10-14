@@ -1,0 +1,6 @@
+menu "Example 'BT API TEST' Config"
+
+    config BT_API_TEST
+        bool "BlueDroid API test for app"
+        default n
+endmenu

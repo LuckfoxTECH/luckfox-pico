@@ -51,14 +51,14 @@ h265e_find_cpb_frame.constprop.3:
 	cmp	r2, #0
 	beq	.L4
 	ldrb	r1, [r4, #24]	@ zero_extendqisi2
+	lsls	r0, r1, #31
 	mov	r2, r1
-	lsls	r1, r1, #31
 	bpl	.L4
 	ldrh	r1, [r4, #30]
 	cmp	r7, r1
 	bne	.L4
 	ldr	r1, [r8]
-	lsls	r0, r1, #24
+	lsls	r1, r1, #24
 	bpl	.L5
 	and	r2, r2, #1
 	ldr	r1, .L33+4
@@ -68,12 +68,14 @@ h265e_find_cpb_frame.constprop.3:
 	ldr	r0, .L33+12
 	bl	printk
 .L5:
-	ldrb	r3, [r4, #24]	@ zero_extendqisi2
-	ldrb	r2, [r6]	@ zero_extendqisi2
+	ldrb	r3, [r6]	@ zero_extendqisi2
+	lsls	r0, r3, #29
+	bmi	.L1
+	ldrb	r2, [r4, #24]	@ zero_extendqisi2
 	eors	r3, r3, r2
 	lsls	r1, r3, #25
 	bpl	.L6
-	mov	r1, #516
+	movw	r1, #518
 	ldr	r3, .L33+16
 	str	r1, [sp]
 	ldr	r2, .L33+20
@@ -85,7 +87,7 @@ h265e_find_cpb_frame.constprop.3:
 	eors	r3, r3, r2
 	lsls	r2, r3, #24
 	bpl	.L7
-	movw	r1, #517
+	movw	r1, #519
 	ldr	r3, .L33+16
 	str	r1, [sp]
 	ldr	r2, .L33+28
@@ -97,7 +99,7 @@ h265e_find_cpb_frame.constprop.3:
 	eors	r3, r3, r2
 	lsls	r3, r3, #28
 	beq	.L8
-	movw	r1, #518
+	mov	r1, #520
 	ldr	r3, .L33+16
 	str	r1, [sp]
 	ldr	r2, .L33+32
@@ -109,7 +111,7 @@ h265e_find_cpb_frame.constprop.3:
 	eors	r3, r3, r2
 	tst	r3, #240
 	beq	.L1
-	movw	r1, #519
+	movw	r1, #521
 	ldr	r3, .L33+16
 	str	r1, [sp]
 	ldr	r2, .L33+36
@@ -126,7 +128,7 @@ h265e_find_cpb_frame.constprop.3:
 	cmp	r3, #16
 	bne	.L9
 	mov	r3, r7
-	mov	r2, #524
+	movw	r2, #526
 	ldr	r1, .L33+4
 	movs	r5, #0
 	ldr	r0, .L33+40
@@ -1348,7 +1350,7 @@ h265e_dpb_cpb2rps:
 	ldr	r3, [r3]
 	lsls	r1, r3, #31
 	bpl	.L276
-	movw	r2, #569
+	movw	r2, #571
 	ldr	r1, .L323+4
 	ldr	r0, .L323+8
 	bl	printk
@@ -1381,7 +1383,7 @@ h265e_dpb_cpb2rps:
 	ldr	r3, [r4, #372]
 	ldrb	r3, [r3, #1]	@ zero_extendqisi2
 	cbnz	r3, .L278
-	movw	r1, #582
+	mov	r1, #584
 	ldr	r3, .L323+12
 	str	r1, [sp]
 	ldr	r2, .L323+16
@@ -1401,7 +1403,7 @@ h265e_dpb_cpb2rps:
 	bpl	.L279
 	lsls	r5, r3, #25
 	bpl	.L280
-	movw	r1, #591
+	movw	r1, #593
 	ldr	r3, .L323+12
 	str	r1, [sp]
 	ldr	r2, .L323+24
@@ -1423,7 +1425,7 @@ h265e_dpb_cpb2rps:
 	str	r1, [sp, #8]
 	str	r3, [sp, #4]
 	ldrh	r3, [r2, #6]
-	movw	r2, #595
+	movw	r2, #597
 	ldr	r1, .L323+4
 	str	r3, [sp]
 	mov	r3, r6
@@ -1460,7 +1462,7 @@ h265e_dpb_cpb2rps:
 	str	r1, [sp, #24]
 	cbz	r2, .L279
 	strd	r8, r3, [sp, #4]
-	mov	r2, #608
+	movw	r2, #610
 	str	fp, [sp]
 	mov	r3, r6
 	ldr	r1, .L323+4
@@ -1513,7 +1515,7 @@ h265e_dpb_cpb2rps:
 	ldr	r0, [r9]
 	ands	r0, r0, #1
 	beq	.L275
-	movw	r2, #671
+	movw	r2, #673
 	ldr	r1, .L323+4
 	ldr	r0, .L323+36
 	bl	printk
@@ -1541,7 +1543,7 @@ h265e_dpb_cpb2rps:
 	strd	r0, [r5, #24]
 	cbz	r2, .L283
 	strd	r8, r3, [sp, #4]
-	mov	r2, #620
+	movw	r2, #622
 	str	r10, [sp]
 	mov	r3, r6
 	ldr	r1, .L323+4
@@ -1558,7 +1560,7 @@ h265e_dpb_cpb2rps:
 	mov	r5, r0
 	cbnz	r0, .L287
 	ldrh	r2, [r7, #22]
-	movw	r1, #638
+	mov	r1, #640
 	ldr	r0, .L323+44
 	bl	printk
 	mov	r0, #-1
@@ -1591,7 +1593,7 @@ h265e_dpb_cpb2rps:
 	bpl	.L293
 	str	fp, [sp]
 	mov	r3, r10
-	movw	r2, #651
+	movw	r2, #653
 	ldr	r1, .L323+4
 	ldr	r0, .L323+48
 	bl	printk
@@ -1653,7 +1655,7 @@ h265e_dpb_free_unsed:
 	ldr	r3, [r5]
 	lsls	r1, r3, #31
 	bpl	.L326
-	movw	r2, #679
+	movw	r2, #681
 	ldr	r1, .L367+4
 	ldr	r0, .L367+8
 	bl	printk
@@ -1671,7 +1673,7 @@ h265e_dpb_free_unsed:
 	lsls	r2, r3, #24
 	bpl	.L330
 	ldr	r3, [r0, #56]
-	movw	r2, #686
+	mov	r2, #688
 	ldr	r1, .L367+4
 	ldr	r0, .L367+12
 	ldr	r3, [r3, #16]
@@ -1694,7 +1696,7 @@ h265e_dpb_free_unsed:
 	ldr	r3, [r5]
 	lsls	r3, r3, #31
 	bpl	.L333
-	movw	r2, #535
+	movw	r2, #537
 	mov	r1, r9
 	ldr	r0, .L367+8
 	bl	printk
@@ -1718,7 +1720,7 @@ h265e_dpb_free_unsed:
 	ldr	r3, [r5]
 	lsls	r1, r3, #31
 	bpl	.L336
-	movw	r2, #547
+	movw	r2, #549
 	mov	r1, r9
 	ldr	r0, .L367+16
 	bl	printk
@@ -1729,7 +1731,7 @@ h265e_dpb_free_unsed:
 	lsls	r2, r3, #24
 	bpl	.L338
 	ldr	r3, [r4, #56]
-	mov	r2, #700
+	movw	r2, #702
 	mov	r1, r8
 	mov	r0, r10
 	ldr	r3, [r3, #16]
@@ -1747,7 +1749,7 @@ h265e_dpb_free_unsed:
 	ldr	r3, [r5]
 	lsls	r3, r3, #31
 	bpl	.L325
-	mov	r2, #708
+	movw	r2, #710
 	ldr	r1, .L367+4
 	ldr	r0, .L367+16
 	pop	{r3, r4, r5, r6, r7, r8, r9, r10, fp, lr}
@@ -1818,7 +1820,7 @@ h265e_dpb_proc_cpb:
 	bpl	.L375
 	lsls	r2, r3, #25
 	bpl	.L376
-	mov	r1, #744
+	movw	r1, #746
 	ldr	r3, .L442
 	str	r1, [sp]
 	ldr	r2, .L442+4
@@ -1838,7 +1840,7 @@ h265e_dpb_proc_cpb:
 	str	r3, [sp, #4]
 	add	r3, r7, r5, lsl #3
 	str	r2, [sp, #8]
-	mov	r2, #748
+	movw	r2, #750
 	ldrh	r3, [r3, #6]
 	str	r3, [sp]
 	mov	r3, r8
@@ -1901,7 +1903,7 @@ h265e_dpb_proc_cpb:
 	ldr	r3, [r3]
 	lsls	r0, r3, #24
 	bpl	.L383
-	mov	r2, #760
+	movw	r2, #762
 	ldr	r1, .L442+12
 	ldr	r0, .L442+32
 	bl	printk
@@ -1956,7 +1958,7 @@ h265e_dpb_proc_cpb:
 	strd	r3, r2, [sp]
 	mov	r1, r7
 	mov	r3, r4
-	mov	r2, #788
+	movw	r2, #790
 	ldr	r0, .L442+36
 	bl	printk
 .L388:
@@ -2018,7 +2020,7 @@ h265e_dpb_build_list:
 	lsls	r2, r3, #31
 	ldr	r6, [r4, #16]
 	bpl	.L445
-	movw	r2, #801
+	movw	r2, #803
 	ldr	r1, .L472+4
 	ldr	r0, .L472+8
 	bl	printk
@@ -2103,7 +2105,7 @@ h265e_dpb_build_list:
 	ldr	r3, [r7]
 	lsls	r3, r3, #31
 	bpl	.L444
-	movw	r2, #885
+	movw	r2, #887
 	ldr	r1, .L472+4
 	ldr	r0, .L472+12
 	bl	printk
@@ -2140,105 +2142,105 @@ h265e_dpb_build_list:
 	.size	h265e_dpb_build_list, .-h265e_dpb_build_list
 	.section	.rodata
 	.set	.LANCHOR0,. + 0
-	.type	__func__.9719, %object
-	.size	__func__.9719, 21
-__func__.9719:
+	.type	__func__.9772, %object
+	.size	__func__.9772, 21
+__func__.9772:
 	.ascii	"h265e_find_cpb_frame\000"
-	.type	__FUNCTION__.9722, %object
-	.size	__FUNCTION__.9722, 21
-__FUNCTION__.9722:
+	.type	__FUNCTION__.9775, %object
+	.size	__FUNCTION__.9775, 21
+__FUNCTION__.9775:
 	.ascii	"h265e_find_cpb_frame\000"
-	.type	__func__.9519, %object
-	.size	__func__.9519, 23
-__func__.9519:
+	.type	__func__.9572, %object
+	.size	__func__.9572, 23
+__func__.9572:
 	.ascii	"h265e_dpb_set_ref_list\000"
-	.type	__func__.9533, %object
-	.size	__func__.9533, 20
-__func__.9533:
+	.type	__func__.9586, %object
+	.size	__func__.9586, 20
+__func__.9586:
 	.ascii	"h265e_dpb_init_curr\000"
-	.type	__FUNCTION__.9534, %object
-	.size	__FUNCTION__.9534, 20
-__FUNCTION__.9534:
+	.type	__FUNCTION__.9587, %object
+	.size	__FUNCTION__.9587, 20
+__FUNCTION__.9587:
 	.ascii	"h265e_dpb_init_curr\000"
-	.type	__func__.9541, %object
-	.size	__func__.9541, 19
-__func__.9541:
+	.type	__func__.9594, %object
+	.size	__func__.9594, 19
+__func__.9594:
 	.ascii	"h265e_dpb_get_curr\000"
-	.type	__FUNCTION__.9548, %object
-	.size	__FUNCTION__.9548, 21
-__FUNCTION__.9548:
+	.type	__FUNCTION__.9601, %object
+	.size	__FUNCTION__.9601, 21
+__FUNCTION__.9601:
 	.ascii	"h265e_dpb_frm_deinit\000"
-	.type	__func__.9549, %object
-	.size	__func__.9549, 21
-__func__.9549:
+	.type	__func__.9602, %object
+	.size	__func__.9602, 21
+__func__.9602:
 	.ascii	"h265e_dpb_frm_deinit\000"
-	.type	__func__.9557, %object
-	.size	__func__.9557, 15
-__func__.9557:
+	.type	__func__.9610, %object
+	.size	__func__.9610, 15
+__func__.9610:
 	.ascii	"h265e_dpb_init\000"
-	.type	__FUNCTION__.9558, %object
-	.size	__FUNCTION__.9558, 15
-__FUNCTION__.9558:
+	.type	__FUNCTION__.9611, %object
+	.size	__FUNCTION__.9611, 15
+__FUNCTION__.9611:
 	.ascii	"h265e_dpb_init\000"
-	.type	__func__.9568, %object
-	.size	__func__.9568, 17
-__func__.9568:
+	.type	__func__.9621, %object
+	.size	__func__.9621, 17
+__func__.9621:
 	.ascii	"h265e_dpb_deinit\000"
-	.type	__FUNCTION__.9572, %object
-	.size	__FUNCTION__.9572, 17
-__FUNCTION__.9572:
+	.type	__FUNCTION__.9625, %object
+	.size	__FUNCTION__.9625, 17
+__FUNCTION__.9625:
 	.ascii	"h265e_dpb_deinit\000"
-	.type	__func__.9577, %object
-	.size	__func__.9577, 18
-__func__.9577:
+	.type	__func__.9630, %object
+	.size	__func__.9630, 18
+__func__.9630:
 	.ascii	"get_nal_unit_type\000"
-	.type	__func__.9614, %object
-	.size	__func__.9614, 20
-__func__.9614:
+	.type	__func__.9667, %object
+	.size	__func__.9667, 20
+__func__.9667:
 	.ascii	"h265e_dpb_apply_rps\000"
-	.type	__func__.9631, %object
-	.size	__func__.9631, 30
-__func__.9631:
+	.type	__func__.9684, %object
+	.size	__func__.9684, 30
+__func__.9684:
 	.ascii	"h265e_dpb_dec_refresh_marking\000"
-	.type	__func__.9662, %object
-	.size	__func__.9662, 25
-__func__.9662:
+	.type	__func__.9715, %object
+	.size	__func__.9715, 25
+__func__.9715:
 	.ascii	"h265e_dpb_arrange_lt_rps\000"
-	.type	__FUNCTION__.9666, %object
-	.size	__FUNCTION__.9666, 25
-__FUNCTION__.9666:
+	.type	__FUNCTION__.9719, %object
+	.size	__FUNCTION__.9719, 25
+__FUNCTION__.9719:
 	.ascii	"h265e_dpb_arrange_lt_rps\000"
-	.type	__func__.9767, %object
-	.size	__func__.9767, 18
-__func__.9767:
-	.ascii	"h265e_dpb_cpb2rps\000"
-	.type	__FUNCTION__.9771, %object
-	.size	__FUNCTION__.9771, 18
-__FUNCTION__.9771:
-	.ascii	"h265e_dpb_cpb2rps\000"
-	.type	__func__.9792, %object
-	.size	__func__.9792, 21
-__func__.9792:
-	.ascii	"h265e_dpb_free_unsed\000"
-	.type	__func__.9743, %object
-	.size	__func__.9743, 22
-__func__.9743:
-	.ascii	"h265e_check_frame_cpb\000"
-	.type	__FUNCTION__.9817, %object
-	.size	__FUNCTION__.9817, 19
-__FUNCTION__.9817:
-	.ascii	"h265e_dpb_proc_cpb\000"
 	.type	__func__.9820, %object
-	.size	__func__.9820, 19
+	.size	__func__.9820, 18
 __func__.9820:
+	.ascii	"h265e_dpb_cpb2rps\000"
+	.type	__FUNCTION__.9824, %object
+	.size	__FUNCTION__.9824, 18
+__FUNCTION__.9824:
+	.ascii	"h265e_dpb_cpb2rps\000"
+	.type	__func__.9845, %object
+	.size	__func__.9845, 21
+__func__.9845:
+	.ascii	"h265e_dpb_free_unsed\000"
+	.type	__func__.9796, %object
+	.size	__func__.9796, 22
+__func__.9796:
+	.ascii	"h265e_check_frame_cpb\000"
+	.type	__FUNCTION__.9870, %object
+	.size	__FUNCTION__.9870, 19
+__FUNCTION__.9870:
 	.ascii	"h265e_dpb_proc_cpb\000"
-	.type	__func__.9706, %object
-	.size	__func__.9706, 22
-__func__.9706:
+	.type	__func__.9873, %object
+	.size	__func__.9873, 19
+__func__.9873:
+	.ascii	"h265e_dpb_proc_cpb\000"
+	.type	__func__.9759, %object
+	.size	__func__.9759, 22
+__func__.9759:
 	.ascii	"h265e_find_cpb_in_dpb\000"
-	.type	__func__.9838, %object
-	.size	__func__.9838, 21
-__func__.9838:
+	.type	__func__.9891, %object
+	.size	__func__.9891, 21
+__func__.9891:
 	.ascii	"h265e_dpb_build_list\000"
 	.section	.rodata.str1.1,"aMS",%progbits,1
 .LC0:
