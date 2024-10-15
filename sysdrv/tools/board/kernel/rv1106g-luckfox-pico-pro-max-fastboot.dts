@@ -14,6 +14,15 @@
 	chosen {
 		bootargs = "loglevel=0 rootfstype=erofs rootflags=dax console=ttyFIQ0 root=/dev/rd0 snd_soc_core.prealloc_buffer_size_kbytes=16 coherent_pool=0 driver_async_probe=dwmmc_rockchip";
 	};
+
+	leds: leds {
+		compatible = "gpio-leds";
+		work_led: work{
+			gpios = <&gpio3 RK_PC6 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "activity";
+			default-state = "on";
+		};
+	};
 };
 
 /delete-node/ &thunder_boot_spi_nor;
