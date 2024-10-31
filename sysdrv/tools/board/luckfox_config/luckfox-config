@@ -2237,7 +2237,7 @@ function luckfox_compatible_devices() {
 function luckfox_advanced_options() {
 	if [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra W" ]; then
 		while true; do
-			option=$(dialog --title "Compatible Devices" \
+			option=$(dialog --title "Advanced Options" \
 				--menu "Choose an option" 80 50 6 \
 				1 "PWM" \
 				2 "UART" \
@@ -2263,7 +2263,7 @@ function luckfox_advanced_options() {
 		done
 	else
 		while true; do
-			option=$(dialog --title "Compatible Devices" \
+			option=$(dialog --title "Advanced Options" \
 				--menu "Choose an option" 80 50 6 1 "PWM" \
 				2 "UART" \
 				3 "I2C" \
