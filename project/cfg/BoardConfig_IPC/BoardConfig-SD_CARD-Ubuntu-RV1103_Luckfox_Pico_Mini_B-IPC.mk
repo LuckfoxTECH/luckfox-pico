@@ -14,7 +14,7 @@ export RK_CHIP=rv1106
 export RK_BOOTARGS_CMA_SIZE="1M"
 
 # Kernel dts
-export RK_KERNEL_DTS=rv1103g-luckfox-pico-mini-b.dts
+export RK_KERNEL_DTS=rv1103g-luckfox-pico-mini.dts
 
 #################################################
 #	BOOT_MEDIUM
