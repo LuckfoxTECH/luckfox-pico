@@ -2,6 +2,9 @@
 
 TARGET_IP="172.32.0.93"
 
+USB_KEYWORD="android_work: sent uevent USB_STATE="
+USB_MODE_PATH="/proc/device-tree/usbdrd/usb@ffb00000/dr_mode"
+
 MAX_RETRIES=10
 retries=0
 
@@ -30,9 +33,32 @@ usb0_config() {
 	fi
 }
 
+usb_reset() {
+	while true; do
+		last_line=$(dmesg | grep "$USB_KEYWORD" | tail -n 1)
+
+		if [[ "$last_line" == *"DISCONNECTED"* ]]; then
+			echo "Detected USB DISCONNECTED."
+			/etc/init.d/S50usbdevice restart
+			usb0_config
+		#elif [[ "$last_line" == *"CONFIGURED"* ]]; then
+		#    echo "Detected CONFIGURED. No action required."
+		#else
+		#    echo "No relevant USB_STATE found."
+		fi
+
+		sleep 5
+	done
+}
+
 case $1 in
 start)
-	usb0_config
+	# check peripheral
+	usb_mode="$(cat $USB_MODE_PATH)"
+	if [ "$usb_mode" = "peripheral" ]; then
+		usb0_config
+		usb_reset &
+	fi
 	;;
 stop) ;;
 *)

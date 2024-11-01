@@ -730,7 +730,7 @@ function build_env() {
 	local env_cfg_img
 	env_cfg_img=$RK_PROJECT_OUTPUT_IMAGE/env.img
 
-	if [ ! -f $RK_PROJECT_PATH_PC_TOOLS/mkenvimage ] || [ $LF_ENABLE_SPI_NAND_FAST_BOOT = "y" ]; then
+	if [ ! -f "$RK_PROJECT_PATH_PC_TOOLS/mkenvimage" ] || [ "$LF_ENABLE_SPI_NAND_FAST_BOOT" = "y" ]; then
 		build_tool
 	fi
 
@@ -2493,10 +2493,22 @@ function __RUN_PRE_BUILD_OEM_SCRIPT() {
 	local tmp_path
 	tmp_path=$(realpath $BOARD_CONFIG)
 	tmp_path=$(dirname $tmp_path)
+
+	__RUN_POST_CLEAN_FILES
+
 	if [ -f "$tmp_path/$RK_PRE_BUILD_OEM_SCRIPT" ]; then
 		bash -x $tmp_path/$RK_PRE_BUILD_OEM_SCRIPT
 	fi
-	__RUN_POST_CLEAN_FILES
+
+}
+
+function __RUN_POST_BUILD_USERDATA_SCRIPT() {
+	local tmp_path
+	tmp_path=$(realpath $BOARD_CONFIG)
+	tmp_path=$(dirname $tmp_path)
+	if [ -f "$tmp_path/$RK_PRE_BUILD_USERDATA_SCRIPT" ]; then
+		bash -x $tmp_path/$RK_PRE_BUILD_USERDATA_SCRIPT
+	fi
 }
 
 function build_firmware() {
@@ -2552,6 +2564,7 @@ function build_firmware() {
 	mkdir -p $RK_PROJECT_PACKAGE_USERDATA_DIR
 	if [ "$RK_ENABLE_FASTBOOT" != "y" ]; then
 		__PACKAGE_USERDATA
+		__RUN_POST_BUILD_USERDATA_SCRIPT
 	fi
 	build_mkimg userdata $RK_PROJECT_PACKAGE_USERDATA_DIR
 

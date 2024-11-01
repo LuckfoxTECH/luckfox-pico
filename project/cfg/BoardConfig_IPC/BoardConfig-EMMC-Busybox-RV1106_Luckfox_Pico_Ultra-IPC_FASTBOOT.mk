@@ -21,7 +21,7 @@ export RK_KERNEL_DTS=rv1106g-luckfox-pico-ultra-fastboot.dts
 #	BOOT_MEDIUM
 #################################################
 
-# Target boot medium: emmc/spi_nor/spi_nand
+# Target boot medium
 export RK_BOOT_MEDIUM=emmc
 
 # Uboot defconfig fragment
@@ -59,7 +59,7 @@ export RK_PARTITION_FS_TYPE_CFG=boot@IGNORE@erofs,userdata@/userdata@ext4
 #	TARGET_ROOTFS
 #################################################
 
-# Target rootfs : ubuntu(only emmc)/buildroot/busybox
+# Target rootfs
 export LF_TARGET_ROOTFS=busybox
 
 # Buildroot defconfig
