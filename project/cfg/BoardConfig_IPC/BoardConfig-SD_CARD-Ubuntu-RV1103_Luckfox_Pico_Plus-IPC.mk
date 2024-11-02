@@ -115,3 +115,6 @@ export RK_PRE_BUILD_OEM_SCRIPT=luckfox-ubuntu-oem-pre.sh
 
 # specify post.sh for delete/overlay files
 export RK_PRE_BUILD_USERDATA_SCRIPT=luckfox-userdata-pre.sh
+
+# declare overlay directory
+export RK_POST_OVERLAY="overlay-luckfox-config overlay-luckfox-ubuntu overlay-luckfox-ubuntu-config"

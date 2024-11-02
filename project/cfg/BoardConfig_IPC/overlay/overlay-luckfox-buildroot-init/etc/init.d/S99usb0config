@@ -1,0 +1,67 @@
+#!/bin/sh
+
+TARGET_IP="172.32.0.93"
+
+USB_KEYWORD="android_work: sent uevent USB_STATE="
+USB_MODE_PATH="/proc/device-tree/usbdrd/usb@ffb00000/dr_mode"
+
+MAX_RETRIES=10
+retries=0
+
+usb0_config() {
+	if [ "$(cat /proc/device-tree/usbdrd/usb@ffb00000/dr_mode)" == "peripheral" ]; then
+		current_ip=$(ifconfig usb0 | grep -o 'inet addr:[^ ]*' | awk -F ':' '{print $2}')
+		echo "current_ip = $current_ip"
+		echo "TARGET_IP = $TARGET_IP"
+
+		while [[ "$current_ip" != "$TARGET_IP" && $retries -lt $MAX_RETRIES ]]; do
+			sleep .5
+			echo "luckfox : set usb0 ip"
+			ifconfig usb0 "$TARGET_IP"
+			current_ip=$(ifconfig usb0 | grep -o 'inet addr:[^ ]*' | awk -F ':' '{print $2}')
+			echo $current_ip
+			retries=$((retries + 1))
+		done
+
+		if [[ "$current_ip" != "$TARGET_IP" ]]; then
+			echo "usb0 config error"
+		else
+			echo "usb0 config success"
+		fi
+	else
+		echo "usb0 is using host mode"
+	fi
+}
+
+usb_reset() {
+	while true; do
+		last_line=$(dmesg | grep "$USB_KEYWORD" | tail -n 1)
+
+		if [[ "$last_line" == *"DISCONNECTED"* ]]; then
+			echo "Detected USB DISCONNECTED."
+			/etc/init.d/S50usbdevice restart
+			usb0_config
+		#elif [[ "$last_line" == *"CONFIGURED"* ]]; then
+		#    echo "Detected CONFIGURED. No action required."
+		#else
+		#    echo "No relevant USB_STATE found."
+		fi
+
+		sleep 5
+	done
+}
+
+case $1 in
+start)
+	# check peripheral
+	usb_mode="$(cat $USB_MODE_PATH)"
+	if [ "$usb_mode" = "peripheral" ]; then
+		usb0_config
+		usb_reset &
+	fi
+	;;
+stop) ;;
+*)
+	exit 1
+	;;
+esac

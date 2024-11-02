@@ -2478,15 +2478,18 @@ function __RUN_POST_BUILD_SCRIPT() {
 }
 
 function post_overlay() {
-	check_config RK_POST_OVERLAY || return 0
+	[ -n "$RK_POST_OVERLAY" ] || return 0
 
 	local tmp_path
 	tmp_path=$(realpath $BOARD_CONFIG)
 	tmp_path=$(dirname $tmp_path)
-	if [ -d "$tmp_path/overlay/$RK_POST_OVERLAY" ]; then
-		rsync -a --ignore-times --keep-dirlinks --chmod=u=rwX,go=rX --exclude .empty \
-			$tmp_path/overlay/$RK_POST_OVERLAY/* $RK_PROJECT_PACKAGE_ROOTFS_DIR/
-	fi
+
+	for overlay_dir in $RK_POST_OVERLAY; do
+		if [ -d "$tmp_path/overlay/$overlay_dir" ]; then
+			rsync -a --ignore-times --keep-dirlinks --chmod=u=rwX,go=rX --exclude .empty \
+				$tmp_path/overlay/$overlay_dir/* $RK_PROJECT_PACKAGE_ROOTFS_DIR/
+		fi
+	done
 }
 
 function __RUN_PRE_BUILD_OEM_SCRIPT() {

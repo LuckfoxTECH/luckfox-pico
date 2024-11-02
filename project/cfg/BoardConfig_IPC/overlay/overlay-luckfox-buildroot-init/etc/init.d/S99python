@@ -1,0 +1,55 @@
+#!/bin/sh
+#
+# python        Starts python code.
+#
+
+# Make sure the python progam exists
+[ -f /usr/bin/python ] || exit 0
+
+umask 077
+
+main_path="/root/main.py"
+boot_path="/root/boot.py"
+
+start() {
+	# Run python progam
+    if [ -f $main_path ]; then
+	    echo "running $main_path..."
+        python $main_path
+    else
+        if [ -f $boot_path ]; then
+            echo "running $boot_path..."
+            python $boot_path
+        else
+            echo "$main_path and $boot_path not exist ,pass..."
+        fi
+    fi
+    echo "OK"
+}
+stop() {
+	printf "Stopping python: "
+	killall python
+	echo "OK"
+}
+restart() {
+	stop
+	start
+}
+
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  restart|reload)
+	restart
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?
+

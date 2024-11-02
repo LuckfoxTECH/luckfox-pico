@@ -132,7 +132,7 @@ export RK_PRE_BUILD_OEM_SCRIPT=luckfox-rv1106-tb-pre-oem.sh
 export RK_ENABLE_FASTBOOT=y
 
 # declare overlay directory
-export RK_POST_OVERLAY=overlay-luckfox
+export RK_POST_OVERLAY=overlay-luckfox-fastboot
 
 # enable tiny meta only support cmdline overlay
 export RK_TINY_META=n

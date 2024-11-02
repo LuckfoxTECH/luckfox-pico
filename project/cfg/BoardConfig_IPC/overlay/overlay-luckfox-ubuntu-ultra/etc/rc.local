@@ -1,0 +1,11 @@
+#!/bin/bash
+
+/usr/bin/filesystem_resize.sh
+/usr/bin/wifi_bt_init.sh
+/usr/bin/luckfox_switch_rgb_resolution &
+/etc/init.d/S50usbdevice start
+luckfox-config load
+if [ -n "$(hwclock | grep "invalid")" ]; then
+	date -s 2024-01-01
+	hwclock -w
+fi
