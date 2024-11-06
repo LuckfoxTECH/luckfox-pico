@@ -16,7 +16,7 @@
 	backlight: backlight {
 		status = "okay";
 		compatible = "pwm-backlight";
-		pwms = <&pwm1 0 25000 12500>;
+		pwms = <&pwm1 0 100000 50000>;
 		brightness-levels = <
 			  0   1   2   3   4   5   6   7
 			  8   9  10  11  12  13  14  15
@@ -81,7 +81,7 @@
 				hsync-active = <0>;
 				vsync-active = <0>;
 				de-active = <0>;
-				pixelclk-active = <1>;
+				pixelclk-active = <0>;
 			};
 		};
 
