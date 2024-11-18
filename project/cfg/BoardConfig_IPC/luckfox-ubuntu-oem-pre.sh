@@ -19,8 +19,8 @@ function remove_data()
     lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/lib/*.data
     
     # drm
-    lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/lib/libdrm*
-    lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/lib/libdrm_rockchip*
+    #lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/lib/libdrm*
+    #lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/lib/libdrm_rockchip*
 
     # kms
     lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/lib/libkms*

@@ -10,6 +10,7 @@ check_hciconfig() {
 			else
 				echo "hci0 not found or not available."
 			fi
+      ifconfig wlan0 up && udhcpc -i wlan0 > /dev/null 2>&1
 		else
 			echo "aic8800_fdrv not found."
 		fi
@@ -18,7 +19,7 @@ check_hciconfig() {
 
 case $1 in
 	start)
-		check_hciconfig
+		check_hciconfig &
 		;;
 	*)
 		exit 1

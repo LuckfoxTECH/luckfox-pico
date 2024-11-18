@@ -17,7 +17,7 @@ function remove_data()
     lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/lib/*.aiisp
     lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/lib/*.data
     
-    # drm ( sample program required )
+    # drm
     lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/lib/libdrm*
     lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/lib/libdrm_rockchip*
 
@@ -41,6 +41,18 @@ function remove_data()
 
     # vqefiles
     lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/share/vqefiles/*
+
+    # ko
+    lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/ko/phy-rockchip-csi2-dphy-hw.ko
+    lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/ko/phy-rockchip-csi2-dphy.ko
+    lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/ko/rga3.ko
+    lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/ko/rknpu.ko
+    lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/ko/rockit.ko
+    lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/ko/sc3336.ko
+    lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/ko/video_rkcif.ko
+    lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/ko/video_rkisp.ko
+    lf_rm $RK_PROJECT_PACKAGE_OEM_DIR/usr/ko/mpp_vcodec.ko
+    
 }
 
 #=========================
