@@ -1,0 +1,16 @@
+#!/bin/sh
+
+case $1 in
+start)
+	if [ "$(hwclock | grep "1969")" ]; then
+		echo "RTC time calibration"
+		date -s 2024-01-01
+		hwclock -w
+	else
+		echo "RTC does not require time calibration"
+	fi
+	;;
+*)
+	exit 1
+	;;
+esac
