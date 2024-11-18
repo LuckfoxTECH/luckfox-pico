@@ -347,7 +347,8 @@ endif
 ################################################################################
 all: uboot kernel rootfs env
 
-clean: uboot_clean kernel_clean buildroot_clean busybox_clean pctools_clean boardtools_clean rootfs_clean drv_clean
+#clean: uboot_clean kernel_clean buildroot_clean busybox_clean pctools_clean boardtools_clean rootfs_clean drv_clean
+clean: uboot_clean kernel_clean busybox_clean pctools_clean boardtools_clean rootfs_clean drv_clean
 
 distclean: clean out_clean
 
@@ -640,22 +641,6 @@ ifeq ($(SYSDRV_BUILD_RAMDISK_FLAG),YES)
 	endif
 else
 	tar xf $(BUILDROOT_DIR)/$(BUILDROOT_VER)/output/images/rootfs.tar -C $(SYSDRV_DIR_OUT_ROOTFS)
-	#cp $(SYSDRV_DIR)/tools/board/buildroot/busybox $(SYSDRV_DIR_OUT_ROOTFS)/bin/busybox
-	cp $(SYSDRV_DIR)/tools/board/buildroot/shadow_defconfig $(SYSDRV_DIR_OUT_ROOTFS)/etc/shadow
-	cp $(SYSDRV_DIR)/tools/board/buildroot/sshd_defconfig $(SYSDRV_DIR_OUT_ROOTFS)/etc/ssh/sshd_config
-	cp $(SYSDRV_DIR)/tools/board/buildroot/samba_defconfig $(SYSDRV_DIR_OUT_ROOTFS)/etc/samba/smb.conf
-	cp $(SYSDRV_DIR)/tools/board/buildroot/smbpasswd_defconfig $(SYSDRV_DIR_OUT_ROOTFS)/etc/samba/smbpasswd
-	cp $(SYSDRV_DIR)/tools/board/buildroot/profile_defconfig $(SYSDRV_DIR_OUT_ROOTFS)/etc/profile
-	cp $(SYSDRV_DIR)/tools/board/buildroot/iomux $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/
-	cp $(SYSDRV_DIR)/tools/board/buildroot/S99hciinit $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
-	cp $(SYSDRV_DIR)/tools/board/buildroot/S99rtcinit $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
-	cp $(SYSDRV_DIR)/tools/board/buildroot/S50sshd $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
-	cp $(SYSDRV_DIR)/tools/board/buildroot/S99python $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
-	cp $(SYSDRV_DIR)/tools/board/luckfox_config/S99luckfoxconfigload $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
-	cp $(SYSDRV_DIR)/tools/board/luckfox_config/S99luckfoxcustomoverlay $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
-	cp $(SYSDRV_DIR)/tools/board/luckfox_config/luckfox-config  $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/
-	cp $(SYSDRV_DIR)/tools/board/luckfox_config/luckfox_switch_rgb_resolution $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/
-	cp $(SYSDRV_DIR)/tools/board/android-tools/S99usb0config $(SYSDRV_DIR_OUT_ROOTFS)/etc/init.d/
 endif
 
 buildroot_clean:
@@ -679,22 +664,6 @@ ubuntu: prepare
 		rm $(SYSDRV_DIR_OUT_ROOTFS)/* -rf ;\
 		tar xzf $(SYSDRV_DIR)/tools/board/ubuntu/$(UBUNTU_VER).tar.gz -C $(SYSDRV_DIR_OUT_ROOTFS) ;\
 	);
-	cp $(SYSDRV_DIR)/tools/board/luckfox_config/luckfox-config ${SYSDRV_DIR_OUT_ROOTFS}/usr/bin/
-	cp $(SYSDRV_DIR)/tools/board/luckfox_config/ubuntu/etc/* ${SYSDRV_DIR_OUT_ROOTFS}/etc/
-	cp $(SYSDRV_DIR)/tools/board/luckfox_config/ubuntu/usr/bin/* ${SYSDRV_DIR_OUT_ROOTFS}/usr/bin/
-	cp -d $(SYSDRV_DIR)/tools/board/luckfox_config/ubuntu/usr/lib/* ${SYSDRV_DIR_OUT_ROOTFS}/usr/lib/
-ifeq ($(ENABLE_EMMC),YES)
-	cp $(SYSDRV_DIR)/tools/board/emmc/emmc_fstab $(SYSDRV_DIR_OUT_ROOTFS)/etc/fstab
-	cp $(SYSDRV_DIR)/tools/board/emmc/emmc_filesystem_resize.sh $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/filesystem_resize.sh
-	cp $(SYSDRV_DIR)/tools/board/emmc/emmc_rc.local $(SYSDRV_DIR_OUT_ROOTFS)/etc/rc.local
-	cp $(SYSDRV_DIR)/tools/board/emmc/emmc_wifi_bt_init.sh $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/wifi_bt_init.sh
-	#cp $(SYSDRV_DIR)/tools/board/emmc/emmc_wifi_ko $(SYSDRV_DIR_OUT_ROOTFS)/usr/ko -r
-	cp $(SYSDRV_DIR)/tools/board/emmc/udhcp/usr/bin/udhcpc $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/udhcpc
-	cp $(SYSDRV_DIR)/tools/board/emmc/udhcp/usr/bin/udhcpd $(SYSDRV_DIR_OUT_ROOTFS)/usr/bin/udhcpd
-	mkdir -p $(SYSDRV_DIR_OUT_ROOTFS)/usr/share/udhcpc
-	cp $(SYSDRV_DIR)/tools/board/emmc/udhcp/usr/share/udhcpc/default.script $(SYSDRV_DIR_OUT_ROOTFS)/usr/share/udhcpc/default.script
-	cp $(SYSDRV_DIR)/tools/board/emmc/udhcp/etc/udhcpd.conf $(SYSDRV_DIR_OUT_ROOTFS)/etc/udhcpd.conf
-endif
 ubuntu_clean:
 	$(AT)rm -rf $(SYSDRV_DIR_OUT_ROOTFS)
 

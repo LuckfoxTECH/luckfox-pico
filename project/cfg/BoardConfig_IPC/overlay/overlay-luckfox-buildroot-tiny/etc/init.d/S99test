@@ -1,0 +1,13 @@
+#!/bin/sh
+[ -f /etc/profile.d/RkEnv.sh ] && source /etc/profile.d/RkEnv.sh
+case $1 in
+	start)
+		if [ -f /usr/bin/t ] ;then
+			chmod a+x /usr/bin/t
+			t &
+		fi
+		;;
+	*)
+		exit 1
+		;;
+esac

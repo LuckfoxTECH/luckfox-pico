@@ -1,0 +1,22 @@
+#!/bin/sh
+
+load_luckfoxconfig() {
+	if [ -f /usr/bin/luckfox-config ]; then
+		luckfox-config load
+	fi
+	if [ "$(cat /proc/device-tree/model)" == "Luckfox Pico Ultra" ] ||
+		[ "$(cat /proc/device-tree/model)" == "Luckfox Pico Ultra W" ]; then
+		if [ -f /usr/bin/luckfox_switch_rgb_resolution ]; then
+			luckfox_switch_rgb_resolution &
+		fi
+	fi
+}
+
+case $1 in
+start)
+	load_luckfoxconfig
+	;;
+*)
+	exit 1
+	;;
+esac

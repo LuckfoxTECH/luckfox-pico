@@ -20,7 +20,7 @@ export RK_KERNEL_DTS=rv1106g-luckfox-pico-ultra.dts
 #	BOOT_MEDIUM
 #################################################
 
-# Target boot medium: emmc/spi_nor/spi_nand
+# Target boot medium
 export RK_BOOT_MEDIUM=emmc
 
 # Uboot defconfig fragment
@@ -58,7 +58,7 @@ export RK_PARTITION_FS_TYPE_CFG=rootfs@IGNORE@ext4,userdata@/userdata@ext4,oem@/
 #	TARGET_ROOTFS
 #################################################
 
-# Target rootfs : ubuntu(only emmc)/buildroot/busybox
+# Target rootfs
 export LF_TARGET_ROOTFS=ubuntu
 
 # SUBMODULES ： github/gitee
@@ -109,3 +109,15 @@ export RK_ENABLE_ROCKCHIP_TEST=y
 # enable rockchip wifi
 #export RK_ENABLE_WIFI=y
 
+#################################################
+# 	PRE and POST
+#################################################
+
+# specify pre.sh for delete/overlay files
+export RK_PRE_BUILD_OEM_SCRIPT=luckfox-buildroot-oem-pre.sh
+
+# specify post.sh for delete/overlay files
+export RK_PRE_BUILD_USERDATA_SCRIPT=luckfox-userdata-pre.sh
+
+# declare overlay directory
+export RK_POST_OVERLAY="overlay-luckfox-config overlay-luckfox-ubuntu-config overlay-luckfox-ubuntu-ultra"

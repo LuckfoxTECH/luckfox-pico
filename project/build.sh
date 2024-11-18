@@ -137,6 +137,17 @@ function check_config() {
 	return 1
 }
 
+function __IS_IN_ARRAY() {
+	local value="$1"
+	shift
+	for item in "$@"; do
+		if [[ "$item" == "$value" ]]; then
+			return 0
+		fi
+	done
+	return 1
+}
+
 function choose_target_board() {
 	local LF_HARDWARE=("RV1103_Luckfox_Pico"
 		"RV1103_Luckfox_Pico_Mini_A"
@@ -151,20 +162,31 @@ function choose_target_board() {
 	local cnt=0 space8="        "
 
 	# Get Hardware Version
+	local LUNCH_NUM=0
 	local HW_INDEX
 	echo "You're building on Linux"
 	echo -e "${C_GREEN} "${space8}Lunch menu...pick the Luckfox Pico hardware version:"${C_NORMAL}"
 	echo -e "${C_GREEN} "${space8}选择 Luckfox Pico 硬件版本:"${C_NORMAL}"
-	echo "${space8}${space8}[0] RV1103_Luckfox_Pico"
-	echo "${space8}${space8}[1] RV1103_Luckfox_Pico_Mini_A"
-	echo "${space8}${space8}[2] RV1103_Luckfox_Pico_Mini_B"
-	echo "${space8}${space8}[3] RV1103_Luckfox_Pico_Plus"
-	echo "${space8}${space8}[4] RV1106_Luckfox_Pico_Pro"
-	echo "${space8}${space8}[5] RV1106_Luckfox_Pico_Max"
-	echo "${space8}${space8}[6] RV1106_Luckfox_Pico_Ultra"
-	echo "${space8}${space8}[7] RV1106_Luckfox_Pico_Ultra_W"
-	echo "${space8}${space8}[8] custom"
-	read -p "Which would you like? [0~7][default:0]: " HW_INDEX
+
+	echo "${space8}${space8}[${LUNCH_NUM}] RV1103_Luckfox_Pico"
+	LUNCH_NUM=$((LUNCH_NUM + 1))
+	echo "${space8}${space8}[${LUNCH_NUM}] RV1103_Luckfox_Pico_Mini_A"
+	LUNCH_NUM=$((LUNCH_NUM + 1))
+	echo "${space8}${space8}[${LUNCH_NUM}] RV1103_Luckfox_Pico_Mini_B"
+	LUNCH_NUM=$((LUNCH_NUM + 1))
+	echo "${space8}${space8}[${LUNCH_NUM}] RV1103_Luckfox_Pico_Plus"
+	LUNCH_NUM=$((LUNCH_NUM + 1))
+	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Pro"
+	LUNCH_NUM=$((LUNCH_NUM + 1))
+	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Max"
+	LUNCH_NUM=$((LUNCH_NUM + 1))
+	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Ultra"
+	LUNCH_NUM=$((LUNCH_NUM + 1))
+	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Ultra_W"
+	LUNCH_NUM=$((LUNCH_NUM + 1))
+	echo "${space8}${space8}[${LUNCH_NUM}] custom"
+
+	read -p "Which would you like? [0~${LUNCH_NUM}][default:0]: " HW_INDEX
 
 	if [ -z "$HW_INDEX" ]; then
 		HW_INDEX=0
@@ -228,21 +250,45 @@ function choose_target_board() {
 	local BM_INDEX MAX_BM_INDEX
 	echo -e "${C_GREEN} "${space8}Lunch menu...pick the boot medium:"${C_NORMAL}"
 	echo -e "${C_GREEN} "${space8}选择启动媒介:"${C_NORMAL}"
-	if (("$HW_INDEX" >= 0 && "$HW_INDEX" <= 1)); then
+
+	#if (("$HW_INDEX" >= 0 && "$HW_INDEX" <= 1)); then
+	#	echo "${space8}${space8}[0] SD_CARD"
+	#	read -p "Which would you like? [0][default:0]: " BM_INDEX
+	#	MAX_BM_INDEX=0
+	#elif (("$HW_INDEX" >= 2 && "$HW_INDEX" <= 5)); then
+	#	echo "${space8}${space8}[0] SD_CARD"
+	#	echo "${space8}${space8}[1] SPI_NAND"
+	#	read -p "Which would you like? [0~1][default:0]: " BM_INDEX
+	#	MAX_BM_INDEX=1
+	#elif (("$HW_INDEX" >= 6 && "$HW_INDEX" <= 7)); then
+	#	echo "${space8}${space8}[0] EMMC"
+	#	read -p "Which would you like? [0][default:0]: " BM_INDEX
+	#	MAX_BM_INDEX=0
+	#fi
+
+	range_sd_card=(0 1)
+	range_sd_card_spi_nand=(2 3 4 5)
+	range_emmc=(6 7)
+
+	if __IS_IN_ARRAY "$HW_INDEX" "${range_sd_card[@]}"; then
 		echo "${space8}${space8}[0] SD_CARD"
 		read -p "Which would you like? [0][default:0]: " BM_INDEX
 		MAX_BM_INDEX=0
-	elif (("$HW_INDEX" >= 2 && "$HW_INDEX" <= 5)); then
+	elif __IS_IN_ARRAY "$HW_INDEX" "${range_sd_card_spi_nand[@]}"; then
 		echo "${space8}${space8}[0] SD_CARD"
 		echo "${space8}${space8}[1] SPI_NAND"
 		read -p "Which would you like? [0~1][default:0]: " BM_INDEX
 		MAX_BM_INDEX=1
-	elif (("$HW_INDEX" >= 6 && "$HW_INDEX" <= 7)); then
+	elif __IS_IN_ARRAY "$HW_INDEX" "${range_emmc[@]}"; then
 		echo "${space8}${space8}[0] EMMC"
 		read -p "Which would you like? [0][default:0]: " BM_INDEX
 		MAX_BM_INDEX=0
+	else
+		echo "Invalid HW_INDEX: $HW_INDEX"
+		exit 1
 	fi
 
+	# Default is 0
 	if [ -z "$BM_INDEX" ]; then
 		BM_INDEX=0
 	fi
@@ -730,7 +776,7 @@ function build_env() {
 	local env_cfg_img
 	env_cfg_img=$RK_PROJECT_OUTPUT_IMAGE/env.img
 
-	if [ ! -f $RK_PROJECT_PATH_PC_TOOLS/mkenvimage ] || [ $LF_ENABLE_SPI_NAND_FAST_BOOT = "y" ]; then
+	if [ ! -f "$RK_PROJECT_PATH_PC_TOOLS/mkenvimage" ] || [ "$LF_ENABLE_SPI_NAND_FAST_BOOT" = "y" ]; then
 		build_tool
 	fi
 
@@ -1297,7 +1343,7 @@ function build_clean() {
 		rm -rf ${SDK_ROOT_DIR}/output ${SDK_ROOT_DIR}/config
 		rm -rf ${SDK_ROOT_DIR}/sysdrv/source/kernel/out
 		rm -rf ${BOARD_CONFIG}
-		if [ -d ${SDK_SYSDRV_DIR}/source/buildroot ] && [ "$LF_TARGET_ROOTFS" != "ubuntu" ]; then
+		if [ -d ${SDK_SYSDRV_DIR}/source/buildroot ] && [ "$LF_TARGET_ROOTFS" = "buildroot" ]; then
 			rm -rf ${SDK_SYSDRV_DIR}/source/buildroot
 		fi
 		if [ -d ${SDK_SYSDRV_DIR}/source/busybox ]; then
@@ -2478,25 +2524,40 @@ function __RUN_POST_BUILD_SCRIPT() {
 }
 
 function post_overlay() {
-	check_config RK_POST_OVERLAY || return 0
+	[ -n "$RK_POST_OVERLAY" ] || return 0
 
 	local tmp_path
 	tmp_path=$(realpath $BOARD_CONFIG)
 	tmp_path=$(dirname $tmp_path)
-	if [ -d "$tmp_path/overlay/$RK_POST_OVERLAY" ]; then
-		rsync -a --ignore-times --keep-dirlinks --chmod=u=rwX,go=rX --exclude .empty \
-			$tmp_path/overlay/$RK_POST_OVERLAY/* $RK_PROJECT_PACKAGE_ROOTFS_DIR/
-	fi
+
+	for overlay_dir in $RK_POST_OVERLAY; do
+		if [ -d "$tmp_path/overlay/$overlay_dir" ]; then
+			rsync -a --ignore-times --keep-dirlinks --chmod=u=rwX,go=rX --exclude .empty \
+				$tmp_path/overlay/$overlay_dir/* $RK_PROJECT_PACKAGE_ROOTFS_DIR/
+		fi
+	done
 }
 
 function __RUN_PRE_BUILD_OEM_SCRIPT() {
 	local tmp_path
 	tmp_path=$(realpath $BOARD_CONFIG)
 	tmp_path=$(dirname $tmp_path)
+
+	__RUN_POST_CLEAN_FILES
+
 	if [ -f "$tmp_path/$RK_PRE_BUILD_OEM_SCRIPT" ]; then
 		bash -x $tmp_path/$RK_PRE_BUILD_OEM_SCRIPT
 	fi
-	__RUN_POST_CLEAN_FILES
+
+}
+
+function __RUN_POST_BUILD_USERDATA_SCRIPT() {
+	local tmp_path
+	tmp_path=$(realpath $BOARD_CONFIG)
+	tmp_path=$(dirname $tmp_path)
+	if [ -f "$tmp_path/$RK_PRE_BUILD_USERDATA_SCRIPT" ]; then
+		bash -x $tmp_path/$RK_PRE_BUILD_USERDATA_SCRIPT
+	fi
 }
 
 function build_firmware() {
@@ -2552,6 +2613,7 @@ function build_firmware() {
 	mkdir -p $RK_PROJECT_PACKAGE_USERDATA_DIR
 	if [ "$RK_ENABLE_FASTBOOT" != "y" ]; then
 		__PACKAGE_USERDATA
+		__RUN_POST_BUILD_USERDATA_SCRIPT
 	fi
 	build_mkimg userdata $RK_PROJECT_PACKAGE_USERDATA_DIR
 

@@ -21,7 +21,7 @@ export RK_KERNEL_DTS=rv1106g-luckfox-pico-pro-max-fastboot.dts
 #	BOOT_MEDIUM
 #################################################
 
-# Target boot medium: emmc/spi_nor/spi_nand
+# Target boot medium
 export RK_BOOT_MEDIUM=spi_nand
 
 # Uboot defconfig fragment
@@ -65,7 +65,7 @@ export RK_PARTITION_FS_TYPE_CFG=boot@IGNORE@erofs,userdata@/userdata@ubifs
 #	TARGET_ROOTFS
 #################################################
 
-# Target rootfs : ubuntu(only emmc)/buildroot/busybox
+# Target rootfs
 export LF_TARGET_ROOTFS=busybox
 
 # Buildroot defconfig
@@ -138,7 +138,7 @@ export RK_PRE_BUILD_OEM_SCRIPT=luckfox-rv1106-tb-pre-oem.sh
 export RK_ENABLE_FASTBOOT=y
 
 # declare overlay directory
-export RK_POST_OVERLAY=overlay-luckfox
+export RK_POST_OVERLAY=overlay-luckfox-fastboot
 
 # enable tiny meta only support cmdline overlay
 export RK_TINY_META=n

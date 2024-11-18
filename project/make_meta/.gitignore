@@ -7,3 +7,4 @@ sensor_init/*_init
 zlib/out_board/
 zlib/out_host_pc/
 zlib/zlib-1.2.11/
+mtd_updateEngeen/out_board/

@@ -1,0 +1,28 @@
+#!/bin/sh
+
+check_hciconfig() {
+	if command -v hciattach &> /dev/null; then
+		if lsmod | grep -q "aic8800_fdrv"; then
+			hciattach -s 1500000 /dev/ttyS1 any 1500000 flow nosleep&
+			sleep 2
+			if hciconfig -a | grep -q "hci0"; then
+				hciconfig hci0 up&
+			else
+				echo "hci0 not found or not available."
+			fi
+      ifconfig wlan0 up && udhcpc -i wlan0 > /dev/null 2>&1
+		else
+			echo "aic8800_fdrv not found."
+		fi
+	fi
+}
+
+case $1 in
+	start)
+		check_hciconfig &
+		;;
+	*)
+		exit 1
+		;;
+esac
+

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+USB_KEYWORD="android_work: sent uevent USB_STATE="
+USB_MODE_PATH="/proc/device-tree/usbdrd/usb@ffb00000/dr_mode"
+
+usb_reset() {
+        while true; do
+                last_line=$(dmesg | grep "$USB_KEYWORD" | tail -n 1)
+
+                if [[ "$last_line" == *"DISCONNECTED" ]]; then
+                        echo "Detected USB DISCONNECTED."
+                        /etc/init.d/S50usbdevice restart
+                fi
+                sleep 5
+        done
+}
+
+/usr/bin/filesystem_resize.sh
+
+usb_mode="$(cat $USB_MODE_PATH)"
+/etc/init.d/S50usbdevice start
+if [ "$usb_mode" = "peripheral" ];then
+        usb_reset &
+fi
+
+luckfox-config load
+if [ -n "$(hwclock | grep "invalid")" ]; then
+	date -s 2024-01-01
+	hwclock -w
+fi

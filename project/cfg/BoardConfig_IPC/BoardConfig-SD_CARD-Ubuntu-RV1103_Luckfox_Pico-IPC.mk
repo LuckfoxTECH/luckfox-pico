@@ -20,7 +20,7 @@ export RK_KERNEL_DTS=rv1103g-luckfox-pico.dts
 #	BOOT_MEDIUM
 #################################################
 
-# Target boot medium: sd_card/spi_nor/spi_nand
+# Target boot medium
 export RK_BOOT_MEDIUM=sd_card
 
 # Uboot defconfig fragment
@@ -58,7 +58,7 @@ export RK_PARTITION_FS_TYPE_CFG=rootfs@IGNORE@ext4,userdata@/userdata@ext4,oem@/
 #	TARGET_ROOTFS
 #################################################
 
-# Target rootfs : ubuntu(only sd_card)/buildroot/busybox
+# Target rootfs
 export LF_TARGET_ROOTFS=ubuntu
 
 # SUBMODULES : github/gitee
@@ -105,3 +105,16 @@ export RK_BUILD_APP_TO_OEM_PARTITION=y
 
 # enable rockchip test
 export RK_ENABLE_ROCKCHIP_TEST=y
+
+#################################################
+# 	PRE and POST
+#################################################
+
+# specify pre.sh for delete/overlay files
+export RK_PRE_BUILD_OEM_SCRIPT=luckfox-ubuntu-oem-pre.sh
+
+# specify post.sh for delete/overlay files
+export RK_PRE_BUILD_USERDATA_SCRIPT=luckfox-userdata-pre.sh
+
+# declare overlay directory
+export RK_POST_OVERLAY="overlay-luckfox-config overlay-luckfox-ubuntu overlay-luckfox-ubuntu-config"
