@@ -376,7 +376,7 @@
 	pinctrl-0 = <&pwm9m1_pins>;
 };
 &pwm10 {
-	pinctrl-0 = <&pwm10m2_pins>;
+	pinctrl-0 = <&pwm10m1_pins &pwm10m2_pins>;
 };
 &pwm11 {
 	pinctrl-0 = <&pwm11m1_pins>;
