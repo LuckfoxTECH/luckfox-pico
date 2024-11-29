@@ -153,6 +153,7 @@ function choose_target_board() {
 		"RV1103_Luckfox_Pico_Mini_A"
 		"RV1103_Luckfox_Pico_Mini_B"
 		"RV1103_Luckfox_Pico_Plus"
+		"RV1103_Luckfox_Pico_WebBee"
 		"RV1106_Luckfox_Pico_Pro"
 		"RV1106_Luckfox_Pico_Max"
 		"RV1106_Luckfox_Pico_Ultra"
@@ -176,6 +177,8 @@ function choose_target_board() {
 	LUNCH_NUM=$((LUNCH_NUM + 1))
 	echo "${space8}${space8}[${LUNCH_NUM}] RV1103_Luckfox_Pico_Plus"
 	LUNCH_NUM=$((LUNCH_NUM + 1))
+	echo "${space8}${space8}[${LUNCH_NUM}] RV1103_Luckfox_Pico_WebBee"
+	LUNCH_NUM=$((LUNCH_NUM + 1))
 	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Pro"
 	LUNCH_NUM=$((LUNCH_NUM + 1))
 	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Max"
@@ -196,10 +199,10 @@ function choose_target_board() {
 		msg_error "Error: HW_INDEX is not a number."
 		exit 1
 	else
-		if (($HW_INDEX < 0 || $HW_INDEX > 8)); then
-			msg_error "Error: HW_INDEX is not in the range 0-8."
+		if (($HW_INDEX < 0 || $HW_INDEX > $LUNCH_NUM)); then
+			msg_error "Error: HW_INDEX is not in the range 0-$LUNCH_NUM."
 			exit 1
-		elif [ $HW_INDEX == 8 ]; then
+		elif [ $HW_INDEX == $LUNCH_NUM ]; then
 			for item in ${RK_TARGET_BOARD_ARRAY[@]}; do
 				local f0 boot_medium ddr sys_ver hardware_version product_name
 				echo "----------------------------------------------------------------"
@@ -267,8 +270,8 @@ function choose_target_board() {
 	#fi
 
 	range_sd_card=(0 1)
-	range_sd_card_spi_nand=(2 3 4 5)
-	range_emmc=(6 7)
+	range_sd_card_spi_nand=(2 3 4 5 6)
+	range_emmc=(7 8)
 
 	if __IS_IN_ARRAY "$HW_INDEX" "${range_sd_card[@]}"; then
 		echo "${space8}${space8}[0] SD_CARD"
