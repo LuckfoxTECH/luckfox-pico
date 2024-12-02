@@ -337,7 +337,7 @@ function choose_target_board() {
 	fi
 
 	# EMMC
-	if (("$HW_INDEX" >= 6 && "$HW_INDEX" <= 7)); then
+	if (("$HW_INDEX" >= range_emmc[0] && "$HW_INDEX" <= range_emmc[${#range_emmc[@]}-1])); then
 		BM_INDEX=$BM_INDEX+2 #EMMC
 	fi
 
