@@ -2,7 +2,7 @@
 
 ## Ilitek 9341 TFT + XPT2046 touch controller support
 Thas adds Ilitek's 9341 LCD and XPT2046 touch controllers support over SPI. One needs to enable via 'luckfox-config'.
-Certain linux kernel and buildroot packages need to be enabled. My configs can be found here: [buildroot config](config/pottendo-buildroot-config) and [kernel config](/pottendo-kernel-config).
+Certain linux kernel and buildroot packages need to be enabled. My configs can be found here: [buildroot config](pottendo-configs/pottendo-buildroot-config) and [kernel config](pottendo-configs/pottendo-kernel-config).
 
 In order to make the touch work properly one needs to calibrate using `ts_calibrate'. I've added the necessary packages in my buildroot config. To run the tools the following environment variables my be helpful to be set
 ```
@@ -36,7 +36,7 @@ export TSLIB_PLUGINDIR=/usr/lib/ts
 |GPIO1_D3_d (10)|T_IRQ|
 
 Pinout: 
-![Ilitek 9341/XPT 2046 pinout](IMAGE/Ilitek9341-XPT2025-TFT-touch-pinout.png)
+![Ilitek 9341/XPT 2046 pinout](pottendo-configs/Ilitek9341-XPT2025-TFT-touch-pinout.png)
 
 Here some demo I wrote: [TFT screen & Touch - blending with camera stream](https://photos.google.com/photo/AF1QipO2BUhd35yjDADPHEMfYXdPDCh_vv_lHku0w498). Source can be found [here](https://github.com/pottendo/pottendo-mandel).
 Note that to run the demo one needs a more recent opencv-mobule (4.10) to be compiled and used (support for direct renedering into a framebuffer using `imshow("fb", ..)`).
