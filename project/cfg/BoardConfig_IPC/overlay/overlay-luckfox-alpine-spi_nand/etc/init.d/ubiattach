@@ -1,0 +1,13 @@
+#!/sbin/openrc-run
+
+depend() {
+    need devfs
+    before localmount
+}
+
+start() {
+    ebegin "Attaching UBI volumes"
+    ubiattach /dev/ubi_ctrl -m 5
+    ubiattach /dev/ubi_ctrl -m 4
+    eend $? "Failed to attach UBI volumes"
+}

@@ -1,0 +1,20 @@
+# Storage devices
+/dev/cdrom      /media/cdrom    iso9660 noauto,ro 0 0
+/dev/usbdisk    /media/usb      vfat    noauto,ro 0 0
+/dev/mmcblk1p1  /mnt/sd         auto    defaults 0 0
+
+# UBI and storage volumes
+ubi0:rootfs     /               ubifs   rw,relatime 0 0
+ubi1:userdata   /userdata       ubifs   rw,noatime 0 0
+ubi2:oem        /oem            ubifs   rw,noatime 0 0
+
+# System mounts
+devtmpfs        /dev            devtmpfs rw,nosuid,noexec,mode=755 0 0
+proc            /proc           proc    rw,nosuid,nodev,noexec,relatime 0 0
+tmpfs           /run            tmpfs   rw,nosuid,nodev,mode=755 0 0
+devpts          /dev/pts        devpts  rw,nosuid,noexec,gid=5,mode=620,ptmxmode=000 0 0
+tmpfs           /dev/shm        tmpfs   rw,nosuid,nodev,noexec 0 0
+sysfs           /sys            sysfs   rw,nosuid,nodev,noexec 0 0
+
+# Temp storage
+tmpfs           /tmp            tmpfs   rw,nosuid,nodev 0 0
