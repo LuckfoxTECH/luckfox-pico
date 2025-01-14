@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# Start the cron daemon
+crond
+
+# Maximum wait time in seconds
+MAX_WAIT=30
+
+# Time counter
+SECONDS=0
+
+# Wait for the eth0 interface to get an IP address, but no more than MAX_WAIT seconds
+while ! ip a show eth0 | grep 'inet ' > /dev/null 2>&1; do
+    sleep 1
+    SECONDS=$((SECONDS + 1))
+    if [ $SECONDS -ge $MAX_WAIT ]; then
+        echo "Timeout. The eth0 interface did not obtain an IP address."
+        break
+    fi
+done
+
+# Synchronize system time with NTP server
+ntpd -q && hwclock -w || (hwclock -r && hwclock -s)
+
+# Turn off work LED to indicate process completion
+echo 0 > /sys/class/leds/work/brightness

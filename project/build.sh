@@ -159,7 +159,7 @@ function choose_target_board() {
 		"RV1106_Luckfox_Pico_Ultra"
 		"RV1106_Luckfox_Pico_Ultra_W")
 	local LF_BOOT_MEDIA=("SD_CARD" "SPI_NAND" "EMMC")
-	local LF_SYSTEM=("Buildroot" "Ubuntu" "Custom")
+	local LF_SYSTEM=("Buildroot" "Alpine" "Ubuntu" "Custom")
 	local cnt=0 space8="        "
 
 	# Get Hardware Version
@@ -313,8 +313,13 @@ function choose_target_board() {
 
 	if (("$BM_INDEX" == 1)); then
 		echo "${space8}${space8}[0] Buildroot(Support Rockchip official features) "
+		if [[ "$HW_INDEX" == 6 ]]; then
+			echo "${space8}${space8}[1] Alpine Linux (Support for the apk package keeper tool)"
+			MAX_SYS_INDEX=1
+		else
+			MAX_SYS_INDEX=0
+		fi
 		read -p "Which would you like? [0~1][default:0]: " SYS_INDEX
-		MAX_SYS_INDEX=0
 	elif (("$BM_INDEX" == 0)); then
 		echo "${space8}${space8}[0] Buildroot(Support Rockchip official features) "
 		echo "${space8}${space8}[1] Ubuntu(Support for the apt package management tool)"
@@ -885,7 +890,36 @@ function build_kernel() {
 function build_rootfs() {
 	check_config RK_BOOT_MEDIUM || return 0
 
-	make rootfs -C ${SDK_SYSDRV_DIR}
+	if [ "$LF_TARGET_ROOTFS" = "alpine" ]; then
+			mkdir -p ${SDK_SYSDRV_DIR}/source/alpine
+			cd ${SDK_SYSDRV_DIR}/source/alpine
+
+			# Get YAML content from the latest stable release
+			local yaml_url="https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/armv7/latest-releases.yaml"
+			local yaml_content=$(wget -q -O - $yaml_url)
+
+			# Extract minirootfs information from YAML
+			local start_line=$(echo "$yaml_content" | grep -n "Mini root filesystem" | cut -d: -f1)
+			local file_name=$(echo "$yaml_content" | tail -n +$start_line | grep "file:" | head -n 1 | cut -d: -f2 | tr -d ' ')
+			local file_sha256=$(echo "$yaml_content" | tail -n +$start_line | grep "sha256:" | head -n 1 | cut -d: -f2 | tr -d ' ')
+			local file_url="https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/armv7/${file_name}"
+
+			# Download minirootfs
+			wget $file_url
+
+			# Verify checksum
+			if ! echo "${file_sha256}  ${file_name}" | sha256sum -c --status; then
+				msg_error "SHA256 verification failed for ${file_name}"
+				exit 1
+			fi
+
+			mkdir -p tmp/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}
+			tar xf ${file_name} -C tmp/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}
+			tar czf $RK_PROJECT_PATH_SYSDRV/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}.tar -C tmp .
+			rm -rf tmp ${file_name}
+	else
+			make rootfs -C ${SDK_SYSDRV_DIR}
+	fi
 
 	__LINK_DEFCONFIG_FROM_BOARD_CFG
 
@@ -2595,8 +2629,8 @@ function build_firmware() {
 		rm -rf $RK_PROJECT_PACKAGE_OEM_DIR
 	fi
 
-	__RUN_POST_BUILD_SCRIPT
 	post_overlay
+	__RUN_POST_BUILD_SCRIPT
 
 	if [ -n "$GLOBAL_INITRAMFS_BOOT_NAME" ]; then
 		build_mkimg boot $RK_PROJECT_PACKAGE_ROOTFS_DIR
