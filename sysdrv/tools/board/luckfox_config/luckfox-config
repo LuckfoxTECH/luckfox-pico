@@ -186,7 +186,7 @@ function luckfox_load_cfg() {
 			luckfox_set_pin_mark "GPIO1_C2" "$value"
 			luckfox_set_pin_mark "GPIO1_C3" "$value"
 			luckfox_set_pin_mark "GPIO0_A4" "$value"
-			luckfox_fbtft_app 1 "sitronix,st7789v"
+			luckfox_fbtft_app 1 "sitronix,st7789v" 0
 		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ]; then
 			luckfox_set_pin_mark "GPIO2_B1" "$value"
 			luckfox_set_pin_mark "GPIO1_C0" "$value"
@@ -194,7 +194,16 @@ function luckfox_load_cfg() {
 			luckfox_set_pin_mark "GPIO1_C2" "$value"
 			luckfox_set_pin_mark "GPIO1_C3" "$value"
 			luckfox_set_pin_mark "GPIO2_B0" "$value"
-			luckfox_fbtft_app 1 "sitronix,st7789v"
+			luckfox_set_pin_mark "GPIO1_D2" "$value"
+			local fbtft_model=$(luckfox_get_pin_cfg "FBTFT_MODEL")
+			if [ "$fbtft_model" == 0 ]; then	
+			    luckfox_fbtft_app 1 "sitronix,st7789v" 0
+			else
+			    luckfox_set_pin_mark "GPIO1_D3" "$value"
+			    luckfox_set_pin_mark "GPIO1_C4" "$value"
+			    # FIXME: somehow detect the model and pass 0 or 1 as argument #3
+			    luckfox_fbtft_app 1 "ti,ads7845" 1
+			fi
 		else
 			echo "FBTFT Not supported in this Luckfox-Pico Model!"
 		fi
@@ -1441,7 +1450,7 @@ function luckfox_spi_app() {
 		spi_pinctrl_addr+=$(luckfox_get_pinctrl_addr "spi${spi_main}m${spi_sub}-mosi")
 		if [ "$cs_action" == 1 ]; then
 			spi_pinctrl_addr+=" "
-			spi_pinctrl_addr+=$(luckfox_get_pinctrl_addr "spi${spi_main}m${spi_sub}-cs0")
+			spi_pinctrl_addr+=$(luckfox_get_pinctrl_addr "spi${spi_main}m${spi_sub}-cs0" "spi${spi_main}m${spi_sub}-cs1")
 		fi
 		if [ "$miso_action" == 1 ]; then
 			spi_pinctrl_addr+=" "
@@ -1895,6 +1904,7 @@ function luckfox_fbtft_app() {
 	#region
 	local action="$1"
 	local fbtft_compatible="$2"
+	local fbtft_model="$3"
 	local spi_device_name
 
 	local spi_main=0
@@ -1924,10 +1934,20 @@ function luckfox_fbtft_app() {
 		spi_pinctrl_addr+=$(luckfox_get_pinctrl_addr "spi0m0-mosi")
 		spi_pinctrl_addr+=" "
 		spi_pinctrl_addr+=$(luckfox_get_pinctrl_addr "spi0m0-cs0")
-
-		local fbtft_action=okay
+		spi_pinctrl_addr+=" "
+		spi_pinctrl_addr+=$(luckfox_get_pinctrl_addr "spi0m0-cs1")
+		local spi0_action=okay
+		if [ "$fbtft_model" == 1 ]; then 
+		    spi_pinctrl_addr+=" "
+		    spi_pinctrl_addr+=$(luckfox_get_pinctrl_addr "spi0m0-miso")
+		    local fbtft_action=disabled
+		    local fbtft_action_ads=okay
+		else   
+		    local fbtft_action=okay
+		    local fbtft_action_ads=disabled
+		fi
 	elif [ "$action" == 0 ]; then
-		local fbtft_action=disabled
+		local spi0_action=disabled
 	fi
 
 	spi_device_name=$(luckfox_get_device_name "spi0")
@@ -1938,15 +1958,38 @@ function luckfox_fbtft_app() {
 /plugin/;
 
 &{$spi_device_name}{
-	status=\"$fbtft_action\";
+	status=\"$spi0_action\";
+	num-cs = <2>;
 	pinctrl-0 = <$spi_pinctrl_addr>;
 };
-
 &{$spi_device_name/fbtft@0}{
 	status=\"$fbtft_action\";
-	compatible=\"$fbtft_compatible\";
+	compatible=\"sitronix,st7789v\";
+	spi-max-frequency = <20000000>;
 };
-
+&{$spi_device_name/touch-ads@0}{
+	status=\"$fbtft_action_ads\";
+	compatible=\"ti,ads7845\";
+	reg = <0>;
+	spi-max-frequency = <50000>;
+	//pendown-gpio = <0x00000037 0x0000001b 0x00000001>; //=<&gpio1 RK_PD3 GPIO_ACTIVE_LOW>;
+	//interrupts = <0x00000000 0x00000017 0x00000002>;   //= interrupts = <GIC_SPI 23 IRQ_TYPE_EDGE_FALLING>;
+	//interrupts = <0x00000000 0x00000017 0x00000004>;   //= interrupts = <GIC_SPI 23 IRQ_TYPE_LEVEL_HIGH>;
+	ti,x-min = /bits/ 16 <240>;
+        ti,y-min = /bits/ 16 <200>;
+        ti,x-max = /bits/ 16 <3900>;
+        ti,y-max = /bits/ 16 <3900>;
+        //ti,x-plate-ohms = [00 96]; // 150
+        //ti,pressure-max = [00 ff]; // 255
+        wakeup-source;
+};
+&{$spi_device_name/fbtft-ilitek@0}{
+	status=\"$fbtft_action_ads\";
+	compatible=\"ilitek,ili9341\";
+	reg = <1>;
+	spi-max-frequency = <20000000>;
+	rotate = <90>;
+};
 &{$spi_device_name/spidev@0}{
 	status=\"disabled\";
 };
@@ -1957,14 +2000,19 @@ function luckfox_fbtft_app() {
 /plugin/;
 
 &{$spi_device_name}{
-	status=\"$fbtft_action\";
+	status=\"$spi0_action\";
 };
-
 &{$spi_device_name/fbtft@0}{
-	status=\"$fbtft_action\";
+	status=\"$spi0_action\";
+};
+&{$spi_device_name/touch-ads@0}{
+	status=\"$spi0_action\";
+};
+&{$spi_device_name/fbtft-ilitek@0}{
+	status=\"$spi0_action\";
 };
 "
-	fi
+fi
 
 	# fdt overlay
 	#	luckfox_fdt_overlay "$fdt_content
@@ -2649,17 +2697,20 @@ function luckfox_FBTFT() {
 	fi
 
 	if [ "$fbtft_enable" == 1 ]; then
-		fbtft_mode=$(dialog --menu "FBTFT MODE Config" 10 40 2 \
-			0 "st7789v/st7789vm" \
+		fbtft_model=$(dialog --menu "FBTFT MODE Config" 10 40 2 \
+			0 "st7789v/st7789vm" 1 "ili9341/ads7845" \
 			2>&1 >/dev/tty)
-		if [ -z "$fbtft_mode" ]; then
+		if [ -z "$fbtft_model" ]; then
 			luckfox_advanced_options
-		elif [ "$fbtft_mode" == 0 ]; then
-			fbtft_compatible="sitronix,st7789v"
+		elif [ "$fbtft_model" == 0 ]; then
+		    fbtft_compatible="sitronix,st7789v"
+		elif [ "$fbtft_model" == 1 ]; then
+		    fbtft_compatible="ti,ads7845"
 		fi
+		luckfox_set_pin_cfg "FBTFT_MODEL" "$fbtft_model"
 	fi
 
-	luckfox_fbtft_app "$fbtft_enable" "$fbtft_compatible"
+	luckfox_fbtft_app "$fbtft_enable" "$fbtft_compatible" "$fbtft_model"
 	dialog --msgbox "FBTFT Effective after restart" 10 30
 
 	echo "Set FBTFT enable status : $fbtft_enable." >>"$LUCKFOX_CHANGE_TXT"

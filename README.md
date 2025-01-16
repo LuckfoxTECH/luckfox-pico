@@ -1,3 +1,47 @@
+# pottendo's branch to support some more HW gimicks on Luckfox's Pico MAX
+
+## Ilitek 9341 TFT + XPT2046 touch controller support
+Thas adds Ilitek's 9341 LCD and XPT2046 touch controllers support over SPI. One needs to enable via 'luckfox-config'.
+Certain linux kernel and buildroot packages need to be enabled. My configs can be found here: [buildroot config](pottendo-configs/pottendo-buildroot-config) and [kernel config](pottendo-configs/pottendo-kernel-config).
+
+In order to make the touch work properly one needs to calibrate using `ts_calibrate'. I've added the necessary packages in my buildroot config. To run the tools the following environment variables my be helpful to be set
+```
+export TSLIB_TSDEVICE=/dev/input/event1
+export TSLIB_CALIBFILE=/etc/pointercal
+export TSLIB_CONFFILE=/etc/ts.conf
+export TSLIB_PLUGINDIR=/usr/lib/ts
+```
+
+`/etc/pointercal` looks like this in my setup:
+```
+[root@luckfox root]# cat /etc/pointercal 
+-73 -5778 21838572 -4183 14 16316583 65536 320 240 0
+```
+
+|Luckfox Pico Max | 2.4" TFT |
+|:---------------|--------:|
+|GND (38)|GND|
+|3V3Out (36)|VCC|
+|SPI0_CS1_M0 (9)|CS|
+|GPIO1_C4_d (7)|RESET|
+|GPIO2_B1_d (11)|D/C|
+|SPI0_MOSI_M0 (15)|SDI(MOSI)|
+|SPI0_CLK_M0 (14)|SCK|
+|GPIO2_B0_d (17)|LED|
+|SPI0_MISO_M0 (16)|SDO(MISO)|
+|SPI0_CLK_M0 (14)|T_CLK|
+|SPI0_CS0_M0 (12)|T_CS|
+|SPI0_MOSI_M0 (15)|T_DIN|
+|SPI0_MISO_M0 (16)|T_DO|
+|GPIO1_D3_d (10)|T_IRQ|
+
+Pinout: 
+![Ilitek 9341/XPT 2046 pinout](pottendo-configs/Ilitek9341-XPT2025-TFT-touch-pinout.png)
+
+Here some demo I wrote: [TFT screen & Touch - blending with camera stream](https://photos.google.com/photo/AF1QipO2BUhd35yjDADPHEMfYXdPDCh_vv_lHku0w498). Source can be found [here](https://github.com/pottendo/pottendo-mandel).
+Note that to run the demo one needs a more recent opencv-mobule (4.10) to be compiled and used (support for direct renedering into a framebuffer using `imshow("fb", ..)`).
+
+
 ![luckfox](https://github.com/LuckfoxTECH/luckfox-pico/assets/144299491/cec5c4a5-22b9-4a9a-abb1-704b11651e88)
 # Luckfox Pico SDK
 [中文版](./README_CN.md)
