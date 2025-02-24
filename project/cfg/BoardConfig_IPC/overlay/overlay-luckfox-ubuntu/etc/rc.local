@@ -15,6 +15,10 @@ usb_reset() {
         done
 }
 
+if [ -f /oem/usr/ko/insmod_ko.sh ]; then
+       chmod a+x /oem/usr/ko/insmod_ko.sh
+       /oem/usr/ko/insmod_ko.sh
+fi
 /usr/bin/filesystem_resize.sh
 
 usb_mode="$(cat $USB_MODE_PATH)"
