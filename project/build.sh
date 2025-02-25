@@ -312,12 +312,12 @@ function choose_target_board() {
 	echo -e "${C_GREEN} "${space8}选择系统版本:"${C_NORMAL}"
 
 	if (("$BM_INDEX" == 1)); then
-		echo "${space8}${space8}[0] Buildroot(Support Rockchip official features) "
+		echo "${space8}${space8}[0] Buildroot"
 		read -p "Which would you like? [0~1][default:0]: " SYS_INDEX
 		MAX_SYS_INDEX=0
 	elif (("$BM_INDEX" == 0)); then
-		echo "${space8}${space8}[0] Buildroot(Support Rockchip official features) "
-		echo "${space8}${space8}[1] Ubuntu(Support for the apt package management tool)"
+		echo "${space8}${space8}[0] Buildroot"
+		echo "${space8}${space8}[1] Ubuntu"
 		read -p "Which would you like? [0~1][default:0]: " SYS_INDEX
 		MAX_SYS_INDEX=1
 	fi
@@ -2295,7 +2295,9 @@ function build_mkimg() {
 	fs_type="\$${fs_type}"
 	fs_type=$(eval "echo ${fs_type}")
 
-	__RELEASE_FILESYSTEM_FILES $src
+	if [ "$LF_TARGET_ROOTFS" == "buildroot" ] || [ "$LF_TARGET_ROOTFS" == "busybox" ]; then
+		__RELEASE_FILESYSTEM_FILES $src
+	fi
 
 	msg_info "src=$src"
 	msg_info "dst=$dst"
