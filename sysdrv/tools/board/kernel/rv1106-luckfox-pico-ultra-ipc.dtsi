@@ -249,6 +249,11 @@
 				data-lanes = <1 2>;
 			};
 
+			csi_dphy_input1: endpoint@1 {
+				reg = <1>;
+				remote-endpoint = <&mis5001_out>;
+				data-lanes = <1 2>;
+			};
 		};
 
 		port@1 {
@@ -286,6 +291,27 @@
 		port {
 			sc3336_out: endpoint {
 				remote-endpoint = <&csi_dphy_input0>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+
+	mis5001: mis5001@31 {
+		compatible = "imagedesign,mis5001";
+		status = "okay";
+		reg = <0x31>;
+		clocks = <&cru MCLK_REF_MIPI0>;
+		clock-names = "xvclk";
+		reset-gpios = <&gpio3 RK_PC5 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mipi_refclk_out0>;
+		rockchip,camera-module-index = <0>;
+		rockchip,camera-module-facing = "back";
+		rockchip,camera-module-name = "CMK-OT2115-PC1";
+		rockchip,camera-module-lens-name = "30IRC-F16";
+		port {
+			mis5001_out: endpoint {
+				remote-endpoint = <&csi_dphy_input1>;
 				data-lanes = <1 2>;
 			};
 		};
