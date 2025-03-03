@@ -292,9 +292,9 @@ static void fbtft_update_display(struct fbtft_par *par, unsigned int start_line,
 		throughput = throughput ? (len * 1000) / throughput : 0;
 		throughput = throughput * 1000 / 1024;
 
-		dev_info(par->info->device,
-			 "Display update: %ld kB/s, fps=%ld\n",
-			 throughput, fps);
+		// dev_info(par->info->device,
+		// 	 "Display update: %ld kB/s, fps=%ld\n",
+		// 	 throughput, fps);
 		par->first_update_done = true;
 	}
 }
