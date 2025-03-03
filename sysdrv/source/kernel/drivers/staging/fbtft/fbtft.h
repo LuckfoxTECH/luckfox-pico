@@ -407,7 +407,7 @@ do {                                                         \
 		dev_info(dev, format, ##arg);                \
 } while (0)
 
-#define fbtft_par_dbg(level, par, format, arg...)            \
+/*#define fbtft_par_dbg(level, par, format, arg...)            \
 do {                                                         \
 	if (unlikely((par)->debug & (level)))                    \
 		dev_info((par)->info->device, format, ##arg);  \
@@ -418,6 +418,9 @@ do {                                                                       \
 	if (unlikely((par)->debug & (level)))                                  \
 		fbtft_dbg_hex(dev, sizeof(type), buf,\
 			      (num) * sizeof(type), format, ##arg); \
-} while (0)
+} while (0)*/
+
+#define fbtft_par_dbg(level, par, format, arg...) ;
+#define fbtft_par_dbg_hex(level, par, dev, type, buf, num, format, arg...) ;
 
 #endif /* __LINUX_FBTFT_H */
