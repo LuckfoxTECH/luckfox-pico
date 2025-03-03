@@ -23,4 +23,6 @@
 /* reboot system quiescent */
 #define BOOT_QUIESCENT		(REBOOT_FLAG + 14)
 
+#define BOOT_TO_UBOOT (REBOOT_FLAG + 16)
+
 #endif
