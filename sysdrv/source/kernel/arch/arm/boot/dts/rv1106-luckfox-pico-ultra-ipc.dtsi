@@ -189,7 +189,7 @@
 
 &acodec {
 	#sound-dai-cells = <0>;
-	pa-ctl-gpios = <&gpio3 RK_PD3 GPIO_ACTIVE_HIGH>;
+	pa-ctl-gpios = <&gpio0 RK_PA0 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
 
@@ -496,7 +496,7 @@
 	pinctrl-0 = <&uart3m0_xfer &uart3m1_xfer>;
 };
 &uart4 {
-	pinctrl-0 = <&uart4m0_xfer>;
+	pinctrl-0 = <&uart4m0_xfer &uart4m1_xfer>;
 };
 &uart5 {
 	pinctrl-0 = <&uart5m1_xfer>;
