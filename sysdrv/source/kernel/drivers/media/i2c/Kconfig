@@ -1854,6 +1854,16 @@ config VIDEO_MIS4001
 	  This is a Video4Linux2 sensor driver for the ImageDesign
 	  MIS4001 camera.
 
+config VIDEO_MIS5001
+	tristate "ImageDesign mis5001 sensor support"
+	depends on I2C && VIDEO_V4L2
+	select MEDIA_CONTROLLER
+	select VIDEO_V4L2_SUBDEV_API
+	select V4L2_FWNODE
+	help
+	  This is a Video4Linux2 sensor driver for the ImageDesign
+	  MIS5001 camera.
+
 config VIDEO_MT9M001
 	tristate "mt9m001 support"
 	depends on I2C && VIDEO_V4L2

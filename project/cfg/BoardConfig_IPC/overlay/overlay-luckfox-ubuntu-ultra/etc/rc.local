@@ -15,9 +15,22 @@ usb_reset() {
         done
 }
 
+wifibt_init() {
+	/usr/bin/wifi_bt_init.sh
+	if [ -z "$(ifconfig -a | grep wlan0)" ]; then
+		echo "Try Wi-Fi/BT init again!"
+		sleep 5
+		/usr/bin/wifi_bt_init.sh
+	fi
+}
+
+if [ -f /oem/usr/ko/insmod_ko.sh ]; then
+        chmod a+x /oem/usr/ko/insmod_ko.sh
+        /oem/usr/ko/insmod_ko.sh
+fi
 /usr/bin/filesystem_resize.sh
-/usr/bin/wifi_bt_init.sh
 /usr/bin/luckfox_switch_rgb_resolution &
+wifibt_init &
 
 usb_mode="$(cat $USB_MODE_PATH)"
 /etc/init.d/S50usbdevice start

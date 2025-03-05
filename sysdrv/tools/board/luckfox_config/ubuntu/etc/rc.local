@@ -1,9 +1,0 @@
-#!/bin/bash
-
-/usr/bin/filesystem_resize.sh
-/etc/init.d/S50usbdevice start
-luckfox-config load
-if [ -n "$(hwclock | grep "invalid")" ]; then
-	date -s 2024-01-01
-	hwclock -w
-fi

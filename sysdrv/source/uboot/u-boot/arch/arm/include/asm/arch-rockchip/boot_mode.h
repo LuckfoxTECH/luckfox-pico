@@ -28,6 +28,8 @@
 /* enter bootrom download mode */
 #define BOOT_BROM_DOWNLOAD	0xEF08A53C
 
+#define BOOT_TO_UBOOT   (REBOOT_FLAG + 16)
+
 #ifndef __ASSEMBLY__
 int setup_boot_mode(void);
 #endif
