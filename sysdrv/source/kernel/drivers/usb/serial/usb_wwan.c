@@ -481,6 +481,13 @@ static struct urb *usb_wwan_setup_urb(struct usb_serial_port *port,
 	if (intfdata->use_zlp && dir == USB_DIR_OUT)
 		urb->transfer_flags |= URB_ZERO_PACKET;
 
+#if 1 /* Added by Simcom for Zero Packet */
+	if (dir == USB_DIR_OUT) {
+		if (serial->dev->descriptor.idVendor == cpu_to_le16(0x1E0E))
+			urb->transfer_flags |= URB_ZERO_PACKET;
+	}
+#endif
+
 	return urb;
 }
 
