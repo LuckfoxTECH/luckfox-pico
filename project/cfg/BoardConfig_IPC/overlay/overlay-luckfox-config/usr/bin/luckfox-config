@@ -1,11 +1,20 @@
 #!/bin/bash
+
+################################################################
+# ---------------------- Global Variable -----------------------
+################################################################
 export LUCKFOX_CHIP_MODEL
 export LUCKFOX_CHIP_MEDIA
 export LUCKFOX_CHIP_MEDIA_CLASS
 
+# Temp
+LUCKFOX_FDT_DUMP_TXT=/tmp/.fdt_dump.txt
+LUCKFOX_PIN_DIAGRAM_FILE=/tmp/.pin_diagram.txt
+LUCKFOX_CHANGE_TXT=/tmp/.change.txt
+
+# Overlay
 LUCKFOX_DYNAMIC_DTS=/tmp/.overlay.dts
 LUCKFOX_DYNAMIC_DTBO=/tmp/.overlay.dtbo
-
 LUCKFOX_FDT_DTB=/tmp/.fdt.dtb
 LUCKFOX_FDT_OVERLAY_DTS=/tmp/.fdt_overlay.dts
 LUCKFOX_FDT_OVERLAY_DTBO=/tmp/.fdt_overlay.dtbo
@@ -13,18 +22,197 @@ LUCKFOX_FDT_HDR_DTB=/tmp/.fdt_header.dtb
 LUCKFOX_FDT_HDR_OVERLAY_DTS=/tmp/.fdt_header_overlay.dts
 LUCKFOX_FDT_HDR_OVERLAY_DTBO=/tmp/.fdt_header_overlay.dtbo
 
-LUCKFOX_FDT_DUMP_TXT=/tmp/.fdt_dump.txt
-LUCKFOX_PIN_DIAGRAM_FILE=/tmp/.pin_diagram.txt
-LUCKFOX_CHANGE_TXT=/tmp/.change.txt
-
+# Config
 LUCKFOX_CFG_FILE=/etc/luckfox.cfg
 
-# return
+# GUI and log
 LF_OK=0
 LF_ERR=1
 LF_NONE=2
 LF_GUI_ENABLE=0
 
+################################################################
+# ------------------------ Pin Diagram -------------------------
+################################################################
+function luckfox_pico_pin_diagram_file() {
+	cat >$LUCKFOX_PIN_DIAGRAM_FILE <<EOF
+                                   Luckfox_Pico
+                                     + -USB- +
+          - FIQtty_TX     - GPIO1_B2 |       | VBUS     -             -
+          - FIQtty_RX     - GPIO1_B3 |       | VSYS     -             -
+          -               -      GND |       | GND      -             -
+ PWM11_M1 - UART4_M1_CTS  - GPIO1_C7 |       | 3V3_EN   -             -
+ PWM10_M1 - UART4_M1_RTS  - GPIO1_C6 |       | 3V3_OUT  -             -
+ PWM9_M1  - UART4_M1_TX   - GPIO1_C5 |       | NC       -             -
+ PWM8_M1  - UART4_M1_RX   - GPIO1_C4 |       | NC       -             -
+          -               -      GND |       | GND      -             -
+ PWM0_M1  - I2C3_M1_SDA   - GPIO1_D2 |       | GPIO4_C1 - SARADC_M1   -
+ PWM11_M2 - I2C3_M1_SCL   - GPIO1_D3 |       | GPIO4_C0 - SARADC_M0   -
+ PWM0_M0  -               - GPIO1_A2 |       | NC       -             -
+ PWM2_M2  - SPI0_M0_CS0   - GPIO1_C0 |       | NC       -             -
+          -               -      GND |       | GND      -             -
+ PWM4_M2  - SPI0_M0_CLK   - GPIO1_C1 |       | GPIO4_A4 -             -
+ PWM5_M2  - SPI0_M0_MOSI  - GPIO1_C2 |       | GPIO4_A3 -             -
+ PWM6_M2  - SPI0_M0_MISO  - GPIO1_C3 |       | GPIO4_A2 -             -
+ PWM1_M0  -               - GPIO0_A4 |       | GPIO4_A6 -             -
+          -               -      GND |       | GND      -             -
+ PWM3_M2  - UART3_M1_TX   - GPIO1_D0 |       | GPIO4_B0 -             -
+ PWM10_M2 - UART3_M1_RX   - GPIO1_D1 |       | GPIO4_B1 -             -
+                                     + - + - +
+EOF
+}
+
+function luckfox_pico_mini_pin_diagram_file() {
+	cat >$LUCKFOX_PIN_DIAGRAM_FILE <<EOF
+                                Luckfox_Pico_MiniA/B
+                                     + -USB- +
+          -               -     VBUS |       | 1V8      -             -
+          -               -      GND |       | GND      -             -
+          -               -      3V3 |       | GPIO4_C1 - SARADC_M1   -
+          - FIQtty_TX     - GPIO1_B2 |       | GPIO4_C0 - SARADC_M0   -
+          - FIQtty_RX     - GPIO1_B3 |       | GPIO0_A4 -             - PWM1_M0
+ PWM2_M2  - SPI0_M0_CS0   - GPIO1_C0 |       | GPIO1_C7 -             - PWM11_M1
+ PWM4_M2  - SPI0_M0_CLK   - GPIO1_C1 |       | GPIO1_C6 -             - PWM10_M1
+ PWM5_M2  - SPI0_M0_MOSI  - GPIO1_C2 |       | GPIO1_D3 - I2C3_M1_SCL - PWM11_M2
+ PWM6_M2  - SPI0_M0_MISO  - GPIO1_C3 |       | GPIO1_D2 - I2C3_M1_SDA - PWM0_M1
+ PWM8_M1  - UART4_M1_RX   - GPIO1_C4 |       | GPIO1_D1 - UART3_M1_RX - PWM10_M2
+ PWM9_M1  - UART4_M1_TX   - GPIO1_C5 |       | GPIO1_D0 - UART3_M1_TX - PWM3_M2
+                                     + - + - +
+EOF
+}
+
+function luckfox_pico_plus_pin_diagram_file() {
+	cat >$LUCKFOX_PIN_DIAGRAM_FILE <<EOF
+                                 Luckfox_Pico_Plus
+                                     + -USB- +
+          - FIQtty_TX     - GPIO1_B2 |       | VBUS     -             -
+          - FIQtty_RX     - GPIO1_B3 |       | VSYS     -             -
+          -               -      GND |       | GND      -             -
+ PWM11_M1 - UART4_M1_CTS  - GPIO1_C7 |       | 3V3_EN   -             -
+ PWM10_M1 - UART4_M1_RTS  - GPIO1_C6 |       | 3V3_OUT  -             -
+ PWM9_M1  - UART4_M1_TX   - GPIO1_C5 |       | NC       -             -
+ PWM8_M1  - UART4_M1_RX   - GPIO1_C4 |       | NC       -             -
+          -               -      GND |       | GND      -             -
+ PWM0_M1  - I2C3_M1_SDA   - GPIO1_D2 |       | GPIO4_C1 - SARADC_M1   -
+ PWM11_M2 - I2C3_M1_SCL   - GPIO1_D3 |       | GPIO4_C0 - SARADC_M0   -
+ PWM0_M0  -               - GPIO1_A2 |       | NC       -             -
+ PWM2_M2  - SPI0_M0_CS0   - GPIO1_C0 |       | GPIO3_A1 -             -
+          -               -      GND |       | GND      -             -
+ PWM4_M2  - SPI0_M0_CLK   - GPIO1_C1 |       | GPIO3_A3 -             - PWM8_M0
+ PWM5_M2  - SPI0_M0_MOSI  - GPIO1_C2 |       | GPIO3_A2 -             - PWM9_M0
+ PWM6_M2  - SPI0_M0_MISO  - GPIO1_C3 |       | GPIO3_A4 - I2C0_M2_SCL - PWM10_M0
+ PWM1_M0  -               - GPIO0_A4 |       | GPIO3_A5 - I2C0_M2_SDA - PWM11_M0
+          -               -      GND |       | GND      -             -
+ PWM3_M2  - UART3_M1_TX   - GPIO1_D0 |       | GPIO3_A7 - UART5_M0_RX -
+ PWM10_M2 - UART3_M1_RX   - GPIO1_D1 |       | GPIO3_A6 - UART5_M0_TX -
+                                     + - + - +
+EOF
+}
+
+function luckfox_pico_pro_max_pin_diagram_file() {
+	cat >$LUCKFOX_PIN_DIAGRAM_FILE <<EOF
+                                 Luckfox_Pico_Pro_Max
+                                     + -USB- +
+          - FIQtty_TX     - GPIO1_B2 |       | VBUS     -             -
+          - FIQtty_RX     - GPIO1_B3 |       | VSYS     -             -
+          -               -      GND |       | GND      -             -
+ PWM11_M1 - UART4_M1_CTS  - GPIO1_C7 |       | 3V3_EN   -             -
+ PWM10_M1 - UART4_M1_RTS  - GPIO1_C6 |       | 3V3_OUT  -             -
+ PWM9_M1  - UART4_M1_TX   - GPIO1_C5 |       | NC       -             -
+ PWM8_M1  - UART4_M1_RX   - GPIO1_C4 |       | GPIO2_A7 - I2C3_M0_SDA -
+          -               -      GND |       | GND      -             -
+ PWM0_M1  - I2C3_M1_SDA   - GPIO1_D2 |       | GPIO4_C1 - SARADC_M1   -
+ PWM11_M2 - I2C3_M1_SCL   - GPIO1_D3 |       | GPIO4_C0 - SARADC_M0   -
+ PWM6_M1  - I2C1_M1_SDA   - GPIO2_B1 |       | RESET    -             -
+ PWM2_M2  - SPI0_M0_CS0   - GPIO1_C0 |       | GPIO2_A6 - I2C3_M0_SCL -
+          -               -      GND |       | GND      -             -
+ PWM4_M2  - SPI0_M0_CLK   - GPIO1_C1 |       | GPIO2_A3 -             -
+ PWM5_M2  - SPI0_M0_MOSI  - GPIO1_C2 |       | GPIO2_A2 -             -
+ PWM6_M2  - SPI0_M0_MISO  - GPIO1_C3 |       | GPIO2_A1 -             -
+ PWM5_M1  - I2C1_M1_SCL   - GPIO2_B0 |       | GPIO2_A0 -             -
+          -               -      GND |       | GND      -             -
+ PWM3_M2  - UART3_M1_TX   - GPIO1_D0 |       | GPIO2_A5 - UART1_M1_RX -
+ PWM10_M2 - UART3_M1_RX   - GPIO1_D1 |       | GPIO2_A4 - UART1_M1_TX -
+                                     + - + - +
+EOF
+}
+
+function luckfox_pico_ultra_pin_diagram_file() {
+	cat >$LUCKFOX_PIN_DIAGRAM_FILE <<EOF
+                                           Luckfox_Pico_Ultra
+                                                + - + - +
+         -             -             -      3V3 |       | 5V
+ PWM7_M0 - I2C2_M0_SCL - UART3_M0_TX - GPIO1_A0 |       | 5V
+ PWM4_M0 - I2C2_M0_SDA - UART3_M0_RX - GPIO1_A1 |       | GND
+ PWM3_M1 -             - UART4_M0_RX - GPIO1_B0 |       | GPIO1_B2 - UART2_M1_TX
+         -             -             -      GND |       | GPIO1_B3 - UART2_M1_RX
+ PWM7_M1 -             - UART4_M0_TX - GPIO1_B1 |       | GPIO1_C6 -             -            - PWM10_M1
+ PWM3_M2 -             - UART3_M1_TX - GPIO1_D0 |       | GND
+ PWM10_M2-             - UART3_M1_RX - GPIO1_D1 |       | GPIO2_A7 - UART0_M1_CTS- I2C3_M0_SDA- PWM4_M1
+         -             -             -      3V3 |       | GPIO2_A6 - UART0_M1_RTS- I2C3_M0_SCL- PWM2_M1
+ PWM5_M2 - I2C4_M1_SCL - SPI0_M0_MOSI- GPIO1_C2 |       | GND
+ PWM6_M2 - I2C4_M1_SDA - SPI0_M0_MISO- GPIO1_C3 |       | GPIO1_D3 - UART5_M1_TX - I2C3_M1_SCL- PWM11_M2
+ PWM4_M2 -             - SPI0_M0_CLK - GPIO1_C1 |       | GPIO1_C0 - SPI0_M0_CS0 -            - PWM2_M2
+                                            GND |       | GPIO1_D2 - UART5_M1_RX - I2C3_M1_SDA- PWM0_M1
+                                                + - + - +
+                                                + - + - +
+         -             -             -      SYS |       | 1V8      -             -             -
+         -             -             -      GND |       | GND      -             -             -
+         -             -             -      3V3 |       | GPIO4_C0 -             -             -
+         -             -             -      GND |       | GPIO4_C1 -             -             -
+ PWM8_M1 -             - UART4_M1_RX - GPIO1_C4 |       | GND      -             -             -
+ PWM9_M1 -             - UART4_M1_TX - GPIO1_C5 |       | MICBIAS  -             -             -
+         - I2C4_M0_SCL - UART1_M1_RTS- GPIO2_A1 |       | MIC1P    -             -             -
+         - I2C4_M0_SDA - UART1_M1_CTS- GPIO2_A0 |       | MIC1N    -             -             -
+         -             - UART1_M1_RX - GPIO2_A5 |       | GND      -             -             -
+         -             - UART1_M1_TX - GPIO2_A4 |       | GPIO1_C7 -             -             - PWM11_M1
+         -             -             - GPIO2_A2 |       | GPIO2_B0 - UART0_M1_RX - I2C1_M1_SCL - PWM5_M1
+         -             -             - GPIO2_A3 |       | GPIO2_B1 - UART0_M1_TX - I2C1_M1_SDA - PWM6_M1
+         -             -             -      GND |       | GND      -             -             -
+                                                + - + - +
+EOF
+}
+
+function luckfox_pico_pi_pin_diagram_file() {
+	cat >$LUCKFOX_PIN_DIAGRAM_FILE <<EOF
+                                             Luckfox_Pico_Pi
+                                                + - + - +
+         -             -             -      3V3 |       | 5V
+         - I2C2_M0_SCL - UART3_M0_TX - GPIO1_A0 |       | 5V
+ PWM4_M0 - I2C2_M0_SDA - UART3_M0_RX - GPIO1_A1 |       | GND
+ PWM3_M1 -             - UART4_M0_RX - GPIO1_B0 |       | GPIO1_B2 - FIQtty_TX
+         -             -             -      GND |       | GPIO1_B3 - FIQtty_RX
+         -             - UART4_M0_TX - GPIO1_B1 |       | GPIO1_C6 -             -             - PWM10_M1
+ PWM3_M2 -             - UART3_M1_TX - GPIO1_D0 |       | GND
+ PWM10_M2-             - UART3_M1_RX - GPIO1_D1 |       | GPIO2_A7 - UART0_M1_CTS- I2C3_M0_SDA - PWM4_M1
+         -             -             -      3V3 |       | GPIO2_A6 - UART0_M1_RTS- I2C3_M0_SCL - PWM2_M1
+ PWM5_M2 - I2C4_M1_SCL - SPI0_M0_MOSI- GPIO1_C2 |       | GND
+ PWM6_M2 - I2C4_M1_SDA - SPI0_M0_MISO- GPIO1_C3 |       | GPIO1_D3 -             -             - PWM11_M2
+ PWM4_M2 -             - SPI0_M0_CLK - GPIO1_C1 |       | GPIO1_C0 - SPI0_M0_CS0 -             - PWM2_M2
+                                            GND |       | GPIO1_D2 - SPI0_M0_CS1 -             - PWM0_M1
+ PWM6_M1 - I2C1_M1_SDA - UART0_M1_TX - GPIO2_B1 |       | GPIO2_B0 - UART0_M1_RX - I2C2_M1_SCL - PWM5_M1
+         - I2C3_M2_SDA - UART5_M2_RTS- GPIO3_D2 |       | GND      -             -             -
+         - I2C3_M2_SCL - UART5_M2_CTS- GPIO3_D1 |       | GPIO1_C5 - UART4_M1_TX -             - PWM9_M1
+ PWM8_M1 -             - UART4_M1_RX - GPIO1_C4 |       | GND      -             -             -
+ PWM2_M0 -             - UART0_M0_TX - GPIO0_A1 |       | GPIO1_C7 -             -             - PWM11_M1
+         -             - UART0_M0_RX - GPIO0_A0 |       | GPIO3_D3 -             -             - PWM1_M2
+         -             -             -      GND |       | GPIO4_C1 -             -             - PWM1_M1
+                                                + - + - +
+EOF
+}
+
+################################################################
+# ------------------------ Initialize --------------------------
+################################################################
+
+################################################################
+# @fu luckfox_config_init
+#
+# @brief 1. Check if the required software dependencies are installed.
+# 		 2. Determine the model and the storage medium in use.
+#
+# @return none
+###############################################################
 function luckfox_config_init() {
 	# check command
 	if ! command -v dialog &>/dev/null; then
@@ -62,6 +250,8 @@ function luckfox_config_init() {
 			luckfox_pico_mini_pin_diagram_file
 		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra W" ]; then
 			luckfox_pico_ultra_pin_diagram_file
+		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pi" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pi W" ]; then
+			luckfox_pico_pi_pin_diagram_file
 		fi
 	fi
 
@@ -92,6 +282,13 @@ function luckfox_config_init() {
 	touch $LUCKFOX_CHANGE_TXT
 }
 
+################################################################
+# @fu luckfox_load_cfg
+#
+# @brief 1. Set up according to the contents of LUCKFOX_CFG_FILE when entering the rootfs.
+#
+# @return none
+################################################################
 function luckfox_load_cfg() {
 	local group right_group
 	local multi_pins_group=()
@@ -101,34 +298,15 @@ function luckfox_load_cfg() {
 	local i2c_speed spi_cs_enable spi_miso_enable spi_speed
 	local pwm_main pwm_sub uart_main uart_sub i2c_main i2c_sub spi_main spi_sub
 	local compatible_device
+	local mode_4g apn_4g
 
 	if [ ! -f $LUCKFOX_CFG_FILE ]; then
 		touch $LUCKFOX_CFG_FILE
 	fi
-	# To obtain all the reusable GPIO pin functions
-	while IFS= read -r line; do
-		if [[ "$line" == *"|       |"* ]]; then
-			group=()
-			right_group=()
 
-			IFS='-' read -r -a group <<<"$(echo "$line" | cut -d'|' -f1)"
-			IFS='-' read -r -a right_group <<<"$(echo "$line" | cut -d'|' -f3)"
-			group+=("${right_group[@]}")
-
-			for pin in "${group[@]}"; do
-				if [[ "$pin" == *"UART"*"_RX"* ]]; then
-					multi_pins_group+=("$(echo "$pin" | sed -E 's/(UART[0-9]+_M[0-9]+)_.*$/\1/g' | sed 's/^ //')")
-				elif [[ "$pin" == *"PWM"* ]]; then
-					multi_pins_group+=("$(echo "$pin" | sed -E 's/(PWM[0-9]+_M[0-9]+).*$/\1/g' | sed 's/^ //')")
-				elif [[ "$pin" == *"I2C"*"_SCL"* ]]; then
-					multi_pins_group+=("$(echo "$pin" | sed -E 's/(I2C[0-9]+_M[0-9]+)_.*$/\1/g' | sed 's/^ //')")
-				elif [[ "$pin" == *"SPI"*"_CLK"* ]]; then
-					multi_pins_group+=("$(echo "$pin" | sed -E 's/(SPI[0-9]+_M[0-9]+)_.*$/\1/g' | sed 's/^ //')")
-				fi
-			done
-		fi
-	done <"$LUCKFOX_PIN_DIAGRAM_FILE"
-
+	###########################################
+	# Devices configured by modifying the FDT
+	###########################################
 	# RGB
 	value=$(luckfox_get_pin_cfg "RGB_ENABLE")
 	if [ "$value" == 1 ] || [ -z "$value" ]; then
@@ -223,6 +401,56 @@ function luckfox_load_cfg() {
 		luckfox_sdmmc_app "$value"
 	fi
 
+	# 4G_Module
+	value=$(luckfox_get_pin_cfg "MODULE_4G_ENABLE")
+
+	if [ "$value" == 1 ]; then
+		if [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pi" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pi W" ]; then
+			mode_4g=$(luckfox_get_pin_cfg "MODULE_4G_MODE")
+			if [ -z "$mode_4g" ]; then
+				mode_4g="ndis"
+			fi
+
+			apn_4g=$(luckfox_get_pin_cfg "MODULE_4G_APN")
+			if [ -z "$apn_4g" ] && [ "$mode_4g" == "ppp" ]; then
+				apn_4g="ctnet"
+			fi
+
+			if [ "$mode_4g" == "ppp" ]; then
+				luckfox_4g_app "$value" "$mode_4g" "$apn_4g" 10 &
+			else
+				luckfox_4g_app "$value" "$mode_4g" "$apn_4g" 5 &
+			fi
+		fi
+	fi
+
+	####################################
+	# Devices configured using dtbo
+	####################################
+	# To obtain all the reusable GPIO pin functions
+	while IFS= read -r line; do
+		if [[ "$line" == *"|       |"* ]]; then
+			group=()
+			right_group=()
+
+			IFS='-' read -r -a group <<<"$(echo "$line" | cut -d'|' -f1)"
+			IFS='-' read -r -a right_group <<<"$(echo "$line" | cut -d'|' -f3)"
+			group+=("${right_group[@]}")
+
+			for pin in "${group[@]}"; do
+				if [[ "$pin" == *"UART"*"_RX"* ]]; then
+					multi_pins_group+=("$(echo "$pin" | sed -E 's/(UART[0-9]+_M[0-9]+)_.*$/\1/g' | sed 's/^ //')")
+				elif [[ "$pin" == *"PWM"* ]]; then
+					multi_pins_group+=("$(echo "$pin" | sed -E 's/(PWM[0-9]+_M[0-9]+).*$/\1/g' | sed 's/^ //')")
+				elif [[ "$pin" == *"I2C"*"_SCL"* ]]; then
+					multi_pins_group+=("$(echo "$pin" | sed -E 's/(I2C[0-9]+_M[0-9]+)_.*$/\1/g' | sed 's/^ //')")
+				elif [[ "$pin" == *"SPI"*"_CLK"* ]]; then
+					multi_pins_group+=("$(echo "$pin" | sed -E 's/(SPI[0-9]+_M[0-9]+)_.*$/\1/g' | sed 's/^ //')")
+				fi
+			done
+		fi
+	done <"$LUCKFOX_PIN_DIAGRAM_FILE"
+
 	# Create global variables by comparing cfg files
 	for pin in "${multi_pins_group[@]}"; do
 
@@ -302,147 +530,19 @@ function luckfox_load_cfg() {
 
 }
 
-# ------------------- Pin Diagram ---------------------
-function luckfox_pico_pro_max_pin_diagram_file() {
-	cat >$LUCKFOX_PIN_DIAGRAM_FILE <<EOF
-                                 Luckfox_Pico_Pro_Max
-                                     + -USB- +
-          - FIQtty_TX     - GPIO1_B2 |       | VBUS     -             -
-          - FIQtty_RX     - GPIO1_B3 |       | VSYS     -             -
-          -               -      GND |       | GND      -             -
- PWM11_M1 - UART4_M1_CTS  - GPIO1_C7 |       | 3V3_EN   -             -
- PWM10_M1 - UART4_M1_RTS  - GPIO1_C6 |       | 3V3_OUT  -             -
- PWM9_M1  - UART4_M1_TX   - GPIO1_C5 |       | NC       -             -
- PWM8_M1  - UART4_M1_RX   - GPIO1_C4 |       | GPIO2_A7 - I2C3_M0_SDA -
-          -               -      GND |       | GND      -             -
- PWM0_M1  - I2C3_M1_SDA   - GPIO1_D2 |       | GPIO4_C1 - SARADC_M1   -
- PWM11_M2 - I2C3_M1_SCL   - GPIO1_D3 |       | GPIO4_C0 - SARADC_M0   -
- PWM6_M1  - I2C1_M1_SDA   - GPIO2_B1 |       | RESET    -             -
- PWM2_M2  - SPI0_M0_CS0   - GPIO1_C0 |       | GPIO2_A6 - I2C3_M0_SCL -
-          -               -      GND |       | GND      -             -
- PWM4_M2  - SPI0_M0_CLK   - GPIO1_C1 |       | GPIO2_A3 -             -
- PWM5_M2  - SPI0_M0_MOSI  - GPIO1_C2 |       | GPIO2_A2 -             -
- PWM6_M2  - SPI0_M0_MISO  - GPIO1_C3 |       | GPIO2_A1 -             -
- PWM5_M1  - I2C1_M1_SCL   - GPIO2_B0 |       | GPIO2_A0 -             -
-          -               -      GND |       | GND      -             -
- PWM3_M2  - UART3_M1_TX   - GPIO1_D0 |       | GPIO2_A5 - UART1_M1_RX -
- PWM10_M2 - UART3_M1_RX   - GPIO1_D1 |       | GPIO2_A4 - UART1_M1_TX -
-                                     + - + - +
-EOF
-}
-# pin diagram
-function luckfox_pico_plus_pin_diagram_file() {
-	cat >$LUCKFOX_PIN_DIAGRAM_FILE <<EOF
-                                 Luckfox_Pico_Plus
-                                     + -USB- +
-          - FIQtty_TX     - GPIO1_B2 |       | VBUS     -             -
-          - FIQtty_RX     - GPIO1_B3 |       | VSYS     -             -
-          -               -      GND |       | GND      -             -
- PWM11_M1 - UART4_M1_CTS  - GPIO1_C7 |       | 3V3_EN   -             -
- PWM10_M1 - UART4_M1_RTS  - GPIO1_C6 |       | 3V3_OUT  -             -
- PWM9_M1  - UART4_M1_TX   - GPIO1_C5 |       | NC       -             -
- PWM8_M1  - UART4_M1_RX   - GPIO1_C4 |       | NC       -             -
-          -               -      GND |       | GND      -             -
- PWM0_M1  - I2C3_M1_SDA   - GPIO1_D2 |       | GPIO4_C1 - SARADC_M1   -
- PWM11_M2 - I2C3_M1_SCL   - GPIO1_D3 |       | GPIO4_C0 - SARADC_M0   -
- PWM0_M0  -               - GPIO1_A2 |       | NC       -             -
- PWM2_M2  - SPI0_M0_CS0   - GPIO1_C0 |       | GPIO3_A1 -             -
-          -               -      GND |       | GND      -             -
- PWM4_M2  - SPI0_M0_CLK   - GPIO1_C1 |       | GPIO3_A3 -             - PWM8_M0
- PWM5_M2  - SPI0_M0_MOSI  - GPIO1_C2 |       | GPIO3_A2 -             - PWM9_M0
- PWM6_M2  - SPI0_M0_MISO  - GPIO1_C3 |       | GPIO3_A4 - I2C0_M2_SCL - PWM10_M0
- PWM1_M0  -               - GPIO0_A4 |       | GPIO3_A5 - I2C0_M2_SDA - PWM11_M0
-          -               -      GND |       | GND      -             -
- PWM3_M2  - UART3_M1_TX   - GPIO1_D0 |       | GPIO3_A7 - UART5_M0_RX -
- PWM10_M2 - UART3_M1_RX   - GPIO1_D1 |       | GPIO3_A6 - UART5_M0_TX -
-                                     + - + - +
-EOF
-}
+################################################################
+# -------------------- Pin Diagram Handle ----------------------
+################################################################
 
-function luckfox_pico_pin_diagram_file() {
-	cat >$LUCKFOX_PIN_DIAGRAM_FILE <<EOF
-                                   Luckfox_Pico
-                                     + -USB- +
-          - FIQtty_TX     - GPIO1_B2 |       | VBUS     -             -
-          - FIQtty_RX     - GPIO1_B3 |       | VSYS     -             -
-          -               -      GND |       | GND      -             -
- PWM11_M1 - UART4_M1_CTS  - GPIO1_C7 |       | 3V3_EN   -             -
- PWM10_M1 - UART4_M1_RTS  - GPIO1_C6 |       | 3V3_OUT  -             -
- PWM9_M1  - UART4_M1_TX   - GPIO1_C5 |       | NC       -             -
- PWM8_M1  - UART4_M1_RX   - GPIO1_C4 |       | NC       -             -
-          -               -      GND |       | GND      -             -
- PWM0_M1  - I2C3_M1_SDA   - GPIO1_D2 |       | GPIO4_C1 - SARADC_M1   -
- PWM11_M2 - I2C3_M1_SCL   - GPIO1_D3 |       | GPIO4_C0 - SARADC_M0   -
- PWM0_M0  -               - GPIO1_A2 |       | NC       -             -
- PWM2_M2  - SPI0_M0_CS0   - GPIO1_C0 |       | NC       -             -
-          -               -      GND |       | GND      -             -
- PWM4_M2  - SPI0_M0_CLK   - GPIO1_C1 |       | GPIO4_A4 -             -
- PWM5_M2  - SPI0_M0_MOSI  - GPIO1_C2 |       | GPIO4_A3 -             -
- PWM6_M2  - SPI0_M0_MISO  - GPIO1_C3 |       | GPIO4_A2 -             -
- PWM1_M0  -               - GPIO0_A4 |       | GPIO4_A6 -             -
-          -               -      GND |       | GND      -             -
- PWM3_M2  - UART3_M1_TX   - GPIO1_D0 |       | GPIO4_B0 -             -
- PWM10_M2 - UART3_M1_RX   - GPIO1_D1 |       | GPIO4_B1 -             -
-                                     + - + - +
-EOF
-}
-
-function luckfox_pico_mini_pin_diagram_file() {
-	cat >$LUCKFOX_PIN_DIAGRAM_FILE <<EOF
-                                Luckfox_Pico_MiniA/B
-                                     + -USB- +
-          -               -     VBUS |       | 1V8      -             -
-          -               -      GND |       | GND      -             -
-          -               -      3V3 |       | GPIO4_C1 - SARADC_M1   -
-          - FIQtty_TX     - GPIO1_B2 |       | GPIO4_C0 - SARADC_M0   -
-          - FIQtty_RX     - GPIO1_B3 |       | GPIO0_A4 -             - PWM1_M0
- PWM2_M2  - SPI0_M0_CS0   - GPIO1_C0 |       | GPIO1_C7 -             - PWM11_M1
- PWM4_M2  - SPI0_M0_CLK   - GPIO1_C1 |       | GPIO1_C6 -             - PWM10_M1
- PWM5_M2  - SPI0_M0_MOSI  - GPIO1_C2 |       | GPIO1_D3 - I2C3_M1_SCL - PWM11_M2
- PWM6_M2  - SPI0_M0_MISO  - GPIO1_C3 |       | GPIO1_D2 - I2C3_M1_SDA - PWM0_M1
- PWM8_M1  - UART4_M1_RX   - GPIO1_C4 |       | GPIO1_D1 - UART3_M1_RX - PWM10_M2
- PWM9_M1  - UART4_M1_TX   - GPIO1_C5 |       | GPIO1_D0 - UART3_M1_TX - PWM3_M2
-                                     + - + - +
-EOF
-}
-
-function luckfox_pico_ultra_pin_diagram_file() {
-	cat >$LUCKFOX_PIN_DIAGRAM_FILE <<EOF
-                                           Luckfox_Pico_Ultra
-                                                + - + - +
-         -             -             -      3V3 |       | 5V
- PWM7_M0 - I2C2_M0_SCL - UART3_M0_TX - GPIO1_A0 |       | 5V
- PWM4_M0 - I2C2_M0_SDA - UART3_M0_RX - GPIO1_A1 |       | GND
- PWM3_M1 -             - UART4_M0_RX - GPIO1_B0 |       | GPIO1_B2 - UART2_M1_TX
-         -             -             -      GND |       | GPIO1_B3 - UART2_M1_RX
- PWM7_M1 -             - UART4_M0_TX - GPIO1_B1 |       | GPIO1_C6 -             -            - PWM10_M1
- PWM3_M2 -             - UART3_M1_TX - GPIO1_D0 |       | GND
- PWM10_M2-             - UART3_M1_RX - GPIO1_D1 |       | GPIO2_A7 - UART0_M1_CTS- I2C3_M0_SDA- PWM4_M1
-         -             -             -      3V3 |       | GPIO2_A6 - UART0_M1_RTS- I2C3_M0_SCL- PWM2_M1
- PWM5_M2 - I2C4_M1_SCL - SPI0_M0_MOSI- GPIO1_C2 |       | GND
- PWM6_M2 - I2C4_M1_SDA - SPI0_M0_MISO- GPIO1_C3 |       | GPIO1_D3 - UART5_M1_TX - I2C3_M1_SCL- PWM11_M2
- PWM4_M2 -             - SPI0_M0_CLK - GPIO1_C1 |       | GPIO1_C0 - SPI0_M0_CS0 -            - PWM2_M2
-                                            GND |       | GPIO1_D2 - UART5_M1_RX - I2C3_M1_SDA- PWM0_M1
-                                                + - + - +
-                                                + - + - +
-         -             -             -      SYS |       | 1V8      -             -             -
-         -             -             -      GND |       | GND      -             -             -
-         -             -             -      3V3 |       | GPIO4_C0 -             -             -
-         -             -             -      GND |       | GPIO4_C1 -             -             -
- PWM8_M1 -             - UART4_M1_RX - GPIO1_C4 |       | GND      -             -             -
- PWM9_M1 -             - UART4_M1_TX - GPIO1_C5 |       | MICBIAS  -             -             -
-         - I2C4_M0_SCL - UART1_M1_RTS- GPIO2_A1 |       | MIC1P    -             -             -
-         - I2C4_M0_SDA - UART1_M1_CTS- GPIO2_A0 |       | MIC1N    -             -             -
-         -             - UART1_M1_RX - GPIO2_A5 |       | GND      -             -             -
-         -             - UART1_M1_TX - GPIO2_A4 |       | GPIO1_C7 -             -             - PWM11_M1
-         -             -             - GPIO2_A2 |       | GPIO2_B0 - UART0_M1_RX - I2C1_M1_SCL - PWM5_M1
-         -             -             - GPIO2_A3 |       | GPIO2_B1 - UART0_M1_TX - I2C1_M1_SDA - PWM6_M1
-         -             -             -      GND |       | GND      -             -             -
-                                                + - + - +
-EOF
-}
-
-# ------------------- Pin Diagram Handle ---------------------
+################################################################
+# @fu luckfox_check_pin_diagram
+#
+# @brief 1. Check if all the provided pin names have other multiplexing functions.
+#
+# @param device_node - Multiple pin names can be passed in.
+#
+# @return none
+################################################################
 function luckfox_check_pin_diagram() {
 	local device_node
 	local left_group=()
@@ -498,6 +598,16 @@ function luckfox_check_pin_diagram() {
 	return
 }
 
+################################################################
+# @fu luckfox_set_pin_diagram
+#
+# @brief 1. Set detailed parameters in the Pin Diagram.
+#
+# @param parameter_name  - Option name to be set
+# 		 parameter_value - Option value to be set
+#
+# @return none
+################################################################
 function luckfox_set_pin_parameter() {
 	local parameter_name="$1"
 	local parameter_value="$2"
@@ -509,17 +619,16 @@ function luckfox_set_pin_parameter() {
 	fi
 }
 
-function luckfox_set_pin_cfg() {
-	local parameter_name="$1"
-	local parameter_value="$2"
-
-	if grep -q "$parameter_name=" "$LUCKFOX_CFG_FILE"; then
-		sed -i "s/^$parameter_name=.*/$parameter_name=$parameter_value/" "$LUCKFOX_CFG_FILE"
-	else
-		echo "$parameter_name=$parameter_value" >>"$LUCKFOX_CFG_FILE"
-	fi
-}
-
+################################################################
+# @fu luckfox_set_pin_mark
+#
+# @brief 1. Clear or add the "*" mark in the Pin Diagram.
+#
+# @param pin    - Option name to be set
+# 		 action - 1 indicates adding a mark, 0 indicates clearing a mark.
+#
+# @return none
+################################################################
 function luckfox_set_pin_mark() {
 	local pin="$1"
 	local action="$2"
@@ -539,14 +648,112 @@ function luckfox_set_pin_mark() {
 	fi
 }
 
+################################################################
+# @fu luckfox_get_option_str
+#
+# @brief 1. Collect pins of a specific multiplexing type from the Pin Diagram for GUI display.
+#
+# @param search_param - Specific multiplexing type
+#
+# @return
+################################################################
+function luckfox_get_option_str() {
+	local search_param="$1"
+	local group=()
+	local right_group=()
+	local option_group=()
+	local option_str=""
+
+	while IFS= read -r line; do
+		if [[ "$line" == *"|       |"* && "$line" == *"$search_param"* ]]; then
+			group=()
+			right_group=()
+
+			IFS='-' read -r -a group <<<"$(echo "$line" | cut -d'|' -f1)"
+			IFS='-' read -r -a right_group <<<"$(echo "$line" | cut -d'|' -f3)"
+			group+=("${right_group[@]}")
+			for pin in "${group[@]}"; do
+				if [ "$search_param" == "UART" ]; then
+					if [[ "$pin" == *"$search_param"*"_RX"* ]]; then
+						option_group+=$(echo "$pin" | sed -E 's/(UART[0-9]+_M[0-9]+)_.*$/\1 x /g')
+					fi
+				elif [ "$search_param" == "PWM" ]; then
+					if [[ "$pin" == *"$search_param"* ]]; then
+						option_group+=$(echo "$pin" | sed -E 's/(PWM[0-9]+_M[0-9]+).*$/\1 x /g')
+					fi
+				elif [ "$search_param" == "I2C" ]; then
+					if [[ "$pin" == *"$search_param"*"_SCL"* ]]; then
+						option_group+=$(echo "$pin" | sed -E 's/(I2C[0-9]+_M[0-9]+)_.*$/\1 x /g')
+					fi
+				elif [ "$search_param" == "SPI" ]; then
+					if [[ "$pin" == *"$search_param"*"_CLK"* ]]; then
+						option_group+=$(echo "$pin" | sed -E 's/(SPI[0-9]+_M[0-9]+)_.*$/\1 x /g')
+					fi
+				fi
+			done
+		fi
+	done <"$LUCKFOX_PIN_DIAGRAM_FILE"
+
+	for element in "${option_group[@]}"; do
+		option_str+="$element"
+	done
+
+	echo "$option_str"
+}
+
+################################################################
+# ------------------- Luckfox Config File  ---------------------
+################################################################
+
+################################################################
+# @fu luckfox_set_pin_cfg
+#
+# @brief 1. Set the static parameters of LUCKFOX_CFG_FILE.
+#
+# @param parameter_name  - Option name to be set
+# 		 parameter_value - Option value to be set
+#
+# @return none
+################################################################
+function luckfox_set_pin_cfg() {
+	local parameter_name="$1"
+	local parameter_value="$2"
+
+	if grep -q "$parameter_name=" "$LUCKFOX_CFG_FILE"; then
+		sed -i "s/^$parameter_name=.*/$parameter_name=$parameter_value/" "$LUCKFOX_CFG_FILE"
+	else
+		echo "$parameter_name=$parameter_value" >>"$LUCKFOX_CFG_FILE"
+	fi
+}
+
+################################################################
+# @fu luckfox_check_pin_diagram
+#
+# @brief 1. Get the static parameters of LUCKFOX_CFG_FILE.
+#
+# @param setting - The name of the static parameters in LUCKFOX_CFG_FILE.
+#
+# @return The value of the static parameters in LUCKFOX_CFG_FILE
+################################################################
 function luckfox_get_pin_cfg() {
 	local setting="$1"
 	value=$(grep "${setting}=" $LUCKFOX_CFG_FILE | cut -d '=' -f 2)
 	echo "$value"
 }
 
-# ---------------------- APP -------------------------
-# -- General --
+################################################################
+# ---------------------- Overlay General -----------------------
+################################################################
+
+################################################################
+# @fu luckfox_sha256_convert
+#
+# @brief 1. Organize the transmitted hash values into the format of the FDT Header specification.
+#
+# @param sha256_hash - The Transmitted hash values
+#
+# @return The format of the FDT Header specification
+################################################################
 function luckfox_sha256_convert() {
 	local sha256_hash=$1
 	local formatted_hash=""
@@ -558,6 +765,15 @@ function luckfox_sha256_convert() {
 	echo "$formatted_hash"
 }
 
+################################################################
+# @fu luckfox_get_device_name
+#
+# @brief 1. Get the name of the device node corresponding to the device in the device tree from the input device node.
+#
+# @param device_node -
+#
+# @return The name of the device node corresponding to the device in the device tree
+################################################################
 function luckfox_get_device_name() {
 	local device_node="$1"
 	local device_node_name
@@ -566,6 +782,16 @@ function luckfox_get_device_name() {
 	echo "$device_node_name"
 }
 
+################################################################
+# @fu luckfox_get_pinctrl_addr
+#
+# @brief 1. Find the corresponding phandle number through the passed pinctrl_node.
+#
+# @param pinctrl_node -
+#        search_num   - The search range using grep may be too large or too small, which could lead to finding the wrong phandle number.
+#
+# @return The number of pinctrl phandle
+################################################################
 function luckfox_get_pinctrl_addr() {
 	local pinctrl_node="$1"
 	local search_num="$2"
@@ -579,9 +805,17 @@ function luckfox_get_pinctrl_addr() {
 	echo "$phandle_value"
 }
 
+################################################################
+# @fu luckfox_get_pin_mode
+#
+# @brief 1. Get the multiplexing mode of a specific pin in the pinctrl phandle from the DTB and compare it with the currently used multiplexing function.
+#
+# @param input - The entire pinctrl phandle configuration may contain the configuration information for multiple pins.
+#
+# @return Returning 1 indicates that the multiplexing configuration of the target pinctrl phandle in the current device tree matches the actual multiplexing configuration.
+################################################################
 function luckfox_get_pin_mode() {
 	local input="$1"
-	local reset_action="$2"
 	local flag
 
 	IFS=' ' read -r -a phandle_values <<<"$input"
@@ -613,6 +847,16 @@ function luckfox_get_pin_mode() {
 
 }
 
+################################################################
+# @fu luckfox_set_pin_mode
+#
+# @brief 1. Set the pin multiplexing function.
+#
+# @param input        - The pin group to be set.
+#		 reset_action - When set to 1, the multiplexing function of the pin group will be set to GPIO.
+#
+# @return none
+################################################################
 function luckfox_set_pin_mode() {
 	#region
 	local input="$1"
@@ -646,7 +890,20 @@ function luckfox_set_pin_mode() {
 	#endregion
 }
 
-# -- Dynamic Overlay --
+################################################################
+# ---------------------- Dynamic Overlay -----------------------
+################################################################
+
+################################################################
+# @fu luckfox_dtbo_overlay
+#
+# @brief 1. Dynamically load the DTBO, allowing configuration to be completed without a reboot.
+#
+# @param overlay_node    - The name of the overlay node will be used to create a DTBO management directory based on that name.
+#		 overlay_content - The Overlay system loads the content set in the DTB.
+#
+# @return none
+################################################################
 function luckfox_dtbo_overlay() {
 	local overlay_node="$1"
 	local overlay_content="$2"
@@ -670,7 +927,17 @@ function luckfox_dtbo_overlay() {
 	#rm $LUCKFOX_DYNAMIC_DTBO
 }
 
-# -- Static Overlay --
+################################################################
+# ---------------------- Static Overlay ------------------------
+################################################################
+
+################################################################
+# @fu luckfox_update_fdt
+#
+# @brief 1. Get dtb from boot partition and decompile it to /tmp
+#
+# @return none
+################################################################
 function luckfox_update_fdt() {
 	# get fdt_header
 	local origin_fdt_size_hex origin_fdt_size
@@ -695,6 +962,16 @@ function luckfox_update_fdt() {
 	fdtdump $LUCKFOX_FDT_DTB >$LUCKFOX_FDT_DUMP_TXT
 }
 
+################################################################
+# @fu luckfox_fdt_overlay
+#
+# @brief 1. After obtaining the fdt_content, overlay it onto the system's decompiled DTS.
+#        2. Compile the DTS into a DTB and reload it to the BOOT partition.
+#
+# @param fdt_content - The content to be overlaid into the DTB.
+#
+# @return none
+################################################################
 function luckfox_fdt_overlay() {
 	#region
 	local fdt_content="$1"
@@ -758,6 +1035,13 @@ function luckfox_fdt_overlay() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_fdt_clear
+#
+# @brief 1. Clear the temporary files used during the Static Overlay process.
+#
+# @return none
+################################################################
 function luckfox_fdt_clear() {
 	# delete temp file
 	local files=(
@@ -777,16 +1061,19 @@ function luckfox_fdt_clear() {
 	done
 }
 
-# -- Time Setting --
-function luckfox_timezone_settings() {
-	dialog --msgbox "Developing" 10 30
-}
+################################################################
+# -------------------- Compatible Devices ----------------------
+################################################################
 
-function luckfox_time_synchronization() {
-	dialog --msgbox "Developing" 10 30
-}
-
-# -- Compatible Devices --
+################################################################
+# @fu luckfox_compatible_Pico_LCD
+#
+# @brief 1. Adapt to the Waveshare Pico-LCD, only supporting certain models.
+#
+# @param action - 1 indicates enable, 0 indicates disable.
+#
+# @return none
+################################################################
 function luckfox_compatible_Pico_LCD() {
 	#region
 	local action="$1"
@@ -849,6 +1136,15 @@ function luckfox_compatible_Pico_LCD() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_compatible_Pico_ePaper
+#
+# @brief 1. Adapt to the Waveshare Pico-ePaper, only supporting certain models.
+#
+# @param action - 1 indicates enable, 0 indicates disable.
+#
+# @return none
+################################################################
 function luckfox_compatible_Pico_ePaper() {
 	#region
 	local action="$1"
@@ -867,6 +1163,15 @@ function luckfox_compatible_Pico_ePaper() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_compatible_Pico_UPS-B
+#
+# @brief 1. Adapt to the Waveshare Pico-UPS-B, only supporting certain models.
+#
+# @param action - 1 indicates enable, 0 indicates disable.
+#
+# @return none
+################################################################
 function luckfox_compatible_Pico-UPS-B() {
 	#region
 	local action="$1"
@@ -878,6 +1183,15 @@ function luckfox_compatible_Pico-UPS-B() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_compatible_Pico_ResTouch_LCD
+#
+# @brief 1. Adapt to the Waveshare Pico-Touch-LCD-2.8 of Pico-Touch-LCD-3.5, only supporting certain models.
+#
+# @param action - 1 indicates enable, 0 indicates disable.
+#
+# @return none
+################################################################
 function luckfox_compatible_Pico_ResTouch_LCD() {
 	local action="$1"
 	local spi_device_name spi_pinctrl_addr spi_action
@@ -911,6 +1225,15 @@ function luckfox_compatible_Pico_ResTouch_LCD() {
 	fi
 }
 
+################################################################
+# @fu luckfox_compatible_OLED_Model
+#
+# @brief 1. Adapt to the Waveshare OLED Model, only supporting certain models.
+#
+# @param action - 1 indicates enable, 0 indicates disable.
+#
+# @return none
+################################################################
 function luckfox_compatible_OLED_Module() {
 	local action="$1"
 
@@ -929,6 +1252,15 @@ function luckfox_compatible_OLED_Module() {
 	fi
 }
 
+################################################################
+# @fu luckfox_compatible_Pico_OLED
+#
+# @brief 1. Adapt to the Waveshare Pico-OLED, only supporting certain models.
+#
+# @param action - 1 indicates enable, 0 indicates disable.
+#
+# @return none
+################################################################
 function luckfox_compatible_Pico_OLED() {
 	local action="$1"
 
@@ -961,6 +1293,15 @@ function luckfox_compatible_Pico_OLED() {
 	fi
 }
 
+################################################################
+# @fu luckfox_compatible_Pico_OLED
+#
+# @brief 1. Adapt to the Waveshare DHT11, only supporting certain models.
+#
+# @param action - 1 indicates enable, 0 indicates disable.
+#
+# @return none
+################################################################
 function luckfox_compatible_DHT11() {
 	#region
 	local action="$1"
@@ -986,6 +1327,16 @@ function luckfox_compatible_DHT11() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_compatible_app
+#
+# @brief 1. Determine and execute compatible device functions according to model grouping as interface of GUI interface
+#
+# @param compatible_device -
+#		 action 		   - 1 indicates enable, 0 indicates disable.
+#
+# @return none
+################################################################
 function luckfox_compatible_app() {
 	local compatible_device="$1"
 	local action="$2"
@@ -1012,8 +1363,18 @@ function luckfox_compatible_app() {
 	luckfox_result_handle "$LF_ERR" "This compatible device $compatible_device is not supported!"
 }
 
-# -- Advanced Options --
+################################################################
+# --------------------- Advanced Options -----------------------
+################################################################
 
+################################################################
+# @fu hex_add
+#
+# @param hex1 -
+#		 hex2 -
+#
+# @return The sum of hex1 and hex2 in hexadecimal number.
+################################################################
 function hex_add() {
 	local hex1=$1
 	local hex2=$2
@@ -1025,23 +1386,37 @@ function hex_add() {
 	echo "$sum_hex"
 }
 
+################################################################
+# @fu hex_shift
+#
+# @param hex 		  -
+#		 shift_amount -
+#
+# @return  The hexadecimal number after shifting hex by shift_amount.
+################################################################
 function hex_shift() {
 	local hex=$1
 	local shift_amount=$2
 
-	# 将十六进制数转换为十进制
 	local dec=$(printf "%d" 0x$hex)
-
-	# 计算移位数
 	local shift=$((shift_amount * 2))
-
-	# 进行移位操作
 	local shifted=$((dec << shift))
 
-	# 将结果转换回十六进制并输出
 	printf "%X\n" $shifted
 }
 
+################################################################
+# @fu luckfox_gpio_app
+#
+# @brief 1. Set the default pull-up or pull-down state of the GPIO.
+#
+# @param gpio_bank   	-
+# 		 gpio_group  	-
+#		 gpio_number 	-
+# 		 gpio_pull_mode -
+#
+# @return none
+################################################################
 function luckfox_gpio_app() {
 	local gpio_bank="$1"
 	local gpio_group="$2"
@@ -1127,6 +1502,17 @@ function luckfox_gpio_app() {
 	io -4 "$reg_addr" "$data"
 }
 
+################################################################
+# @fu luckfox_pwm_app
+#
+# @brief 1. Set the startup and shutdown of the PWM.
+#
+# @param action   	- 1 indicates enable, 0 indicates disable.
+# 		 pwm_main  	-
+#		 pwm_sub 	-
+#
+# @return none
+################################################################
 function luckfox_pwm_app() {
 	#region
 	local action="$1"
@@ -1173,6 +1559,16 @@ function luckfox_pwm_app() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_check_uart
+#
+# @brief 1. Check if the UART conflicts with Bluetooth.
+#
+# @param uart_mode - The types that might be occupied by drivers.
+# 		 uart_main - The UART to be checked.
+#
+# @return none
+################################################################
 function luckfox_check_uart() {
 	#region
 	local uart_mode="$1"
@@ -1187,6 +1583,17 @@ function luckfox_check_uart() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_uart_app
+#
+# @brief 1. Set the startup and shutdown of the UART.
+#
+# @param action   	- 1 indicates enable, 0 indicates disable.
+# 		 uart_main  -
+#		 uart_sub 	-
+#
+# @return none
+################################################################
 function luckfox_uart_app() {
 	#region
 	local action="$1"
@@ -1237,6 +1644,16 @@ function luckfox_uart_app() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_check_i2c
+#
+# @brief 1. Check if the I2C conflicts with the touch or CSI.
+#
+# @param i2c_mode - The types that might be occupied by drivers.
+# 		 i2c_main - The I2C to be checked.
+#
+# @return none
+################################################################
 function luckfox_check_i2c() {
 	#region
 	local i2c_mode="$1"
@@ -1303,6 +1720,18 @@ function luckfox_check_i2c() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_i2c_app
+#
+# @brief 1. Set the startup and shutdown of the UART.
+#
+# @param action   	- 1 indicates enable, 0 indicates disable.
+# 		 i2c_main   -
+#		 i2c_sub  	-
+#		 i2c_speed  -
+#
+# @return none
+################################################################
 function luckfox_i2c_app() {
 	#region
 	local action="$1"
@@ -1365,6 +1794,16 @@ function luckfox_i2c_app() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_check_spi
+#
+# @brief 1. Check if the spi conflicts with the fbtft.
+#
+# @param spi_mode - The types that might be occupied by drivers.
+# 		 spi_main - The SPI to be checked.
+#
+# @return none
+################################################################
 function luckfox_check_spi() {
 	#region
 	local spi_mode="$1"
@@ -1399,6 +1838,20 @@ function luckfox_check_spi() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_spi_app
+#
+# @brief 1. Set the startup and shutdown of the SPI.
+#
+# @param action   	 - 1 indicates enable, 0 indicates disable.
+# 		 spi_main    -
+#		 spi_sub  	 -
+#		 cs_action   - 1 indicates enable SPI-CS
+#		 miso_action - 1 indicates enable SPI_MISO
+#		 spi_speed   -
+#
+# @return none
+################################################################
 function luckfox_spi_app() {
 	#region
 	local action="$1"
@@ -1545,6 +1998,15 @@ function luckfox_spi_app() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_usb_app
+#
+# @brief 1. Set the USB mode
+#
+# @param usb_mode -
+#
+# @return none
+################################################################
 function luckfox_usb_app() {
 	#region
 	local usb_mode="$1"
@@ -1570,6 +2032,15 @@ function luckfox_usb_app() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_csi_app
+#
+# @brief 1. Set the startup and shutdown of the CSI.
+#
+# @param action - 1 indicates enable, 0 indicates disable.
+#
+# @return none
+################################################################
 function luckfox_csi_app() {
 	#region
 	local action="$1"
@@ -1620,6 +2091,15 @@ function luckfox_csi_app() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_rgb_check_params
+#
+# @brief 1. Check whether the parameters passed to luckfox_rgb_app are valid.
+#
+# @param params -
+#
+# @return none
+################################################################
 function luckfox_rgb_check_params() {
 	local params=("$@")
 
@@ -1636,6 +2116,30 @@ function luckfox_rgb_check_params() {
 	done
 }
 
+################################################################
+# @fu luckfox_rgb_app
+#
+# @brief 1. Set the startup and shutdown of the CSI.
+#
+# @param action 		 - 1 indicates enable, 0 indicates disable.
+#		 rgb_mode		 -
+#		 rgb_clk		 -
+#		 rgb_h			 -
+#		 rgb_v			 -
+#		 rgb_hb			 -
+#		 rgb_hf			 -
+#		 rgb_vb			 -
+#		 rgb_vf			 -
+#		 rgb_h_len		 -
+#		 rgb_v_len		 -
+#		 rgb_h_active	 -
+#		 rgb_v_active	 -
+#		 rgb_de_active	 -
+#		 rgb_pclk_active -
+#
+#
+# @return none
+################################################################
 function luckfox_rgb_app() {
 	#region
 	local action="$1"
@@ -1826,6 +2330,16 @@ function luckfox_rgb_app() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_ts_app
+#
+# @brief 1. Set the startup and shutdown of the TouchScreen.
+#
+# @param action 	- 1 indicates enable, 0 indicates disable.
+#		 ts_reg_hex - Touch screen I2C address
+#
+# @return none
+################################################################
 function luckfox_ts_app() {
 	#region
 	local action="$1"
@@ -1891,6 +2405,16 @@ function luckfox_ts_app() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_fbtft_app
+#
+# @brief 1. Set the startup and shutdown of the FBTFT.
+#
+# @param action 		  - 1 indicates enable, 0 indicates disable.
+#		 fbtft_compatible - The compatible value of the display driver corresponding to the TFT model.
+#
+# @return none
+################################################################
 function luckfox_fbtft_app() {
 	#region
 	local action="$1"
@@ -2016,6 +2540,15 @@ function luckfox_fbtft_app() {
 	#endregion
 }
 
+################################################################
+# @fu luckfox_sdmmc_app
+#
+# @brief 1. Set the startup and shutdown of the SD Card.
+#
+# @param action 		  - 1 indicates enable, 0 indicates disable.
+#
+# @return none
+################################################################
 function luckfox_sdmmc_app() {
 	#region
 	local action="$1"
@@ -2076,7 +2609,224 @@ function luckfox_sdmmc_app() {
 	#endregion
 }
 
-# ---------------------- GUI Handler ----------------------
+################################################################
+# ------------------------- 4G Module --------------------------
+################################################################
+
+################################################################
+# @fu luckfox_4g_reset_back
+#
+# @brief 1. The device restarts and changes the USB PID.
+#		 2. Run the background initialization program based on the Dial-up mode.
+#
+# @param cmd  - The command to switch the operating mode of a USB network adapter.
+#		 mode - Dial-up Mode of the USB 4G Network Card
+#
+# @return none
+################################################################
+function luckfox_4g_reset_back() {
+	local cmd="$1"
+	local mode="$2"
+
+	if [ ! -e "/dev/ttyUSB2" ]; then
+		luckfox_result_handle $LF_NONE "/dev/ttyUSB2"
+	fi
+
+	# Close the related background processes.
+	ifconfig wwan0 down >/dev/null 2>&1
+	killall simcom-cm >/dev/null 2>&1
+	killall pppd >/dev/null 2>&1
+	killall udhcpc >/dev/null 2>&1
+
+	echo "$cmd" >/dev/ttyUSB2
+
+	# wwan
+	if [ "$mode" == "wwan" ]; then
+		while true; do
+			if lsusb | grep -q "9001"; then
+				break
+			fi
+			sleep 5
+		done
+
+		while true; do
+			if ifconfig -a | grep -q "wwan0"; then
+				ifconfig wwan0 up
+				break
+			fi
+			sleep 5
+		done
+
+		sleep 5
+		simcom-cm >/tmp/.wwan_log 2>&1 &
+		udhcpc -i wwan0 >/dev/null 2>&1 &
+	# ppp
+	elif [ "$mode" == "ppp" ]; then
+		while true; do
+			if lsusb | grep -q "9001"; then
+				break
+			fi
+			sleep 5
+		done
+
+		while true; do
+			if ifconfig -a | grep -q "wwan0"; then
+				ifconfig wwan0 up
+				break
+			fi
+			sleep 5
+		done
+
+		sleep 10
+		if ! pgrep -f "simcom-pppd" >/dev/null; then
+			cd /etc/ppp/peers && pppd call simcom-pppd >/tmp/.wwan_log 2>&1 &
+		fi
+	#rndis
+	elif [ "$mode" == "ndis" ]; then
+		while true; do
+			if lsusb | grep -q "9011"; then
+				break
+			fi
+			sleep 5
+		done
+
+		while true; do
+			if ifconfig -a | grep -q "usb0"; then
+				ifconfig usb0 up
+				break
+			fi
+			sleep 5
+		done
+
+		udhcpc -i usb0 >/dev/null 2>&1 &
+	fi
+
+}
+
+################################################################
+# @fu luckfox_4g_app
+#
+# @brief 1. Set the startup and shutdown of the 4G Module.
+#		 2. Set the Dial-up Mode of the 4G Module.
+#
+# @param action - 1 indicates enable, 0 indicates disable.
+#		 mode   - Dial-up Mode of the USB 4G Network Card
+#		 apn    - Types of SIM Cards in PPP mode
+#		 delay  - Delay seconds before before running command
+#
+# @return none
+################################################################
+function luckfox_4g_app() {
+	#region
+	local action="$1"
+	local mode="$2"
+	local apn="$3"
+	local delay="$4"
+
+	if [ ! -e "/dev/ttyUSB2" ]; then
+		luckfox_result_handle $LF_NONE "/dev/ttyUSB2"
+	fi
+
+	# Delay
+	if [ -z "$delay" ]; then
+		sleep 0
+	else
+		sleep "$delay"
+	fi
+
+	if [ "$action" == 1 ]; then
+		# WWAN
+		if [ "$mode" == "wwan" ]; then
+			if lsusb | grep -q "9001"; then
+				killall pppd >/dev/null 2>&1
+
+				ifconfig wwan0 up
+				simcom-cm >/tmp/.wwan_log 2>&1 &
+				udhcpc -i wwan0 >/dev/null 2>&1 &
+			else
+				luckfox_4g_reset_back "AT+CUSBPIDSWITCH=9001,1,1" "$mode" &
+			fi
+
+		# PPP
+		elif [ "$mode" == "ppp" ]; then
+			if [ -f "/etc/ppp/peers/simcom-connect-chat" ]; then
+				rm /etc/ppp/peers/simcom-connect-chat
+			fi
+			cat <<EOL >"/etc/ppp/peers/simcom-connect-chat"
+ABORT "BUSY"
+ABORT "NO CARRIER"
+ABORT "NO DIALTONE"
+ABORT "ERROR"
+ABORT "NO ANSWER"
+TIMEOUT 30
+"" AT
+OK ATE0
+OK ATI;+CSUB;+CSQ;+CPIN?;+COPS?;+CGREG?;&D2
+OK AT+CGDCONT=1,"IP","$apn",,0,0
+OK ATD*99#
+CONNECT
+EOL
+			if lsusb | grep -q "9001"; then
+				killall simcom-cm >/dev/null 2>&1
+				ifconfig wwan0 down >/dev/null 2>&1
+
+				cd /etc/ppp/peers && pppd call simcom-pppd >/tmp/.pppd_log 2>&1 &
+			else
+				luckfox_4g_reset_back "AT+CUSBPIDSWITCH=9001,1,1" "$mode" &
+			fi
+
+		# NDIS
+		elif [ "$mode" == "ndis" ]; then
+			if lsusb | grep -q "9011"; then
+				ifconfig usb0 up
+				udhcpc -i usb0 >/dev/null 2>&1 &
+			else
+				luckfox_4g_reset_back "AT+CUSBPIDSWITCH=9011,1,1" "$mode" &
+			fi
+		fi
+
+		luckfox_set_pin_cfg "MODULE_4G_ENABLE" "$action"
+		luckfox_set_pin_cfg "MODULE_4G_MODE" "$mode"
+		luckfox_set_pin_cfg "MODULE_4G_APN" "$apn"
+
+		luckfox_set_pin_parameter "MODULE_4G_ENABLE" "$action"
+		luckfox_set_pin_parameter "MODULE_4G_MODE" "$mode"
+		luckfox_set_pin_parameter "MODULE_4G_APN" "$apn"
+
+		luckfox_result_handle $LF_OK
+	else
+		killall luckfox_4g_reset_back >/dev/null 2>&1
+		# wwan
+		ifconfig wwan0 down
+		killall simcom-cm >/dev/null 2>&1
+		# pppd
+		killall pppd >/dev/null 2>&1
+
+		#udhcpc
+		killall udhcpcp >/dev/null 2>&1
+
+		luckfox_set_pin_cfg "MODULE_4G_ENABLE" "$action"
+		luckfox_set_pin_parameter "MODULE_4G_ENABLE" "$action"
+
+		luckfox_result_handle $LF_OK
+	fi
+	#endregion
+}
+
+################################################################
+# ------------------------- GUI Handler ------------------------
+################################################################
+
+################################################################
+# @fu luckfox_result_handle
+#
+# @brief 1. Display a message in the GUI.
+#
+# @param status - Status of messages
+#		 log    - Prepare the message to be printed
+#
+# @return none
+################################################################
 function luckfox_result_handle() {
 	local status="$1"
 	local log="$2"
@@ -2110,50 +2860,16 @@ function luckfox_result_handle() {
 	fi
 }
 
-function luckfox_get_option_str() {
-	local search_param="$1"
-	local group=()
-	local right_group=()
-	local option_group=()
-	local option_str=""
-
-	while IFS= read -r line; do
-		if [[ "$line" == *"|       |"* && "$line" == *"$search_param"* ]]; then
-			group=()
-			right_group=()
-
-			IFS='-' read -r -a group <<<"$(echo "$line" | cut -d'|' -f1)"
-			IFS='-' read -r -a right_group <<<"$(echo "$line" | cut -d'|' -f3)"
-			group+=("${right_group[@]}")
-			for pin in "${group[@]}"; do
-				if [ "$search_param" == "UART" ]; then
-					if [[ "$pin" == *"$search_param"*"_RX"* ]]; then
-						option_group+=$(echo "$pin" | sed -E 's/(UART[0-9]+_M[0-9]+)_.*$/\1 x /g')
-					fi
-				elif [ "$search_param" == "PWM" ]; then
-					if [[ "$pin" == *"$search_param"* ]]; then
-						option_group+=$(echo "$pin" | sed -E 's/(PWM[0-9]+_M[0-9]+).*$/\1 x /g')
-					fi
-				elif [ "$search_param" == "I2C" ]; then
-					if [[ "$pin" == *"$search_param"*"_SCL"* ]]; then
-						option_group+=$(echo "$pin" | sed -E 's/(I2C[0-9]+_M[0-9]+)_.*$/\1 x /g')
-					fi
-				elif [ "$search_param" == "SPI" ]; then
-					if [[ "$pin" == *"$search_param"*"_CLK"* ]]; then
-						option_group+=$(echo "$pin" | sed -E 's/(SPI[0-9]+_M[0-9]+)_.*$/\1 x /g')
-					fi
-				fi
-			done
-		fi
-	done <"$LUCKFOX_PIN_DIAGRAM_FILE"
-
-	for element in "${option_group[@]}"; do
-		option_str+="$element"
-	done
-
-	echo "$option_str"
-}
-
+################################################################
+# @fu luckfox_result_handle
+#
+# @brief 1. Display a message in the GUI.
+#
+# @param status - Status of messages
+#		 log    - Prepare the message to be printed
+#
+# @return none
+################################################################
 function luckfox_pico_show_pin_diagram() {
 	if [ -f $LUCKFOX_PIN_DIAGRAM_FILE ]; then
 		dialog --title "Luckfox Pin Diagram" --no-collapse --textbox $LUCKFOX_PIN_DIAGRAM_FILE 100 100
@@ -2162,10 +2878,29 @@ function luckfox_pico_show_pin_diagram() {
 	fi
 }
 
-# ---------------------- Main GUI -------------------------
+################################################################
+# -------------------------- Main GUI --------------------------
+################################################################
 function luckfox_show_menu() {
+	# Only support Luckfox Pico Pi /Luckfox Pico Pi W
+	if [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pi" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pi W" ]; then
+		while true; do
+			option=$(dialog --title "$LUCKFOX_CHIP_MODEL Config" \
+				--menu "Choose an option" 80 50 6 \
+				1 "Advanced Options" \
+				2 "4G Module" \
+				3 "About Luckfox" \
+				2>&1 >/dev/tty)
+
+			case $option in
+			1) luckfox_advanced_options ;;
+			2) luckfox_4G ;;
+			3) luckfox_about ;;
+			*) luckfox_exit ;;
+			esac
+		done
 	# Only support Luckfox Pico Ultra /Luckfox Pico Ultra W
-	if [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra W" ]; then
+	elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra W" ]; then
 		while true; do
 			option=$(dialog --title "$LUCKFOX_CHIP_MODEL Config" \
 				--menu "Choose an option" 80 50 6 \
@@ -2235,7 +2970,29 @@ function luckfox_compatible_devices() {
 }
 
 function luckfox_advanced_options() {
-	if [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra W" ]; then
+	if [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pi" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pi W" ]; then
+		while true; do
+			option=$(dialog --title "Advanced Options" \
+				--menu "Choose an option" 80 50 6 \
+				1 "PWM" \
+				2 "UART" \
+				3 "I2C" \
+				4 "SPI" \
+				5 "USB" \
+				6 "CSI" \
+				2>&1 >/dev/tty)
+
+			case $option in
+			1) luckfox_PWM ;;
+			2) luckfox_UART ;;
+			3) luckfox_I2C ;;
+			4) luckfox_SPI ;;
+			5) luckfox_USB ;;
+			6) luckfox_CSI ;;
+			*) luckfox_show_menu ;;
+			esac
+		done
+	elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra W" ]; then
 		while true; do
 			option=$(dialog --title "Advanced Options" \
 				--menu "Choose an option" 80 50 6 \
@@ -2302,8 +3059,9 @@ function luckfox_exit() {
 	exit
 }
 
-# ---------------------- Sub GUI -------------------------
-# Advanced Options
+################################################################
+# ------------------- Advanced Options GUI ---------------------
+################################################################
 function luckfox_PWM() {
 	local pwm_enable pwm_main pwm_sub
 	local option pattern
@@ -2686,7 +3444,67 @@ function luckfox_SDMMC() {
 	luckfox_advanced_options
 }
 
-# ---------------------- RUN -------------------------
+################################################################
+# ---------------------- 4G Module GUI -------------------------
+################################################################
+function luckfox_4G() {
+	local module_4g_enable
+	local module_4g_mode
+	local mode apn
+
+	if [ "$(cat /proc/device-tree/usbdrd/usb@ffb00000/dr_mode)" == "peripheral" ]; then
+		luckfox_result_handle "USB device mode can't support 4G Module"
+	fi
+
+	module_4g_enable=$(dialog --menu "4G Module Config" 10 40 2 \
+		0 "disable" \
+		1 "enable" \
+		2>&1 >/dev/tty)
+	if [ -z "$module_4g_enable" ]; then
+		luckfox_show_menu
+	fi
+
+	if [ "$module_4g_enable" == 1 ]; then
+		module_4g_mode=$(dialog --title "4G Module Mode Config" \
+			--menu "Choose an option" 80 50 6 \
+			1 "WWAN" \
+			2 "PPP" \
+			3 "NDIS" \
+			2>&1 >/dev/tty)
+
+		if [ -z "$module_4g_mode" ]; then
+			luckfox_show_menu
+		fi
+
+		case $module_4g_mode in
+		1) mode="wwan" ;;
+		2) mode="ppp" ;;
+		3) mode="ndis" ;;
+		esac
+
+		if [ "$mode" = "ppp" ]; then
+			card_type=$(dialog --title "4G Module PPP Mode Card Type Config" \
+				--menu "Select Card Type" 80 50 6 \
+				1 "CTCC(ctnet)" \
+				2 "CMCC(cmnet)" \
+				3 "CUCC(3gwap)" \
+				2>&1 >/dev/tty)
+
+			case $card_type in
+			1) apn="ctnet" ;;
+			2) apn="cmnet" ;;
+			3) apn="3gwap" ;;
+			esac
+		fi
+
+	fi
+
+	luckfox_4g_app "$module_4g_enable" "$mode" "$apn"
+}
+
+################################################################
+# --------------------------- Run ------------------------------
+################################################################
 if [ "$1" == "load" ]; then
 	LF_GUI_ENABLE=0
 	if [ -f $LUCKFOX_PIN_DIAGRAM_FILE ]; then
