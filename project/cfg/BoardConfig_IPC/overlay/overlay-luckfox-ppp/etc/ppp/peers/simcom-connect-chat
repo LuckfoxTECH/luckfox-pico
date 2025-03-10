@@ -1,0 +1,13 @@
+ABORT "BUSY"
+ABORT "NO CARRIER"
+ABORT "NO DIALTONE"
+ABORT "ERROR"
+ABORT "NO ANSWER"
+TIMEOUT 30
+"" AT
+OK ATE0
+OK ATI;+CSUB;+CSQ;+CPIN?;+COPS?;+CGREG?;&D2
+# Insert the APN provided by your network operator, default apn is 3gnet
+OK AT+CGDCONT=1,"IP","ctnet",,0,0
+OK ATD*99#
+CONNECT
