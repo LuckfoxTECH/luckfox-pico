@@ -466,23 +466,6 @@ static const struct sc3336_mode supported_modes[] = {
 		.height = 1296,
 		.max_fps = {
 			.numerator = 10000,
-			.denominator = 250000,
-		},
-		.exp_def = 0x0080,
-		.hts_def = 0x05dc,
-		.vts_def = 0x0654,
-		.bus_fmt = MEDIA_BUS_FMT_SBGGR10_1X10,
-		.reg_list = sc3336_linear_10_2304x1296_25fps_regs,
-		.hdr_mode = NO_HDR,
-		.xvclk_freq = 27000000,
-		.link_freq_idx = 0,
-		.vc[PAD0] = V4L2_MBUS_CSI2_CHANNEL_0,
-	},
-	{
-		.width = 2304,
-		.height = 1296,
-		.max_fps = {
-			.numerator = 10000,
 			.denominator = 300000,
 		},
 		.exp_def = 0x0080,
@@ -493,6 +476,23 @@ static const struct sc3336_mode supported_modes[] = {
 		.hdr_mode = NO_HDR,
 		.xvclk_freq = 24000000,
 		.link_freq_idx = 1,
+		.vc[PAD0] = V4L2_MBUS_CSI2_CHANNEL_0,
+	},
+	{
+		.width = 2304,
+		.height = 1296,
+		.max_fps = {
+			.numerator = 10000,
+			.denominator = 250000,
+		},
+		.exp_def = 0x0080,
+		.hts_def = 0x05dc,
+		.vts_def = 0x0654,
+		.bus_fmt = MEDIA_BUS_FMT_SBGGR10_1X10,
+		.reg_list = sc3336_linear_10_2304x1296_25fps_regs,
+		.hdr_mode = NO_HDR,
+		.xvclk_freq = 27000000,
+		.link_freq_idx = 0,
 		.vc[PAD0] = V4L2_MBUS_CSI2_CHANNEL_0,
 	}
 };

@@ -1,0 +1,35 @@
+/dev/ttyUSB2 115200
+user "test" password "test"
+# The chat script, customize your APN in this file
+connect 'chat -s -v -f /etc/ppp/peers/simcom-connect-chat'
+# The close script
+disconnect 'chat -s -v -f /etc/ppp/peers/simcom-disconnect-chat'
+# Hide password in debug messages
+hide-password
+# The phone is not required to authenticate
+noauth
+# Debug info from pppd
+debug
+# If you want to use the HSDPA link as your gateway
+defaultroute
+# pppd must not propose any IP address to the peer
+noipdefault
+# No ppp compression
+novj
+novjccomp
+noccp
+ipcp-accept-local
+ipcp-accept-remote
+local
+# For sanity, keep a lock on the serial line
+lock
+modem
+dump
+nodetach
+# Hardware flow control
+nocrtscts
+remotename 3gppp
+ipparam 3gppp
+ipcp-max-failure 30
+# Ask the peer for up to 2 DNS server addresses
+usepeerdns
