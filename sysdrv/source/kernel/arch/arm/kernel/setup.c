@@ -963,7 +963,7 @@ static int __init init_machine_late(void)
 			system_serial = NULL;
 	}
 
-	if (!system_serial)
+	//if (!system_serial)
 		system_serial = kasprintf(GFP_KERNEL, "%08x%08x",
 					  system_serial_high,
 					  system_serial_low);
