@@ -1,0 +1,58 @@
+From 095248c1d232c147f53d4c8666b80b4c1cbb2d2a Mon Sep 17 00:00:00 2001
+From: "hero.huang" <hero.huang@rock-chips.com>
+Date: Wed, 23 Aug 2017 11:33:47 +0800
+Subject: [PATCH] busybox: support chinese display in terminal
+
+Signed-off-by: hero.huang <hero.huang@rock-chips.com>
+---
+ libbb/printable_string.c | 4 +---
+ libbb/unicode.c          | 4 ++--
+ 2 files changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/libbb/printable_string.c b/libbb/printable_string.c
+index 077d58d..e7399ae 100644
+--- a/libbb/printable_string.c
++++ b/libbb/printable_string.c
+@@ -28,8 +28,6 @@ const char* FAST_FUNC printable_string(uni_stat_t *stats, const char *str)
+ 		}
+ 		if (c < ' ')
+ 			break;
+-		if (c >= 0x7f)
+-			break;
+ 		s++;
+ 	}
+ 
+@@ -42,7 +40,7 @@ const char* FAST_FUNC printable_string(uni_stat_t *stats, const char *str)
+ 			unsigned char c = *d;
+ 			if (c == '\0')
+ 				break;
+-			if (c < ' ' || c >= 0x7f)
++			if (c < ' ')
+ 				*d = '?';
+ 			d++;
+ 		}
+diff --git a/libbb/unicode.c b/libbb/unicode.c
+index 9c4da50..c7eba06 100644
+--- a/libbb/unicode.c
++++ b/libbb/unicode.c
+@@ -1019,7 +1019,7 @@ static char* FAST_FUNC unicode_conv_to_printable2(uni_stat_t *stats, const char
+ 					while ((int)--width >= 0);
+ 					break;
+ 				}
+-				*d++ = (c >= ' ' && c < 0x7f) ? c : '?';
++				*d++ = (c >= ' ') ? c : '?';
+ 				src++;
+ 			}
+ 			*d = '\0';
+@@ -1027,7 +1027,7 @@ static char* FAST_FUNC unicode_conv_to_printable2(uni_stat_t *stats, const char
+ 			d = dst = xstrndup(src, width);
+ 			while (*d) {
+ 				unsigned char c = *d;
+-				if (c < ' ' || c >= 0x7f)
++				if (c < ' ')
+ 					*d = '?';
+ 				d++;
+ 			}
+-- 
+1.9.1
+
