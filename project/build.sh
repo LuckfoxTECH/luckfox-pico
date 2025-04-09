@@ -159,7 +159,9 @@ function choose_target_board() {
 		"RV1106_Luckfox_Pico_Ultra"
 		"RV1106_Luckfox_Pico_Ultra_W"
 		"RV1106_Luckfox_Pico_Pi"
-		"RV1106_Luckfox_Pico_Pi_W")
+		"RV1106_Luckfox_Pico_Pi_W"
+		"RV1106_Luckfox_Pico_86Panel"
+		"RV1106_Luckfox_Pico_86Panel_W")
 	local LF_BOOT_MEDIA=("SD_CARD" "SPI_NAND" "EMMC")
 	local LF_SYSTEM=("Buildroot" "Ubuntu" "Custom")
 	local cnt=0 space8="        "
@@ -192,6 +194,10 @@ function choose_target_board() {
 	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Pi"
 	LUNCH_NUM=$((LUNCH_NUM + 1))
 	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Pi_W"
+	LUNCH_NUM=$((LUNCH_NUM + 1))
+	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_86Panel"
+	LUNCH_NUM=$((LUNCH_NUM + 1))
+	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_86Panel_W"
 	LUNCH_NUM=$((LUNCH_NUM + 1))
 	echo "${space8}${space8}[${LUNCH_NUM}] custom"
 
@@ -277,7 +283,7 @@ function choose_target_board() {
 
 	range_sd_card=(0 1)
 	range_sd_card_spi_nand=(2 3 4 5 6)
-	range_emmc=(7 8 9 10)
+	range_emmc=(7 8 9 10 11 12)
 
 	if __IS_IN_ARRAY "$HW_INDEX" "${range_sd_card[@]}"; then
 		echo "${space8}${space8}[0] SD_CARD"
@@ -592,7 +598,7 @@ function build_check_power_domain() {
 
 function build_tool() {
 	test -d ${SDK_SYSDRV_DIR} && make pctools -C ${SDK_SYSDRV_DIR}
-	if [ $LF_ENABLE_SPI_NAND_FAST_BOOT = "y" ]; then
+	if [ $LF_ENABLE_SPI_NAND_FAST_BOOT == "y" ]; then
 		cp -fa $PROJECT_TOP_DIR/sfc_scripts/mk-fitimage.sh $RK_PROJECT_PATH_PC_TOOLS
 		cp -fa $PROJECT_TOP_DIR/sfc_scripts/compress_tool $RK_PROJECT_PATH_PC_TOOLS
 		cp -fa $PROJECT_TOP_DIR/sfc_scripts/mk-tftp_sd_update.sh $RK_PROJECT_PATH_PC_TOOLS
@@ -2229,7 +2235,7 @@ function build_mkimg() {
 	fs_type="\$${fs_type}"
 	fs_type=$(eval "echo ${fs_type}")
 
-	if [ "$LF_TARGET_ROOTFS" == "buildroot" ] || [ "$LF_TARGT_ROOTFS" == "busybox" ]; then
+	if [ "$LF_TARGET_ROOTFS" == "buildroot" ] || [ "$LF_TARGET_ROOTFS" == "busybox" ]; then
 		__RELEASE_FILESYSTEM_FILES $src
 	fi
 
@@ -2772,7 +2778,7 @@ if [[ "$LF_TARGET_ROOTFS" = "ubuntu" ]]; then
 		msg_info "${UBUNTU_DIR} is not empty, skipping submodule update!"
 	else
 		msg_info "${UBUNTU_DIR} is empty or does not exist, updateing submodule!"
-		git submodule update --init --recursive
+		git -c submodule.fetchJobs=4 submodule update --init --recursive --progress
 	fi
 fi
 
