@@ -479,10 +479,14 @@
 	pinctrl-0 = <&i2c2m0_xfer>;
 };
 &i2c3 {
-	pinctrl-0 = <&i2c3m0_xfer &i2c3m1_xfer &i2c3m2_xfer &tp_rst &tp_irq>;
+	pinctrl-names = "default", "config";
+	pinctrl-0 = <&i2c3m2_xfer &tp_rst &tp_irq>;
+	pinctrl-1 = <&i2c3m0_xfer &i2c3m1_xfer>;
 };
 &i2c4 {
-	pinctrl-0 = <&i2c4m0_xfer &i2c4m1_xfer &i2c4m2_xfer>;
+	pinctrl-names = "default", "config";
+	pinctrl-0 = <&i2c4m2_xfer>;
+	pinctrl-1 = <&i2c4m0_xfer &i2c4m1_xfer>;
 };
 
 // UART
@@ -510,7 +514,7 @@
 	pinctrl-0 = <&pwm2m1_pins &pwm2m2_pins>;
 };
 &pwm3 {
-	pinctrl-0 = <&pwm3m2_pins>;
+	pinctrl-0 = <&pwm3m1_pins &pwm3m2_pins>;
 };
 &pwm4 {
 	pinctrl-0 = <&pwm4m0_pins &pwm4m1_pins &pwm4m2_pins>;
