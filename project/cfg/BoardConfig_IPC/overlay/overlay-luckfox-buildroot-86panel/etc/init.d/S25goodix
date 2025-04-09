@@ -1,0 +1,12 @@
+#!/bin/sh
+
+case $1 in
+start)
+	if [ -f "/usr/bin/insmod_goodix.sh" ]; then
+		sh /usr/bin/insmod_goodix.sh &
+	fi
+	;;
+*)
+	exit 1
+	;;
+esac
