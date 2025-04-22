@@ -1916,7 +1916,7 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 			video_height = rk_param_get_int("video.0:height", -1);
 		}
 		ret = rkipc_rknn_object_get(&ba_result);
-		// LOG_DEBUG("ret is %d, ba_result.objNum is %d\n", ret, ba_result.objNum);
+		LOG_DEBUG("ret is %d, ba_result.objNum is %d\n", ret, ba_result.objNum);
 
 		if ((ret == -1) && (rkipc_get_curren_time_ms() - last_ba_result_time > 300))
 			ba_result.objNum = 0;
@@ -1942,12 +1942,12 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 		for (int i = 0; i < ba_result.objNum; i++) {
 			int x, y, w, h;
 			object = &ba_result.triggerObjects[i];
-			// LOG_INFO("topLeft:[%d,%d], bottomRight:[%d,%d],"
-			// 			"objId is %d, frameId is %d, score is %d, type is %d\n",
-			// 			object->objInfo.rect.topLeft.x, object->objInfo.rect.topLeft.y,
-			// 			object->objInfo.rect.bottomRight.x,
-			// 			object->objInfo.rect.bottomRight.y, object->objInfo.objId,
-			// 			object->objInfo.frameId, object->objInfo.score, object->objInfo.type);
+			LOG_INFO("topLeft:[%d,%d], bottomRight:[%d,%d],"
+						"objId is %d, frameId is %d, score is %d, type is %d\n",
+						object->objInfo.rect.topLeft.x, object->objInfo.rect.topLeft.y,
+						object->objInfo.rect.bottomRight.x,
+						object->objInfo.rect.bottomRight.y, object->objInfo.objId,
+						object->objInfo.frameId, object->objInfo.score, object->objInfo.type);
 			x = video_width * object->objInfo.rect.topLeft.x / 10000;
 			y = video_height * object->objInfo.rect.topLeft.y / 10000;
 			w = video_width *
@@ -1986,12 +1986,15 @@ static void *rkipc_get_nn_update_osd(void *arg) {
 				               stCanvasInfo.u32VirHeight, x, y, w, h, line_pixel,
 				               RGN_COLOR_LUT_INDEX_1);
 			}
-			// LOG_INFO("draw rect time-consuming is %lld\n",(rkipc_get_curren_time_ms() -
-			// 	last_ba_result_time));
-			// LOG_INFO("triggerRules is %d, ruleID is %d, triggerType is %d\n",
-			// 			object->triggerRules,
-			// 			object->firstTrigger.ruleID,
-			// 			object->firstTrigger.triggerType);
+			
+			LOG_INFO("draw rect time-consuming is %lld\n",(rkipc_get_curren_time_ms() -
+			 	last_ba_result_time));
+#if 0
+			LOG_INFO("triggerRules is %d, ruleID is %d, triggerType is %d\n",
+						object->triggerRules,
+			 			object->firstTrigger.ruleID,
+			 			object->firstTrigger.triggerType);
+#endif
 		}
 		ret = RK_MPI_RGN_UpdateCanvas(RgnHandle);
 		if (ret != RK_SUCCESS) {
