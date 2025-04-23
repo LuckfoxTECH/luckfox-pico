@@ -9,7 +9,7 @@
  * For more information, visit: https://swatah.ai
  */
 
-#include "common_defines.h"
+#include "saix_common_defines.h"
 #include "video.h"
 #include "audio.h"
 #include "rockiva.h"

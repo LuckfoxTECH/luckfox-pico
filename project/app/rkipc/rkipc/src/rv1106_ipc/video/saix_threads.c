@@ -10,7 +10,7 @@
  */
 
 #include "common.h"
-#include "common_defines.h"
+#include "saix_common_defines.h"
 #include "saix_threads.h"
 #include <rk_mpi_venc.h>
 #include <rk_mpi_vi.h>
