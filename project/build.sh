@@ -1303,6 +1303,10 @@ function build_clean() {
 		rm -rf ${SDK_ROOT_DIR}/output ${SDK_ROOT_DIR}/config
 		rm -rf ${SDK_ROOT_DIR}/sysdrv/source/kernel/out
 		rm -rf ${BOARD_CONFIG}
+		if [ "$LF_TARGET_ROOTFS" = "ubuntu" ]; then
+			git submodule deinit -f -- ${SDK_ROOT_DIR}/sysdrv/tools/board/ubuntu
+			rm -rf ${SDK_ROOT_DIR}/.git/modules/ubuntu
+		fi
 		if [ -d ${SDK_SYSDRV_DIR}/source/buildroot ] && [ "$LF_TARGET_ROOTFS" = "buildroot" ]; then
 			rm -rf ${SDK_SYSDRV_DIR}/source/buildroot
 		fi
@@ -2759,7 +2763,7 @@ export RK_PROJECT_BOARD_DIR=$(dirname $(realpath $BOARD_CONFIG))
 export RK_PROJECT_TOOLCHAIN_CROSS=$RK_TOOLCHAIN_CROSS
 export PATH="${SDK_ROOT_DIR}/tools/linux/toolchain/${RK_PROJECT_TOOLCHAIN_CROSS}/bin":$PATH
 
-if [[ "$LF_TARGET_ROOTFS" = "ubuntu" ]]; then
+if [[ "$LF_TARGET_ROOTFS" = "ubuntu" ]] && [ "$1" != "clean" ]; then
 	if [ "$(id -u)" != "0" ]; then
 		msg_error "Error! Please use sudo ./build.sh to build Ubuntu Image!"
 		exit 1
