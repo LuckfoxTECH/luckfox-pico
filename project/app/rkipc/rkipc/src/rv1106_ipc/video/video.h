@@ -1,6 +1,13 @@
-// Copyright 2022 Rockchip Electronics Co., Ltd. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+/*
+ * Copyright (c) 2025 NeuralSense AI Private Limited
+ * Trading as swatah.ai. All rights reserved.
+ *
+ * This file is part of the swatah.ai software stack and is licensed under
+ * the terms defined in the accompanying LICENSE file. Unauthorized copying,
+ * distribution, or modification of this file, via any medium, is strictly prohibited.
+ *
+ * For more information, visit: https://swatah.ai
+ */
 #include "common.h"
 #include "isp.h"
 #include "osd.h"
@@ -12,8 +19,8 @@
 #include "storage.h"
 
 #include <rga/im2d.h>
-#include <rga/rga.h>
-#include <rk_comm_tde.h>
+//#include <rga/rga.h>
+//#include <rk_comm_tde.h>
 #include <rk_debug.h>
 #include <rk_mpi_cal.h>
 #include <rk_mpi_ivs.h>
