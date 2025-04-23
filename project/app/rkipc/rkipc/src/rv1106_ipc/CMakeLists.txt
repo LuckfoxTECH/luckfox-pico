@@ -74,6 +74,7 @@ install(FILES rkipc-800w.ini DESTINATION share)
 install(FILES ../../common/speaker_test.wav DESTINATION share)
 install(PROGRAMS RkLunch.sh DESTINATION bin)
 install(PROGRAMS RkLunch-stop.sh DESTINATION bin)
-install(FILES ${PROJECT_SOURCE_DIR}/common/osd/image.bmp DESTINATION share)
+install(FILES resource/swatah_logo.bmp DESTINATION share)
+
 install(FILES ${PROJECT_SOURCE_DIR}/common/osd/simsun_en.ttf DESTINATION share)
 install(FILES ${PROJECT_SOURCE_DIR}/lib/arm-rockchip830-linux-uclibcgnueabihf/libwpa_client.so DESTINATION lib)
