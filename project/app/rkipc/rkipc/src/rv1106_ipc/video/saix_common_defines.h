@@ -7,8 +7,17 @@
  * distribution, or modification of this file, via any medium, is strictly prohibited.
  *
  * For more information, visit: https://swatah.ai
- */
+*/
 
+#ifndef _SAIX_COMMON_DEFINES_H_
+#define _SAIX_COMMON_DEFINES_H_
+
+#include <stdint.h>
+
+#define RKISP1_DEV_NAME "/dev/rkisp1"
+#define RKISP2_DEV_NAME "/dev/rkisp2"
+#define RKISP3_DEV_NAME "/dev/rkisp3"
+#define RKISP4_DEV_NAME "/dev/rkisp4"
 #define RKISP_MAINPATH 0
 #define RKISP_SELFPATH 1
 #define RKISP_FBCPATH 2
@@ -34,3 +43,5 @@
 #define RTMP_URL_0 "rtmp://127.0.0.1:1935/live/mainstream"
 #define RTMP_URL_1 "rtmp://127.0.0.1:1935/live/substream"
 #define RTMP_URL_2 "rtmp://127.0.0.1:1935/live/thirdstream"
+
+#endif /* _SAIX_COMMON_DEFINES_H_ */

@@ -7,7 +7,7 @@
  * distribution, or modification of this file, via any medium, is strictly prohibited.
  *
  * For more information, visit: https://swatah.ai
- */
+*/
 
 #include "common.h"
 #include "saix_common_defines.h"

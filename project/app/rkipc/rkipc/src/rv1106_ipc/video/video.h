@@ -7,7 +7,8 @@
  * distribution, or modification of this file, via any medium, is strictly prohibited.
  *
  * For more information, visit: https://swatah.ai
- */
+*/
+
 #include "common.h"
 #include "isp.h"
 #include "osd.h"
@@ -17,6 +18,7 @@
 #include "rtmp.h"
 #include "rtsp.h"
 #include "storage.h"
+#include <pthread.h>
 
 #include <rga/im2d.h>
 //#include <rga/rga.h>

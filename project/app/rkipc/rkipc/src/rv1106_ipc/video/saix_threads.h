@@ -1,4 +1,16 @@
+/*
+ * Copyright (c) 2025 NeuralSense AI Private Limited
+ * Trading as swatah.ai. All rights reserved.
+ *
+ * This file is part of the swatah.ai software stack and is licensed under
+ * the terms defined in the accompanying LICENSE file. Unauthorized copying,
+ * distribution, or modification of this file, via any medium, is strictly prohibited.
+ *
+ * For more information, visit: https://swatah.ai
+*/
 
+#ifndef _SAIX_THREADS_H_
+#define _SAIX_THREADS_H_
 #include<rk_common.h>
 
 
@@ -24,3 +36,5 @@ void *saix_push_vi2_to_iva(void *arg);
 void *saix_get_vpss_bgr_frame(void *arg);
 void *saix_fetch_ivs_results(void *arg);
 void *saix_push_vi2_to_iva(void *arg);
+
+#endif /* _SAIX_THREADS_H_ */
