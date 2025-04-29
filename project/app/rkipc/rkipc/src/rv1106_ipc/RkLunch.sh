@@ -114,9 +114,9 @@ post_chk() {
 		echo "Error: not found rkipc.ini !!!"
 		exit -1
 	fi
-	if [ ! -f "$rkipc_ini" ]; then
+	#if [ ! -f "$rkipc_ini" ]; then
 		cp $default_rkipc_ini $rkipc_ini -f
-	fi
+	#fi
 
 	if [ ! -f "/userdata/image.bmp" ]; then
 		cp -fa /oem/usr/share/image.bmp /userdata/
