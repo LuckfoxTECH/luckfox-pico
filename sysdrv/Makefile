@@ -120,7 +120,6 @@ endif
 ifneq ($(LF_TARGET_ROOTFS),)
    TARGET_ROOTFS := $(LF_TARGET_ROOTFS)
 else
-#    TARGET_ROOTFS := ubuntu
 #    TARGET_ROOTFS := buildroot
      TARGET_ROOTFS := busybox
 #    TARGET_ROOTFS := custom
@@ -128,8 +127,6 @@ endif
 
 ifneq ($(findstring $(TARGET_ROOTFS),custom),)
    ROOTFS_BUILD_ENV := custom drv 
-else ifneq ($(findstring $(TARGET_ROOTFS),ubuntu),)
-   ROOTFS_BUILD_ENV := ubuntu drv
 else ifneq ($(findstring $(TARGET_ROOTFS),buildroot),)
    ROOTFS_BUILD_ENV := rootfs_prepare pctools buildroot boardtools drv
  else #busybox
@@ -287,7 +284,6 @@ BUILDROOT_CFG ?= config_normal
 BUILDROOT_VER ?= buildroot-2023.02.6
 BUILDROOT_DIR := $(SYSDRV_DIR)/source/buildroot
 
-UBUNTU_VER ?= luckfox-ubuntu-22.04.3
 CUSTOM_VER ?= custom
 
 TOOLCHAIN_RUNTIME_LIB_C:=lib.tar.bz2
@@ -650,28 +646,6 @@ endif
 
 buildroot_clean:
 	$(AT)rm -rf $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
-
-##########################################################################################
-#   build ubuntu
-#   author :luckfox team
-#	date:2023-11-28
-##########################################################################################
-ubuntu: prepare
-	@echo -e "$(C_GREEN) ==sysdrv== build ubuntu   $(C_NORMAL)" 
-	@echo -e "$(C_GREEN) ==$(LF_TARGET_ROOTFS)== $(C_NORMAL)"
-	test -f $(SYSDRV_DIR)/tools/board/ubuntu/$(UBUNTU_VER).tar.gz || (\
-		pushd  $(SYSDRV_DIR)/tools/board/ubuntu/ ;\
-		./split_and_check_md5.sh merge ./$(UBUNTU_VER).tar.gz ;\
-		popd ;\
-	);
-	test -f $(SYSDRV_DIR_OUT_ROOTFS)/userdate/.ubuntu || (\
-		mkdir -p $(SYSDRV_DIR_OUT_ROOTFS) ;\
-		rm $(SYSDRV_DIR_OUT_ROOTFS)/* -rf ;\
-		tar xzf $(SYSDRV_DIR)/tools/board/ubuntu/$(UBUNTU_VER).tar.gz -C $(SYSDRV_DIR_OUT_ROOTFS) ;\
-	);
-ubuntu_clean:
-	$(AT)rm -rf $(SYSDRV_DIR_OUT_ROOTFS)
-
 
 ##########################################################################################
 #   build custom
