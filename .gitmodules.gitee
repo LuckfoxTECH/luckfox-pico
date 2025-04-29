@@ -1,3 +1,0 @@
-[submodule "ubuntu"]
-	path = sysdrv/tools/board/ubuntu
-	url = https://gitee.com/eng-thirty-three/pico_ubuntu.git
