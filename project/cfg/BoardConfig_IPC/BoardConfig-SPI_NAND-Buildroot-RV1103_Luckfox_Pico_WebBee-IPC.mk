@@ -58,7 +58,7 @@ export RK_PARTITION_FS_TYPE_CFG=rootfs@IGNORE@ubifs,oem@/oem@ubifs,userdata@/use
 #	TARGET_ROOTFS
 #################################################
 
-# Target rootfs : ubuntu(only emmc)/buildroot/busybox
+# Target rootfs : buildroot/busybox
 export LF_TARGET_ROOTFS=buildroot
 
 # Buildroot defconfig
