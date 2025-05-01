@@ -346,7 +346,7 @@ output/out/media_out
 ./build.sh app
 ```
 * Note 1: The app depends on media.
-* Note 2: After compilation, use the command ./build.sh firmware to repackage.
+* Note 2: After compilation, use the command ./build.sh firmware  to repackage.
 #### Firmware Packaging
 ```shell
 ./build.sh firmware
@@ -366,6 +366,42 @@ Open the menuconfig interface for the kernel.
 ```
 Open the menuconfig interface for buildroot.
 * Note: This is only applicable when selecting buildroot as the root file system.
+
+## WSL2 Environment Setup
+* Kernel Development Essentials
+  To set up the WSL2 environment for kernel development, run the following commands:
+```shell
+  sudo apt update
+  sudo apt install -y \
+  build-essential \
+  pkg-config \ 
+  libncurses-dev \
+  bison \
+  flex \
+  libssl-dev \
+  libelf-dev \
+  libudev-dev \
+  libpci-dev \
+  libiberty-dev \
+  dwarves \
+  bc \
+  git \
+  cmake \
+  g++ \
+  gcc \
+  clang \
+  texinfo \
+  gperf \
+  unzip \
+  python-is-python3 \
+  device-tree-compiler
+```  
+* Path Configuration
+To temporarily remove Windows system paths from your WSL2 environment (which can prevent conflicts), run:
+```shell
+export PATH=$(echo "$PATH" | tr ':' '\n' | grep -v '^/mnt/c/' | paste -sd:)
+```
+  You might want to add this to your .bashrc or .profile if you need this configuration regularly.
 
 ## Notices
 When copying the source code package under Windows, the executable file under Linux may become a non-executable file, or the soft link fails and cannot be compiled and used.
