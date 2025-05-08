@@ -20,6 +20,8 @@
 // for MAC related elements (mac_addr, mac_ssid...)
 #include "lmac_mac.h"
 
+#define LMAC_MSG_MAX_LEN 1024
+
 /*
  ****************************************************************************************
  */
@@ -28,7 +30,7 @@
 /////////////////////////////////////////////////////////////////////////////////
 /* Task identifiers for communication between LMAC and DRIVER */
 enum {
-	TASK_NONE = (u8_l) -1,
+	TASK_NONE = (u8_l)-1,
 
 	// MAC Management task.
 	TASK_MM = 0,
@@ -54,8 +56,8 @@ enum {
 	TASK_RXU,
 	/// RM_task
 	TASK_RM,
-    /// TWT task
-    TASK_TWT,
+	/// TWT task
+	TASK_TWT,
 #if defined CONFIG_RWNX_FULLMAC || defined CONFIG_RWNX_FHOST
 	// This is used to define the last task that is running on the EMB processor
 	TASK_LAST_EMB = TASK_TWT,
@@ -66,7 +68,6 @@ enum {
 	TASK_API,
 	TASK_MAX,
 };
-
 
 /// For MAC HW States copied from "hal_machw.h"
 enum {
@@ -121,284 +122,292 @@ typedef u16 lmac_task_id_t;
 #define LMAC_FIRST_MSG(task) ((lmac_msg_id_t)((task) << 10))
 
 #define MSG_T(msg) ((lmac_task_id_t)((msg) >> 10))
-#define MSG_I(msg) ((msg) & ((1<<10)-1))
+#define MSG_I(msg) ((msg) & ((1 << 10) - 1))
 
 /// Message structure.
 struct lmac_msg {
-	lmac_msg_id_t     id;         ///< Message id.
-	lmac_task_id_t    dest_id;    ///< Destination kernel identifier.
-	lmac_task_id_t    src_id;     ///< Source kernel identifier.
-	u16        param_len;  ///< Parameter embedded struct length.
-	u32        param[];   ///< Parameter embedded struct. Must be word-aligned.
+	lmac_msg_id_t id; ///< Message id.
+	lmac_task_id_t dest_id; ///< Destination kernel identifier.
+	lmac_task_id_t src_id; ///< Source kernel identifier.
+	u16 param_len; ///< Parameter embedded struct length.
+	u32 param[]; ///< Parameter embedded struct. Must be word-aligned.
 };
 
 /// List of messages related to the task.
 enum mm_msg_tag {
-    /// RESET Request.
-    MM_RESET_REQ = LMAC_FIRST_MSG(TASK_MM),
-    /// RESET Confirmation.
-    MM_RESET_CFM,
-    /// START Request.
-    MM_START_REQ,
-    /// START Confirmation.
-    MM_START_CFM,
-    /// Read Version Request.
-    MM_VERSION_REQ,
-    /// Read Version Confirmation.
-    MM_VERSION_CFM,
-    /// ADD INTERFACE Request.
-    MM_ADD_IF_REQ,
-    /// ADD INTERFACE Confirmation.
-    MM_ADD_IF_CFM,
-    /// REMOVE INTERFACE Request.
-    MM_REMOVE_IF_REQ,
-    /// REMOVE INTERFACE Confirmation.
-    MM_REMOVE_IF_CFM,
-    /// STA ADD Request.
-    MM_STA_ADD_REQ,
-    /// STA ADD Confirm.
-    MM_STA_ADD_CFM,
-    /// STA DEL Request.
-    MM_STA_DEL_REQ,
-    /// STA DEL Confirm.
-    MM_STA_DEL_CFM,
-    /// RX FILTER CONFIGURATION Request.
-    MM_SET_FILTER_REQ,
-    /// RX FILTER CONFIGURATION Confirmation.
-    MM_SET_FILTER_CFM,
-    /// CHANNEL CONFIGURATION Request.
-    MM_SET_CHANNEL_REQ,
-    /// CHANNEL CONFIGURATION Confirmation.
-    MM_SET_CHANNEL_CFM,
-    /// DTIM PERIOD CONFIGURATION Request.
-    MM_SET_DTIM_REQ,
-    /// DTIM PERIOD CONFIGURATION Confirmation.
-    MM_SET_DTIM_CFM,
-    /// BEACON INTERVAL CONFIGURATION Request.
-    MM_SET_BEACON_INT_REQ,
-    /// BEACON INTERVAL CONFIGURATION Confirmation.
-    MM_SET_BEACON_INT_CFM,
-    /// BASIC RATES CONFIGURATION Request.
-    MM_SET_BASIC_RATES_REQ,
-    /// BASIC RATES CONFIGURATION Confirmation.
-    MM_SET_BASIC_RATES_CFM,
-    /// BSSID CONFIGURATION Request.
-    MM_SET_BSSID_REQ,
-    /// BSSID CONFIGURATION Confirmation.
-    MM_SET_BSSID_CFM,
-    /// EDCA PARAMETERS CONFIGURATION Request.
-    MM_SET_EDCA_REQ,
-    /// EDCA PARAMETERS CONFIGURATION Confirmation.
-    MM_SET_EDCA_CFM,
-    /// ABGN MODE CONFIGURATION Request.
-    MM_SET_MODE_REQ,
-    /// ABGN MODE CONFIGURATION Confirmation.
-    MM_SET_MODE_CFM,
-    /// Request setting the VIF active state (i.e associated or AP started)
-    MM_SET_VIF_STATE_REQ,
-    /// Confirmation of the @ref MM_SET_VIF_STATE_REQ message.
-    MM_SET_VIF_STATE_CFM,
-    /// SLOT TIME PARAMETERS CONFIGURATION Request.
-    MM_SET_SLOTTIME_REQ,
-    /// SLOT TIME PARAMETERS CONFIGURATION Confirmation.
-    MM_SET_SLOTTIME_CFM,
-    /// Power Mode Change Request.
-    MM_SET_IDLE_REQ,
-    /// Power Mode Change Confirm.
-    MM_SET_IDLE_CFM,
-    /// KEY ADD Request.
-    MM_KEY_ADD_REQ,
-    /// KEY ADD Confirm.
-    MM_KEY_ADD_CFM,
-    /// KEY DEL Request.
-    MM_KEY_DEL_REQ,
-    /// KEY DEL Confirm.
-    MM_KEY_DEL_CFM,
-    /// Block Ack agreement info addition
-    MM_BA_ADD_REQ,
-    /// Block Ack agreement info addition confirmation
-    MM_BA_ADD_CFM,
-    /// Block Ack agreement info deletion
-    MM_BA_DEL_REQ,
-    /// Block Ack agreement info deletion confirmation
-    MM_BA_DEL_CFM,
-    /// Indication of the primary TBTT to the upper MAC. Upon the reception of this
-    // message the upper MAC has to push the beacon(s) to the beacon transmission queue.
-    MM_PRIMARY_TBTT_IND,
-    /// Indication of the secondary TBTT to the upper MAC. Upon the reception of this
-    // message the upper MAC has to push the beacon(s) to the beacon transmission queue.
-    MM_SECONDARY_TBTT_IND,
-    /// Request for changing the TX power
-    MM_SET_POWER_REQ,
-    /// Confirmation of the TX power change
-    MM_SET_POWER_CFM,
-    /// Request to the LMAC to trigger the embedded logic analyzer and forward the debug
-    /// dump.
-    MM_DBG_TRIGGER_REQ,
-    /// Set Power Save mode
-    MM_SET_PS_MODE_REQ,
-    /// Set Power Save mode confirmation
-    MM_SET_PS_MODE_CFM,
-    /// Request to add a channel context
-    MM_CHAN_CTXT_ADD_REQ,
-    /// Confirmation of the channel context addition
-    MM_CHAN_CTXT_ADD_CFM,
-    /// Request to delete a channel context
-    MM_CHAN_CTXT_DEL_REQ,
-    /// Confirmation of the channel context deletion
-    MM_CHAN_CTXT_DEL_CFM,
-    /// Request to link a channel context to a VIF
-    MM_CHAN_CTXT_LINK_REQ,
-    /// Confirmation of the channel context link
-    MM_CHAN_CTXT_LINK_CFM,
-    /// Request to unlink a channel context from a VIF
-    MM_CHAN_CTXT_UNLINK_REQ,
-    /// Confirmation of the channel context unlink
-    MM_CHAN_CTXT_UNLINK_CFM,
-    /// Request to update a channel context
-    MM_CHAN_CTXT_UPDATE_REQ,
-    /// Confirmation of the channel context update
-    MM_CHAN_CTXT_UPDATE_CFM,
-    /// Request to schedule a channel context
-    MM_CHAN_CTXT_SCHED_REQ,
-    /// Confirmation of the channel context scheduling
-    MM_CHAN_CTXT_SCHED_CFM,
-    /// Request to change the beacon template in LMAC
-    MM_BCN_CHANGE_REQ,
-    /// Confirmation of the beacon change
-    MM_BCN_CHANGE_CFM,
-    /// Request to update the TIM in the beacon (i.e to indicate traffic bufferized at AP)
-    MM_TIM_UPDATE_REQ,
-    /// Confirmation of the TIM update
-    MM_TIM_UPDATE_CFM,
-    /// Connection loss indication
-    MM_CONNECTION_LOSS_IND,
-    /// Channel context switch indication to the upper layers
-    MM_CHANNEL_SWITCH_IND,
-    /// Channel context pre-switch indication to the upper layers
-    MM_CHANNEL_PRE_SWITCH_IND,
-    /// Request to remain on channel or cancel remain on channel
-    MM_REMAIN_ON_CHANNEL_REQ,
-    /// Confirmation of the (cancel) remain on channel request
-    MM_REMAIN_ON_CHANNEL_CFM,
-    /// Remain on channel expired indication
-    MM_REMAIN_ON_CHANNEL_EXP_IND,
-    /// Indication of a PS state change of a peer device
-    MM_PS_CHANGE_IND,
-    /// Indication that some buffered traffic should be sent to the peer device
-    MM_TRAFFIC_REQ_IND,
-    /// Request to modify the STA Power-save mode options
-    MM_SET_PS_OPTIONS_REQ,
-    /// Confirmation of the PS options setting
-    MM_SET_PS_OPTIONS_CFM,
-    /// Indication of PS state change for a P2P VIF
-    MM_P2P_VIF_PS_CHANGE_IND,
-    /// Indication that CSA counter has been updated
-    MM_CSA_COUNTER_IND,
-    /// Channel occupation report indication
-    MM_CHANNEL_SURVEY_IND,
-    /// Message containing Beamformer Information
-    MM_BFMER_ENABLE_REQ,
-    /// Request to Start/Stop/Update NOA - GO Only
-    MM_SET_P2P_NOA_REQ,
-    /// Request to Start/Stop/Update Opportunistic PS - GO Only
-    MM_SET_P2P_OPPPS_REQ,
-    /// Start/Stop/Update NOA Confirmation
-    MM_SET_P2P_NOA_CFM,
-    /// Start/Stop/Update Opportunistic PS Confirmation
-    MM_SET_P2P_OPPPS_CFM,
-    /// P2P NoA Update Indication - GO Only
-    MM_P2P_NOA_UPD_IND,
-    /// Request to set RSSI threshold and RSSI hysteresis
-    MM_CFG_RSSI_REQ,
-    /// Indication that RSSI level is below or above the threshold
-    MM_RSSI_STATUS_IND,
-    /// Indication that CSA is done
-    MM_CSA_FINISH_IND,
-    /// Indication that CSA is in prorgess (resp. done) and traffic must be stopped (resp. restarted)
-    MM_CSA_TRAFFIC_IND,
-    /// Request to update the group information of a station
-    MM_MU_GROUP_UPDATE_REQ,
-    /// Confirmation of the @ref MM_MU_GROUP_UPDATE_REQ message
-    MM_MU_GROUP_UPDATE_CFM,
-    /// Request to initialize the antenna diversity algorithm
-    MM_ANT_DIV_INIT_REQ,
-    /// Request to stop the antenna diversity algorithm
-    MM_ANT_DIV_STOP_REQ,
-    /// Request to update the antenna switch status
-    MM_ANT_DIV_UPDATE_REQ,
-    /// Request to switch the antenna connected to path_0
-    MM_SWITCH_ANTENNA_REQ,
-    /// Indication that a packet loss has occurred
-    MM_PKTLOSS_IND,
+	/// RESET Request.
+	MM_RESET_REQ = LMAC_FIRST_MSG(TASK_MM),
+	/// RESET Confirmation.
+	MM_RESET_CFM,
+	/// START Request.
+	MM_START_REQ,
+	/// START Confirmation.
+	MM_START_CFM,
+	/// Read Version Request.
+	MM_VERSION_REQ,
+	/// Read Version Confirmation.
+	MM_VERSION_CFM,
+	/// ADD INTERFACE Request.
+	MM_ADD_IF_REQ,
+	/// ADD INTERFACE Confirmation.
+	MM_ADD_IF_CFM,
+	/// REMOVE INTERFACE Request.
+	MM_REMOVE_IF_REQ,
+	/// REMOVE INTERFACE Confirmation.
+	MM_REMOVE_IF_CFM,
+	/// STA ADD Request.
+	MM_STA_ADD_REQ,
+	/// STA ADD Confirm.
+	MM_STA_ADD_CFM,
+	/// STA DEL Request.
+	MM_STA_DEL_REQ,
+	/// STA DEL Confirm.
+	MM_STA_DEL_CFM,
+	/// RX FILTER CONFIGURATION Request.
+	MM_SET_FILTER_REQ,
+	/// RX FILTER CONFIGURATION Confirmation.
+	MM_SET_FILTER_CFM,
+	/// CHANNEL CONFIGURATION Request.
+	MM_SET_CHANNEL_REQ,
+	/// CHANNEL CONFIGURATION Confirmation.
+	MM_SET_CHANNEL_CFM,
+	/// DTIM PERIOD CONFIGURATION Request.
+	MM_SET_DTIM_REQ,
+	/// DTIM PERIOD CONFIGURATION Confirmation.
+	MM_SET_DTIM_CFM,
+	/// BEACON INTERVAL CONFIGURATION Request.
+	MM_SET_BEACON_INT_REQ,
+	/// BEACON INTERVAL CONFIGURATION Confirmation.
+	MM_SET_BEACON_INT_CFM,
+	/// BASIC RATES CONFIGURATION Request.
+	MM_SET_BASIC_RATES_REQ,
+	/// BASIC RATES CONFIGURATION Confirmation.
+	MM_SET_BASIC_RATES_CFM,
+	/// BSSID CONFIGURATION Request.
+	MM_SET_BSSID_REQ,
+	/// BSSID CONFIGURATION Confirmation.
+	MM_SET_BSSID_CFM,
+	/// EDCA PARAMETERS CONFIGURATION Request.
+	MM_SET_EDCA_REQ,
+	/// EDCA PARAMETERS CONFIGURATION Confirmation.
+	MM_SET_EDCA_CFM,
+	/// ABGN MODE CONFIGURATION Request.
+	MM_SET_MODE_REQ,
+	/// ABGN MODE CONFIGURATION Confirmation.
+	MM_SET_MODE_CFM,
+	/// Request setting the VIF active state (i.e associated or AP started)
+	MM_SET_VIF_STATE_REQ,
+	/// Confirmation of the @ref MM_SET_VIF_STATE_REQ message.
+	MM_SET_VIF_STATE_CFM,
+	/// SLOT TIME PARAMETERS CONFIGURATION Request.
+	MM_SET_SLOTTIME_REQ,
+	/// SLOT TIME PARAMETERS CONFIGURATION Confirmation.
+	MM_SET_SLOTTIME_CFM,
+	/// Power Mode Change Request.
+	MM_SET_IDLE_REQ,
+	/// Power Mode Change Confirm.
+	MM_SET_IDLE_CFM,
+	/// KEY ADD Request.
+	MM_KEY_ADD_REQ,
+	/// KEY ADD Confirm.
+	MM_KEY_ADD_CFM,
+	/// KEY DEL Request.
+	MM_KEY_DEL_REQ,
+	/// KEY DEL Confirm.
+	MM_KEY_DEL_CFM,
+	/// Block Ack agreement info addition
+	MM_BA_ADD_REQ,
+	/// Block Ack agreement info addition confirmation
+	MM_BA_ADD_CFM,
+	/// Block Ack agreement info deletion
+	MM_BA_DEL_REQ,
+	/// Block Ack agreement info deletion confirmation
+	MM_BA_DEL_CFM,
+	/// Indication of the primary TBTT to the upper MAC. Upon the reception of this
+	// message the upper MAC has to push the beacon(s) to the beacon transmission queue.
+	MM_PRIMARY_TBTT_IND,
+	/// Indication of the secondary TBTT to the upper MAC. Upon the reception of this
+	// message the upper MAC has to push the beacon(s) to the beacon transmission queue.
+	MM_SECONDARY_TBTT_IND,
+	/// Request for changing the TX power
+	MM_SET_POWER_REQ,
+	/// Confirmation of the TX power change
+	MM_SET_POWER_CFM,
+	/// Request to the LMAC to trigger the embedded logic analyzer and forward the debug
+	/// dump.
+	MM_DBG_TRIGGER_REQ,
+	/// Set Power Save mode
+	MM_SET_PS_MODE_REQ,
+	/// Set Power Save mode confirmation
+	MM_SET_PS_MODE_CFM,
+	/// Request to add a channel context
+	MM_CHAN_CTXT_ADD_REQ,
+	/// Confirmation of the channel context addition
+	MM_CHAN_CTXT_ADD_CFM,
+	/// Request to delete a channel context
+	MM_CHAN_CTXT_DEL_REQ,
+	/// Confirmation of the channel context deletion
+	MM_CHAN_CTXT_DEL_CFM,
+	/// Request to link a channel context to a VIF
+	MM_CHAN_CTXT_LINK_REQ,
+	/// Confirmation of the channel context link
+	MM_CHAN_CTXT_LINK_CFM,
+	/// Request to unlink a channel context from a VIF
+	MM_CHAN_CTXT_UNLINK_REQ,
+	/// Confirmation of the channel context unlink
+	MM_CHAN_CTXT_UNLINK_CFM,
+	/// Request to update a channel context
+	MM_CHAN_CTXT_UPDATE_REQ,
+	/// Confirmation of the channel context update
+	MM_CHAN_CTXT_UPDATE_CFM,
+	/// Request to schedule a channel context
+	MM_CHAN_CTXT_SCHED_REQ,
+	/// Confirmation of the channel context scheduling
+	MM_CHAN_CTXT_SCHED_CFM,
+	/// Request to change the beacon template in LMAC
+	MM_BCN_CHANGE_REQ,
+	/// Confirmation of the beacon change
+	MM_BCN_CHANGE_CFM,
+	/// Request to update the TIM in the beacon (i.e to indicate traffic bufferized at AP)
+	MM_TIM_UPDATE_REQ,
+	/// Confirmation of the TIM update
+	MM_TIM_UPDATE_CFM,
+	/// Connection loss indication
+	MM_CONNECTION_LOSS_IND,
+	/// Channel context switch indication to the upper layers
+	MM_CHANNEL_SWITCH_IND,
+	/// Channel context pre-switch indication to the upper layers
+	MM_CHANNEL_PRE_SWITCH_IND,
+	/// Request to remain on channel or cancel remain on channel
+	MM_REMAIN_ON_CHANNEL_REQ,
+	/// Confirmation of the (cancel) remain on channel request
+	MM_REMAIN_ON_CHANNEL_CFM,
+	/// Remain on channel expired indication
+	MM_REMAIN_ON_CHANNEL_EXP_IND,
+	/// Indication of a PS state change of a peer device
+	MM_PS_CHANGE_IND,
+	/// Indication that some buffered traffic should be sent to the peer device
+	MM_TRAFFIC_REQ_IND,
+	/// Request to modify the STA Power-save mode options
+	MM_SET_PS_OPTIONS_REQ,
+	/// Confirmation of the PS options setting
+	MM_SET_PS_OPTIONS_CFM,
+	/// Indication of PS state change for a P2P VIF
+	MM_P2P_VIF_PS_CHANGE_IND,
+	/// Indication that CSA counter has been updated
+	MM_CSA_COUNTER_IND,
+	/// Channel occupation report indication
+	MM_CHANNEL_SURVEY_IND,
+	/// Message containing Beamformer Information
+	MM_BFMER_ENABLE_REQ,
+	/// Request to Start/Stop/Update NOA - GO Only
+	MM_SET_P2P_NOA_REQ,
+	/// Request to Start/Stop/Update Opportunistic PS - GO Only
+	MM_SET_P2P_OPPPS_REQ,
+	/// Start/Stop/Update NOA Confirmation
+	MM_SET_P2P_NOA_CFM,
+	/// Start/Stop/Update Opportunistic PS Confirmation
+	MM_SET_P2P_OPPPS_CFM,
+	/// P2P NoA Update Indication - GO Only
+	MM_P2P_NOA_UPD_IND,
+	/// Request to set RSSI threshold and RSSI hysteresis
+	MM_CFG_RSSI_REQ,
+	/// Indication that RSSI level is below or above the threshold
+	MM_RSSI_STATUS_IND,
+	/// Indication that CSA is done
+	MM_CSA_FINISH_IND,
+	/// Indication that CSA is in prorgess (resp. done) and traffic must be stopped (resp. restarted)
+	MM_CSA_TRAFFIC_IND,
+	/// Request to update the group information of a station
+	MM_MU_GROUP_UPDATE_REQ,
+	/// Confirmation of the @ref MM_MU_GROUP_UPDATE_REQ message
+	MM_MU_GROUP_UPDATE_CFM,
+	/// Request to initialize the antenna diversity algorithm
+	MM_ANT_DIV_INIT_REQ,
+	/// Request to stop the antenna diversity algorithm
+	MM_ANT_DIV_STOP_REQ,
+	/// Request to update the antenna switch status
+	MM_ANT_DIV_UPDATE_REQ,
+	/// Request to switch the antenna connected to path_0
+	MM_SWITCH_ANTENNA_REQ,
+	/// Indication that a packet loss has occurred
+	MM_PKTLOSS_IND,
 
-    MM_SET_ARPOFFLOAD_REQ,
-    MM_SET_ARPOFFLOAD_CFM,
-    MM_SET_AGG_DISABLE_REQ,
-    MM_SET_AGG_DISABLE_CFM,
-    MM_SET_COEX_REQ,
-    MM_SET_COEX_CFM,
-    MM_SET_RF_CONFIG_REQ,
-    MM_SET_RF_CONFIG_CFM,
-    MM_SET_RF_CALIB_REQ,
-    MM_SET_RF_CALIB_CFM,
+	MM_SET_ARPOFFLOAD_REQ,
+	MM_SET_ARPOFFLOAD_CFM,
+	MM_SET_AGG_DISABLE_REQ,
+	MM_SET_AGG_DISABLE_CFM,
+	MM_SET_COEX_REQ,
+	MM_SET_COEX_CFM,
+	MM_SET_RF_CONFIG_REQ,
+	MM_SET_RF_CONFIG_CFM,
+	MM_SET_RF_CALIB_REQ,
+	MM_SET_RF_CALIB_CFM,
 
-    /// MU EDCA PARAMETERS Configuration Request.
-    MM_SET_MU_EDCA_REQ,
-    /// MU EDCA PARAMETERS Configuration Confirmation.
-    MM_SET_MU_EDCA_CFM,
-    /// UORA PARAMETERS Configuration Request.
-    MM_SET_UORA_REQ,
-    /// UORA PARAMETERS Configuration Confirmation.
-    MM_SET_UORA_CFM,
-    /// TXOP RTS THRESHOLD Configuration Request.
-    MM_SET_TXOP_RTS_THRES_REQ,
-    /// TXOP RTS THRESHOLD Configuration Confirmation.
-    MM_SET_TXOP_RTS_THRES_CFM,
-    /// HE BSS Color Configuration Request.
-    MM_SET_BSS_COLOR_REQ,
-    /// HE BSS Color Configuration Confirmation.
-    MM_SET_BSS_COLOR_CFM,
+	/// MU EDCA PARAMETERS Configuration Request.
+	MM_SET_MU_EDCA_REQ,
+	/// MU EDCA PARAMETERS Configuration Confirmation.
+	MM_SET_MU_EDCA_CFM,
+	/// UORA PARAMETERS Configuration Request.
+	MM_SET_UORA_REQ,
+	/// UORA PARAMETERS Configuration Confirmation.
+	MM_SET_UORA_CFM,
+	/// TXOP RTS THRESHOLD Configuration Request.
+	MM_SET_TXOP_RTS_THRES_REQ,
+	/// TXOP RTS THRESHOLD Configuration Confirmation.
+	MM_SET_TXOP_RTS_THRES_CFM,
+	/// HE BSS Color Configuration Request.
+	MM_SET_BSS_COLOR_REQ,
+	/// HE BSS Color Configuration Confirmation.
+	MM_SET_BSS_COLOR_CFM,
 
-    MM_GET_MAC_ADDR_REQ,
-    MM_GET_MAC_ADDR_CFM,
+	MM_GET_MAC_ADDR_REQ,
+	MM_GET_MAC_ADDR_CFM,
 
-    MM_GET_STA_INFO_REQ,
-    MM_GET_STA_INFO_CFM,
+	MM_GET_STA_INFO_REQ,
+	MM_GET_STA_INFO_CFM,
 
-    MM_SET_TXPWR_IDX_LVL_REQ,
-    MM_SET_TXPWR_IDX_LVL_CFM,
+	MM_SET_TXPWR_IDX_LVL_REQ,
+	MM_SET_TXPWR_IDX_LVL_CFM,
 
-    MM_SET_TXPWR_OFST_REQ,
-    MM_SET_TXPWR_OFST_CFM,
+	MM_SET_TXPWR_OFST_REQ,
+	MM_SET_TXPWR_OFST_CFM,
 
-    MM_SET_STACK_START_REQ,
-    MM_SET_STACK_START_CFM,
+	MM_SET_STACK_START_REQ,
+	MM_SET_STACK_START_CFM,
 
-    MM_APM_STALOSS_IND,
+	MM_APM_STALOSS_IND,
 
-    MM_SET_VENDOR_HWCONFIG_REQ,
-    MM_SET_VENDOR_HWCONFIG_CFM,
+	MM_SET_VENDOR_HWCONFIG_REQ,
+	MM_SET_VENDOR_HWCONFIG_CFM,
 
-    MM_GET_FW_VERSION_REQ,
-    MM_GET_FW_VERSION_CFM,
+	MM_GET_FW_VERSION_REQ,
+	MM_GET_FW_VERSION_CFM,
 
-    MM_SET_RESUME_RESTORE_REQ,
-    MM_SET_RESUME_RESTORE_CFM,
+	MM_SET_RESUME_RESTORE_REQ,
+	MM_SET_RESUME_RESTORE_CFM,
 
-    MM_GET_WIFI_DISABLE_REQ,
-    MM_GET_WIFI_DISABLE_CFM,
+	MM_GET_WIFI_DISABLE_REQ,
+	MM_GET_WIFI_DISABLE_CFM,
 
-    MM_CFG_RSSI_CFM,
+	MM_CFG_RSSI_CFM,
 
-    MM_SET_VENDOR_SWCONFIG_REQ,
-    MM_SET_VENDOR_SWCONFIG_CFM,
+	MM_SET_VENDOR_SWCONFIG_REQ,
+	MM_SET_VENDOR_SWCONFIG_CFM,
 
-    MM_SET_TXPWR_LVL_ADJ_REQ,
-    MM_SET_TXPWR_LVL_ADJ_CFM,
+	MM_SET_TXPWR_LVL_ADJ_REQ,
+	MM_SET_TXPWR_LVL_ADJ_CFM,
 
-    /// MAX number of messages
-    MM_MAX,
+	MM_RADAR_DETECT_IND,
+
+	MM_SET_APF_PROG_REQ,
+	MM_SET_APF_PROG_CFM,
+
+	MM_GET_APF_PROG_REQ,
+	MM_GET_APF_PROG_CFM,
+
+	/// MAX number of messages
+	MM_MAX,
 };
 
 /// Interface types
@@ -438,8 +447,8 @@ enum {
 /// Features supported by LMAC - Positions
 enum mm_features {
 	/// Beaconing
-	MM_FEAT_BCN_BIT         = 0,
-/*
+	MM_FEAT_BCN_BIT = 0,
+	/*
 	/// Autonomous Beacon Transmission
 	MM_FEAT_AUTOBCN_BIT,
 	/// Scan in LMAC
@@ -456,15 +465,15 @@ enum mm_features {
 	/// UAPSD
 	MM_FEAT_UAPSD_BIT,
 	/// DPSM
-//	MM_FEAT_DPSM_BIT,
+	//	MM_FEAT_DPSM_BIT,
 	/// A-MPDU
 	MM_FEAT_AMPDU_BIT,
 	/// A-MSDU
 	MM_FEAT_AMSDU_BIT,
 	/// Channel Context
-//	MM_FEAT_CHNL_CTXT_BIT,
+	//	MM_FEAT_CHNL_CTXT_BIT,
 	/// Packet reordering
-//	MM_FEAT_REORD_BIT,
+	//	MM_FEAT_REORD_BIT,
 	/// P2P
 	MM_FEAT_P2P_BIT,
 	/// P2P Go
@@ -502,11 +511,11 @@ enum mm_features {
 	/// HE (802.11ax) support
 	MM_FEAT_HE_BIT,
 	/// TWT support
-    MM_FEAT_TWT_BIT,
+	MM_FEAT_TWT_BIT,
 };
 
 /// Maximum number of words in the configuration buffer
-#define PHY_CFG_BUF_SIZE     16
+#define PHY_CFG_BUF_SIZE 16
 
 /// Structure containing the parameters of the PHY configuration
 struct phy_cfg_tag {
@@ -730,8 +739,8 @@ struct mm_version_cfm {
 
 /// Structure containing the parameters of the @ref MM_STA_ADD_REQ message.
 struct mm_sta_add_req {
-    /// Bitfield showing some capabilities of the STA (@ref enum mac_sta_flags)
-    u32_l capa_flags;
+	/// Bitfield showing some capabilities of the STA (@ref enum mac_sta_flags)
+	u32_l capa_flags;
 	/// Maximum A-MPDU size, in bytes, for HE frames
 	u32_l ampdu_size_max_he;
 	/// Maximum A-MPDU size, in bytes, for VHT frames
@@ -752,12 +761,12 @@ struct mm_sta_add_req {
 	bool_l tdls_sta_initiator;
 	/// Indicate if the TDLS Channel Switch is allowed
 	bool_l tdls_chsw_allowed;
-    /// nonTransmitted BSSID index, set to the BSSID index in case the STA added is an AP
-    /// that is a nonTransmitted BSSID. Should be set to 0 otherwise
-    u8_l bssid_index;
-    /// Maximum BSSID indicator, valid if the STA added is an AP that is a nonTransmitted
-    /// BSSID
-    u8_l max_bssid_ind;
+	/// nonTransmitted BSSID index, set to the BSSID index in case the STA added is an AP
+	/// that is a nonTransmitted BSSID. Should be set to 0 otherwise
+	u8_l bssid_index;
+	/// Maximum BSSID indicator, valid if the STA added is an AP that is a nonTransmitted
+	/// BSSID
+	u8_l max_bssid_ind;
 };
 
 /// Structure containing the parameters of the @ref MM_STA_ADD_CFM message.
@@ -779,7 +788,7 @@ struct mm_sta_del_req {
 /// Structure containing the parameters of the @ref MM_STA_DEL_CFM message.
 struct mm_sta_del_cfm {
 	/// Status of the operation (different from 0 if unsuccessful)
-	u8_l     status;
+	u8_l status;
 };
 
 /// Structure containing the parameters of the SET_POWER_MODE REQ message.
@@ -790,7 +799,7 @@ struct mm_setpowermode_req {
 
 /// Structure containing the parameters of the SET_POWER_MODE CFM message.
 struct mm_setpowermode_cfm {
-	u8_l     status;
+	u8_l status;
 };
 
 /// Structure containing the parameters of the @ref MM_KEY_ADD REQ message.
@@ -828,13 +837,13 @@ struct mm_key_del_req {
 /// Structure containing the parameters of the @ref MM_BA_ADD_REQ message.
 struct mm_ba_add_req {
 	///Type of agreement (0: TX, 1: RX)
-	u8_l  type;
+	u8_l type;
 	///Index of peer station with which the agreement is made
-	u8_l  sta_idx;
+	u8_l sta_idx;
 	///TID for which the agreement is made with peer station
-	u8_l  tid;
+	u8_l tid;
 	///Buffer size - number of MPDUs that can be held in its buffer per TID
-	u8_l  bufsz;
+	u8_l bufsz;
 	/// Start sequence number negotiated during BA setup - the one in first aggregated MPDU counts more
 	u16_l ssn;
 };
@@ -883,13 +892,11 @@ struct mm_chan_ctxt_add_cfm {
 	u8_l index;
 };
 
-
 /// Structure containing the parameters of the @ref MM_CHAN_CTXT_DEL_REQ message
 struct mm_chan_ctxt_del_req {
 	/// Index of the new channel context to be deleted
 	u8_l index;
 };
-
 
 /// Structure containing the parameters of the @ref MM_CHAN_CTXT_LINK_REQ message
 struct mm_chan_ctxt_link_req {
@@ -950,7 +957,6 @@ struct mm_connection_loss_ind {
 	u8_l inst_nbr;
 };
 
-
 /// Structure containing the parameters of the @ref MM_DBG_TRIGGER_REQ message.
 struct mm_dbg_trigger_req {
 	/// Error trace to be reported by the LMAC
@@ -960,7 +966,7 @@ struct mm_dbg_trigger_req {
 /// Structure containing the parameters of the @ref MM_SET_PS_MODE_REQ message.
 struct mm_set_ps_mode_req {
 	/// Power Save is activated or deactivated
-	u8_l  new_state;
+	u8_l new_state;
 };
 
 /// Structure containing the parameters of the @ref MM_BCN_CHANGE_REQ message.
@@ -979,7 +985,6 @@ struct mm_bcn_change_req {
 	/// Offset of CSA (channel switch announcement) counters (0 means no counter)
 	u8_l csa_oft[BCN_MAX_CSA_CPT];
 };
-
 
 /// Structure containing the parameters of the @ref MM_TIM_UPDATE_REQ message.
 struct mm_tim_update_req {
@@ -1034,17 +1039,16 @@ struct mm_remain_on_channel_exp_ind {
 /// Structure containing the parameters of the @ref MM_SET_UAPSD_TMR_REQ message.
 struct mm_set_uapsd_tmr_req {
 	/// action: Start or Stop the timer
-	u8_l  action;
+	u8_l action;
 	/// timeout value, in milliseconds
-	u32_l  timeout;
+	u32_l timeout;
 };
 
 /// Structure containing the parameters of the @ref MM_SET_UAPSD_TMR_CFM message.
 struct mm_set_uapsd_tmr_cfm {
 	/// Status of the operation (different from 0 if unsuccessful)
-	u8_l     status;
+	u8_l status;
 };
-
 
 /// Structure containing the parameters of the @ref MM_PS_CHANGE_IND message
 struct mm_ps_change_ind {
@@ -1163,7 +1167,7 @@ struct mm_set_arpoffload_en_cfm {
 struct mm_set_agg_disable_req {
 	u8_l disable;
 	u8_l staidx;
-    u8_l disable_rx;
+	u8_l disable_rx;
 };
 
 struct mm_set_coex_req {
@@ -1186,13 +1190,12 @@ struct mm_set_rf_config_req {
 	u32_l tx_gain[32];
 };
 #endif
-struct mm_set_rf_config_req
-{
-    u8_l table_sel;
-    u8_l table_ofst;
-    u8_l table_num;
+struct mm_set_rf_config_req {
+	u8_l table_sel;
+	u8_l table_ofst;
+	u8_l table_num;
 	u8_l deft_page;
-    u32_l data[64];
+	u32_l data[64];
 };
 
 struct mm_set_rf_calib_req {
@@ -1227,67 +1230,81 @@ struct mm_get_sta_info_req {
 struct mm_get_sta_info_cfm {
 	u32_l rate_info;
 	u32_l txfailed;
-	u8    rssi;
+	u8 rssi;
+	u8 reserved[3];
+	u32_l chan_busy_time;
+	u32_l ack_fail_stat;
+	u32_l ack_succ_stat;
+	u32_l chan_tx_busy_time;
 };
 
-typedef struct
-{
-    u8_l enable;
-    u8_l dsss;
-    u8_l ofdmlowrate_2g4;
-    u8_l ofdm64qam_2g4;
-    u8_l ofdm256qam_2g4;
-    u8_l ofdm1024qam_2g4;
-    u8_l ofdmlowrate_5g;
-    u8_l ofdm64qam_5g;
-    u8_l ofdm256qam_5g;
-    u8_l ofdm1024qam_5g;
+typedef struct {
+	u8_l enable;
+	u8_l dsss;
+	u8_l ofdmlowrate_2g4;
+	u8_l ofdm64qam_2g4;
+	u8_l ofdm256qam_2g4;
+	u8_l ofdm1024qam_2g4;
+	u8_l ofdmlowrate_5g;
+	u8_l ofdm64qam_5g;
+	u8_l ofdm256qam_5g;
+	u8_l ofdm1024qam_5g;
 } txpwr_lvl_conf_t;
 
-typedef struct
-{
-    u8_l enable;
-    s8_l pwrlvl_11b_11ag_2g4[12];
-    s8_l pwrlvl_11n_11ac_2g4[10];
-    s8_l pwrlvl_11ax_2g4[12];
+typedef struct {
+	u8_l enable;
+	s8_l pwrlvl_11b_11ag_2g4[12];
+	s8_l pwrlvl_11n_11ac_2g4[10];
+	s8_l pwrlvl_11ax_2g4[12];
 } txpwr_lvl_conf_v2_t;
 
-typedef struct
-{
-    u8_l enable;
-    s8_l pwrlvl_11b_11ag_2g4[12];
-    s8_l pwrlvl_11n_11ac_2g4[10];
-    s8_l pwrlvl_11ax_2g4[12];
-    s8_l pwrlvl_11a_5g[12];
-    s8_l pwrlvl_11n_11ac_5g[10];
-    s8_l pwrlvl_11ax_5g[12];
+typedef struct {
+	u8_l enable;
+	s8_l pwrlvl_11b_11ag_2g4[12];
+	s8_l pwrlvl_11n_11ac_2g4[10];
+	s8_l pwrlvl_11ax_2g4[12];
+	s8_l pwrlvl_11a_5g[12];
+	s8_l pwrlvl_11n_11ac_5g[10];
+	s8_l pwrlvl_11ax_5g[12];
 } txpwr_lvl_conf_v3_t;
 
-typedef struct
-{
-    u8_l enable;
-    s8_l pwrlvl_adj_tbl_2g4[3];
-    s8_l pwrlvl_adj_tbl_5g[6];
+typedef struct {
+	u8_l enable;
+	s8_l pwrlvl_11b_11ag_2g4[12];
+	s8_l pwrlvl_11n_11ac_2g4[10];
+	s8_l pwrlvl_11ax_2g4[12];
+	s8_l pwrlvl_11a_5g[8];
+	s8_l pwrlvl_11n_11ac_5g[10];
+	s8_l pwrlvl_11ax_5g[12];
+	s8_l pwrlvl_11a_6g[8];
+	s8_l pwrlvl_11n_11ac_6g[10];
+	s8_l pwrlvl_11ax_6g[12];
+} txpwr_lvl_conf_v4_t;
+
+typedef struct {
+	u8_l enable;
+	s8_l pwrlvl_adj_tbl_2g4[3];
+	s8_l pwrlvl_adj_tbl_5g[6];
 } txpwr_lvl_adj_conf_t;
 
-typedef struct
-{
-    u8_l loss_enable;
-    u8_l loss_value;
+typedef struct {
+	u8_l loss_enable_2g4;
+	s8_l loss_value_2g4;
+	u8_l loss_enable_5g;
+	s8_l loss_value_5g;
 } txpwr_loss_conf_t;
 
-struct mm_set_txpwr_lvl_req
-{
-  union {
-    txpwr_lvl_conf_t txpwr_lvl;
-    txpwr_lvl_conf_v2_t txpwr_lvl_v2;
-    txpwr_lvl_conf_v3_t txpwr_lvl_v3;
-  };
+struct mm_set_txpwr_lvl_req {
+	union {
+		txpwr_lvl_conf_t txpwr_lvl;
+		txpwr_lvl_conf_v2_t txpwr_lvl_v2;
+		txpwr_lvl_conf_v3_t txpwr_lvl_v3;
+		txpwr_lvl_conf_v4_t txpwr_lvl_v4;
+	};
 };
 
-struct mm_set_txpwr_lvl_adj_req
-{
-    txpwr_lvl_adj_conf_t txpwr_lvl_adj;
+struct mm_set_txpwr_lvl_adj_req {
+	txpwr_lvl_adj_conf_t txpwr_lvl_adj;
 };
 
 typedef struct {
@@ -1341,25 +1358,63 @@ typedef struct {
  * +---------------+--------------+--------------+----------------+----------------+----------------+----------------+
  */
 
-typedef struct
-{
-    int8_t enable;
-    int8_t pwrofst2x_tbl_2g4[3][3];
-    int8_t pwrofst2x_tbl_5g[3][6];
+typedef struct {
+	int8_t enable;
+	int8_t pwrofst2x_tbl_2g4[3][3];
+	int8_t pwrofst2x_tbl_5g[3][6];
 } txpwr_ofst2x_conf_t;
 
-typedef struct
-{
-    u8_l enable;
-    u8_l xtal_cap;
-    u8_l xtal_cap_fine;
-} xtal_cap_conf_t;
+/*
+ * pwrofst2x_v2_tbl_2g4_ant0/1[3][3]:
+ * +---------------+----------+---------------+--------------+
+ * | ChGrp\RateTyp |  DSSS    | OFDM_HIGHRATE | OFDM_LOWRATE |
+ * +---------------+----------+---------------+--------------+
+ * | CH_1_4        |  [0][0]  |  [0][1]       |  Reserved    |
+ * +---------------+----------+---------------+--------------+
+ * | CH_5_9        |  [1][0]  |  [1][1]       |  Reserved    |
+ * +---------------+----------+---------------+--------------+
+ * | CH_10_13      |  [2][0]  |  [2][1]       |  Reserved    |
+ * +---------------+----------+---------------+--------------+
+ * pwrofst2x_v2_tbl_5g_ant0/1[6][3]:
+ * +-----------------+---------------+--------------+--------------+
+ * | ChGrp\RateTyp   | OFDM_HIGHRATE | OFDM_LOWRATE | OFDM_MIDRATE |
+ * +-----------------+---------------+--------------+--------------+
+ * | CH_42(36~50)    |  [0][0]       |  Reserved    |  Reserved    |
+ * +-----------------+---------------+--------------+--------------+
+ * | CH_58(51~64)    |  [1][0]       |  Reserved    |  Reserved    |
+ * +-----------------+---------------+--------------+--------------+
+ * | CH_106(98~114)  |  [2][0]       |  Reserved    |  Reserved    |
+ * +-----------------+---------------+--------------+--------------+
+ * | CH_122(115~130) |  [3][0]       |  Reserved    |  Reserved    |
+ * +-----------------+---------------+--------------+--------------+
+ * | CH_138(131~146) |  [4][0]       |  Reserved    |  Reserved    |
+ * +-----------------+---------------+--------------+--------------+
+ * | CH_155(147~166) |  [5][0]       |  Reserved    |  Reserved    |
+ * +-----------------+---------------+--------------+--------------+
+ */
 
+typedef struct {
+	u8_l enable;
+	u8_l pwrofst_flags;
+	s8_l pwrofst2x_tbl_2g4_ant0[3][3];
+	s8_l pwrofst2x_tbl_2g4_ant1[3][3];
+	s8_l pwrofst2x_tbl_5g_ant0[6][3];
+	s8_l pwrofst2x_tbl_5g_ant1[6][3];
+	s8_l pwrofst2x_tbl_6g_ant0[15];
+	s8_l pwrofst2x_tbl_6g_ant1[15];
+} txpwr_ofst2x_conf_v2_t;
+
+typedef struct {
+	u8_l enable;
+	u8_l xtal_cap;
+	u8_l xtal_cap_fine;
+} xtal_cap_conf_t;
 
 struct mm_set_txpwr_ofst_req {
 	union {
-	  txpwr_ofst_conf_t txpwr_ofst;
-	  txpwr_ofst2x_conf_t txpwr_ofst2x;
+		txpwr_ofst_conf_t txpwr_ofst;
+		txpwr_ofst2x_conf_t txpwr_ofst2x;
+		txpwr_ofst2x_conf_v2_t txpwr_ofst2x_v2;
 	};
 };
 
@@ -1497,7 +1552,7 @@ enum scan_msg_tag {
 };
 
 /// Maximum number of SSIDs in a scan request
-#define SCAN_SSID_MAX   3
+#define SCAN_SSID_MAX 3
 
 /// Maximum number of channels in a scan request
 #define SCAN_CHANNEL_MAX (MAC_DOMAINCHANNEL_24G_MAX + MAC_DOMAINCHANNEL_5G_MAX)
@@ -1529,8 +1584,8 @@ struct scan_start_req {
 	u8_l ssid_cnt;
 	/// no CCK - For P2P frames not being sent at CCK rate in 2GHz band.
 	bool no_cck;
-    /// Scan duration, in us
-    u32_l duration;
+	/// Scan duration, in us
+	u32_l duration;
 };
 
 /// Structure containing the parameters of the @ref SCAN_START_CFM message
@@ -1540,8 +1595,7 @@ struct scan_start_cfm {
 };
 
 /// Structure containing the parameters of the @ref SCAN_CANCEL_REQ message
-struct scan_cancel_req {
-};
+struct scan_cancel_req {};
 
 /// Structure containing the parameters of the @ref SCAN_START_CFM message
 struct scan_cancel_cfm {
@@ -1580,7 +1634,7 @@ enum {
 };
 
 /// Maximum length of the additional ProbeReq IEs (FullMAC mode)
-#define SCANU_MAX_IE_LEN  200
+#define SCANU_MAX_IE_LEN 200
 
 /// Structure containing the parameters of the @ref SCANU_START_REQ message
 struct scanu_start_req {
@@ -1603,14 +1657,14 @@ struct scanu_start_req {
 	u8_l ssid_cnt;
 	/// no CCK - For P2P frames not being sent at CCK rate in 2GHz band.
 	bool no_cck;
-    /// Scan duration, in us
-    u32_l duration;
+	/// Scan duration, in us
+	u32_l duration;
 };
 
 struct scanu_vendor_ie_req {
 	u16_l add_ie_len;
 	u8_l vif_idx;
-	u8_l  ie[256];
+	u8_l ie[256];
 };
 
 /// Structure containing the parameters of the @ref SCANU_START_CFM message
@@ -1847,22 +1901,20 @@ struct me_traffic_ind_req {
 	bool_l uapsd;
 };
 
-struct mm_apm_staloss_ind
-{
+struct mm_apm_staloss_ind {
 	u8_l sta_idx;
 	u8_l vif_idx;
 	u8_l mac_addr[6];
 };
 
 #ifdef CONFIG_SDIO_BT
-struct mm_bt_recv_ind
-{
+struct mm_bt_recv_ind {
 	u32_l data_len;
 	u8_l bt_data[1024];
 };
 #endif
 
-enum vendor_hwconfig_tag{
+enum vendor_hwconfig_tag {
 	ACS_TXOP_REQ = 0,
 	CHANNEL_ACCESS_REQ,
 	MAC_TIMESCALE_REQ,
@@ -1876,104 +1928,91 @@ enum vendor_hwconfig_tag{
 };
 
 enum {
-    BWMODE20M = 0,
-    BWMODE10M,
-    BWMODE5M,
+	BWMODE20M = 0,
+	BWMODE10M,
+	BWMODE5M,
 };
 
-struct mm_set_acs_txop_req
-{
-    u32_l hwconfig_id;
+struct mm_set_acs_txop_req {
+	u32_l hwconfig_id;
 	u16_l txop_bk;
 	u16_l txop_be;
 	u16_l txop_vi;
 	u16_l txop_vo;
 };
 
-struct mm_set_channel_access_req
-{
-    u32_l hwconfig_id;
+struct mm_set_channel_access_req {
+	u32_l hwconfig_id;
 	u32_l edca[4];
-	u8_l  vif_idx;
-	u8_l  retry_cnt;
-	u8_l  rts_en;
-	u8_l  long_nav_en;
-	u8_l  cfe_en;
-	u8_l  rc_retry_cnt[3];
+	u8_l vif_idx;
+	u8_l retry_cnt;
+	u8_l rts_en;
+	u8_l long_nav_en;
+	u8_l cfe_en;
+	u8_l rc_retry_cnt[3];
 	s8_l ccademod_th;
+	u8_l remove_1m2m;
 };
 
-struct mm_set_mac_timescale_req
-{
-    u32_l hwconfig_id;
-	u8_l  sifsA_time;
-	u8_l  sifsB_time;
-	u8_l  slot_time;
-	u8_l  rx_startdelay_ofdm;
-	u8_l  rx_startdelay_long;
-	u8_l  rx_startdelay_short;
+struct mm_set_mac_timescale_req {
+	u32_l hwconfig_id;
+	u8_l sifsA_time;
+	u8_l sifsB_time;
+	u8_l slot_time;
+	u8_l rx_startdelay_ofdm;
+	u8_l rx_startdelay_long;
+	u8_l rx_startdelay_short;
 };
 
-struct mm_set_cca_threshold_req
-{
-    u32_l hwconfig_id;
-	u8_l  auto_cca_en;
-	s8_l  cca20p_rise_th;
-	s8_l  cca20s_rise_th;
-	s8_l  cca20p_fall_th;
-	s8_l  cca20s_fall_th;
-
+struct mm_set_cca_threshold_req {
+	u32_l hwconfig_id;
+	u8_l auto_cca_en;
+	s8_l cca20p_rise_th;
+	s8_l cca20s_rise_th;
+	s8_l cca20p_fall_th;
+	s8_l cca20s_fall_th;
 };
 
-struct mm_set_bwmode_req
-{
-    u32_l hwconfig_id;
-    u8_l bwmode;
+struct mm_set_bwmode_req {
+	u32_l hwconfig_id;
+	u8_l bwmode;
 };
 
-struct mm_get_chip_temp_req
-{
-    u32_l hwconfig_id;
+struct mm_get_chip_temp_req {
+	u32_l hwconfig_id;
 };
 
-struct mm_get_chip_temp_cfm
-{
-    /// Temp degree val
-    s8_l degree;
+struct mm_get_chip_temp_cfm {
+	/// Temp degree val
+	s8_l degree;
 };
 
-struct mm_set_ap_ps_level_req
-{
-    u32_l hwconfig_id;
-    u8 ap_ps_level;
+struct mm_set_ap_ps_level_req {
+	u32_l hwconfig_id;
+	u8 ap_ps_level;
 };
 
-struct mm_set_vendor_hwconfig_cfm
-{
-    u32_l hwconfig_id;
-    union {
-        struct mm_get_chip_temp_cfm chip_temp_cfm;
-    };
+struct mm_set_vendor_hwconfig_cfm {
+	u32_l hwconfig_id;
+	union {
+		struct mm_get_chip_temp_cfm chip_temp_cfm;
+	};
 };
 
-struct mm_set_customized_freq_req
-{
+struct mm_set_customized_freq_req {
 	u32_l hwconfig_id;
 	u16_l raw_freq[4];
 	u16_l map_freq[4];
 };
 
-struct mm_set_wakeup_info_req
-{
+struct mm_set_wakeup_info_req {
 	u32_l hwconfig_id;
 	u16_l offset;
-	u8_l  length;
-	u8_l  mask_and_patten[];
-
+	u8_l length;
+	u8_l mask_and_patten[];
 };
 
-struct mm_set_keepalive_req
-{
+struct mm_set_keepalive_req {
 	u32_l hwconfig_id;
 	u16_l code;
 	u16_l length;
@@ -1981,130 +2020,128 @@ struct mm_set_keepalive_req
 	u8_l payload[];
 };
 
-struct mm_set_txop_req
-{
+struct mm_set_txop_req {
 	u16_l txop_bk;
 	u16_l txop_be;
 	u16_l txop_vi;
 	u16_l txop_vo;
-	u8_l  long_nav_en;
-	u8_l  cfe_en;
+	u8_l long_nav_en;
+	u8_l cfe_en;
 };
 
-struct mm_get_fw_version_cfm
-{
-    u8_l fw_version_len;
-    u8_l fw_version[63];
+#ifdef CONFIG_APF
+struct mm_set_apf_prog_req {
+	u32_l program_len;
+	u32_l offset;
+	u8_l program[LMAC_MSG_MAX_LEN];
 };
 
-struct mm_get_wifi_disable_cfm
-{
-    u8_l wifi_disable;
+struct mm_get_apf_prog_req {
+	u16_l offset;
 };
 
-enum vendor_swconfig_tag
-{
-    BCN_CFG_REQ = 0,
-    TEMP_COMP_SET_REQ,
-    TEMP_COMP_GET_REQ,
-    EXT_FLAGS_SET_REQ,
-    EXT_FLAGS_GET_REQ,
-    EXT_FLAGS_MASK_SET_REQ,
+struct mm_get_apf_prog_cfm {
+	u8_l program[LMAC_MSG_MAX_LEN];
+};
+#endif
+
+struct mm_get_fw_version_cfm {
+	u8_l fw_version_len;
+	u8_l fw_version[63];
 };
 
-struct mm_set_bcn_cfg_req
-{
-    /// Ignore or not bcn tim bcmc bit
-    bool_l tim_bcmc_ignored_enable;
+struct mm_get_wifi_disable_cfm {
+	u8_l wifi_disable;
 };
 
-struct mm_set_bcn_cfg_cfm
-{
-    /// Request status
-    bool_l tim_bcmc_ignored_status;
+enum vendor_swconfig_tag {
+	BCN_CFG_REQ = 0,
+	TEMP_COMP_SET_REQ,
+	TEMP_COMP_GET_REQ,
+	EXT_FLAGS_SET_REQ,
+	EXT_FLAGS_GET_REQ,
+	EXT_FLAGS_MASK_SET_REQ,
 };
 
-struct mm_set_temp_comp_req
-{
-    /// Enable or not temp comp
-    u8_l enable;
-    u8_l reserved[3];
-    u32_l tmr_period_ms;
+struct mm_set_bcn_cfg_req {
+	/// Ignore or not bcn tim bcmc bit
+	bool_l tim_bcmc_ignored_enable;
 };
 
-struct mm_set_temp_comp_cfm
-{
-    /// Request status
-    u8_l status;
+struct mm_set_bcn_cfg_cfm {
+	/// Request status
+	bool_l tim_bcmc_ignored_status;
 };
 
-struct mm_get_temp_comp_cfm
-{
-    /// Request status
-    u8_l status;
-    /// Temp degree val
-    s8_l degree;
+struct mm_set_temp_comp_req {
+	/// Enable or not temp comp
+	u8_l enable;
+	u8_l reserved[3];
+	u32_l tmr_period_ms;
 };
 
-struct mm_set_ext_flags_req
-{
-    u32_l user_flags;
+struct mm_set_temp_comp_cfm {
+	/// Request status
+	u8_l status;
 };
 
-struct mm_set_ext_flags_cfm
-{
-    u32_l user_flags;
+struct mm_get_temp_comp_cfm {
+	/// Request status
+	u8_l status;
+	/// Temp degree val
+	s8_l degree;
 };
 
-struct mm_get_ext_flags_cfm
-{
-    u32_l user_flags;
+struct mm_set_ext_flags_req {
+	u32_l user_flags;
 };
 
-struct mm_mask_set_ext_flags_req
-{
-    u32_l user_flags_mask;
-    u32_l user_flags_val;
+struct mm_set_ext_flags_cfm {
+	u32_l user_flags;
 };
 
-struct mm_mask_set_ext_flags_cfm
-{
-    u32_l user_flags;
+struct mm_get_ext_flags_cfm {
+	u32_l user_flags;
 };
 
-struct mm_set_vendor_swconfig_req
-{
-    u32_l swconfig_id;
-    union {
-        struct mm_set_bcn_cfg_req bcn_cfg_req;
-        struct mm_set_temp_comp_req temp_comp_set_req;
-        struct mm_set_ext_flags_req ext_flags_set_req;
-        struct mm_mask_set_ext_flags_req ext_flags_mask_set_req;
-    };
+struct mm_mask_set_ext_flags_req {
+	u32_l user_flags_mask;
+	u32_l user_flags_val;
 };
 
-struct mm_set_vendor_swconfig_cfm
-{
-    u32_l swconfig_id;
-    union {
-        struct mm_set_bcn_cfg_cfm bcn_cfg_cfm;
-        struct mm_set_temp_comp_cfm temp_comp_set_cfm;
-        struct mm_get_temp_comp_cfm temp_comp_get_cfm;
-        struct mm_set_ext_flags_cfm ext_flags_set_cfm;
-        struct mm_get_ext_flags_cfm ext_flags_get_cfm;
-        struct mm_mask_set_ext_flags_cfm ext_flags_mask_set_cfm;
-    };
+struct mm_mask_set_ext_flags_cfm {
+	u32_l user_flags;
+};
+
+struct mm_set_vendor_swconfig_req {
+	u32_l swconfig_id;
+	union {
+		struct mm_set_bcn_cfg_req bcn_cfg_req;
+		struct mm_set_temp_comp_req temp_comp_set_req;
+		struct mm_set_ext_flags_req ext_flags_set_req;
+		struct mm_mask_set_ext_flags_req ext_flags_mask_set_req;
+	};
+};
+
+struct mm_set_vendor_swconfig_cfm {
+	u32_l swconfig_id;
+	union {
+		struct mm_set_bcn_cfg_cfm bcn_cfg_cfm;
+		struct mm_set_temp_comp_cfm temp_comp_set_cfm;
+		struct mm_get_temp_comp_cfm temp_comp_get_cfm;
+		struct mm_set_ext_flags_cfm ext_flags_set_cfm;
+		struct mm_get_ext_flags_cfm ext_flags_get_cfm;
+		struct mm_mask_set_ext_flags_cfm ext_flags_mask_set_cfm;
+	};
 };
 
 #ifdef CONFIG_SDIO_BT
-struct mm_bt_send_req
-{
+struct mm_bt_send_req {
 	u32_l data_len;
 	u8_l bt_data[1024];
 };
 
-struct mm_bt_send_cfm
-{
+struct mm_bt_send_cfm {
 	u8_l status;
 };
 #endif
@@ -2128,9 +2165,9 @@ struct rc_rate_stats {
 	union {
 		struct {
 			/// Number of times the sample has been skipped (per sampling interval)
-			u8_l  sample_skipped;
+			u8_l sample_skipped;
 			/// Whether the old probability is available
-			bool_l  old_prob_available;
+			bool_l old_prob_available;
 			/// Whether the rate can be used in the retry chain
 			bool_l rate_allowed;
 		};
@@ -2201,15 +2238,15 @@ struct me_config_monitor_cfm {
 /// Structure containing the parameters of the @ref ME_SET_PS_MODE_REQ message.
 struct me_set_ps_mode_req {
 	/// Power Save is activated or deactivated
-	u8_l  ps_state;
+	u8_l ps_state;
 };
 
 /// Structure containing the parameters of the @ref ME_SET_LP_LEVEL_REQ message.
 struct me_set_lp_level_req {
 	/// Low Power level
 	u8_l lp_level;
+	u8_l disable_filter;
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /////////// For SM messages
@@ -2283,7 +2320,7 @@ struct sm_connect_cfm {
 	u8_l status;
 };
 
-#define SM_ASSOC_IE_LEN   800
+#define SM_ASSOC_IE_LEN 800
 /// Structure containing the parameters of the @ref SM_CONNECT_IND message.
 struct sm_connect_ind {
 	/// Status code of the connection procedure
@@ -2307,7 +2344,7 @@ struct sm_connect_ind {
 	/// Length of the AssocRsp IEs
 	u16_l assoc_rsp_ie_len;
 	/// IE buffer
-	u32_l assoc_ie_buf[SM_ASSOC_IE_LEN/4];
+	u32_l assoc_ie_buf[SM_ASSOC_IE_LEN / 4];
 
 	u16_l aid;
 	u8_l band;
@@ -2331,9 +2368,8 @@ struct sm_disconnect_req {
 /// Structure containing the parameters of SM_ASSOCIATION_IND the message
 struct sm_association_ind {
 	// MAC ADDR of the STA
-	struct mac_addr     me_mac_addr;
+	struct mac_addr me_mac_addr;
 };
-
 
 /// Structure containing the parameters of the @ref SM_DISCONNECT_IND message.
 struct sm_disconnect_ind {
@@ -2452,13 +2488,13 @@ struct apm_stop_req {
 /// Structure containing the parameters of the @ref APM_START_CAC_REQ message.
 struct apm_start_cac_req {
 	/// Control channel on which we have to start the CAC
-	struct mac_chan_def chan;
+	struct mac_chan_op chan;
 	/// Center frequency of the first segment
-	u32_l center_freq1;
+	//u32_l center_freq1;
 	/// Center frequency of the second segment (only in 80+80 configuration)
-	u32_l center_freq2;
+	//u32_l center_freq2;
 	/// Width of channel
-	u8_l ch_width;
+	//u8_l ch_width;
 	/// Index of the VIF for which the CAC is started
 	u8_l vif_idx;
 };
@@ -2482,58 +2518,56 @@ struct apm_stop_cac_req {
 ///////////////////////////////////////////////////////////////////////////////
 
 /// Maximum length of the Mesh ID
-#define MESH_MESHID_MAX_LEN     (32)
+#define MESH_MESHID_MAX_LEN (32)
 
 /// Message API of the MESH task
-enum mesh_msg_tag
-{
-    /// Request to start the MP
-    MESH_START_REQ = LMAC_FIRST_MSG(TASK_MESH),
-    /// Confirmation of the MP start.
-    MESH_START_CFM,
+enum mesh_msg_tag {
+	/// Request to start the MP
+	MESH_START_REQ = LMAC_FIRST_MSG(TASK_MESH),
+	/// Confirmation of the MP start.
+	MESH_START_CFM,
 
-    /// Request to stop the MP.
-    MESH_STOP_REQ,
-    /// Confirmation of the MP stop.
-    MESH_STOP_CFM,
+	/// Request to stop the MP.
+	MESH_STOP_REQ,
+	/// Confirmation of the MP stop.
+	MESH_STOP_CFM,
 
-    // Request to update the MP
-    MESH_UPDATE_REQ,
-    /// Confirmation of the MP update
-    MESH_UPDATE_CFM,
+	// Request to update the MP
+	MESH_UPDATE_REQ,
+	/// Confirmation of the MP update
+	MESH_UPDATE_CFM,
 
-    /// Request information about a given link
-    MESH_PEER_INFO_REQ,
-    /// Response to the MESH_PEER_INFO_REQ message
-    MESH_PEER_INFO_CFM,
+	/// Request information about a given link
+	MESH_PEER_INFO_REQ,
+	/// Response to the MESH_PEER_INFO_REQ message
+	MESH_PEER_INFO_CFM,
 
-    /// Request automatic establishment of a path with a given mesh STA
-    MESH_PATH_CREATE_REQ,
-    /// Confirmation to the MESH_PATH_CREATE_REQ message
-    MESH_PATH_CREATE_CFM,
+	/// Request automatic establishment of a path with a given mesh STA
+	MESH_PATH_CREATE_REQ,
+	/// Confirmation to the MESH_PATH_CREATE_REQ message
+	MESH_PATH_CREATE_CFM,
 
-    /// Request a path update (delete path, modify next hop mesh STA)
-    MESH_PATH_UPDATE_REQ,
-    /// Confirmation to the MESH_PATH_UPDATE_REQ message
-    MESH_PATH_UPDATE_CFM,
+	/// Request a path update (delete path, modify next hop mesh STA)
+	MESH_PATH_UPDATE_REQ,
+	/// Confirmation to the MESH_PATH_UPDATE_REQ message
+	MESH_PATH_UPDATE_CFM,
 
-    /// Indication from Host that the indicated Mesh Interface is a proxy for an external STA
-    MESH_PROXY_ADD_REQ,
+	/// Indication from Host that the indicated Mesh Interface is a proxy for an external STA
+	MESH_PROXY_ADD_REQ,
 
-    /// Indicate that a connection has been established or lost
-    MESH_PEER_UPDATE_IND,
-    /// Notification that a connection has been established or lost (when MPM handled by userspace)
-    MESH_PEER_UPDATE_NTF = MESH_PEER_UPDATE_IND,
+	/// Indicate that a connection has been established or lost
+	MESH_PEER_UPDATE_IND,
+	/// Notification that a connection has been established or lost (when MPM handled by userspace)
+	MESH_PEER_UPDATE_NTF = MESH_PEER_UPDATE_IND,
 
-    /// Indicate that a path is now active or inactive
-    MESH_PATH_UPDATE_IND,
-    /// Indicate that proxy information have been updated
-    MESH_PROXY_UPDATE_IND,
+	/// Indicate that a path is now active or inactive
+	MESH_PATH_UPDATE_IND,
+	/// Indicate that proxy information have been updated
+	MESH_PROXY_UPDATE_IND,
 
-    /// MAX number of messages
-    MESH_MAX,
+	/// MAX number of messages
+	MESH_MAX,
 };
-
 
 /// Structure containing the parameters of the @ref MESH_START_REQ message.
 struct mesh_start_req {
@@ -2880,46 +2914,44 @@ struct dbg_rftest_cmd_req {
 };
 
 struct dbg_rftest_cmd_cfm {
-	u32_l rftest_result[18];
+	u32_l rftest_result[32];
 };
 
 struct dbg_gpio_write_req {
-    uint8_t gpio_idx;
-    uint8_t gpio_val;
+	uint8_t gpio_idx;
+	uint8_t gpio_val;
 };
 
 struct dbg_gpio_read_req {
-    uint8_t gpio_idx;
+	uint8_t gpio_idx;
 };
 
 struct dbg_gpio_read_cfm {
-    uint8_t gpio_idx;
-    uint8_t gpio_val;
+	uint8_t gpio_idx;
+	uint8_t gpio_val;
 };
 
 struct dbg_gpio_init_req {
-    uint8_t gpio_idx;
-    uint8_t gpio_dir; //1 output, 0 input;
-    uint8_t gpio_val; //for output, 1 high, 0 low;
+	uint8_t gpio_idx;
+	uint8_t gpio_dir; //1 output, 0 input;
+	uint8_t gpio_val; //for output, 1 high, 0 low;
 };
 
 #ifdef CONFIG_MCU_MESSAGE
 /// Structure containing the parameters of the @ref DBG_CUSTOM_MSG_REQ message.
-struct dbg_custom_msg_req
-{
-    u32_l cmd;
-    u32_l len;
-    u32_l flags;
-    u32_l buf[1];
+struct dbg_custom_msg_req {
+	u32_l cmd;
+	u32_l len;
+	u32_l flags;
+	u32_l buf[1];
 };
 
 /// Structure containing the parameters of the @ref DBG_CUSTOM_MSG_CFM message.
-struct dbg_custom_msg_cfm
-{
-    u32_l cmd;
-    u32_l len;
-    u32_l status;
-    u32_l buf[1];
+struct dbg_custom_msg_cfm {
+	u32_l cmd;
+	u32_l len;
+	u32_l status;
+	u32_l buf[1];
 };
 
 typedef struct dbg_custom_msg_cfm dbg_custom_msg_ind_t;
@@ -2959,6 +2991,19 @@ struct dbg_mem_block_write_cfm {
 	u32_l wstatus;
 };
 
+/// Structure containing the parameters of the @ref DBG_MEM_BLOCK_READ_REQ message.
+struct dbg_mem_block_read_req {
+	u32_l memaddr;
+	u32_l memsize;
+};
+
+/// Structure containing the parameters of the @ref DBG_MEM_BLOCK_READ_CFM message.
+struct dbg_mem_block_read_cfm {
+	u32_l memaddr;
+	u32_l memsize;
+	u32_l memdata[1024 / sizeof(u32_l)];
+};
+
 /// Structure containing the parameters of the @ref DBG_START_APP_REQ message.
 struct dbg_start_app_req {
 	u32_l bootaddr;
@@ -2971,12 +3016,11 @@ struct dbg_start_app_cfm {
 };
 
 enum {
-    HOST_START_APP_AUTO = 1,
-    HOST_START_APP_CUSTOM,
+	HOST_START_APP_AUTO = 1,
+	HOST_START_APP_CUSTOM,
 	HOST_START_APP_FNCALL = 4,
-	HOST_START_APP_DUMMY  = 5,
+	HOST_START_APP_DUMMY = 5,
 };
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /////////// For TDLS messages
@@ -3004,7 +3048,7 @@ enum tdls_msg_tag {
 	TDLS_PEER_TRAFFIC_IND_CFM,
 
 #ifdef CONFIG_SDIO_BT
-	TDLS_SDIO_BT_SEND_REQ =  LMAC_FIRST_MSG(TASK_TDLS)+16,
+	TDLS_SDIO_BT_SEND_REQ = LMAC_FIRST_MSG(TASK_TDLS) + 16,
 	TDLS_SDIO_BT_SEND_CFM,
 	TDLS_SDIO_BT_RECV_IND,
 #endif
@@ -3046,7 +3090,6 @@ struct tdls_cancel_chan_switch_req {
 	/// MAC address of the TDLS station
 	struct mac_addr peer_mac_addr;
 };
-
 
 /// Structure containing the parameters of the @ref TDLS_CHAN_SWITCH_CFM message
 struct tdls_chan_switch_cfm {
@@ -3112,6 +3155,5 @@ struct tdls_peer_traffic_ind_cfm {
 	/// Status of the operation
 	u8_l status;
 };
-
 
 #endif // LMAC_MSG_H_

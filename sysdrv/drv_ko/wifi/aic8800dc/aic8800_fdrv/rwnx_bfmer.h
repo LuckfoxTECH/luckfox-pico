@@ -26,10 +26,10 @@
  */
 
 /// Maximal supported report length (in bytes)
-#define RWNX_BFMER_REPORT_MAX_LEN     2048
+#define RWNX_BFMER_REPORT_MAX_LEN 2048
 
 /// Size of the allocated report space (twice the maximum report length)
-#define RWNX_BFMER_REPORT_SPACE_SIZE  (RWNX_BFMER_REPORT_MAX_LEN * 2)
+#define RWNX_BFMER_REPORT_SPACE_SIZE (RWNX_BFMER_REPORT_MAX_LEN * 2)
 
 /**
  * TYPE DEFINITIONS
@@ -40,10 +40,10 @@
  * Structure used to store a beamforming report.
  */
 struct rwnx_bfmer_report {
-	dma_addr_t dma_addr;    /* Virtual address provided to MAC for
+	dma_addr_t dma_addr; /* Virtual address provided to MAC for
 							   DMA transfer of the Beamforming Report */
-	unsigned int length;    /* Report Length */
-	u8 report[1];           /* Report to be used for VHT TX Beamforming */
+	unsigned int length; /* Report Length */
+	u8 report[1]; /* Report to be used for VHT TX Beamforming */
 };
 
 /**
@@ -70,7 +70,7 @@ struct rwnx_bfmer_report {
  ******************************************************************************
  */
 int rwnx_bfmer_report_add(struct rwnx_hw *rwnx_hw, struct rwnx_sta *rwnx_sta,
-						  unsigned int length);
+			  unsigned int length);
 
 /**
  ******************************************************************************

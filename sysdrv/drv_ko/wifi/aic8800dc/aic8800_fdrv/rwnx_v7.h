@@ -15,6 +15,6 @@
 #include "rwnx_platform.h"
 
 int rwnx_v7_platform_init(struct pci_dev *pci_dev,
-						  struct rwnx_plat **rwnx_plat);
+			  struct rwnx_plat **rwnx_plat);
 
 #endif /* _RWNX_V7_H_ */

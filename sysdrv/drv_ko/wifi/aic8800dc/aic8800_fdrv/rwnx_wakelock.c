@@ -27,23 +27,22 @@ void rwnx_wakeup_deinit(struct wakeup_source *ws)
 
 struct wakeup_source *rwnx_wakeup_register(struct device *dev, const char *name)
 {
-
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
 	return wakeup_source_register(dev, name);
 #else
 
 #if defined(CONFIG_PLATFORM_ROCKCHIP2) || defined(CONFIG_PLATFORM_ROCKCHIP)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0)
-    return wakeup_source_register(dev, name);
+	return wakeup_source_register(dev, name);
 #else
-    return wakeup_source_register(name);
+	return wakeup_source_register(name);
 #endif
 
 #else
 	return wakeup_source_register(name);
-#endif//#if defined(CONFIG_PLATFORM_ROCKCHIP2) || defined(CONFIG_PLATFORM_ROCKCHIP)
+#endif //#if defined(CONFIG_PLATFORM_ROCKCHIP2) || defined(CONFIG_PLATFORM_ROCKCHIP)
 
-#endif//LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+#endif //LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
 }
 
 void rwnx_wakeup_unregister(struct wakeup_source *ws)
@@ -72,7 +71,7 @@ void aicwf_wakeup_lock_init(struct rwnx_hw *rwnx_hw)
 {
 	rwnx_hw->ws_tx = rwnx_wakeup_init("rwnx_tx_wakelock");
 	rwnx_hw->ws_rx = rwnx_wakeup_init("rwnx_rx_wakelock");
-    rwnx_hw->ws_irqrx = rwnx_wakeup_init("rwnx_irqrx_wakelock");
+	rwnx_hw->ws_irqrx = rwnx_wakeup_init("rwnx_irqrx_wakelock");
 	rwnx_hw->ws_pwrctrl = rwnx_wakeup_init("rwnx_pwrcrl_wakelock");
 }
 
@@ -87,4 +86,3 @@ void aicwf_wakeup_lock_deinit(struct rwnx_hw *rwnx_hw)
 	rwnx_hw->ws_irqrx = NULL;
 	rwnx_hw->ws_pwrctrl = NULL;
 }
-

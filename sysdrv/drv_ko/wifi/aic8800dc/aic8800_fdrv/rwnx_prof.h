@@ -17,13 +17,15 @@
 static inline void rwnx_prof_set(struct rwnx_hw *rwnx_hw, int val)
 {
 	struct rwnx_plat *rwnx_plat = rwnx_hw->plat;
-	RWNX_REG_WRITE(val, rwnx_plat, RWNX_ADDR_SYSTEM, NXMAC_SW_SET_PROFILING_ADDR);
+	RWNX_REG_WRITE(val, rwnx_plat, RWNX_ADDR_SYSTEM,
+		       NXMAC_SW_SET_PROFILING_ADDR);
 }
 
 static inline void rwnx_prof_clear(struct rwnx_hw *rwnx_hw, int val)
 {
 	struct rwnx_plat *rwnx_plat = rwnx_hw->plat;
-	RWNX_REG_WRITE(val, rwnx_plat, RWNX_ADDR_SYSTEM, NXMAC_SW_CLEAR_PROFILING_ADDR);
+	RWNX_REG_WRITE(val, rwnx_plat, RWNX_ADDR_SYSTEM,
+		       NXMAC_SW_CLEAR_PROFILING_ADDR);
 }
 
 #if 0
@@ -51,7 +53,8 @@ enum {
 	SW_PROF_HOSTBUF_IDX = 12,
 	/****** IPC IRQs related signals ******/
 	/* E2A direction */
-	SW_PROF_IRQ_E2A_RXDESC = 16,    // to make sure we let 16 bits available for LMAC FW
+	SW_PROF_IRQ_E2A_RXDESC =
+		16, // to make sure we let 16 bits available for LMAC FW
 	SW_PROF_IRQ_E2A_TXCFM,
 	SW_PROF_IRQ_E2A_DBG,
 	SW_PROF_IRQ_E2A_MSG,
@@ -76,58 +79,70 @@ enum {
 
 // [LT]For debug purpose only
 #if (0)
-#define SW_PROF_CHAN_CTXT_CFM_HDL_BIT       (21)
-#define SW_PROF_CHAN_CTXT_CFM_BIT           (22)
-#define SW_PROF_CHAN_CTXT_CFM_SWDONE_BIT    (23)
-#define SW_PROF_CHAN_CTXT_PUSH_BIT          (24)
-#define SW_PROF_CHAN_CTXT_QUEUE_BIT         (25)
-#define SW_PROF_CHAN_CTXT_TX_BIT            (26)
-#define SW_PROF_CHAN_CTXT_TX_PAUSE_BIT      (27)
-#define SW_PROF_CHAN_CTXT_PSWTCH_BIT        (28)
-#define SW_PROF_CHAN_CTXT_SWTCH_BIT         (29)
+#define SW_PROF_CHAN_CTXT_CFM_HDL_BIT (21)
+#define SW_PROF_CHAN_CTXT_CFM_BIT (22)
+#define SW_PROF_CHAN_CTXT_CFM_SWDONE_BIT (23)
+#define SW_PROF_CHAN_CTXT_PUSH_BIT (24)
+#define SW_PROF_CHAN_CTXT_QUEUE_BIT (25)
+#define SW_PROF_CHAN_CTXT_TX_BIT (26)
+#define SW_PROF_CHAN_CTXT_TX_PAUSE_BIT (27)
+#define SW_PROF_CHAN_CTXT_PSWTCH_BIT (28)
+#define SW_PROF_CHAN_CTXT_SWTCH_BIT (29)
 
 // TO DO: update this
 
-#define REG_SW_SET_PROFILING_CHAN(env, bit)             \
+#define REG_SW_SET_PROFILING_CHAN(env, bit)                                    \
 	rwnx_prof_set((struct rwnx_hw *)env, BIT(bit))
 
-#define REG_SW_CLEAR_PROFILING_CHAN(env, bit) \
+#define REG_SW_CLEAR_PROFILING_CHAN(env, bit)                                  \
 	rwnx_prof_clear((struct rwnx_hw *)env, BIT(bit))
 
 #else
-#define SW_PROF_CHAN_CTXT_CFM_HDL_BIT       (0)
-#define SW_PROF_CHAN_CTXT_CFM_BIT           (0)
-#define SW_PROF_CHAN_CTXT_CFM_SWDONE_BIT    (0)
-#define SW_PROF_CHAN_CTXT_PUSH_BIT          (0)
-#define SW_PROF_CHAN_CTXT_QUEUE_BIT         (0)
-#define SW_PROF_CHAN_CTXT_TX_BIT            (0)
-#define SW_PROF_CHAN_CTXT_TX_PAUSE_BIT      (0)
-#define SW_PROF_CHAN_CTXT_PSWTCH_BIT        (0)
-#define SW_PROF_CHAN_CTXT_SWTCH_BIT         (0)
+#define SW_PROF_CHAN_CTXT_CFM_HDL_BIT (0)
+#define SW_PROF_CHAN_CTXT_CFM_BIT (0)
+#define SW_PROF_CHAN_CTXT_CFM_SWDONE_BIT (0)
+#define SW_PROF_CHAN_CTXT_PUSH_BIT (0)
+#define SW_PROF_CHAN_CTXT_QUEUE_BIT (0)
+#define SW_PROF_CHAN_CTXT_TX_BIT (0)
+#define SW_PROF_CHAN_CTXT_TX_PAUSE_BIT (0)
+#define SW_PROF_CHAN_CTXT_PSWTCH_BIT (0)
+#define SW_PROF_CHAN_CTXT_SWTCH_BIT (0)
 
-#define REG_SW_SET_PROFILING_CHAN(env, bit)            do {} while (0)
-#define REG_SW_CLEAR_PROFILING_CHAN(env, bit)          do {} while (0)
+#define REG_SW_SET_PROFILING_CHAN(env, bit)                                    \
+	do {                                                                   \
+	} while (0)
+#define REG_SW_CLEAR_PROFILING_CHAN(env, bit)                                  \
+	do {                                                                   \
+	} while (0)
 #endif
 
 #ifdef CONFIG_RWNX_SW_PROFILING
 /* Macros for SW PRofiling registers access */
-#define REG_SW_SET_PROFILING(env, bit)                  \
+#define REG_SW_SET_PROFILING(env, bit)                                         \
 	rwnx_prof_set((struct rwnx_hw *)env, BIT(bit))
 
-#define REG_SW_SET_HOSTBUF_IDX_PROFILING(env, val)      \
+#define REG_SW_SET_HOSTBUF_IDX_PROFILING(env, val)                             \
 	rwnx_prof_set((struct rwnx_hw *)env, val << (SW_PROF_HOSTBUF_IDX))
 
-#define REG_SW_CLEAR_PROFILING(env, bit)                \
+#define REG_SW_CLEAR_PROFILING(env, bit)                                       \
 	rwnx_prof_clear((struct rwnx_hw *)env, BIT(bit))
 
-#define REG_SW_CLEAR_HOSTBUF_IDX_PROFILING(env)                         \
+#define REG_SW_CLEAR_HOSTBUF_IDX_PROFILING(env)                                \
 	rwnx_prof_clear((struct rwnx_hw *)env, 0x0F << (SW_PROF_HOSTBUF_IDX))
 
 #else
-#define REG_SW_SET_PROFILING(env, value)            do {} while (0)
-#define REG_SW_CLEAR_PROFILING(env, value)          do {} while (0)
-#define REG_SW_SET_HOSTBUF_IDX_PROFILING(env, val)  do {} while (0)
-#define REG_SW_CLEAR_HOSTBUF_IDX_PROFILING(env)     do {} while (0)
+#define REG_SW_SET_PROFILING(env, value)                                       \
+	do {                                                                   \
+	} while (0)
+#define REG_SW_CLEAR_PROFILING(env, value)                                     \
+	do {                                                                   \
+	} while (0)
+#define REG_SW_SET_HOSTBUF_IDX_PROFILING(env, val)                             \
+	do {                                                                   \
+	} while (0)
+#define REG_SW_CLEAR_HOSTBUF_IDX_PROFILING(env)                                \
+	do {                                                                   \
+	} while (0)
 #endif
 
 #endif /* _RWNX_PROF_H_ */

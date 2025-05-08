@@ -6,7 +6,6 @@
  * Copyright (C) AICSemi 2018-2020
  */
 
-
 #include "usb_host.h"
 //#include "ipc_compat.h"
 #include "rwnx_tx.h"
@@ -15,10 +14,8 @@
 /**
  ****************************************************************************************
  */
-void aicwf_usb_host_init(struct usb_host_env_tag *env,
-				  void *cb,
-				  void *shared_env_ptr,
-				  void *pthis)
+void aicwf_usb_host_init(struct usb_host_env_tag *env, void *cb,
+			 void *shared_env_ptr, void *pthis)
 {
 	// Reset the environments
 
@@ -32,7 +29,8 @@ void aicwf_usb_host_init(struct usb_host_env_tag *env,
 /**
  ****************************************************************************************
  */
-volatile struct txdesc_host *aicwf_usb_host_txdesc_get(struct usb_host_env_tag *env, const int queue_idx)
+volatile struct txdesc_host *
+aicwf_usb_host_txdesc_get(struct usb_host_env_tag *env, const int queue_idx)
 {
 	// struct ipc_shared_env_tag *shared_env_ptr = env->shared;
 	volatile struct txdesc_host *txdesc_free = NULL;
@@ -56,11 +54,13 @@ volatile struct txdesc_host *aicwf_usb_host_txdesc_get(struct usb_host_env_tag *
 /**
  ****************************************************************************************
  */
-void aicwf_usb_host_txdesc_push(struct usb_host_env_tag *env, const int queue_idx, const uint64_t host_id)
+void aicwf_usb_host_txdesc_push(struct usb_host_env_tag *env,
+				const int queue_idx, const uint64_t host_id)
 {
 	//printk("push, %d, %d, 0x%llx \r\n", queue_idx, env->txdesc_free_idx[queue_idx], host_id);
 	// Save the host id in the environment
-	env->tx_host_id[queue_idx][env->txdesc_free_idx[queue_idx] % USB_TXDESC_CNT] = host_id;
+	env->tx_host_id[queue_idx][env->txdesc_free_idx[queue_idx] %
+				   USB_TXDESC_CNT] = host_id;
 
 	// Increment the index
 	env->txdesc_free_idx[queue_idx]++;
@@ -73,7 +73,7 @@ void aicwf_usb_host_txdesc_push(struct usb_host_env_tag *env, const int queue_id
  */
 void aicwf_usb_host_tx_cfm_handler(struct usb_host_env_tag *env, u32 *data)
 {
-	u32 queue_idx  = 0;//data[0];
+	u32 queue_idx = 0; //data[0];
 	//struct rwnx_hw *rwnx_hw = (struct rwnx_hw *)env->pthis;
 	struct sk_buff *skb = NULL;
 	struct rwnx_txhdr *txhdr;
@@ -89,7 +89,8 @@ void aicwf_usb_host_tx_cfm_handler(struct usb_host_env_tag *env, u32 *data)
 		// already at the good value to ensure that the test of FIFO full is correct
 		//uint32_t used_idx = env->txdesc_used_idx[queue_idx]++;
 		uint32_t used_idx = data[1];
-		uint64_t host_id = env->tx_host_id[queue_idx][used_idx % USB_TXDESC_CNT];
+		uint64_t host_id =
+			env->tx_host_id[queue_idx][used_idx % USB_TXDESC_CNT];
 
 		// Reset the host id in the array
 		env->tx_host_id[queue_idx][used_idx % USB_TXDESC_CNT] = 0;
@@ -112,10 +113,11 @@ void aicwf_usb_host_tx_cfm_handler(struct usb_host_env_tag *env, u32 *data)
 		if (rwnx_txdatacfm(env->pthis, (void *)host_id) != 0) {
 			// No more confirmations, so put back the used index at its initial value
 			env->txdesc_used_idx[queue_idx] = used_idx;
-			env->tx_host_id[queue_idx][used_idx % USB_TXDESC_CNT] = host_id;
+			env->tx_host_id[queue_idx][used_idx % USB_TXDESC_CNT] =
+				host_id;
 			// and exit the loop
 			printk("ERROR:rwnx_txdatacfm,\r\n");
-		  //  break;
+			//  break;
 		}
 	}
 }
@@ -131,7 +133,7 @@ int aicwf_rwnx_usb_platform_init(struct aic_usb_dev *usbdev)
 	if (!rwnx_plat)
 		return -ENOMEM;
 
-//	rwnx_plat->pci_dev = pci_dev;
+	//	rwnx_plat->pci_dev = pci_dev;
 	rwnx_plat->usbdev = usbdev;
 
 	ret = rwnx_platform_init(rwnx_plat, &drvdata);
@@ -143,4 +145,3 @@ int aicwf_rwnx_usb_platform_init(struct aic_usb_dev *usbdev)
 #endif
 	return ret;
 }
-

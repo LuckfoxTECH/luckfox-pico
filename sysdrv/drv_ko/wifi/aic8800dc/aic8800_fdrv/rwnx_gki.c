@@ -12,7 +12,7 @@
 static struct genl_family rwnx_nl80211_fam;
 
 static bool __rwnx_cfg80211_unexpected_frame(struct net_device *dev, u8 cmd,
-				const u8 *addr, gfp_t gfp)
+					     const u8 *addr, gfp_t gfp)
 {
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	struct cfg80211_registered_device *rdev = wiphy_to_rdev(wdev->wiphy);
@@ -42,13 +42,13 @@ static bool __rwnx_cfg80211_unexpected_frame(struct net_device *dev, u8 cmd,
 	genlmsg_unicast(wiphy_net(&rdev->wiphy), msg, nlportid);
 	return true;
 
- nla_put_failure:
+nla_put_failure:
 	nlmsg_free(msg);
 	return true;
 }
 
-bool rwnx_cfg80211_rx_spurious_frame(struct net_device *dev,
-				const u8 *addr, gfp_t gfp)
+bool rwnx_cfg80211_rx_spurious_frame(struct net_device *dev, const u8 *addr,
+				     gfp_t gfp)
 {
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	bool ret;
@@ -57,13 +57,13 @@ bool rwnx_cfg80211_rx_spurious_frame(struct net_device *dev,
 		    wdev->iftype != NL80211_IFTYPE_P2P_GO)) {
 		return false;
 	}
-	ret = __rwnx_cfg80211_unexpected_frame(dev, NL80211_CMD_UNEXPECTED_FRAME,
-					addr, gfp);
+	ret = __rwnx_cfg80211_unexpected_frame(
+		dev, NL80211_CMD_UNEXPECTED_FRAME, addr, gfp);
 	return ret;
 }
 
 bool rwnx_cfg80211_rx_unexpected_4addr_frame(struct net_device *dev,
-				const u8 *addr, gfp_t gfp)
+					     const u8 *addr, gfp_t gfp)
 {
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	bool ret;
@@ -73,16 +73,15 @@ bool rwnx_cfg80211_rx_unexpected_4addr_frame(struct net_device *dev,
 		    wdev->iftype != NL80211_IFTYPE_AP_VLAN)) {
 		return false;
 	}
-	ret = __rwnx_cfg80211_unexpected_frame(dev,
-					 NL80211_CMD_UNEXPECTED_4ADDR_FRAME,
-					 addr, gfp);
+	ret = __rwnx_cfg80211_unexpected_frame(
+		dev, NL80211_CMD_UNEXPECTED_4ADDR_FRAME, addr, gfp);
 	return ret;
 }
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0))
-void rwnx_cfg80211_notify_new_peer_candidate(struct net_device *dev, const u8 *addr,
-				const u8 *ie, u8 ie_len,
-				int sig_dbm, gfp_t gfp)
+void rwnx_cfg80211_notify_new_peer_candidate(struct net_device *dev,
+					     const u8 *addr, const u8 *ie,
+					     u8 ie_len, int sig_dbm, gfp_t gfp)
 {
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	struct cfg80211_registered_device *rdev = wiphy_to_rdev(wdev->wiphy);
@@ -96,7 +95,8 @@ void rwnx_cfg80211_notify_new_peer_candidate(struct net_device *dev, const u8 *a
 	if (!msg)
 		return;
 
-	hdr = genlmsg_put(msg, 0, 0, &rwnx_nl80211_fam, 0, NL80211_CMD_NEW_PEER_CANDIDATE);
+	hdr = genlmsg_put(msg, 0, 0, &rwnx_nl80211_fam, 0,
+			  NL80211_CMD_NEW_PEER_CANDIDATE);
 	if (!hdr) {
 		nlmsg_free(msg);
 		return;
@@ -105,27 +105,24 @@ void rwnx_cfg80211_notify_new_peer_candidate(struct net_device *dev, const u8 *a
 	if (nla_put_u32(msg, NL80211_ATTR_WIPHY, rdev->wiphy_idx) ||
 	    nla_put_u32(msg, NL80211_ATTR_IFINDEX, dev->ifindex) ||
 	    nla_put(msg, NL80211_ATTR_MAC, ETH_ALEN, addr) ||
-	    (ie_len && ie &&
-	     nla_put(msg, NL80211_ATTR_IE, ie_len, ie)) ||
-	    (sig_dbm &&
-	     nla_put_u32(msg, NL80211_ATTR_RX_SIGNAL_DBM, sig_dbm)))
+	    (ie_len && ie && nla_put(msg, NL80211_ATTR_IE, ie_len, ie)) ||
+	    (sig_dbm && nla_put_u32(msg, NL80211_ATTR_RX_SIGNAL_DBM, sig_dbm)))
 		goto nla_put_failure;
 
 	genlmsg_end(msg, hdr);
 
 #define NL80211_MCGRP_MLME 3
-	genlmsg_multicast_netns(&rwnx_nl80211_fam, wiphy_net(&rdev->wiphy), msg, 0,
-				NL80211_MCGRP_MLME, gfp);
+	genlmsg_multicast_netns(&rwnx_nl80211_fam, wiphy_net(&rdev->wiphy), msg,
+				0, NL80211_MCGRP_MLME, gfp);
 	return;
 
- nla_put_failure:
+nla_put_failure:
 	nlmsg_free(msg);
 }
 #endif
 
-void rwnx_cfg80211_report_obss_beacon(struct wiphy *wiphy,
-				const u8 *frame, size_t len,
-				int freq, int sig_dbm)
+void rwnx_cfg80211_report_obss_beacon(struct wiphy *wiphy, const u8 *frame,
+				      size_t len, int freq, int sig_dbm)
 {
 	struct cfg80211_registered_device *rdev = wiphy_to_rdev(wiphy);
 	struct sk_buff *msg;
@@ -133,20 +130,20 @@ void rwnx_cfg80211_report_obss_beacon(struct wiphy *wiphy,
 	struct cfg80211_beacon_registration *reg;
 
 	spin_lock_bh(&rdev->beacon_registrations_lock);
-	list_for_each_entry(reg, &rdev->beacon_registrations, list) {
+	list_for_each_entry (reg, &rdev->beacon_registrations, list) {
 		msg = nlmsg_new(len + 100, GFP_ATOMIC);
 		if (!msg) {
 			spin_unlock_bh(&rdev->beacon_registrations_lock);
 			return;
 		}
 
-		hdr = genlmsg_put(msg, 0, 0, &rwnx_nl80211_fam, 0, NL80211_CMD_FRAME);
+		hdr = genlmsg_put(msg, 0, 0, &rwnx_nl80211_fam, 0,
+				  NL80211_CMD_FRAME);
 		if (!hdr)
 			goto nla_put_failure;
 
 		if (nla_put_u32(msg, NL80211_ATTR_WIPHY, rdev->wiphy_idx) ||
-		    (freq &&
-		     nla_put_u32(msg, NL80211_ATTR_WIPHY_FREQ, freq)) ||
+		    (freq && nla_put_u32(msg, NL80211_ATTR_WIPHY_FREQ, freq)) ||
 		    (sig_dbm &&
 		     nla_put_u32(msg, NL80211_ATTR_RX_SIGNAL_DBM, sig_dbm)) ||
 		    nla_put(msg, NL80211_ATTR_FRAME, len, frame))
@@ -159,13 +156,13 @@ void rwnx_cfg80211_report_obss_beacon(struct wiphy *wiphy,
 	spin_unlock_bh(&rdev->beacon_registrations_lock);
 	return;
 
- nla_put_failure:
+nla_put_failure:
 	spin_unlock_bh(&rdev->beacon_registrations_lock);
 	nlmsg_free(msg);
 }
 
 static int rwnx_nl80211_send_chandef(struct sk_buff *msg,
-				const struct cfg80211_chan_def *chandef)
+				     const struct cfg80211_chan_def *chandef)
 {
 	if (WARN_ON(!cfg80211_chandef_valid(chandef)))
 		return -EINVAL;
@@ -195,11 +192,10 @@ static int rwnx_nl80211_send_chandef(struct sk_buff *msg,
 }
 
 void rwnx_cfg80211_ch_switch_notify(struct cfg80211_registered_device *rdev,
-				struct net_device *netdev,
-				struct cfg80211_chan_def *chandef,
-				gfp_t gfp,
-				enum nl80211_commands notif,
-				u8 count)
+				    struct net_device *netdev,
+				    struct cfg80211_chan_def *chandef,
+				    gfp_t gfp, enum nl80211_commands notif,
+				    u8 count)
 {
 	struct sk_buff *msg;
 	void *hdr;
@@ -222,42 +218,45 @@ void rwnx_cfg80211_ch_switch_notify(struct cfg80211_registered_device *rdev,
 
 	if ((notif == NL80211_CMD_CH_SWITCH_STARTED_NOTIFY) &&
 	    (nla_put_u32(msg, NL80211_ATTR_CH_SWITCH_COUNT, count)))
-			goto nla_put_failure;
+		goto nla_put_failure;
 
 	genlmsg_end(msg, hdr);
 
-	genlmsg_multicast_netns(&rwnx_nl80211_fam, wiphy_net(&rdev->wiphy), msg, 0,
-				NL80211_MCGRP_MLME, gfp);
+	genlmsg_multicast_netns(&rwnx_nl80211_fam, wiphy_net(&rdev->wiphy), msg,
+				0, NL80211_MCGRP_MLME, gfp);
 	return;
 
- nla_put_failure:
+nla_put_failure:
 	nlmsg_free(msg);
 }
 
 void rwnx_cfg80211_ch_switch_started_notify(struct net_device *dev,
-				struct cfg80211_chan_def *chandef,
-				u8 count
-	#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
-				, bool quiet
-	#endif
-				)
+					    struct cfg80211_chan_def *chandef,
+					    u8 count
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+					    ,
+					    bool quiet
+#endif
+)
 {
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	struct wiphy *wiphy = wdev->wiphy;
 	struct cfg80211_registered_device *rdev = wiphy_to_rdev(wiphy);
 
 	rwnx_cfg80211_ch_switch_notify(rdev, dev, chandef, GFP_KERNEL,
-				NL80211_CMD_CH_SWITCH_STARTED_NOTIFY, count);
+				       NL80211_CMD_CH_SWITCH_STARTED_NOTIFY,
+				       count);
 }
 
 int rwnx_regulatory_set_wiphy_regd_sync_rtnl(struct wiphy *wiphy,
-				struct ieee80211_regdomain *rd)
+					     struct ieee80211_regdomain *rd)
 {
 	wiphy_apply_custom_regulatory(wiphy, rd);
 	return 0;
 }
 
-void rwnx_skb_append(struct sk_buff *old, struct sk_buff *newsk, struct sk_buff_head *list)
+void rwnx_skb_append(struct sk_buff *old, struct sk_buff *newsk,
+		     struct sk_buff_head *list)
 {
 	unsigned long flags;
 	struct sk_buff *prev = old;
@@ -271,8 +270,8 @@ void rwnx_skb_append(struct sk_buff *old, struct sk_buff *newsk, struct sk_buff_
 	spin_unlock_irqrestore(&list->lock, flags);
 }
 
-bool rwnx_ieee80211_chandef_to_operating_class(struct cfg80211_chan_def *chandef,
-					  u8 *op_class)
+bool rwnx_ieee80211_chandef_to_operating_class(
+	struct cfg80211_chan_def *chandef, u8 *op_class)
 {
 	u8 vht_opclass;
 	u32 freq = chandef->center_freq1;
@@ -400,7 +399,8 @@ bool rwnx_ieee80211_chandef_to_operating_class(struct cfg80211_chan_def *chandef
 	return false;
 }
 
-int rwnx_call_usermodehelper(const char *path, char **argv, char **envp, int wait)
+int rwnx_call_usermodehelper(const char *path, char **argv, char **envp,
+			     int wait)
 {
 	return -1;
 }

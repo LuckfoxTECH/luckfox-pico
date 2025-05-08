@@ -83,5 +83,5 @@ clean:
 	cd aic8800_bsp/;make clean;cd ..
 	cd aic8800_fdrv/;make clean;cd ..
 	cd aic8800_btlpm/;make clean;cd ..
-	rm -rf modules.order Module.symvers .tmp_versions/
+	rm -rf modules.order Module.symvers .modules.order.cmd .Module.symvers.cmd .tmp_versions/
 

@@ -57,15 +57,14 @@ struct ipc_host_cb_tag {
 
 	/// WLAN driver call-back function: sec_tbtt_ind
 	void (*sec_tbtt_ind)(void *pthis);
-
 };
 
 /*
  * Struct used to store information about host buffers (DMA Address and local pointer)
  */
 struct ipc_hostbuf {
-	void    *hostid;     ///< ptr to hostbuf client (ipc_host client) structure
-	uint32_t dma_addr;   ///< ptr to real hostbuf dma address
+	void *hostid; ///< ptr to hostbuf client (ipc_host client) structure
+	uint32_t dma_addr; ///< ptr to real hostbuf dma address
 };
 
 /// Definition of the IPC Host environment structure.
@@ -76,14 +75,14 @@ struct ipc_host_env_tag {
 	/// Pointer to the shared environment
 	struct ipc_shared_env_tag *shared;
 
-	#ifdef CONFIG_RWNX_FULLMAC
+#ifdef CONFIG_RWNX_FULLMAC
 	// Array used to store the descriptor addresses
 	struct ipc_hostbuf ipc_host_rxdesc_array[IPC_RXDESC_CNT];
 	// Index of the host RX descriptor array (ipc_shared environment)
 	uint8_t ipc_host_rxdesc_idx;
 	/// Store the number of RX Descriptors
 	uint8_t rxdesc_nb;
-	#endif //(CONFIG_RWNX_FULLMAC)
+#endif //(CONFIG_RWNX_FULLMAC)
 
 	/// Fields for Data Rx handling
 	// Index used for ipc_host_rxbuf_array to point to current buffer
@@ -125,10 +124,10 @@ struct ipc_host_env_tag {
 	void *tx_host_id2[CONFIG_USER_MAX][NX_TXDESC_CNT2];
 	// Array storing the currently pushed host ids for the VO queue
 	void *tx_host_id3[CONFIG_USER_MAX][NX_TXDESC_CNT3];
-	#if NX_TXQ_CNT == 5
+#if NX_TXQ_CNT == 5
 	// Array storing the currently pushed host ids for the BCN queue
 	void *tx_host_id4[1][NX_TXDESC_CNT4];
-	#endif
+#endif
 	// Pointer to the different host ids arrays, per IPC queue
 	void **tx_host_id[IPC_TXQUEUE_CNT][CONFIG_USER_MAX];
 	// Pointer to the different TX descriptor arrays, per IPC queue

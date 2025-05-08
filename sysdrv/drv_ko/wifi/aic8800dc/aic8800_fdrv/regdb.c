@@ -5,15 +5,14 @@
 //#include "regdb.h"
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 15, 0)
-#define REG_RULE_EXT(start, end, bw, gain, eirp, dfs_cac, reg_flags) \
-{							\
-	.freq_range.start_freq_khz = MHZ_TO_KHZ(start),	\
-	.freq_range.end_freq_khz = MHZ_TO_KHZ(end),	\
-	.freq_range.max_bandwidth_khz = MHZ_TO_KHZ(bw),	\
-	.power_rule.max_antenna_gain = DBI_TO_MBI(gain),\
-	.power_rule.max_eirp = DBM_TO_MBM(eirp),	\
-	.flags = reg_flags,				\
-}
+#define REG_RULE_EXT(start, end, bw, gain, eirp, dfs_cac, reg_flags)           \
+	{                                                                      \
+		.freq_range.start_freq_khz = MHZ_TO_KHZ(start),                \
+		.freq_range.end_freq_khz = MHZ_TO_KHZ(end),                    \
+		.freq_range.max_bandwidth_khz = MHZ_TO_KHZ(bw),                \
+		.power_rule.max_antenna_gain = DBI_TO_MBI(gain),               \
+		.power_rule.max_eirp = DBM_TO_MBM(eirp), .flags = reg_flags,   \
+	}
 #define NL80211_RRF_AUTO_BW 0
 #endif
 
@@ -687,24 +686,25 @@ static const struct ieee80211_regdomain regdom_CZ = {
 };
 
 static const struct ieee80211_regdomain regdom_DE = {
-	.alpha2 = "DE",
-	.dfs_region = NL80211_DFS_ETSI,
-	.reg_rules = {
-		REG_RULE_EXT(2400, 2483, 40, 0, 20, 0, 0),
-		REG_RULE_EXT(5150, 5250, 80, 0, 20, 0, 
-			NL80211_RRF_NO_OUTDOOR | 
-			NL80211_RRF_AUTO_BW | 0),
-		REG_RULE_EXT(5250, 5350, 80, 0, 20, 0, 
-			NL80211_RRF_NO_OUTDOOR | 
-			NL80211_RRF_DFS | 
-			NL80211_RRF_AUTO_BW | 0),
-		REG_RULE_EXT(5470, 5695, 160, 0, 27, 0, 
-			NL80211_RRF_DFS | 0),
-		/*REG_RULE_EXT(5470, 5725, 160, 0, 27, 0, 
-			NL80211_RRF_DFS | 0),*/
-		REG_RULE_EXT(57000, 66000, 2160, 0, 40, 0, 0),
-	},
-	.n_reg_rules = 5
+    .alpha2 = "DE", 
+    .dfs_region = NL80211_DFS_ETSI, 
+    .reg_rules = {
+        REG_RULE_EXT(2400, 2483, 40, 0, 20, 0, 0),
+        REG_RULE_EXT(5150, 5250, 80, 0, 20, 0, NL80211_RRF_AUTO_BW|
+          NL80211_RRF_NO_OUTDOOR|
+          0),
+        REG_RULE_EXT(5250, 5350, 80, 0, 20, 0, NL80211_RRF_AUTO_BW|
+          NL80211_RRF_DFS|
+          NL80211_RRF_NO_OUTDOOR|
+          0),
+        REG_RULE_EXT(5470, 5725, 160, 0, 20, 0, NL80211_RRF_DFS|
+          0),
+        REG_RULE_EXT(5725, 5875, 80, 0, 20, 0, 0),
+        REG_RULE_EXT(5945, 6425, 160, 0, 20, 0, NL80211_RRF_NO_OUTDOOR|
+          0),
+        REG_RULE_EXT(57000, 66000, 2160, 0, 20, 0, 0),
+    }, 
+    .n_reg_rules = 7
 };
 
 static const struct ieee80211_regdomain regdom_DK = {
@@ -1825,6 +1825,18 @@ static const struct ieee80211_regdomain regdom_MY = {
 	.n_reg_rules = 4
 };
 
+static const struct ieee80211_regdomain regdom_NG = {
+    .alpha2 = "NG",
+    .dfs_region = NL80211_DFS_ETSI,
+    .reg_rules = {
+        REG_RULE_EXT(2402, 2482, 40, 0, 20, 0, 0),
+        REG_RULE_EXT(5250, 5330, 80, 0, 20, 0, NL80211_RRF_DFS|
+          0),
+        REG_RULE_EXT(5735, 5835, 80, 0, 20, 0, 0),
+    },
+    .n_reg_rules = 3
+};
+
 static const struct ieee80211_regdomain regdom_NI = {
 	.alpha2 = "NI",
 	.dfs_region = NL80211_DFS_FCC,
@@ -2722,178 +2734,35 @@ static const struct ieee80211_regdomain regdom_ZW = {
 };
 
 const struct ieee80211_regdomain *reg_regdb[] = {
-	&regdom_00,
-	&regdom_AD,
-	&regdom_AE,
-	&regdom_AF,
-	&regdom_AI,
-	&regdom_AL,
-	&regdom_AM,
-	&regdom_AN,
-	&regdom_AR,
-	&regdom_AS,
-	&regdom_AT,
-	&regdom_AU,
-	&regdom_AW,
-	&regdom_AZ,
-	&regdom_BA,
-	&regdom_BB,
-	&regdom_BD,
-	&regdom_BE,
-	&regdom_BF,
-	&regdom_BG,
-	&regdom_BH,
-	&regdom_BL,
-	&regdom_BM,
-	&regdom_BN,
-	&regdom_BO,
-	&regdom_BR,
-	&regdom_BS,
-	&regdom_BT,
-	&regdom_BY,
-	&regdom_BZ,
-	&regdom_CA,
-	&regdom_CF,
-	&regdom_CH,
-	&regdom_CI,
-	&regdom_CL,
-	&regdom_CN,
-	&regdom_CO,
-	&regdom_CR,
-	&regdom_CX,
-	&regdom_CY,
-	&regdom_CZ,
-	&regdom_DE,
-	&regdom_DK,
-	&regdom_DM,
-	&regdom_DO,
-	&regdom_DZ,
-	&regdom_EC,
-	&regdom_EE,
-	&regdom_EG,
-	&regdom_ES,
-	&regdom_ET,
-	&regdom_FI,
-	&regdom_FM,
-	&regdom_FR,
-	&regdom_GB,
-	&regdom_GD,
-	&regdom_GE,
-	&regdom_GF,
-	&regdom_GH,
-	&regdom_GL,
-	&regdom_GP,
-	&regdom_GR,
-	&regdom_GT,
-	&regdom_GU,
-	&regdom_GY,
-	&regdom_HK,
-	&regdom_HN,
-	&regdom_HR,
-	&regdom_HT,
-	&regdom_HU,
-	&regdom_ID,
-	&regdom_IE,
-	&regdom_IL,
-	&regdom_IN,
-	&regdom_IR,
-	&regdom_IS,
-	&regdom_IT,
-	&regdom_JM,
-	&regdom_JO,
-	&regdom_JP,
-	&regdom_KE,
-	&regdom_KH,
-	&regdom_KN,
-	&regdom_KP,
-	&regdom_KR,
-	&regdom_KW,
-	&regdom_KY,
-	&regdom_KZ,
-	&regdom_LB,
-	&regdom_LC,
-	&regdom_LI,
-	&regdom_LK,
-	&regdom_LS,
-	&regdom_LT,
-	&regdom_LU,
-	&regdom_LV,
-	&regdom_MA,
-	&regdom_MC,
-	&regdom_MD,
-	&regdom_ME,
-	&regdom_MF,
-	&regdom_MH,
-	&regdom_MK,
-	&regdom_MN,
-	&regdom_MO,
-	&regdom_MP,
-	&regdom_MQ,
-	&regdom_MR,
-	&regdom_MT,
-	&regdom_MU,
-	&regdom_MW,
-	&regdom_MX,
-	&regdom_MY,
-	&regdom_NI,
-	&regdom_NL,
-	&regdom_NO,
-	&regdom_NP,
-	&regdom_NZ,
-	&regdom_OM,
-	&regdom_PA,
-	&regdom_PE,
-	&regdom_PF,
-	&regdom_PG,
-	&regdom_PH,
-	&regdom_PK,
-	&regdom_PL,
-	&regdom_PM,
-	&regdom_PR,
-	&regdom_PT,
-	&regdom_PW,
-	&regdom_PY,
-	&regdom_QA,
-	&regdom_RE,
-	&regdom_RO,
-	&regdom_RS,
-	&regdom_RU,
-	&regdom_RW,
-	&regdom_SA,
-	&regdom_SE,
-	&regdom_SG,
-	&regdom_SI,
-	&regdom_SK,
-	&regdom_SN,
-	&regdom_SR,
-	&regdom_SV,
-	&regdom_SY,
-	&regdom_TC,
-	&regdom_TD,
-	&regdom_TG,
-	&regdom_TH,
-	&regdom_TN,
-	&regdom_TR,
-	&regdom_TT,
-	&regdom_TW,
-	&regdom_UA,
-	&regdom_UG,
-	&regdom_US,
-	&regdom_UY,
-	&regdom_UZ,
-	&regdom_VC,
-	&regdom_VE,
-	&regdom_VI,
-	&regdom_VN,
-	&regdom_VU,
-	&regdom_WF,
-	&regdom_YE,
-	&regdom_YT,
-	&regdom_ZA,
-	&regdom_ZW,
-	NULL,
+	&regdom_00, &regdom_AD, &regdom_AE, &regdom_AF, &regdom_AI, &regdom_AL,
+	&regdom_AM, &regdom_AN, &regdom_AR, &regdom_AS, &regdom_AT, &regdom_AU,
+	&regdom_AW, &regdom_AZ, &regdom_BA, &regdom_BB, &regdom_BD, &regdom_BE,
+	&regdom_BF, &regdom_BG, &regdom_BH, &regdom_BL, &regdom_BM, &regdom_BN,
+	&regdom_BO, &regdom_BR, &regdom_BS, &regdom_BT, &regdom_BY, &regdom_BZ,
+	&regdom_CA, &regdom_CF, &regdom_CH, &regdom_CI, &regdom_CL, &regdom_CN,
+	&regdom_CO, &regdom_CR, &regdom_CX, &regdom_CY, &regdom_CZ, &regdom_DE,
+	&regdom_DK, &regdom_DM, &regdom_DO, &regdom_DZ, &regdom_EC, &regdom_EE,
+	&regdom_EG, &regdom_ES, &regdom_ET, &regdom_FI, &regdom_FM, &regdom_FR,
+	&regdom_GB, &regdom_GD, &regdom_GE, &regdom_GF, &regdom_GH, &regdom_GL,
+	&regdom_GP, &regdom_GR, &regdom_GT, &regdom_GU, &regdom_GY, &regdom_HK,
+	&regdom_HN, &regdom_HR, &regdom_HT, &regdom_HU, &regdom_ID, &regdom_IE,
+	&regdom_IL, &regdom_IN, &regdom_IR, &regdom_IS, &regdom_IT, &regdom_JM,
+	&regdom_JO, &regdom_JP, &regdom_KE, &regdom_KH, &regdom_KN, &regdom_KP,
+	&regdom_KR, &regdom_KW, &regdom_KY, &regdom_KZ, &regdom_LB, &regdom_LC,
+	&regdom_LI, &regdom_LK, &regdom_LS, &regdom_LT, &regdom_LU, &regdom_LV,
+	&regdom_MA, &regdom_MC, &regdom_MD, &regdom_ME, &regdom_MF, &regdom_MH,
+	&regdom_MK, &regdom_MN, &regdom_MO, &regdom_MP, &regdom_MQ, &regdom_MR,
+	&regdom_MT, &regdom_MU, &regdom_MW, &regdom_MX, &regdom_MY, &regdom_NG,
+	&regdom_NI, &regdom_NL, &regdom_NO, &regdom_NP, &regdom_NZ, &regdom_OM,
+	&regdom_PA, &regdom_PE, &regdom_PF, &regdom_PG, &regdom_PH, &regdom_PK,
+	&regdom_PL, &regdom_PM, &regdom_PR, &regdom_PT, &regdom_PW, &regdom_PY,
+	&regdom_QA, &regdom_RE, &regdom_RO, &regdom_RS, &regdom_RU, &regdom_RW,
+	&regdom_SA, &regdom_SE, &regdom_SG, &regdom_SI, &regdom_SK, &regdom_SN,
+	&regdom_SR, &regdom_SV, &regdom_SY, &regdom_TC, &regdom_TD, &regdom_TG,
+	&regdom_TH, &regdom_TN, &regdom_TR, &regdom_TT, &regdom_TW, &regdom_UA,
+	&regdom_UG, &regdom_US, &regdom_UY, &regdom_UZ, &regdom_VC, &regdom_VE,
+	&regdom_VI, &regdom_VN, &regdom_VU, &regdom_WF, &regdom_YE, &regdom_YT,
+	&regdom_ZA, &regdom_ZW, NULL,
 };
 
 int reg_regdb_size = ARRAY_SIZE(reg_regdb);
-
-

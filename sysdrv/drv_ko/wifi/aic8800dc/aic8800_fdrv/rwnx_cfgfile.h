@@ -27,9 +27,9 @@ struct rwnx_phy_conf_file {
 };
 
 int rwnx_parse_configfile(struct rwnx_hw *rwnx_hw, const char *filename,
-						  struct rwnx_conf_file *config);
+			  struct rwnx_conf_file *config);
 
 int rwnx_parse_phy_configfile(struct rwnx_hw *rwnx_hw, const char *filename,
-							  struct rwnx_phy_conf_file *config, int path);
+			      struct rwnx_phy_conf_file *config, int path);
 
 #endif /* _RWNX_CFGFILE_H_ */

@@ -18,4 +18,3 @@ int bluesleep_init(struct platform_device *pdev);
 int bluesleep_exit(struct platform_device *dev);
 
 #endif
-

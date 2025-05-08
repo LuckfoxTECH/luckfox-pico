@@ -3,17 +3,17 @@
 
 #ifdef CONFIG_PREALLOC_RX_SKB
 struct rx_buff {
-    struct list_head queue;
-    unsigned char *data;
-    u32 len;
-    uint8_t *start;
-    uint8_t *end;
-    uint8_t *read;
+	struct list_head queue;
+	unsigned char *data;
+	u32 len;
+	uint8_t *start;
+	uint8_t *end;
+	uint8_t *read;
 };
 
 struct aicwf_rx_buff_list {
-    struct list_head rxbuff_list;
-    atomic_t rxbuff_list_len;
+	struct list_head rxbuff_list;
+	atomic_t rxbuff_list_len;
 };
 
 struct rx_buff *aicwf_prealloc_rxbuff_alloc(spinlock_t *lock);

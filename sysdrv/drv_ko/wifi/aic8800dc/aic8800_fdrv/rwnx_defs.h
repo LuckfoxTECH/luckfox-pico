@@ -50,117 +50,120 @@
 #include "aic_br_ext.h"
 #endif /* CONFIG_BR_SUPPORT */
 
-#define WPI_HDR_LEN    18
-#define WPI_PN_LEN     16
-#define WPI_PN_OFST     2
-#define WPI_MIC_LEN    16
-#define WPI_KEY_LEN    32
+#define WPI_HDR_LEN 18
+#define WPI_PN_LEN 16
+#define WPI_PN_OFST 2
+#define WPI_MIC_LEN 16
+#define WPI_KEY_LEN 32
 #define WPI_SUBKEY_LEN 16 // WPI key is actually two 16bytes key
 
-#define LEGACY_PS_ID   0
-#define UAPSD_ID       1
+#define LEGACY_PS_ID 0
+#define UAPSD_ID 1
 
-#define PS_SP_INTERRUPTED  255
+#define PS_SP_INTERRUPTED 255
 #define MAC_ADDR_LEN 6
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 5, 0) || defined(CONFIG_VHT_FOR_OLD_KERNEL)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 5, 0) ||                            \
+	defined(CONFIG_VHT_FOR_OLD_KERNEL)
 enum nl80211_ac {
-        NL80211_AC_VO,
-        NL80211_AC_VI,
-        NL80211_AC_BE,
-        NL80211_AC_BK,
-        NL80211_NUM_ACS
+	NL80211_AC_VO,
+	NL80211_AC_VI,
+	NL80211_AC_BE,
+	NL80211_AC_BK,
+	NL80211_NUM_ACS
 };
 #endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 6, 0) || defined(CONFIG_VHT_FOR_OLD_KERNEL)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 6, 0) ||                            \
+	defined(CONFIG_VHT_FOR_OLD_KERNEL)
 struct ieee80211_vht_operation {
-        u8 vht_op_info_chwidth;
-        u8 vht_op_info_chan_center_freq_seg1_idx;
-        u8 vht_op_info_chan_center_freq_seg2_idx;
-        __le16 vht_basic_mcs_set;
+	u8 vht_op_info_chwidth;
+	u8 vht_op_info_chan_center_freq_seg1_idx;
+	u8 vht_op_info_chan_center_freq_seg2_idx;
+	__le16 vht_basic_mcs_set;
 } __packed;
 #endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 8, 0) || defined(CONFIG_VHT_FOR_OLD_KERNEL)
-#define IEEE80211_RADIOTAP_VHT                                  21
-#define IEEE80211_RADIOTAP_VHT_KNOWN_GI                         0x0004
-#define IEEE80211_RADIOTAP_VHT_KNOWN_BANDWIDTH                  0x0040
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 8, 0) ||                            \
+	defined(CONFIG_VHT_FOR_OLD_KERNEL)
+#define IEEE80211_RADIOTAP_VHT 21
+#define IEEE80211_RADIOTAP_VHT_KNOWN_GI 0x0004
+#define IEEE80211_RADIOTAP_VHT_KNOWN_BANDWIDTH 0x0040
 
-#define IEEE80211_RADIOTAP_VHT_FLAG_STBC                        0x01
-#define IEEE80211_RADIOTAP_VHT_FLAG_SGI                         0x04
+#define IEEE80211_RADIOTAP_VHT_FLAG_STBC 0x01
+#define IEEE80211_RADIOTAP_VHT_FLAG_SGI 0x04
 
-#define NL80211_FEATURE_CELL_BASE_REG_HINTS              1 << 3
-#define NL80211_FEATURE_P2P_DEVICE_NEEDS_CHANNEL         1 << 4
-#define NL80211_FEATURE_SAE                              1 << 5
-#define NL80211_FEATURE_LOW_PRIORITY_SCAN                1 << 6
-#define NL80211_FEATURE_SCAN_FLUSH                       1 << 7
-#define NL80211_FEATURE_AP_SCAN                          1 << 8
-#define NL80211_FEATURE_VIF_TXPOWER                      1 << 9
-#define NL80211_FEATURE_NEED_OBSS_SCAN                   1 << 10
-#define NL80211_FEATURE_P2P_GO_CTWIN                     1 << 11
-#define NL80211_FEATURE_P2P_GO_OPPPS                     1 << 12
+#define NL80211_FEATURE_CELL_BASE_REG_HINTS 1 << 3
+#define NL80211_FEATURE_P2P_DEVICE_NEEDS_CHANNEL 1 << 4
+#define NL80211_FEATURE_SAE 1 << 5
+#define NL80211_FEATURE_LOW_PRIORITY_SCAN 1 << 6
+#define NL80211_FEATURE_SCAN_FLUSH 1 << 7
+#define NL80211_FEATURE_AP_SCAN 1 << 8
+#define NL80211_FEATURE_VIF_TXPOWER 1 << 9
+#define NL80211_FEATURE_NEED_OBSS_SCAN 1 << 10
+#define NL80211_FEATURE_P2P_GO_CTWIN 1 << 11
+#define NL80211_FEATURE_P2P_GO_OPPPS 1 << 12
 
 /* 802.11ac VHT Capabilities */
-#define IEEE80211_VHT_CAP_MAX_MPDU_LENGTH_3895                  0x00000000
-#define IEEE80211_VHT_CAP_MAX_MPDU_LENGTH_7991                  0x00000001
-#define IEEE80211_VHT_CAP_MAX_MPDU_LENGTH_11454                 0x00000002
-#define IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_160MHZ                0x00000004
-#define IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_160_80PLUS80MHZ       0x00000008
-#define IEEE80211_VHT_CAP_RXLDPC                                0x00000010
-#define IEEE80211_VHT_CAP_SHORT_GI_80                           0x00000020
-#define IEEE80211_VHT_CAP_SHORT_GI_160                          0x00000040
-#define IEEE80211_VHT_CAP_TXSTBC                                0x00000080
-#define IEEE80211_VHT_CAP_RXSTBC_1                              0x00000100
-#define IEEE80211_VHT_CAP_RXSTBC_2                              0x00000200
-#define IEEE80211_VHT_CAP_RXSTBC_3                              0x00000300
-#define IEEE80211_VHT_CAP_RXSTBC_4                              0x00000400
-#define IEEE80211_VHT_CAP_SU_BEAMFORMER_CAPABLE                 0x00000800
-#define IEEE80211_VHT_CAP_SU_BEAMFORMEE_CAPABLE                 0x00001000
-#define IEEE80211_VHT_CAP_BEAMFORMER_ANTENNAS_MAX               0x00006000
-#define IEEE80211_VHT_CAP_SOUNDING_DIMENTION_MAX                0x00030000
-#define IEEE80211_VHT_CAP_MU_BEAMFORMER_CAPABLE                 0x00080000
-#define IEEE80211_VHT_CAP_MU_BEAMFORMEE_CAPABLE                 0x00100000
-#define IEEE80211_VHT_CAP_VHT_TXOP_PS                           0x00200000
-#define IEEE80211_VHT_CAP_HTC_VHT                               0x00400000
-#define IEEE80211_VHT_CAP_MAX_A_MPDU_LENGTH_EXPONENT_SHIFT      23
-#define IEEE80211_VHT_CAP_MAX_A_MPDU_LENGTH_EXPONENT_MASK       \
-                (7 << IEEE80211_VHT_CAP_MAX_A_MPDU_LENGTH_EXPONENT_SHIFT)
-#define IEEE80211_VHT_CAP_VHT_LINK_ADAPTATION_VHT_UNSOL_MFB     0x08000000
-#define IEEE80211_VHT_CAP_VHT_LINK_ADAPTATION_VHT_MRQ_MFB       0x0c000000
-#define IEEE80211_VHT_CAP_RX_ANTENNA_PATTERN                    0x10000000
-#define IEEE80211_VHT_CAP_TX_ANTENNA_PATTERN                    0x20000000
+#define IEEE80211_VHT_CAP_MAX_MPDU_LENGTH_3895 0x00000000
+#define IEEE80211_VHT_CAP_MAX_MPDU_LENGTH_7991 0x00000001
+#define IEEE80211_VHT_CAP_MAX_MPDU_LENGTH_11454 0x00000002
+#define IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_160MHZ 0x00000004
+#define IEEE80211_VHT_CAP_SUPP_CHAN_WIDTH_160_80PLUS80MHZ 0x00000008
+#define IEEE80211_VHT_CAP_RXLDPC 0x00000010
+#define IEEE80211_VHT_CAP_SHORT_GI_80 0x00000020
+#define IEEE80211_VHT_CAP_SHORT_GI_160 0x00000040
+#define IEEE80211_VHT_CAP_TXSTBC 0x00000080
+#define IEEE80211_VHT_CAP_RXSTBC_1 0x00000100
+#define IEEE80211_VHT_CAP_RXSTBC_2 0x00000200
+#define IEEE80211_VHT_CAP_RXSTBC_3 0x00000300
+#define IEEE80211_VHT_CAP_RXSTBC_4 0x00000400
+#define IEEE80211_VHT_CAP_SU_BEAMFORMER_CAPABLE 0x00000800
+#define IEEE80211_VHT_CAP_SU_BEAMFORMEE_CAPABLE 0x00001000
+#define IEEE80211_VHT_CAP_BEAMFORMER_ANTENNAS_MAX 0x00006000
+#define IEEE80211_VHT_CAP_SOUNDING_DIMENTION_MAX 0x00030000
+#define IEEE80211_VHT_CAP_MU_BEAMFORMER_CAPABLE 0x00080000
+#define IEEE80211_VHT_CAP_MU_BEAMFORMEE_CAPABLE 0x00100000
+#define IEEE80211_VHT_CAP_VHT_TXOP_PS 0x00200000
+#define IEEE80211_VHT_CAP_HTC_VHT 0x00400000
+#define IEEE80211_VHT_CAP_MAX_A_MPDU_LENGTH_EXPONENT_SHIFT 23
+#define IEEE80211_VHT_CAP_MAX_A_MPDU_LENGTH_EXPONENT_MASK                      \
+	(7 << IEEE80211_VHT_CAP_MAX_A_MPDU_LENGTH_EXPONENT_SHIFT)
+#define IEEE80211_VHT_CAP_VHT_LINK_ADAPTATION_VHT_UNSOL_MFB 0x08000000
+#define IEEE80211_VHT_CAP_VHT_LINK_ADAPTATION_VHT_MRQ_MFB 0x0c000000
+#define IEEE80211_VHT_CAP_RX_ANTENNA_PATTERN 0x10000000
+#define IEEE80211_VHT_CAP_TX_ANTENNA_PATTERN 0x20000000
 
 enum ieee80211_vht_mcs_support {
-        IEEE80211_VHT_MCS_SUPPORT_0_7   = 0,
-        IEEE80211_VHT_MCS_SUPPORT_0_8   = 1,
-        IEEE80211_VHT_MCS_SUPPORT_0_9   = 2,
-        IEEE80211_VHT_MCS_NOT_SUPPORTED = 3,
+	IEEE80211_VHT_MCS_SUPPORT_0_7 = 0,
+	IEEE80211_VHT_MCS_SUPPORT_0_8 = 1,
+	IEEE80211_VHT_MCS_SUPPORT_0_9 = 2,
+	IEEE80211_VHT_MCS_NOT_SUPPORTED = 3,
 };
 
 enum nl80211_chan_width {
-        NL80211_CHAN_WIDTH_20_NOHT,
-        NL80211_CHAN_WIDTH_20,
-        NL80211_CHAN_WIDTH_40,
-        NL80211_CHAN_WIDTH_80,
-        NL80211_CHAN_WIDTH_80P80,
-        NL80211_CHAN_WIDTH_160,
+	NL80211_CHAN_WIDTH_20_NOHT,
+	NL80211_CHAN_WIDTH_20,
+	NL80211_CHAN_WIDTH_40,
+	NL80211_CHAN_WIDTH_80,
+	NL80211_CHAN_WIDTH_80P80,
+	NL80211_CHAN_WIDTH_160,
 };
 
 struct cfg80211_chan_def {
-        struct ieee80211_channel *chan;
-        enum nl80211_chan_width width;
-        u32 center_freq1;
-        u32 center_freq2;
+	struct ieee80211_channel *chan;
+	enum nl80211_chan_width width;
+	u32 center_freq1;
+	u32 center_freq2;
 };
 
 enum nl80211_mesh_power_mode {
-        NL80211_MESH_POWER_UNKNOWN,
-        NL80211_MESH_POWER_ACTIVE,
-        NL80211_MESH_POWER_LIGHT_SLEEP,
-        NL80211_MESH_POWER_DEEP_SLEEP,
-        __NL80211_MESH_POWER_AFTER_LAST,
-        NL80211_MESH_POWER_MAX = __NL80211_MESH_POWER_AFTER_LAST - 1
+	NL80211_MESH_POWER_UNKNOWN,
+	NL80211_MESH_POWER_ACTIVE,
+	NL80211_MESH_POWER_LIGHT_SLEEP,
+	NL80211_MESH_POWER_DEEP_SLEEP,
+	__NL80211_MESH_POWER_AFTER_LAST,
+	NL80211_MESH_POWER_MAX = __NL80211_MESH_POWER_AFTER_LAST - 1
 };
 #endif
 
@@ -202,17 +205,17 @@ struct rwnx_key {
  * Structure containing information about a Mesh Path
  */
 struct rwnx_mesh_path {
-	struct list_head list;          /* For rwnx_vif.mesh_paths */
-	u8 path_idx;                    /* Path Index */
-	struct mac_addr tgt_mac_addr;   /* Target MAC Address */
-	struct rwnx_sta *p_nhop_sta;    /* Pointer to the Next Hop STA */
+	struct list_head list; /* For rwnx_vif.mesh_paths */
+	u8 path_idx; /* Path Index */
+	struct mac_addr tgt_mac_addr; /* Target MAC Address */
+	struct rwnx_sta *p_nhop_sta; /* Pointer to the Next Hop STA */
 };
 
 struct rwnx_mesh_proxy {
-	struct list_head list;          /* For rwnx_vif.mesh_proxy */
-	struct mac_addr ext_sta_addr;   /* Address of the External STA */
-	struct mac_addr proxy_addr;     /* Proxy MAC Address */
-	bool local;                     /* Indicate if interface is a proxy for the device */
+	struct list_head list; /* For rwnx_vif.mesh_proxy */
+	struct mac_addr ext_sta_addr; /* Address of the External STA */
+	struct mac_addr proxy_addr; /* Proxy MAC Address */
+	bool local; /* Indicate if interface is a proxy for the device */
 };
 
 /**
@@ -247,16 +250,16 @@ struct apm_probe_sta {
 };
 /// Possible States of the TDLS link.
 enum tdls_status_tag {
-		/// TDLS link is not active (no TDLS peer connected)
-		TDLS_LINK_IDLE,
-		/// TDLS Setup Request transmitted
-		TDLS_SETUP_REQ_TX,
-		/// TDLS Setup Response transmitted
-		TDLS_SETUP_RSP_TX,
-		/// TDLS link is active (TDLS peer connected)
-		TDLS_LINK_ACTIVE,
-		/// TDLS Max Number of states.
-		TDLS_STATE_MAX
+	/// TDLS link is not active (no TDLS peer connected)
+	TDLS_LINK_IDLE,
+	/// TDLS Setup Request transmitted
+	TDLS_SETUP_REQ_TX,
+	/// TDLS Setup Response transmitted
+	TDLS_SETUP_RSP_TX,
+	/// TDLS link is active (TDLS peer connected)
+	TDLS_LINK_ACTIVE,
+	/// TDLS Max Number of states.
+	TDLS_STATE_MAX
 };
 
 /*
@@ -265,18 +268,17 @@ enum tdls_status_tag {
  *
  */
 struct rwnx_tdls {
-	bool active;                /* Indicate if TDLS link is active */
-	bool initiator;             /* Indicate if TDLS peer is the TDLS initiator */
-	bool chsw_en;               /* Indicate if channel switch is enabled */
-	u8 last_tid;                /* TID of the latest MPDU transmitted over the
+	bool active; /* Indicate if TDLS link is active */
+	bool initiator; /* Indicate if TDLS peer is the TDLS initiator */
+	bool chsw_en; /* Indicate if channel switch is enabled */
+	u8 last_tid; /* TID of the latest MPDU transmitted over the
 								   TDLS direct link to the TDLS STA */
-	u16 last_sn;                /* Sequence number of the latest MPDU transmitted
+	u16 last_sn; /* Sequence number of the latest MPDU transmitted
 								   over the TDLS direct link to the TDLS STA */
-	bool ps_on;                 /* Indicate if the power save is enabled on the
+	bool ps_on; /* Indicate if the power save is enabled on the
 								   TDLS STA */
-	bool chsw_allowed;          /* Indicate if TDLS channel switch is allowed */
+	bool chsw_allowed; /* Indicate if TDLS channel switch is allowed */
 };
-
 
 /**
  * enum rwnx_ap_flags - AP flags
@@ -300,34 +302,37 @@ struct rwnx_vif {
 	struct net_device *ndev;
 	struct net_device_stats net_stats;
 	struct rwnx_key key[6];
-    unsigned long drv_flags;
+	unsigned long drv_flags;
 	atomic_t drv_conn_state;
-	u8 drv_vif_index;           /* Identifier of the VIF in driver */
-	u8 vif_index;               /* Identifier of the station in FW */
-	u8 ch_index;                /* Channel context identifier */
-	bool up;                    /* Indicate if associated netdev is up
+	u8 drv_vif_index; /* Identifier of the VIF in driver */
+	u8 vif_index; /* Identifier of the station in FW */
+	u8 ch_index; /* Channel context identifier */
+	bool up; /* Indicate if associated netdev is up
 								   (i.e. Interface is created at fw level) */
-	bool use_4addr;             /* Should we use 4addresses mode */
-	bool is_resending;          /* Indicate if a frame is being resent on this interface */
-	bool user_mpm;              /* In case of Mesh Point VIF, indicate if MPM is handled by userspace */
-	bool roc_tdls;              /* Indicate if the ROC has been called by a
+	bool use_4addr; /* Should we use 4addresses mode */
+	bool is_resending; /* Indicate if a frame is being resent on this interface */
+	bool user_mpm; /* In case of Mesh Point VIF, indicate if MPM is handled by userspace */
+	bool roc_tdls; /* Indicate if the ROC has been called by a
 								   TDLS station */
-	u8 tdls_status;             /* Status of the TDLS link */
-	bool tdls_chsw_prohibited;  /* Indicate if TDLS Channel Switch is prohibited */
-	bool wep_enabled;           /* 1 if WEP is enabled */
-	bool wep_auth_err;          /* 1 if auth status code is not supported auth alg when WEP enabled */
-	enum nl80211_auth_type last_auth_type; /* Authentication type (algorithm) sent in the last connection
+	u8 tdls_status; /* Status of the TDLS link */
+	bool tdls_chsw_prohibited; /* Indicate if TDLS Channel Switch is prohibited */
+	bool wep_enabled; /* 1 if WEP is enabled */
+	bool wep_auth_err; /* 1 if auth status code is not supported auth alg when WEP enabled */
+	enum nl80211_auth_type
+		last_auth_type; /* Authentication type (algorithm) sent in the last connection
 											  when WEP enabled */
 	union {
 		struct {
-			struct rwnx_sta *ap; /* Pointer to the peer STA entry allocated for
+			struct rwnx_sta *
+				ap; /* Pointer to the peer STA entry allocated for
 									the AP */
-			struct rwnx_sta *tdls_sta; /* Pointer to the TDLS station */
-			bool external_auth;  /* Indicate if external authentication is in progress */
+			struct rwnx_sta
+				*tdls_sta; /* Pointer to the TDLS station */
+			bool external_auth; /* Indicate if external authentication is in progress */
 			u32 group_cipher_type;
 			u32 paired_cipher_type;
 			//connected network info start
-			char ssid[33];//ssid max is 32, but this has one spare for '\0'
+			char ssid[33]; //ssid max is 32, but this has one spare for '\0'
 			int ssid_len;
 			u8 bssid[ETH_ALEN];
 			u32 conn_owner_nlportid;
@@ -335,25 +340,30 @@ struct rwnx_vif {
 			//connected network info end
 		} sta;
 		struct {
-			u16 flags;                 /* see rwnx_ap_flags */
-			struct list_head sta_list; /* List of STA connected to the AP */
-			struct rwnx_bcn bcn;       /* beacon */
-			u8 bcmc_index;             /* Index of the BCMC sta to use */
+			u16 flags; /* see rwnx_ap_flags */
+			struct list_head
+				sta_list; /* List of STA connected to the AP */
+			struct rwnx_bcn bcn; /* beacon */
+			u8 bcmc_index; /* Index of the BCMC sta to use */
 #if (defined CONFIG_HE_FOR_OLD_KERNEL) || (defined CONFIG_VHT_FOR_OLD_KERNEL)
 			u8 aic_index;
 #endif
 			struct rwnx_csa *csa;
 
-			struct list_head mpath_list; /* List of Mesh Paths used on this interface */
-			struct list_head proxy_list; /* List of Proxies Information used on this interface */
-			bool create_path;            /* Indicate if we are waiting for a MESH_CREATE_PATH_CFM
+			struct list_head
+				mpath_list; /* List of Mesh Paths used on this interface */
+			struct list_head
+				proxy_list; /* List of Proxies Information used on this interface */
+			bool create_path; /* Indicate if we are waiting for a MESH_CREATE_PATH_CFM
 											message */
-			int generation;              /* Increased each time the list of Mesh Paths is updated */
-			enum nl80211_mesh_power_mode mesh_pm; /* mesh power save mode currently set in firmware */
-			enum nl80211_mesh_power_mode next_mesh_pm; /* mesh power save mode for next peer */
+			int generation; /* Increased each time the list of Mesh Paths is updated */
+			enum nl80211_mesh_power_mode
+				mesh_pm; /* mesh power save mode currently set in firmware */
+			enum nl80211_mesh_power_mode
+				next_mesh_pm; /* mesh power save mode for next peer */
 		} ap;
 		struct {
-			struct rwnx_vif *master;   /* pointer on master interface */
+			struct rwnx_vif *master; /* pointer on master interface */
 			struct rwnx_sta *sta_4a;
 		} ap_vlan;
 	};
@@ -362,20 +372,20 @@ struct rwnx_vif {
 	u8_l is_p2p_vif;
 	struct apm_probe_sta sta_probe;
 
-	#ifdef CONFIG_BR_SUPPORT
-	spinlock_t			    br_ext_lock;
+#ifdef CONFIG_BR_SUPPORT
+	spinlock_t br_ext_lock;
 	/* unsigned int			macclone_completed; */
-	struct nat25_network_db_entry	*nethash[NAT25_HASH_SIZE];
-	int				pppoe_connection_in_progress;
-	unsigned char			pppoe_addr[MACADDRLEN];
-	unsigned char			scdb_mac[MACADDRLEN];
-	unsigned char			scdb_ip[4];
-	struct nat25_network_db_entry	*scdb_entry;
-	unsigned char			br_mac[MACADDRLEN];
-	unsigned char			br_ip[4];
+	struct nat25_network_db_entry *nethash[NAT25_HASH_SIZE];
+	int pppoe_connection_in_progress;
+	unsigned char pppoe_addr[MACADDRLEN];
+	unsigned char scdb_mac[MACADDRLEN];
+	unsigned char scdb_ip[4];
+	struct nat25_network_db_entry *scdb_entry;
+	unsigned char br_mac[MACADDRLEN];
+	unsigned char br_ip[4];
 
-	struct br_ext_info		ethBrExtInfo;
-    #endif /* CONFIG_BR_SUPPORT */
+	struct br_ext_info ethBrExtInfo;
+#endif /* CONFIG_BR_SUPPORT */
 };
 
 #define RWNX_VIF_TYPE(rwnx_vif) (rwnx_vif->wdev.iftype)
@@ -425,9 +435,18 @@ struct rwnx_sta_stats {
 
 #if (defined CONFIG_HE_FOR_OLD_KERNEL) || (defined CONFIG_VHT_FOR_OLD_KERNEL)
 struct aic_sta {
-    u8 sta_idx;             /* Identifier of the station */
-	bool he;               /* Flag indicating if the station supports HE */
-	bool vht;               /* Flag indicating if the station supports VHT */
+	u8 sta_idx; /* Identifier of the station */
+	bool he; /* Flag indicating if the station supports HE */
+	bool vht; /* Flag indicating if the station supports VHT */
+
+	struct ieee80211_he_cap_elem he_cap_elem;
+	struct ieee80211_he_mcs_nss_supp he_mcs_nss_supp;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 8, 0) ||                            \
+	defined(CONFIG_VHT_FOR_OLD_KERNEL)
+	__le32 vht_cap_info;
+	struct ieee80211_vht_mcs_info supp_mcs;
+#endif
 };
 #endif
 
@@ -436,45 +455,47 @@ struct aic_sta {
  */
 struct rwnx_sta {
 	struct list_head list;
-	u16 aid;                /* association ID */
-	u8 sta_idx;             /* Identifier of the station */
-	u8 vif_idx;             /* Identifier of the VIF (fw id) the station
+	u16 aid; /* association ID */
+	u8 sta_idx; /* Identifier of the station */
+	u8 vif_idx; /* Identifier of the VIF (fw id) the station
 							   belongs to */
-	u8 vlan_idx;            /* Identifier of the VLAN VIF (fw id) the station
+	u8 vlan_idx; /* Identifier of the VLAN VIF (fw id) the station
 							   belongs to (= vif_idx if no vlan in used) */
 	enum nl80211_band band; /* Band */
 	enum nl80211_chan_width width; /* Channel width */
-	u16 center_freq;        /* Center frequency */
-	u32 center_freq1;       /* Center frequency 1 */
-	u32 center_freq2;       /* Center frequency 2 */
-	u8 ch_idx;              /* Identifier of the channel
+	u16 center_freq; /* Center frequency */
+	u32 center_freq1; /* Center frequency 1 */
+	u32 center_freq2; /* Center frequency 2 */
+	u8 ch_idx; /* Identifier of the channel
 							   context the station belongs to */
-	bool qos;               /* Flag indicating if the station
+	bool qos; /* Flag indicating if the station
 							   supports QoS */
-	u8 acm;                 /* Bitfield indicating which queues
+	u8 acm; /* Bitfield indicating which queues
 							   have AC mandatory */
-	u16 uapsd_tids;         /* Bitfield indicating which tids are subject to
+	u16 uapsd_tids; /* Bitfield indicating which tids are subject to
 							   UAPSD */
-	u8 mac_addr[ETH_ALEN];  /* MAC address of the station */
+	u8 mac_addr[ETH_ALEN]; /* MAC address of the station */
 	struct rwnx_key key;
-	bool valid;             /* Flag indicating if the entry is valid */
-	struct rwnx_sta_ps ps;  /* Information when STA is in PS (AP only) */
+	bool valid; /* Flag indicating if the entry is valid */
+	struct rwnx_sta_ps ps; /* Information when STA is in PS (AP only) */
 #ifdef CONFIG_RWNX_BFMER
-	struct rwnx_bfmer_report *bfm_report;     /* Beamforming report to be used for
+	struct rwnx_bfmer_report *bfm_report; /* Beamforming report to be used for
 												 VHT TX Beamforming */
 #ifdef CONFIG_RWNX_MUMIMO_TX
-	struct rwnx_sta_group_info group_info; /* MU grouping information for the STA */
+	struct rwnx_sta_group_info
+		group_info; /* MU grouping information for the STA */
 #endif /* CONFIG_RWNX_MUMIMO_TX */
 #endif /* CONFIG_RWNX_BFMER */
 
-	bool ht;               /* Flag indicating if the station
+	bool ht; /* Flag indicating if the station
 							   supports HT */
-	bool vht;               /* Flag indicating if the station
+	bool vht; /* Flag indicating if the station
 							   supports VHT */
-	u32 ac_param[AC_MAX];  /* EDCA parameters */
+	u32 ac_param[AC_MAX]; /* EDCA parameters */
 	struct rwnx_tdls tdls; /* TDLS station information */
 	struct rwnx_sta_stats stats;
-	enum nl80211_mesh_power_mode mesh_pm; /*  link-specific mesh power save mode */
+	enum nl80211_mesh_power_mode
+		mesh_pm; /*  link-specific mesh power save mode */
 };
 
 static inline const u8 *rwnx_sta_addr(struct rwnx_sta *rwnx_sta)
@@ -540,7 +561,7 @@ struct rwnx_survey_info {
 /* Structure containing channel context information */
 struct rwnx_chanctx {
 	struct cfg80211_chan_def chan_def; /* channel description */
-	u8 count;                          /* number of vif using this ctxt */
+	u8 count; /* number of vif using this ctxt */
 };
 
 /**
@@ -559,35 +580,40 @@ struct rwnx_phy_info {
 	bool limit_bw;
 };
 
-
 struct defrag_ctrl_info {
-    struct list_head list;
-    u8 sta_idx;
-    u8 tid;
-    u16 sn;
-    u8 next_fn;
-    u16 frm_len;
-    struct sk_buff *skb;
-    struct timer_list defrag_timer;
-    struct rwnx_hw *rwnx_hw;
+	struct list_head list;
+	u8 sta_idx;
+	u8 tid;
+	u16 sn;
+	u8 next_fn;
+	u16 frm_len;
+	struct sk_buff *skb;
+	struct timer_list defrag_timer;
+	struct rwnx_hw *rwnx_hw;
 };
 
 struct amsdu_subframe_hdr {
-    u8 da[6];
-    u8 sa[6];
-    u16 sublen;
+	u8 da[6];
+	u8 sa[6];
+	u16 sublen;
 };
-
 
 /* rwnx driver status */
+void rwnx_set_conn_state(atomic_t *drv_conn_state, int state);
 
-enum rwnx_drv_connect_status { 
+enum rwnx_drv_connect_status {
 	RWNX_DRV_STATUS_DISCONNECTED = 0,
-	RWNX_DRV_STATUS_DISCONNECTING, 
-	RWNX_DRV_STATUS_CONNECTING, 
-	RWNX_DRV_STATUS_CONNECTED, 
+	RWNX_DRV_STATUS_DISCONNECTING,
+	RWNX_DRV_STATUS_CONNECTING,
+	RWNX_DRV_STATUS_CONNECTED,
+	RWNX_DRV_STATUS_ROAMING,
 };
 
+static const char *const s_conn_state[] = {
+	"RWNX_DRV_STATUS_DISCONNECTED", "RWNX_DRV_STATUS_DISCONNECTING",
+	"RWNX_DRV_STATUS_CONNECTING",	"RWNX_DRV_STATUS_CONNECTED",
+	"RWNX_DRV_STATUS_ROAMING",
+};
 
 struct rwnx_hw {
 	struct rwnx_mod_params *mod_params;
@@ -600,7 +626,8 @@ struct rwnx_hw {
 #endif
 	struct wiphy *wiphy;
 	struct list_head vifs;
-	struct rwnx_vif *vif_table[NX_VIRT_DEV_MAX + NX_REMOTE_STA_MAX]; /* indexed with fw id */
+	struct rwnx_vif *vif_table[NX_VIRT_DEV_MAX +
+				   NX_REMOTE_STA_MAX]; /* indexed with fw id */
 	struct rwnx_sta sta_table[NX_REMOTE_STA_MAX + NX_VIRT_DEV_MAX];
 #if (defined CONFIG_HE_FOR_OLD_KERNEL) || (defined CONFIG_VHT_FOR_OLD_KERNEL)
 	struct aic_sta aic_table[NX_REMOTE_STA_MAX + NX_VIRT_DEV_MAX];
@@ -608,7 +635,7 @@ struct rwnx_hw {
 	struct rwnx_survey_info survey[SCAN_CHANNEL_MAX];
 	struct cfg80211_scan_request *scan_request;
 #ifdef CONFIG_SCHED_SCAN
-    struct cfg80211_sched_scan_request *sched_scan_req;
+	struct cfg80211_sched_scan_request *sched_scan_req;
 #endif
 	struct rwnx_chanctx chanctx_table[NX_CHAN_CTXT_CNT];
 	u8 cur_chanctx;
@@ -621,8 +648,9 @@ struct rwnx_hw {
 #endif
 
 	/* RoC Management */
-	struct rwnx_roc_elem *roc_elem;             /* Information provided by cfg80211 in its remain on channel request */
-	u32 roc_cookie_cnt;                         /* Counter used to identify RoC request sent by cfg80211 */
+	struct rwnx_roc_elem *
+		roc_elem; /* Information provided by cfg80211 in its remain on channel request */
+	u32 roc_cookie_cnt; /* Counter used to identify RoC request sent by cfg80211 */
 
 	struct rwnx_cmd_mgr *cmd_mgr;
 
@@ -630,10 +658,11 @@ struct rwnx_hw {
 
 	spinlock_t tx_lock;
 	spinlock_t cb_lock;
-	struct mutex mutex;                         /* per-device perimeter lock */
+	struct mutex mutex; /* per-device perimeter lock */
 
 	struct tasklet_struct task;
-	struct mm_version_cfm version_cfm;          /* Lower layers versions - obtained via MM_VERSION_REQ */
+	struct mm_version_cfm
+		version_cfm; /* Lower layers versions - obtained via MM_VERSION_REQ */
 
 	u32 tcp_pacing_shift;
 
@@ -656,15 +685,15 @@ struct rwnx_hw {
 	//struct rwnx_ipc_rxbuf_elems rxbuf_elems;
 	struct rwnx_ipc_elem_var scan_ie;
 
-	struct kmem_cache      *sw_txhdr_cache;
+	struct kmem_cache *sw_txhdr_cache;
 
-	struct rwnx_debugfs     debugfs;
-	struct rwnx_stats       stats;
+	struct rwnx_debugfs debugfs;
+	struct rwnx_stats stats;
 
 #ifdef CONFIG_PREALLOC_TXQ
-    struct rwnx_txq *txq;
+	struct rwnx_txq *txq;
 #else
-    struct rwnx_txq txq[NX_NB_TXQ];
+	struct rwnx_txq txq[NX_NB_TXQ];
 #endif
 
 	struct rwnx_hwq hwq[NX_TXQ_CNT];
@@ -690,44 +719,48 @@ struct rwnx_hw {
 	bool band_5g_support;
 	u8_l vendor_info;
 	bool fwlog_en;
-	
+
 	struct list_head defrag_list;
 	spinlock_t defrag_lock;
 
-    struct work_struct apmStalossWork;
-    struct workqueue_struct *apmStaloss_wq;
-    u8 apm_vif_idx;
-    u8 sta_mac_addr[6];
+	struct work_struct apmStalossWork;
+	struct workqueue_struct *apmStaloss_wq;
+	u8 apm_vif_idx;
+	u8 sta_mac_addr[6];
 
-    struct wakeup_source *ws_rx;
-    struct wakeup_source *ws_irqrx;
-    struct wakeup_source *ws_tx;
-    struct wakeup_source *ws_pwrctrl;
+	struct wakeup_source *ws_rx;
+	struct wakeup_source *ws_irqrx;
+	struct wakeup_source *ws_tx;
+	struct wakeup_source *ws_pwrctrl;
 
 #ifdef CONFIG_SCHED_SCAN
-    bool is_sched_scan;
-#endif//CONFIG_SCHED_SCAN 
+	bool is_sched_scan;
+#endif //CONFIG_SCHED_SCAN
+#ifdef CONFIG_TEMP_CONTROL
+	unsigned long started_jiffies;
+	s8_l temp;
+#endif
 };
 
 u8 *rwnx_build_bcn(struct rwnx_bcn *bcn, struct cfg80211_beacon_data *new);
 
 void rwnx_chanctx_link(struct rwnx_vif *vif, u8 idx,
-						struct cfg80211_chan_def *chandef);
+		       struct cfg80211_chan_def *chandef);
 void rwnx_chanctx_unlink(struct rwnx_vif *vif);
-int  rwnx_chanctx_valid(struct rwnx_hw *rwnx_hw, u8 idx);
+int rwnx_chanctx_valid(struct rwnx_hw *rwnx_hw, u8 idx);
 
 extern u8 chip_id;
 
 static inline bool is_multicast_sta(int sta_idx)
 {
-    if((g_rwnx_plat->sdiodev->chipid == PRODUCT_ID_AIC8801) ||
-		((g_rwnx_plat->sdiodev->chipid == PRODUCT_ID_AIC8800DC || g_rwnx_plat->sdiodev->chipid == PRODUCT_ID_AIC8800DW) && chip_id < 3))
-        {
-            return (sta_idx >= NX_REMOTE_STA_MAX_FOR_OLD_IC);
-        }else{
-            return (sta_idx >= NX_REMOTE_STA_MAX);
-        }
-
+	if ((g_rwnx_plat->sdiodev->chipid == PRODUCT_ID_AIC8801) ||
+	    ((g_rwnx_plat->sdiodev->chipid == PRODUCT_ID_AIC8800DC ||
+	      g_rwnx_plat->sdiodev->chipid == PRODUCT_ID_AIC8800DW) &&
+	     chip_id < 3)) {
+		return (sta_idx >= NX_REMOTE_STA_MAX_FOR_OLD_IC);
+	} else {
+		return (sta_idx >= NX_REMOTE_STA_MAX);
+	}
 }
 struct rwnx_sta *rwnx_get_sta(struct rwnx_hw *rwnx_hw, const u8 *mac_addr);
 

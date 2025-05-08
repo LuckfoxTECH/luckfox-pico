@@ -24,8 +24,8 @@ static int rwnx_v7_platform_enable(struct rwnx_hw *rwnx_hw)
 	int ret;
 
 	/* sched_setscheduler on ONESHOT threaded irq handler for BCNs ? */
-	ret = request_irq(rwnx_hw->plat->pci_dev->irq, rwnx_irq_hdlr, 0,
-					  "rwnx", rwnx_hw);
+	ret = request_irq(rwnx_hw->plat->pci_dev->irq, rwnx_irq_hdlr, 0, "rwnx",
+			  rwnx_hw);
 	return ret;
 }
 
@@ -37,7 +37,7 @@ static int rwnx_v7_platform_disable(struct rwnx_hw *rwnx_hw)
 
 static void rwnx_v7_platform_deinit(struct rwnx_plat *rwnx_plat)
 {
-	#ifdef CONFIG_PCI
+#ifdef CONFIG_PCI
 	struct rwnx_v7 *rwnx_v7 = (struct rwnx_v7 *)rwnx_plat->priv;
 
 	pci_disable_device(rwnx_plat->pci_dev);
@@ -46,12 +46,12 @@ static void rwnx_v7_platform_deinit(struct rwnx_plat *rwnx_plat)
 	pci_release_regions(rwnx_plat->pci_dev);
 	pci_clear_master(rwnx_plat->pci_dev);
 	pci_disable_msi(rwnx_plat->pci_dev);
-	#endif
+#endif
 	kfree(rwnx_plat);
 }
 
 static u8 *rwnx_v7_get_address(struct rwnx_plat *rwnx_plat, int addr_name,
-						unsigned int offset)
+			       unsigned int offset)
 {
 	struct rwnx_v7 *rwnx_v7 = (struct rwnx_v7 *)rwnx_plat->priv;
 
@@ -66,14 +66,11 @@ static u8 *rwnx_v7_get_address(struct rwnx_plat *rwnx_plat, int addr_name,
 
 static void rwnx_v7_ack_irq(struct rwnx_plat *rwnx_plat)
 {
-
 }
 
 static const u32 rwnx_v7_config_reg[] = {
-	NXMAC_DEBUG_PORT_SEL_ADDR,
-	SYSCTRL_DIAG_CONF_ADDR,
-	SYSCTRL_PHYDIAG_CONF_ADDR,
-	SYSCTRL_RIUDIAG_CONF_ADDR,
+	NXMAC_DEBUG_PORT_SEL_ADDR, SYSCTRL_DIAG_CONF_ADDR,
+	SYSCTRL_PHYDIAG_CONF_ADDR, SYSCTRL_RIUDIAG_CONF_ADDR,
 	RF_V7_DIAGPORT_CONF1_ADDR,
 };
 
@@ -91,7 +88,8 @@ static int rwnx_v7_get_config_reg(struct rwnx_plat *rwnx_plat, const u32 **list)
 	if (!list)
 		return 0;
 
-	fpga_sign = RWNX_REG_READ(rwnx_plat, RWNX_ADDR_SYSTEM, SYSCTRL_SIGNATURE_ADDR);
+	fpga_sign = RWNX_REG_READ(rwnx_plat, RWNX_ADDR_SYSTEM,
+				  SYSCTRL_SIGNATURE_ADDR);
 	if (__FPGA_TYPE(fpga_sign) == 0xc0ca) {
 		*list = rwnx_v7_he_config_reg;
 		return ARRAY_SIZE(rwnx_v7_he_config_reg);
@@ -100,7 +98,6 @@ static int rwnx_v7_get_config_reg(struct rwnx_plat *rwnx_plat, const u32 **list)
 		return ARRAY_SIZE(rwnx_v7_config_reg);
 	}
 }
-
 
 /**
  * rwnx_v7_platform_init - Initialize the DINI platform
@@ -119,7 +116,7 @@ int rwnx_v7_platform_init(struct pci_dev *pci_dev, struct rwnx_plat **rwnx_plat)
 	int ret = 0;
 
 	*rwnx_plat = kzalloc(sizeof(struct rwnx_plat) + sizeof(struct rwnx_v7),
-						GFP_KERNEL);
+			     GFP_KERNEL);
 	if (!*rwnx_plat)
 		return -ENOMEM;
 
@@ -146,13 +143,12 @@ int rwnx_v7_platform_init(struct pci_dev *pci_dev, struct rwnx_plat **rwnx_plat)
 		goto out_request;
 	}
 #endif
-	#ifdef CONFIG_PCI
+#ifdef CONFIG_PCI
 	if (pci_enable_msi(pci_dev)) {
 		dev_err(&(pci_dev->dev), "pci_enable_msi failed\n");
 		goto out_msi;
-
 	}
-	#endif
+#endif
 
 	rwnx_v7->pci_bar0_vaddr = (u8 *)pci_ioremap_bar(pci_dev, 0);
 	if (!rwnx_v7->pci_bar0_vaddr) {

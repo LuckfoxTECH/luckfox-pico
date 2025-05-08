@@ -52,22 +52,20 @@
 #undef BT_DBG
 #undef BT_ERR
 #ifdef BT_SLEEP_DBG
-#define BT_DBG(fmt, arg...) pr_debug("[BT_LPM] %s: " fmt "\n",\
-				__func__, ## arg)
+#define BT_DBG(fmt, arg...) pr_debug("[BT_LPM] %s: " fmt "\n", __func__, ##arg)
 #else
 #define BT_DBG(fmt, arg...)
 #endif
-#define BT_ERR(fmt, arg...) pr_debug("[BT_LPM] %s: " fmt "\n",\
-				__func__, ## arg)
+#define BT_ERR(fmt, arg...) pr_debug("[BT_LPM] %s: " fmt "\n", __func__, ##arg)
 
 /*
  * Defines
  */
 
-#define VERSION		"1.3.3"
-#define PROC_DIR	"bluetooth/sleep"
+#define VERSION "1.3.3"
+#define PROC_DIR "bluetooth/sleep"
 
-#define DEFAULT_UART_INDEX   1
+#define DEFAULT_UART_INDEX 1
 #define BT_BLUEDROID_SUPPORT 1
 static int bluesleep_start(void);
 static void bluesleep_stop(void);
@@ -83,8 +81,8 @@ struct bluesleep_info {
 	struct wake_lock wake_lock;
 #endif
 	struct uart_port *uport;
-	unsigned host_wake_assert:1;
-	unsigned ext_wake_assert:1;
+	unsigned host_wake_assert : 1;
+	unsigned ext_wake_assert : 1;
 	struct platform_device *pdev;
 };
 
@@ -96,20 +94,20 @@ static void bluesleep_tx_allow_sleep(void);
 DECLARE_DELAYED_WORK(sleep_workqueue, bluesleep_sleep_work);
 
 /* Macros for handling sleep work */
-#define bluesleep_rx_busy()     schedule_delayed_work(&sleep_workqueue, 0)
-#define bluesleep_tx_busy()     schedule_delayed_work(&sleep_workqueue, 0)
-#define bluesleep_rx_idle()     schedule_delayed_work(&sleep_workqueue, 0)
-#define bluesleep_tx_idle()     schedule_delayed_work(&sleep_workqueue, 0)
+#define bluesleep_rx_busy() schedule_delayed_work(&sleep_workqueue, 0)
+#define bluesleep_tx_busy() schedule_delayed_work(&sleep_workqueue, 0)
+#define bluesleep_rx_idle() schedule_delayed_work(&sleep_workqueue, 0)
+#define bluesleep_tx_idle() schedule_delayed_work(&sleep_workqueue, 0)
 
 /* 1 second timeout */
-#define RX_TIMER_INTERVAL  1
+#define RX_TIMER_INTERVAL 1
 
 /* state variable names and bit positions */
-#define BT_PROTO	0x01
-#define BT_TXDATA	0x02
-#define BT_ASLEEP	0x04
-#define BT_RXTIMER	0x20
-#define BT_TXIDLE	0x08
+#define BT_PROTO 0x01
+#define BT_TXDATA 0x02
+#define BT_ASLEEP 0x04
+#define BT_RXTIMER 0x20
+#define BT_TXIDLE 0x08
 
 #if BT_BLUEDROID_SUPPORT
 static bool has_lpm_enabled;
@@ -131,8 +129,8 @@ static atomic_t open_count = ATOMIC_INIT(1);
  */
 
 #if !BT_BLUEDROID_SUPPORT
-static int bluesleep_hci_event(struct notifier_block *this,
-				unsigned long event, void *data);
+static int bluesleep_hci_event(struct notifier_block *this, unsigned long event,
+			       void *data);
 #endif
 
 /*
@@ -180,7 +178,8 @@ static void hsuart_power(int on)
 		else
 			bsi->uport->ops->set_mctrl(bsi->uport, 0);
 	} else {
-		BT_ERR("bsi->uport = NULL, has_lpm_enabled = %d", has_lpm_enabled);
+		BT_ERR("bsi->uport = NULL, has_lpm_enabled = %d",
+		       has_lpm_enabled);
 	}
 }
 
@@ -193,8 +192,8 @@ static inline int bluesleep_can_sleep(void)
 	 * are both deasserted
 	 */
 	return (gpio_get_value(bsi->ext_wake) != bsi->ext_wake_assert) &&
-		(gpio_get_value(bsi->host_wake) != bsi->host_wake_assert) &&
-		(!test_bit(BT_RXTIMER, &flags)) && (bsi->uport != NULL);
+	       (gpio_get_value(bsi->host_wake) != bsi->host_wake_assert) &&
+	       (!test_bit(BT_RXTIMER, &flags)) && (bsi->uport != NULL);
 }
 
 /**
@@ -244,8 +243,8 @@ static void bluesleep_sleep_work(struct work_struct *work)
 		hsuart_power(1);
 	} else {
 		mod_timer(&rx_timer, jiffies + (RX_TIMER_INTERVAL * HZ));
-		if (gpio_get_value(bsi->ext_wake) != bsi->ext_wake_assert
-					&& !test_bit(BT_TXIDLE, &flags)) {
+		if (gpio_get_value(bsi->ext_wake) != bsi->ext_wake_assert &&
+		    !test_bit(BT_TXIDLE, &flags)) {
 			BT_DBG("force retrigger bt wake:%lx", flags);
 			gpio_set_value(bsi->ext_wake, bsi->ext_wake_assert);
 			msleep(20);
@@ -310,9 +309,8 @@ static struct uart_port *bluesleep_get_uart_port(void)
 	if (bluesleep_uart_dev) {
 		uport = platform_get_drvdata(bluesleep_uart_dev);
 		if (uport)
-			BT_DBG(
-			"%s get uart_port from blusleep_uart_dev: %s, port irq: %d",
-			__func__, bluesleep_uart_dev->name, uport->irq);
+			BT_DBG("%s get uart_port from blusleep_uart_dev: %s, port irq: %d",
+			       __func__, bluesleep_uart_dev->name, uport->irq);
 	}
 	return uport;
 }
@@ -329,8 +327,8 @@ static int bluesleep_lpm_proc_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t bluesleep_write_proc_lpm(struct file *file,
-				const char __user *buffer,
-				size_t count, loff_t *pos)
+					const char __user *buffer, size_t count,
+					loff_t *pos)
 {
 	char b;
 
@@ -372,8 +370,8 @@ static int bluesleep_btwrite_proc_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t bluesleep_write_proc_btwrite(struct file *file,
-				const char __user *buffer,
-				size_t count, loff_t *pos)
+					    const char __user *buffer,
+					    size_t count, loff_t *pos)
 {
 	char b;
 
@@ -394,35 +392,35 @@ static ssize_t bluesleep_write_proc_btwrite(struct file *file,
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(5, 10, 0)
 static const struct proc_ops lpm_fops = {
-	.proc_open	= bluesleep_lpm_proc_open,
-	.proc_read	= seq_read,
-	.proc_lseek	= seq_lseek,
-	.proc_release	= single_release,
-	.proc_write	= bluesleep_write_proc_lpm,
+	.proc_open = bluesleep_lpm_proc_open,
+	.proc_read = seq_read,
+	.proc_lseek = seq_lseek,
+	.proc_release = single_release,
+	.proc_write = bluesleep_write_proc_lpm,
 };
 static const struct proc_ops btwrite_fops = {
-	.proc_open	= bluesleep_btwrite_proc_open,
-	.proc_read	= seq_read,
-	.proc_lseek	= seq_lseek,
-	.proc_release	= single_release,
-	.proc_write	= bluesleep_write_proc_btwrite,
+	.proc_open = bluesleep_btwrite_proc_open,
+	.proc_read = seq_read,
+	.proc_lseek = seq_lseek,
+	.proc_release = single_release,
+	.proc_write = bluesleep_write_proc_btwrite,
 };
 #else
 static const struct file_operations lpm_fops = {
-	.owner		= THIS_MODULE,
-	.open		= bluesleep_lpm_proc_open,
-	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= single_release,
-	.write		= bluesleep_write_proc_lpm,
+	.owner = THIS_MODULE,
+	.open = bluesleep_lpm_proc_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+	.write = bluesleep_write_proc_lpm,
 };
 static const struct file_operations btwrite_fops = {
-	.owner		= THIS_MODULE,
-	.open		= bluesleep_btwrite_proc_open,
-	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= single_release,
-	.write		= bluesleep_write_proc_btwrite,
+	.owner = THIS_MODULE,
+	.open = bluesleep_btwrite_proc_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+	.write = bluesleep_write_proc_btwrite,
 };
 #endif
 #else
@@ -433,10 +431,10 @@ static const struct file_operations btwrite_fops = {
  * @param data The HCI device associated with the event.
  * @return <code>NOTIFY_DONE</code>.
  */
-static int bluesleep_hci_event(struct notifier_block *this,
-				unsigned long event, void *data)
+static int bluesleep_hci_event(struct notifier_block *this, unsigned long event,
+			       void *data)
 {
-	struct hci_dev *hdev = (struct hci_dev *) data;
+	struct hci_dev *hdev = (struct hci_dev *)data;
 	struct hci_uart *hu;
 	struct uart_state *state;
 
@@ -447,8 +445,8 @@ static int bluesleep_hci_event(struct notifier_block *this,
 	case HCI_DEV_REG:
 		if (!bluesleep_hdev) {
 			bluesleep_hdev = hdev;
-			hu  = (struct hci_uart *) hdev->driver_data;
-			state = (struct uart_state *) hu->tty->driver_data;
+			hu = (struct hci_uart *)hdev->driver_data;
+			state = (struct uart_state *)hu->tty->driver_data;
 			bsi->uport = state->uart_port;
 		}
 		break;
@@ -479,7 +477,6 @@ static void bluesleep_tx_allow_sleep(void)
 	bluesleep_tx_idle();
 	spin_unlock_irqrestore(&rw_lock, irq_flags);
 }
-
 
 /* Handles reception timer expiration.
  * Clear BT_RXTIMER.
@@ -534,7 +531,7 @@ static int bluesleep_start(void)
 	}
 
 	/* start the timer */
-	mod_timer(&rx_timer, jiffies + (RX_TIMER_INTERVAL*HZ));
+	mod_timer(&rx_timer, jiffies + (RX_TIMER_INTERVAL * HZ));
 	/*deassert BT_WAKE first*/
 	gpio_set_value(bsi->ext_wake, !bsi->ext_wake_assert);
 	msleep(20);
@@ -542,9 +539,9 @@ static int bluesleep_start(void)
 	/* assert BT_WAKE */
 	gpio_set_value(bsi->ext_wake, bsi->ext_wake_assert);
 	retval = request_irq(bsi->host_wake_irq, bluesleep_hostwake_isr,
-				IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
-				"bluetooth hostwake", &bsi->pdev->dev);
-	if (retval  < 0) {
+			     IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
+			     "bluetooth hostwake", &bsi->pdev->dev);
+	if (retval < 0) {
 		BT_ERR("Couldn't acquire BT_HOST_WAKE IRQ");
 		goto fail;
 	}
@@ -772,14 +769,15 @@ static struct platform_device *sw_uart_get_pdev(int id)
 static int bluesleep_probe(struct platform_device *pdev)
 {
 #if 1
-	struct device_node *np = of_find_compatible_node(NULL, NULL, "allwinner,sunxi-btlpm");
+	struct device_node *np =
+		of_find_compatible_node(NULL, NULL, "allwinner,sunxi-btlpm");
 	struct device *dev = &pdev->dev;
 	enum of_gpio_flags config;
 	int ret, uart_index;
 	u32 val;
 
 	bsi = devm_kzalloc(&pdev->dev, sizeof(struct bluesleep_info),
-			GFP_KERNEL);
+			   GFP_KERNEL);
 	if (!bsi)
 		return -ENOMEM;
 
@@ -792,23 +790,24 @@ static int bluesleep_probe(struct platform_device *pdev)
 
 	/* set host_wake_assert */
 	bsi->host_wake_assert = (config == OF_GPIO_ACTIVE_LOW) ? 0 : 1;
-	BT_DBG("bt_hostwake gpio=%d assert=%d\n", bsi->host_wake, bsi->host_wake_assert);
+	BT_DBG("bt_hostwake gpio=%d assert=%d\n", bsi->host_wake,
+	       bsi->host_wake_assert);
 
 	if (assert_level != -1) {
 		bsi->host_wake_assert = (assert_level & 0x02) > 0;
-		BT_DBG("override host_wake assert to %d", bsi->host_wake_assert);
+		BT_DBG("override host_wake assert to %d",
+		       bsi->host_wake_assert);
 	}
 
 	ret = devm_gpio_request(dev, bsi->host_wake, "bt_hostwake");
 	if (ret < 0) {
-		BT_ERR("can't request bt_hostwake gpio %d\n",
-			bsi->host_wake);
+		BT_ERR("can't request bt_hostwake gpio %d\n", bsi->host_wake);
 		goto err0;
 	}
 	ret = gpio_direction_input(bsi->host_wake);
 	if (ret < 0) {
 		BT_ERR("can't request input direction bt_wake gpio %d\n",
-			bsi->host_wake);
+		       bsi->host_wake);
 		goto err1;
 	}
 
@@ -816,7 +815,7 @@ static int bluesleep_probe(struct platform_device *pdev)
 	if (!of_property_read_bool(np, "wakeup-source")) {
 #else
 	if (!of_property_read_u32(np, "wakeup-source", &bsi->wakeup_enable) &&
-		(bsi->wakeup_enable == 0)) {
+	    (bsi->wakeup_enable == 0)) {
 #endif
 		BT_DBG("wakeup source is disabled!\n");
 	} else {
@@ -829,12 +828,12 @@ static int bluesleep_probe(struct platform_device *pdev)
 		ret = dev_pm_set_wake_irq(dev, gpio_to_irq(bsi->host_wake));
 		if (ret < 0) {
 			BT_ERR("can't enable wakeup src for bt_hostwake %d\n",
-				bsi->host_wake);
+			       bsi->host_wake);
 			goto err2;
 		}
 		bsi->wakeup_enable = 1;
 #else
-			BT_ERR("%s kernel unsupport this feature!\r\n", __func__);
+		BT_ERR("%s kernel unsupport this feature!\r\n", __func__);
 #endif
 	}
 
@@ -847,14 +846,14 @@ static int bluesleep_probe(struct platform_device *pdev)
 
 	ret = devm_gpio_request(dev, bsi->ext_wake, "bt_wake");
 	if (ret < 0) {
-		BT_ERR("can't request bt_wake gpio %d\n",
-			bsi->ext_wake);
+		BT_ERR("can't request bt_wake gpio %d\n", bsi->ext_wake);
 		goto err2;
 	}
 
 	/* set ext_wake_assert */
 	bsi->ext_wake_assert = (config == OF_GPIO_ACTIVE_LOW) ? 0 : 1;
-	BT_DBG("bt_wake gpio=%d assert=%d\n", bsi->ext_wake, bsi->ext_wake_assert);
+	BT_DBG("bt_wake gpio=%d assert=%d\n", bsi->ext_wake,
+	       bsi->ext_wake_assert);
 
 	if (assert_level != -1) {
 		bsi->ext_wake_assert = (assert_level & 0x01) > 0;
@@ -865,7 +864,7 @@ static int bluesleep_probe(struct platform_device *pdev)
 	ret = gpio_direction_output(bsi->ext_wake, bsi->ext_wake_assert);
 	if (ret < 0) {
 		BT_ERR("can't request output direction bt_wake gpio %d\n",
-			bsi->ext_wake);
+		       bsi->ext_wake);
 		goto err3;
 	}
 	/*set ext_wake deassert as default*/
@@ -875,7 +874,7 @@ static int bluesleep_probe(struct platform_device *pdev)
 	bsi->host_wake_irq = gpio_to_irq(bsi->host_wake);
 	if (bsi->host_wake_irq < 0) {
 		BT_ERR("map gpio [%d] to virq failed, errno = %d\n",
-				bsi->host_wake, bsi->host_wake_irq);
+		       bsi->host_wake, bsi->host_wake_irq);
 		ret = -ENODEV;
 		goto err3;
 	}
@@ -898,7 +897,7 @@ static int bluesleep_probe(struct platform_device *pdev)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
-    bsi->ws = wakeup_source_register(dev, "bluesleep");
+	bsi->ws = wakeup_source_register(dev, "bluesleep");
 #else
 	bsi->ws = wakeup_source_register("bluesleep");
 #endif
@@ -1108,4 +1107,3 @@ int bluesleep_exit(struct platform_device *dev)
 	bluesleep_remove(dev);
 	return 0;
 }
-

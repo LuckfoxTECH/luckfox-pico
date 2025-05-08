@@ -24,10 +24,10 @@
  */
 
 int rwnx_bfmer_report_add(struct rwnx_hw *rwnx_hw, struct rwnx_sta *rwnx_sta,
-						  unsigned int length)
+			  unsigned int length)
 {
 	gfp_t flags;
-	struct rwnx_bfmer_report *bfm_report ;
+	struct rwnx_bfmer_report *bfm_report;
 
 	if (in_softirq())
 		flags = GFP_ATOMIC;
@@ -36,7 +36,6 @@ int rwnx_bfmer_report_add(struct rwnx_hw *rwnx_hw, struct rwnx_sta *rwnx_sta,
 
 	/* Allocate a structure that will contain the beamforming report */
 	bfm_report = kmalloc(sizeof(*bfm_report) + length, flags);
-
 
 	/* Check report allocation */
 	if (!bfm_report) {
@@ -51,8 +50,8 @@ int rwnx_bfmer_report_add(struct rwnx_hw *rwnx_hw, struct rwnx_sta *rwnx_sta,
 	 * Need to provide a Virtual Address to the MAC so that it can
 	 * upload the received Beamforming Report in driver memory
 	 */
-	bfm_report->dma_addr = dma_map_single(rwnx_hw->dev, &bfm_report->report[0],
-										  length, DMA_FROM_DEVICE);
+	bfm_report->dma_addr = dma_map_single(
+		rwnx_hw->dev, &bfm_report->report[0], length, DMA_FROM_DEVICE);
 
 	/* Check DMA mapping result */
 	if (dma_mapping_error(rwnx_hw->dev, bfm_report->dma_addr)) {
@@ -76,7 +75,7 @@ void rwnx_bfmer_report_del(struct rwnx_hw *rwnx_hw, struct rwnx_sta *rwnx_sta)
 
 		/* Unmap DMA region */
 		dma_unmap_single(rwnx_hw->dev, bfm_report->dma_addr,
-						 bfm_report->length, DMA_BIDIRECTIONAL);
+				 bfm_report->length, DMA_BIDIRECTIONAL);
 
 		/* Free allocated report structure and clean the pointer */
 		kfree(bfm_report);

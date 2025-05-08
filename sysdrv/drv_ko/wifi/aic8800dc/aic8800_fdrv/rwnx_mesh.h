@@ -40,6 +40,7 @@
  * @brief TODO [LT]
  ****************************************************************************************
  */
-struct rwnx_mesh_proxy *rwnx_get_mesh_proxy_info(struct rwnx_vif *p_rwnx_vif, u8 *p_sta_addr, bool local);
+struct rwnx_mesh_proxy *rwnx_get_mesh_proxy_info(struct rwnx_vif *p_rwnx_vif,
+						 u8 *p_sta_addr, bool local);
 
 #endif /* _RWNX_MESH_H_ */
