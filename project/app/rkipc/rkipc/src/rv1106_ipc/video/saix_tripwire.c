@@ -44,23 +44,6 @@ void fetch_camera_and_client_id(char* camera_id, size_t camera_id_size, char* cl
 // Forward declaration of the callback function
 void ba_result_callback(const RockIvaBaResult* result, const RockIvaExecuteStatus status, void* userdata);
 
-const char* get_object_type_string(uint32_t obj_type) {
-    switch (obj_type) {
-        case ROCKIVA_OBJECT_TYPE_PERSON:        return "person";
-        case ROCKIVA_OBJECT_TYPE_VEHICLE:       return "vehicle";
-        case ROCKIVA_OBJECT_TYPE_NON_VEHICLE:   return "non_vehicle";
-        case ROCKIVA_OBJECT_TYPE_FACE:          return "face";
-        case ROCKIVA_OBJECT_TYPE_HEAD:          return "head";
-        case ROCKIVA_OBJECT_TYPE_PET:           return "pet";
-        case ROCKIVA_OBJECT_TYPE_MOTORCYCLE:    return "motorcycle";
-        case ROCKIVA_OBJECT_TYPE_BICYCLE:       return "bicycle";
-        case ROCKIVA_OBJECT_TYPE_PLATE:         return "plate";
-        case ROCKIVA_OBJECT_TYPE_BABY:          return "baby";
-        case ROCKIVA_OBJECT_TYPE_PACKAGE:       return "package";
-        default:                                return "unknown";
-    }
-}
-
 // Function to fetch camera and client ID from rk_param
 void fetch_camera_and_client_id(char* camera_id, size_t camera_id_size, char* client_id, size_t client_id_size) {
     // Get camera ID from parameters
@@ -111,7 +94,7 @@ int configure_rules_from_rkparam(RockIvaHandle handle) {
         taskParams.baRules.tripWireRule[rule_id].sense = rk_param_get_int("rule.0:sense", 80);
         taskParams.baRules.tripWireRule[rule_id].trigerMode = rk_param_get_int("rule.0:trigger_mode", 1);
         taskParams.baRules.tripWireRule[rule_id].event = ROCKIVA_BA_TRIP_EVENT_BOTH;
-        taskParams.baRules.tripWireRule[rule_id].objType = rk_param_get_int("rule.0:object_type", 0);
+        
 
         int head_x = 0, head_y = 0;
         sscanf(rk_param_get_string("rule.0:line_head", "0,0"), "%d,%d", &head_x, &head_y);
@@ -132,8 +115,6 @@ int configure_rules_from_rkparam(RockIvaHandle handle) {
         taskParams.baRules.areaInRule[rule_id].sense = rk_param_get_int("rule.1:sense", 70);
         taskParams.baRules.areaInRule[rule_id].alertTime = rk_param_get_int("rule.1:alert_time", 10);
         taskParams.baRules.areaInRule[rule_id].checkEnter = rk_param_get_int("rule.1:check_enter", 1);
-        taskParams.baRules.areaInRule[rule_id].objType = rk_param_get_int("rule.1:object_type", 0);
-
         const char* area_str = rk_param_get_string("rule.1:area", "");
         int x[4], y[4];
         if (sscanf(area_str, "%d,%d,%d,%d,%d,%d,%d,%d", &x[0], &y[0], &x[1], &y[1], &x[2], &y[2], &x[3], &y[3]) == 8) {

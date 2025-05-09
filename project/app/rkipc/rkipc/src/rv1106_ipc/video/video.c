@@ -1675,6 +1675,12 @@ int rk_roi_set(roi_data_s *roi_data) {
 
 // 	return ret;
 // }
+// Forward declaration of the callback function
+void ba_result_callback(const RockIvaBaResult* result, const RockIvaExecuteStatus status, void* userdata);
+
+// Function to register the event callback
+typedef void (*SaixEventCallback)(int rule_id, const char* event_type, const char* json_payload);
+void saix_register_event_callback(SaixEventCallback cb);
 
 int rk_video_init() {
 	LOG_DEBUG("begin\n");
@@ -1717,7 +1723,7 @@ int rk_video_init() {
 	// rk_region_clip_set_all();
 	if (enable_npu || enable_ivs) {
 		ret |= saix_setup_ivs_pipe();
-		ret |= init_tripwire();
+		saix_register_event_callback(ba_result_callback);
 	}
 	// The osd dma buffer must be placed in the last application,
 	// otherwise, when the font size is switched, holes may be caused

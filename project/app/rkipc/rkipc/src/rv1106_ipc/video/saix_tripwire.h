@@ -29,7 +29,7 @@ void saix_register_event_callback(SaixEventCallback cb);
 void saix_send_event(int rule_id, const char* type, const char* message);
 
 // Get ISO format timestamp
-const char* saix_get_iso_timestamp(void);
+//const char* saix_get_iso_timestamp(void);
 
 // Initialize tripwire functionality - takes no parameters
 int init_tripwire(void);
