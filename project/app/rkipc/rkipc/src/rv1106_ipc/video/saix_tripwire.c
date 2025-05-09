@@ -1,7 +1,100 @@
-// This updated version removes INI parsing from file and uses rk_param_get_* for rule setup.
-// Only required parameters are extracted from assumed keys like: rule.0:type, rule.0:line_head etc.
-#include "rockiva_common.h"
+/*
+ * Copyright (c) 2025 NeuralSense AI Private Limited
+ * Trading as swatah.ai. All rights reserved.
+ *
+ * This file is part of the swatah.ai software stack and is licensed under
+ * the terms defined in the accompanying LICENSE file. Unauthorized copying,
+ * distribution, or modification of this file, via any medium, is strictly prohibited.
+ *
+ * For more information, visit: https://swatah.ai
+*/
 
+#include "rockiva_common.h"
+#include "video.h"
+#include "rockiva_ba_api.h"
+
+// Event callback typedef
+typedef void (*SaixEventCallback)(int rule_id, const char* event_type, const char* json_payload);
+static SaixEventCallback g_saix_event_callback = NULL;
+
+void saix_register_event_callback(SaixEventCallback cb) {
+    g_saix_event_callback = cb;
+    printf("[Tripwire] Event callback registered.\n");
+}
+
+void saix_send_event(int rule_id, const char* type, const char* message) {
+    if (g_saix_event_callback) {
+        printf("[Tripwire] Dispatching event: rule=%d type=%s\n", rule_id, type);
+        g_saix_event_callback(rule_id, type, message);
+    } else {
+        printf("[Tripwire] No event callback registered. Event dropped.\n");
+    }
+}
+
+const char* saix_get_iso_timestamp() {
+    static char buf[32];
+    time_t now = time(0);
+    strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S", localtime(&now));
+    return buf;
+}
+
+// Function to fetch camera and client ID
+void fetch_camera_and_client_id(char* camera_id, size_t camera_id_size, char* client_id, size_t client_id_size);
+
+// Forward declaration of the callback function
+void ba_result_callback(const RockIvaBaResult* result, const RockIvaExecuteStatus status, void* userdata);
+
+const char* get_object_type_string(uint32_t obj_type) {
+    switch (obj_type) {
+        case ROCKIVA_OBJECT_TYPE_PERSON:        return "person";
+        case ROCKIVA_OBJECT_TYPE_VEHICLE:       return "vehicle";
+        case ROCKIVA_OBJECT_TYPE_NON_VEHICLE:   return "non_vehicle";
+        case ROCKIVA_OBJECT_TYPE_FACE:          return "face";
+        case ROCKIVA_OBJECT_TYPE_HEAD:          return "head";
+        case ROCKIVA_OBJECT_TYPE_PET:           return "pet";
+        case ROCKIVA_OBJECT_TYPE_MOTORCYCLE:    return "motorcycle";
+        case ROCKIVA_OBJECT_TYPE_BICYCLE:       return "bicycle";
+        case ROCKIVA_OBJECT_TYPE_PLATE:         return "plate";
+        case ROCKIVA_OBJECT_TYPE_BABY:          return "baby";
+        case ROCKIVA_OBJECT_TYPE_PACKAGE:       return "package";
+        default:                                return "unknown";
+    }
+}
+
+// Function to fetch camera and client ID from rk_param
+void fetch_camera_and_client_id(char* camera_id, size_t camera_id_size, char* client_id, size_t client_id_size) {
+    // Get camera ID from parameters
+    const char* cam_id = rk_param_get_string("camera:id", "unknown");
+    strncpy(camera_id, cam_id, camera_id_size - 1);
+    camera_id[camera_id_size - 1] = '\0';  // Ensure null-termination
+    
+    // Get client ID from parameters
+    const char* cl_id = rk_param_get_string("client:id", "unknown");
+    strncpy(client_id, cl_id, client_id_size - 1);
+    client_id[client_id_size - 1] = '\0';  // Ensure null-termination
+}
+
+// Map the RockIvaBaTripEvent direction to a human-readable string
+const char* map_tripwire_direction(RockIvaBaTripEvent direction) {
+    switch (direction) {
+        case ROCKIVA_BA_TRIP_EVENT_BOTH:
+            return "bidirectional";
+        case ROCKIVA_BA_TRIP_EVENT_DEASIL:
+            return "head_to_tail";
+        case ROCKIVA_BA_TRIP_EVENT_WIDDERSHINES:
+            return "tail_to_head";
+        default:
+            return "unknown";
+    }
+}
+
+// Function to get current timestamp
+const char* saix_get_current_timestamp() {
+    return saix_get_iso_timestamp();
+}
+
+
+// for parsing tripwire specific rules
 int configure_rules_from_rkparam(RockIvaHandle handle) {
     RockIvaBaTaskParams taskParams;
     memset(&taskParams, 0, sizeof(taskParams));
@@ -61,43 +154,9 @@ int configure_rules_from_rkparam(RockIvaHandle handle) {
     return 0;
 }
 
-const char* get_object_type_string(uint32_t obj_type) {
-    switch (obj_type) {
-        case ROCKIVA_OBJECT_TYPE_PERSON:        return "person";
-        case ROCKIVA_OBJECT_TYPE_VEHICLE:       return "vehicle";
-        case ROCKIVA_OBJECT_TYPE_NON_VEHICLE:   return "non_vehicle";
-        case ROCKIVA_OBJECT_TYPE_FACE:          return "face";
-        case ROCKIVA_OBJECT_TYPE_HEAD:          return "head";
-        case ROCKIVA_OBJECT_TYPE_PET:           return "pet";
-        case ROCKIVA_OBJECT_TYPE_MOTORCYCLE:    return "motorcycle";
-        case ROCKIVA_OBJECT_TYPE_BICYCLE:       return "bicycle";
-        case ROCKIVA_OBJECT_TYPE_PLATE:         return "plate";
-        case ROCKIVA_OBJECT_TYPE_BABY:          return "baby";
-        case ROCKIVA_OBJECT_TYPE_PACKAGE:       return "package";
-        default:                                return "unknown";
-    }
-}
-
-// Map the RockIvaBaTripEvent direction to a human-readable string
-const char* map_tripwire_direction(RockIvaBaTripEvent direction) {
-    switch (direction) {
-        case ROCKIVA_BA_TRIP_EVENT_BOTH:
-            return "bidirectional";
-        case ROCKIVA_BA_TRIP_EVENT_DEASIL:
-            return "head_to_tail";
-        case ROCKIVA_BA_TRIP_EVENT_WIDDERSHINES:
-            return "tail_to_head";
-        default:
-            return "unknown";
-    }
-}
-
-
-// Function to fetch camera and client ID
-
 // Callback function for behavior analysis results
 void ba_result_callback(const RockIvaBaResult* result, const RockIvaExecuteStatus status, void* userdata) {
-    if (status != ROCKIVA_SUCCESS || !g_event_callback || !result) {
+    if (status != ROCKIVA_SUCCESS || !g_saix_event_callback || !result) {
         return;
     }
 
@@ -170,7 +229,7 @@ void ba_result_callback(const RockIvaBaResult* result, const RockIvaExecuteStatu
                          get_object_type_string(obj->objInfo.type),
                          obj->objInfo.objId);
 
-                g_event_callback(firstTrigger->ruleID, "Tripwire", json_message);
+                g_saix_event_callback(firstTrigger->ruleID, "Tripwire", json_message);
                 printf(">>> ba_result_callback() triggered with %u objects\n", result->objNum);
 
             }
@@ -201,7 +260,7 @@ void ba_result_callback(const RockIvaBaResult* result, const RockIvaExecuteStatu
                          get_object_type_string(obj->objInfo.type),
                          obj->objInfo.objId);
 
-                g_event_callback(firstTrigger->ruleID, "Area Invasion", json_message);
+                g_saix_event_callback(firstTrigger->ruleID, "Area Invasion", json_message);
                 printf(">>> ba_result_callback() triggered with %u objects\n", result->objNum);
 
             }
@@ -210,33 +269,67 @@ void ba_result_callback(const RockIvaBaResult* result, const RockIvaExecuteStatu
 
 }
 
-// Initialization function
-int init_tripwire(RockIvaHandle handle) {
-    printf("Initializing Tripwire functionality...\n");
+// Fixed update_tripwire_config function
+int update_tripwire_config(void) {
+    printf("[Tripwire] Updating Tripwire configuration...\n");
 
-    // Configure rules from rk_param directly
-    if (configure_rules_from_rkparam(handle) != 0) {
-        printf("Failed to configure rules from rk_param.\n");
+    extern RockIvaHandle rkba_handle;
+    
+    // Store current callback to preserve it
+    SaixEventCallback temp_callback = g_saix_event_callback;
+    
+    // First release the existing configuration
+    RockIvaRetCode ret = ROCKIVA_BA_Release(rkba_handle);
+    if (ret != ROCKIVA_RET_SUCCESS) {
+        printf("[Tripwire] Failed to release existing configuration: %d\n", ret);
+        return -1;
+    }
+    
+    // Reconfigure rules from rk_param
+    if (configure_rules_from_rkparam(rkba_handle) != 0) {
+        printf("[Tripwire] Failed to reconfigure rules from rk_param.\n");
+        return -1;
+    }
+    
+    // Restore the callback that might have been reset during configuration
+    g_saix_event_callback = temp_callback;
+    
+    printf("[Tripwire] Configuration update complete.\n");
+    return 0;
+}
+
+
+int init_tripwire(void) {
+    printf("[Tripwire] Initializing Tripwire functionality...\n");
+
+    extern RockIvaHandle rkba_handle;
+    if (configure_rules_from_rkparam(rkba_handle) != 0) {
+        printf("[Tripwire] Failed to configure rules from rk_param.\n");
         return -1;
     }
 
-    printf("Tripwire initialization complete.\n");
+    printf("[Tripwire] Initialization complete.\n");
     return 0;
 }
 
 // Deinitialization function
-int deinit_tripwire(RockIvaHandle handle) {
-    printf("Deinitializing Tripwire functionality...\n");
+// Fixed deinit_tripwire function
+int deinit_tripwire(void) {
+    printf("[Tripwire] Deinitializing Tripwire functionality...\n");
 
-    RockIvaRetCode ret = ROCKIVA_BA_Release(handle);
+    extern RockIvaHandle rkba_handle;
+    
+    // Nullify event callback first to prevent triggering during shutdown
+    g_saix_event_callback = NULL;
+    
+    // Release the behavior analysis handle
+    RockIvaRetCode ret = ROCKIVA_BA_Release(rkba_handle);
     if (ret != ROCKIVA_RET_SUCCESS) {
-        printf("Failed to release RockIva BA: %d\n", ret);
+        printf("[Tripwire] Failed to release RockIva BA: %d\n", ret);
         return -1;
     }
     
-    // Free any allocated memory for taskParams
-    // (implementation would depend on how you store it)
-
-    printf("Tripwire deinitialization complete.\n");
+    printf("[Tripwire] Deinitialization complete.\n");
     return 0;
 }
+

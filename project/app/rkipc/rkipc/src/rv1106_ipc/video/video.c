@@ -15,7 +15,7 @@
 #include "rockiva.h"
 #include "saix_threads.h"
 #include "saix_utils.h"
-
+#include "saix_tripwire.h"
 
 #ifdef LOG_TAG
 #undef LOG_TAG
@@ -1717,6 +1717,7 @@ int rk_video_init() {
 	// rk_region_clip_set_all();
 	if (enable_npu || enable_ivs) {
 		ret |= saix_setup_ivs_pipe();
+		ret |= init_tripwire();
 	}
 	// The osd dma buffer must be placed in the last application,
 	// otherwise, when the font size is switched, holes may be caused
