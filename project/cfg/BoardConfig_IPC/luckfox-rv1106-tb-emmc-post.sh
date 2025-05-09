@@ -39,7 +39,9 @@ test ! -f crc16.ko || insmod crc16.ko
 test ! -f mbcache.ko || insmod mbcache.ko
 test ! -f ext4.ko || insmod ext4.ko
 test ! -f dw_mmc-rockchip.ko || insmod dw_mmc-rockchip.ko
+sleep 0.5
 sh /etc/init.d/S20linkmount start &
+sleep 0.5
 
 echo "start app" > /dev/kmsg
 test -n "\$persist_camera_engine_log" && \

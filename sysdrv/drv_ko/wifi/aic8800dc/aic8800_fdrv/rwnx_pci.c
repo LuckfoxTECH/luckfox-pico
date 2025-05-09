@@ -14,24 +14,26 @@
 #include "rwnx_dini.h"
 #include "rwnx_v7.h"
 
-#define PCI_VENDOR_ID_DINIGROUP              0x17DF
-#define PCI_DEVICE_ID_DINIGROUP_DNV6_F2PCIE  0x1907
+#define PCI_VENDOR_ID_DINIGROUP 0x17DF
+#define PCI_DEVICE_ID_DINIGROUP_DNV6_F2PCIE 0x1907
 
-#define PCI_DEVICE_ID_XILINX_CEVA_VIRTEX7    0x7011
+#define PCI_DEVICE_ID_XILINX_CEVA_VIRTEX7 0x7011
 
 static const struct pci_device_id rwnx_pci_ids[] = {
-	{PCI_DEVICE(PCI_VENDOR_ID_DINIGROUP, PCI_DEVICE_ID_DINIGROUP_DNV6_F2PCIE)},
-	{PCI_DEVICE(PCI_VENDOR_ID_XILINX, PCI_DEVICE_ID_XILINX_CEVA_VIRTEX7)},
-	{0,}
+	{ PCI_DEVICE(PCI_VENDOR_ID_DINIGROUP,
+		     PCI_DEVICE_ID_DINIGROUP_DNV6_F2PCIE) },
+	{ PCI_DEVICE(PCI_VENDOR_ID_XILINX, PCI_DEVICE_ID_XILINX_CEVA_VIRTEX7) },
+	{
+		0,
+	}
 };
-
 
 /* Uncomment this for depmod to create module alias */
 /* We don't want this on development platform */
 //MODULE_DEVICE_TABLE(pci, rwnx_pci_ids);
 
 static int rwnx_pci_probe(struct pci_dev *pci_dev,
-						  const struct pci_device_id *pci_id)
+			  const struct pci_device_id *pci_id)
 {
 	struct rwnx_plat *rwnx_plat = NULL;
 	void *drvdata;
@@ -75,12 +77,10 @@ static void rwnx_pci_remove(struct pci_dev *pci_dev)
 	pci_set_drvdata(pci_dev, NULL);
 }
 
-static struct pci_driver rwnx_pci_drv = {
-	.name     = KBUILD_MODNAME,
-	.id_table = rwnx_pci_ids,
-	.probe    = rwnx_pci_probe,
-	.remove   = rwnx_pci_remove
-};
+static struct pci_driver rwnx_pci_drv = { .name = KBUILD_MODNAME,
+					  .id_table = rwnx_pci_ids,
+					  .probe = rwnx_pci_probe,
+					  .remove = rwnx_pci_remove };
 
 int rwnx_pci_register_drv(void)
 {
@@ -91,4 +91,3 @@ void rwnx_pci_unregister_drv(void)
 {
 	pci_unregister_driver(&rwnx_pci_drv);
 }
-

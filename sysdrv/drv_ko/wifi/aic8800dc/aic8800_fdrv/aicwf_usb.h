@@ -15,32 +15,28 @@
 #ifdef AICWF_USB_SUPPORT
 
 /* USB Device ID */
-#define USB_VENDOR_ID_AIC                0xA69C
+#define USB_VENDOR_ID_AIC 0xA69C
 
 #ifndef CONFIG_USB_BT
-#define USB_PRODUCT_ID_AIC               0x8800
+#define USB_PRODUCT_ID_AIC 0x8800
 #else
-#define USB_PRODUCT_ID_AIC               0x8801
+#define USB_PRODUCT_ID_AIC 0x8801
 #endif
 
-#define AICWF_USB_RX_URBS               (200)
-#define AICWF_USB_TX_URBS               (100)
-#define AICWF_USB_TX_LOW_WATER          (AICWF_USB_TX_URBS/4)
-#define AICWF_USB_TX_HIGH_WATER         (AICWF_USB_TX_LOW_WATER*3)
-#define AICWF_USB_MAX_PKT_SIZE          (2048)
+#define AICWF_USB_RX_URBS (200)
+#define AICWF_USB_TX_URBS (100)
+#define AICWF_USB_TX_LOW_WATER (AICWF_USB_TX_URBS / 4)
+#define AICWF_USB_TX_HIGH_WATER (AICWF_USB_TX_LOW_WATER * 3)
+#define AICWF_USB_MAX_PKT_SIZE (2048)
 
 typedef enum {
-	USB_TYPE_DATA         = 0X00,
-	USB_TYPE_CFG          = 0X10,
-	USB_TYPE_CFG_CMD_RSP  = 0X11,
+	USB_TYPE_DATA = 0X00,
+	USB_TYPE_CFG = 0X10,
+	USB_TYPE_CFG_CMD_RSP = 0X11,
 	USB_TYPE_CFG_DATA_CFM = 0X12
 } usb_type;
 
-enum aicwf_usb_state {
-	USB_DOWN_ST,
-	USB_UP_ST,
-	USB_SLEEP_ST
-};
+enum aicwf_usb_state { USB_DOWN_ST, USB_UP_ST, USB_SLEEP_ST };
 
 struct aicwf_usb_buf {
 	struct list_head list;

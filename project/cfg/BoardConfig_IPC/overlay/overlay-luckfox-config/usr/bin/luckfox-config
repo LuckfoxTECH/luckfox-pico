@@ -343,15 +343,15 @@ function luckfox_load_cfg() {
 	fi
 
 	# CSI ( Priority is lower than RGB )
-	value=$(luckfox_get_pin_cfg "CSI_ENABLE")
-	if [ -z "$value" ]; then
-		if [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra W" ]; then
-			luckfox_set_pin_mark "I2C4_M1_SCL" 1
-			luckfox_set_pin_mark "I2C4_M1_SDA" 1
-			luckfox_set_pin_mark "I2C4_M0_SCL" 1
-			luckfox_set_pin_mark "I2C4_M0_SDA" 1
-		fi
-	fi
+	# value=$(luckfox_get_pin_cfg "CSI_ENABLE")
+	# if [ -z "$value" ]; then
+	# 	if [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra W" ]; then
+	# 		luckfox_set_pin_mark "I2C4_M1_SCL" 1
+	# 		luckfox_set_pin_mark "I2C4_M1_SDA" 1
+	# 		luckfox_set_pin_mark "I2C4_M0_SCL" 1
+	# 		luckfox_set_pin_mark "I2C4_M0_SDA" 1
+	# 	fi
+	# fi
 
 	# FBTFT
 	value=$(luckfox_get_pin_cfg "FBTFT_ENABLE")
@@ -1387,25 +1387,6 @@ function hex_add() {
 }
 
 ################################################################
-# @fu hex_shift
-#
-# @param hex 		  -
-#		 shift_amount -
-#
-# @return  The hexadecimal number after shifting hex by shift_amount.
-################################################################
-function hex_shift() {
-	local hex=$1
-	local shift_amount=$2
-
-	local dec=$(printf "%d" 0x$hex)
-	local shift=$((shift_amount * 2))
-	local shifted=$((dec << shift))
-
-	printf "%X\n" $shifted
-}
-
-################################################################
 # @fu luckfox_gpio_app
 #
 # @brief 1. Set the default pull-up or pull-down state of the GPIO.
@@ -1686,13 +1667,10 @@ function luckfox_check_i2c() {
 			csi_status=$(luckfox_get_pin_cfg "CSI_ENABLE")
 			# process default status
 			if [ -z "$csi_status" ]; then
-				# CSI I2C is not enabled on Ultra models by default
-				if [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra W" ]; then
-					"$csi_status" = 0
-				else
-					"$csi_status" = 1
-				fi
+				echo "set csi_status = 1"
+				csi_status=1
 			fi
+			echo "csi_status = $csi_status"
 
 			if [ "$csi_status" == 1 ]; then
 				luckfox_result_handle "$LF_ERR" "CSI is enable,Can't config I2C4"
@@ -2861,12 +2839,9 @@ function luckfox_result_handle() {
 }
 
 ################################################################
-# @fu luckfox_result_handle
+# @fu luckfox_pico_show_pin_diagram
 #
-# @brief 1. Display a message in the GUI.
-#
-# @param status - Status of messages
-#		 log    - Prepare the message to be printed
+# @brief 1. Display pin diagram in the GUI.
 #
 # @return none
 ################################################################
@@ -2889,13 +2864,15 @@ function luckfox_show_menu() {
 				--menu "Choose an option" 80 50 6 \
 				1 "Advanced Options" \
 				2 "4G Module" \
-				3 "About Luckfox" \
+				3 "Backup" \
+				4 "About Luckfox" \
 				2>&1 >/dev/tty)
 
 			case $option in
 			1) luckfox_advanced_options ;;
 			2) luckfox_4G ;;
-			3) luckfox_about ;;
+			3) luckfox_backup ;;
+			4) luckfox_about ;;
 			*) luckfox_exit ;;
 			esac
 		done
@@ -2905,12 +2882,14 @@ function luckfox_show_menu() {
 			option=$(dialog --title "$LUCKFOX_CHIP_MODEL Config" \
 				--menu "Choose an option" 80 50 6 \
 				1 "Advanced Options" \
-				2 "About Luckfox" \
+				2 "Backup" \
+				3 "About Luckfox" \
 				2>&1 >/dev/tty)
 
 			case $option in
 			1) luckfox_advanced_options ;;
-			2) luckfox_about ;;
+			2) luckfox_backup ;;
+			3) luckfox_about ;;
 			*) luckfox_exit ;;
 			esac
 		done
@@ -3043,6 +3022,31 @@ function luckfox_advanced_options() {
 			*) luckfox_show_menu ;;
 			esac
 		done
+	fi
+}
+
+function luckfox_backup() {
+	option=$(dialog --title "Advanced Options" \
+		--menu "Choose an option" 80 50 6 \
+		1 "rootfs" \
+		2>&1 >/dev/tty)
+
+	if [ $option == 1 ]; then
+		if [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pi" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pi W" ]; then
+			media_class=$(dialog --menu "Select Backup Image Location" 80 50 6 \
+				0 "local" \
+				1 "usb_disk" \
+				2 "sd_card" \
+				2>&1 >/dev/tty)
+		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Ultra W" ]; then
+			media_class=$(dialog --menu "Select Backup Image Location" 80 50 6 \
+				0 "local" \
+				1 "usb_disk" \
+				2>&1 >/dev/tty)
+		fi
+		luckfox_rootfs_BACKUP "$media_class"
+	else
+		luckfox_show_menu
 	fi
 }
 
@@ -3496,15 +3500,136 @@ function luckfox_4G() {
 			3) apn="3gwap" ;;
 			esac
 		fi
-
 	fi
 
 	luckfox_4g_app "$module_4g_enable" "$mode" "$apn"
 }
 
 ################################################################
+# ------------------------ Backup GUI --------------------------
+################################################################
+function luckfox_rootfs_BACKUP() {
+	local media_class="$1"
+
+	ROOT_FS_TYPE=$(df -T / | tail -1 | awk '{print $2}')
+	if [[ "$ROOT_FS_TYPE" != "ext4" ]]; then
+		luckfox_result_handle "$LF_ERR" "Error: Root filesystem is not ext4 (found: $ROOT_FS_TYPE)"
+	fi
+
+	if ! command -v rsync &>/dev/null; then
+		luckfox_result_handle "$LF_ERR" "The rsync is not installed"
+	fi
+
+	if [ "$media_class" == 1 ]; then
+		if ! mount | grep "/mnt/udisk"; then
+			luckfox_result_handle "$LF_ERR" "USB disk is not mounted"
+		fi
+		AVAILABLE_SPACE=$(df -k /mnt/udisk | tail -1 | awk '{print $4}')
+		IMAGE_NAME="/mnt/udisk/backup_rootfs.img"
+		MOUNT_POINT="/mnt/udisk/backup_img"
+	elif [ "$media_class" == 2 ]; then
+		if ! mount | grep "/mnt/sdcard"; then
+			luckfox_result_handle "$LF_ERR" "SD card is not mounted"
+		fi
+		AVAILABLE_SPACE=$(df -k /mnt/sdcard | tail -1 | awk '{print $4}')
+		IMAGE_NAME="/mnt/sdcard/backup_rootfs.img"
+		MOUNT_POINT="/mnt/sdcard/backup_img"
+	else
+		AVAILABLE_SPACE=$(df -k /mnt | tail -1 | awk '{print $4}')
+		IMAGE_NAME="/mnt/backup_rootfs.img"
+		MOUNT_POINT="/mnt/backup_img"
+	fi
+
+	used_kb=$(df -k / | tail -1 | awk '{print $3}')
+	REQUIRED_SPACE=$(awk -v size_kb="$used_kb" 'BEGIN { printf("%d", (size_kb * 2.4 / 1024) + 0.999) }')
+
+	if [ -z "$AVAILABLE_SPACE" ]; then
+		AVAILABLE_SPACE=0
+	fi
+
+	if [ "$AVAILABLE_SPACE" -lt "$REQUIRED_SPACE" ]; then
+		luckfox_result_handle "$LF_ERR" "Not enough space on $media_class (required: ${REQUIRED_SPACE}MB, available: ${AVAILABLE_SPACE}MB)"
+	fi
+
+	LOG_FILE="/tmp/backup_rootfs.log"
+
+	if [ -f "$IMAGE_NAME" ]; then
+		rm -f "$IMAGE_NAME"
+	fi
+
+	if mountpoint -q "$MOUNT_POINT"; then
+		umount "$MOUNT_POINT"
+	fi
+	rm -rf "$MOUNT_POINT"
+	mkdir -p "$MOUNT_POINT"
+
+	{
+		echo "XXX"
+		echo 10
+		echo "Starting backup process..."
+		echo "XXX"
+
+		echo "Calculating used disk space..." >>"$LOG_FILE"
+		used_kb=$(df -k / | tail -1 | awk '{print $3}')
+		IMAGE_SIZE_MB=$(awk -v size_kb="$used_kb" 'BEGIN { printf("%d", (size_kb * 1.2 / 1024) + 0.999) }')
+
+		echo "XXX"
+		echo 40
+		echo "Creating ext4 image ($IMAGE_SIZE_MB MB)..."
+		echo "XXX"
+		dd if=/dev/zero of="$IMAGE_NAME" bs=1M count=$IMAGE_SIZE_MB >>"$LOG_FILE" 2>&1
+		mkfs.ext4 -F "$IMAGE_NAME" >>"$LOG_FILE" 2>&1
+
+		echo "XXX"
+		echo 60
+		echo "Mounting image..."
+		echo "XXX"
+		mount -o loop "$IMAGE_NAME" "$MOUNT_POINT" >>"$LOG_FILE" 2>&1
+
+		echo "XXX"
+		echo 80
+		echo "Copying rootfs with rsync..."
+		echo "XXX"
+		rsync -aX --exclude={"/oem","/userdata","/mnt","/tmp","/proc"} / "$MOUNT_POINT" >>"$LOG_FILE" 2>&1
+
+		mkdir -p "$MOUNT_POINT/mnt" "$MOUNT_POINT/tmp" "$MOUNT_POINT/proc" "$MOUNT_POINT/userdata" "$MOUNT_POINT/oem"
+
+		echo "XXX"
+		echo 100
+		echo "Finalizing..."
+		echo "XXX"
+		umount "$MOUNT_POINT" >>"$LOG_FILE" 2>&1
+	} | dialog --title "Backup in Progress" --gauge "Preparing backup..." 10 60 0
+
+	dialog --title "Backup Succeeded" --msgbox "The image is saved at $IMAGE_NAME" 10 60
+	luckfox_show_menu
+
+}
+
+################################################################
+# @fu hex_shift
+#
+# @param hex 		  -
+#		 shift_amount -
+#
+# @return  The hexadecimal number after shifting hex by shift_amount.
+################################################################
+function hex_shift() {
+	local hex=$1
+	local shift_amount=$2
+
+	local dec=$(printf "%d" 0x$hex)
+	local shift=$((shift_amount * 2))
+	local shifted=$((dec << shift))
+
+	printf "%X\n" $shifted
+}
+
+################################################################
 # --------------------------- Run ------------------------------
 ################################################################
+
+echo 0 >/proc/sys/kernel/printk
 if [ "$1" == "load" ]; then
 	LF_GUI_ENABLE=0
 	if [ -f $LUCKFOX_PIN_DIAGRAM_FILE ]; then
@@ -3535,7 +3660,7 @@ elif [ "$1" == "rgb_switch" ]; then
 				"18" "16" \
 				"2" "2" \
 				"0" "0" \
-				"0" "1"
+				"0" "0"
 		elif [ "$(luckfox_get_pin_cfg "RGB_HACTIVE")" == "720" ]; then
 			# 720 -> 480
 			echo "****************************************************"
@@ -3570,3 +3695,5 @@ elif [ -z "$1" ]; then
 	luckfox_config_init
 	luckfox_show_menu
 fi
+echo "7 4 1 7" >/proc/sys/kernel/printk
+

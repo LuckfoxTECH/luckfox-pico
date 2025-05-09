@@ -20,13 +20,14 @@
  ****************************************************************************************
  */
 
-struct rwnx_mesh_proxy *rwnx_get_mesh_proxy_info(struct rwnx_vif *p_rwnx_vif, u8 *p_sta_addr, bool local)
+struct rwnx_mesh_proxy *rwnx_get_mesh_proxy_info(struct rwnx_vif *p_rwnx_vif,
+						 u8 *p_sta_addr, bool local)
 {
 	struct rwnx_mesh_proxy *p_mesh_proxy = NULL;
 	struct rwnx_mesh_proxy *p_cur_proxy;
 
 	/* Look for proxied devices with provided address */
-	list_for_each_entry(p_cur_proxy, &p_rwnx_vif->ap.proxy_list, list) {
+	list_for_each_entry (p_cur_proxy, &p_rwnx_vif->ap.proxy_list, list) {
 		if (p_cur_proxy->local != local) {
 			continue;
 		}

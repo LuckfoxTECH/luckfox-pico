@@ -44,12 +44,11 @@ static struct rfkill_ops rfkill_bluetooth_ops = {
 
 int rfkill_bluetooth_init(struct platform_device *pdev)
 {
-
 	int rc = 0;
 
 	pr_info("-->%s\n", __func__);
 	bt_rfk = rfkill_alloc(bt_name, &pdev->dev, RFKILL_TYPE_BLUETOOTH,
-			&rfkill_bluetooth_ops, NULL);
+			      &rfkill_bluetooth_ops, NULL);
 	if (!bt_rfk) {
 		rc = -ENOMEM;
 		goto err_rfkill_alloc;
@@ -78,4 +77,3 @@ int rfkill_bluetooth_remove(struct platform_device *dev)
 	pr_info("<--%s\n", __func__);
 	return 0;
 }
-

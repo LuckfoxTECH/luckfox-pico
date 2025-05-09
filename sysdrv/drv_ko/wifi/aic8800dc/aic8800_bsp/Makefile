@@ -28,9 +28,11 @@ CONFIG_FORCE_DPD_CALIB = y
 CONFIG_LOFT_CALIB = n
 CONFIG_EXT_FEM_8800DCDW = n
 CONFIG_RESV_MEM_SUPPORT ?= y
-CONFIG_AMSDU_RX = n
+CONFIG_AMSDU_RX = y
 CONFIG_IRQ_FALL ?= n
 CONFIG_SDIO_BT = n
+CONFIG_RADAR_OR_IR_DETECT =n
+CONFIG_FOR_IPCAM = n
 
 ifeq ($(CONFIG_EXT_FEM_8800DCDW), y)
 CONFIG_DPD = n
@@ -57,6 +59,9 @@ ccflags-$(CONFIG_RESV_MEM_SUPPORT) += -DCONFIG_RESV_MEM_SUPPORT
 ccflags-$(CONFIG_AMSDU_RX) += -DCONFIG_AMSDU_RX
 ccflags-$(CONFIG_IRQ_FALL) += -DCONFIG_IRQ_FALL
 ccflags-$(CONFIG_SDIO_BT) += -DCONFIG_SDIO_BT
+ccflags-$(CONFIG_RADAR_OR_IR_DETECT) += -DCONFIG_RADAR_OR_IR_DETECT
+ccflags-$(CONFIG_FOR_IPCAM) += -DCONFIG_FOR_IPCAM
+
 
 obj-m := $(MODULE_NAME).o
 $(MODULE_NAME)-y := \
@@ -126,6 +131,8 @@ MODDESTDIR ?= /lib/modules/$(KVER)/kernel/drivers/net/wireless/
 ARCH ?= x86_64
 CROSS_COMPILE ?=
 endif
+
+ccflags-y += -Wno-unused-function
 ###########################################
 
 all: modules

@@ -120,7 +120,6 @@ endif
 ifneq ($(LF_TARGET_ROOTFS),)
    TARGET_ROOTFS := $(LF_TARGET_ROOTFS)
 else
-#    TARGET_ROOTFS := ubuntu
 #    TARGET_ROOTFS := buildroot
      TARGET_ROOTFS := busybox
 #    TARGET_ROOTFS := custom
@@ -128,8 +127,6 @@ endif
 
 ifneq ($(findstring $(TARGET_ROOTFS),custom),)
    ROOTFS_BUILD_ENV := custom drv 
-else ifneq ($(findstring $(TARGET_ROOTFS),ubuntu),)
-   ROOTFS_BUILD_ENV := ubuntu drv
 else ifneq ($(findstring $(TARGET_ROOTFS),buildroot),)
    ROOTFS_BUILD_ENV := rootfs_prepare pctools buildroot boardtools drv
  else #busybox
@@ -287,7 +284,6 @@ BUILDROOT_CFG ?= config_normal
 BUILDROOT_VER ?= buildroot-2023.02.6
 BUILDROOT_DIR := $(SYSDRV_DIR)/source/buildroot
 
-UBUNTU_VER ?= luckfox-ubuntu-22.04.3
 CUSTOM_VER ?= custom
 
 TOOLCHAIN_RUNTIME_LIB_C:=lib.tar.bz2
@@ -316,6 +312,7 @@ SYSDRV_RAMDISK_DIR ?= $(SYSDRV_DIR_OUT_BOARD)
 
 HCITOOL_TOOL_PATH :=$(SYSDRV_DIR)/tools/board/buildroot/hcitool_patch
 MPV_PATCH_PATH :=$(SYSDRV_DIR)/tools/board/buildroot/mpv_patch
+BUSYBOX_PATCH_PATH :=$(SYSDRV_DIR)/tools/board/buildroot/busybox_patch
 
 export SYSDRV_DIR_OUT_PC
 export SYSDRV_DIR_OUT_BOARD
@@ -608,6 +605,8 @@ buildroot_create:
 	cp ${HCITOOL_TOOL_PATH}/0002-Fix-build-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/
 	cp ${HCITOOL_TOOL_PATH}/0003-fix-compat-wordexp.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/
 	cp ${MPV_PATCH_PATH}/0002-change-j1.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/mpv/
+	cp ${BUSYBOX_PATCH_PATH}/0009-busybox-support-chinese-display-in-terminal.patch  $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/
+	cp ${BUSYBOX_PATCH_PATH}/0010-halt-Support-rebooting-with-arg.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/
 
 buildroot: prepare
 	@echo -e "$(C_GREEN) ==sysdrv== build buildroot   $(C_NORMAL)"
@@ -621,6 +620,8 @@ buildroot: prepare
 		cp ${HCITOOL_TOOL_PATH}/0002-Fix-build-errors.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/ ;\
 		cp ${HCITOOL_TOOL_PATH}/0003-fix-compat-wordexp.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/bluez5_utils/ ;\
 		cp ${MPV_PATCH_PATH}/0002-change-j1.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/mpv/ ;\
+		cp ${BUSYBOX_PATCH_PATH}/0009-busybox-support-chinese-display-in-terminal.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\
+		cp ${BUSYBOX_PATCH_PATH}/0010-halt-Support-rebooting-with-arg.patch $(BUILDROOT_DIR)/$(BUILDROOT_VER)/package/busybox/ ;\
 	);
 
 	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) $(BUILDROOT_DEFCONFIG) -C $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
@@ -645,28 +646,6 @@ endif
 
 buildroot_clean:
 	$(AT)rm -rf $(BUILDROOT_DIR)/$(BUILDROOT_VER) 
-
-##########################################################################################
-#   build ubuntu
-#   author :luckfox team
-#	date:2023-11-28
-##########################################################################################
-ubuntu: prepare
-	@echo -e "$(C_GREEN) ==sysdrv== build ubuntu   $(C_NORMAL)" 
-	@echo -e "$(C_GREEN) ==$(LF_TARGET_ROOTFS)== $(C_NORMAL)"
-	test -f $(SYSDRV_DIR)/tools/board/ubuntu/$(UBUNTU_VER).tar.gz || (\
-		pushd  $(SYSDRV_DIR)/tools/board/ubuntu/ ;\
-		./split_and_check_md5.sh merge ./$(UBUNTU_VER).tar.gz ;\
-		popd ;\
-	);
-	test -f $(SYSDRV_DIR_OUT_ROOTFS)/userdate/.ubuntu || (\
-		mkdir -p $(SYSDRV_DIR_OUT_ROOTFS) ;\
-		rm $(SYSDRV_DIR_OUT_ROOTFS)/* -rf ;\
-		tar xzf $(SYSDRV_DIR)/tools/board/ubuntu/$(UBUNTU_VER).tar.gz -C $(SYSDRV_DIR_OUT_ROOTFS) ;\
-	);
-ubuntu_clean:
-	$(AT)rm -rf $(SYSDRV_DIR_OUT_ROOTFS)
-
 
 ##########################################################################################
 #   build custom

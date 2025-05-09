@@ -1,0 +1,4 @@
+# UNCONFIGURED FSTAB FOR BASE SYSTEM
+/dev/mmcblk0p7  /         ext4    rw      0       0
+/dev/mmcblk0p5  /oem      ext4    defaults        0       0
+/dev/mmcblk0p6  /userdata ext4    defaults        0       0

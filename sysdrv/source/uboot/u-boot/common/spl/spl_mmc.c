@@ -292,6 +292,10 @@ int spl_mmc_load_image(struct spl_image_info *spl_image,
 		return err;
 
 	err = mmc_init(mmc);
+
+	if (err)
+		err = mmc_init(mmc);
+
 	if (err) {
 #ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 		printf("spl: mmc init failed with error: %d\n", err);

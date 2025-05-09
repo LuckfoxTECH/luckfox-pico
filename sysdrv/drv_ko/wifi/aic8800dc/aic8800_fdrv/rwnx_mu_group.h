@@ -36,7 +36,7 @@ struct rwnx_sta_group_info {
 	int cnt;
 	u64 map;
 	int traffic;
-	u8  group;
+	u8 group;
 };
 
 /**
@@ -92,25 +92,24 @@ struct rwnx_mu_info {
 // minimum traffic in a RWNX_MU_GROUP_SELECT_INTERVAL to consider the sta
 #define RWNX_MU_GROUP_MIN_TRAFFIC 50 /* in number of packet */
 
-
 #define RWNX_GET_FIRST_GROUP_ID(map) (fls64(map) - 1)
 
-#define group_sta_for_each(sta, id, map)                                \
-	do {								\
-	map = sta->group_info.map & RWNX_MU_GROUP_MASK;                     \
-	for (id = (fls64(map) - 1) ; id > 0 ;                               \
-		 map &= ~(u64)BIT_ULL(id), id = (fls64(map) - 1))	\
+#define group_sta_for_each(sta, id, map)                                       \
+	do {                                                                   \
+		map = sta->group_info.map & RWNX_MU_GROUP_MASK;                \
+		for (id = (fls64(map) - 1); id > 0;                            \
+		     map &= ~(u64)BIT_ULL(id), id = (fls64(map) - 1))          \
 	} while (0)
 
-#define group_for_each(id, map)                                         \
-	for (id = (fls64(map) - 1) ; id > 0 ;                               \
-		 map &= ~(u64)BIT_ULL(id), id = (fls64(map) - 1))
+#define group_for_each(id, map)                                                \
+	for (id = (fls64(map) - 1); id > 0;                                    \
+	     map &= ~(u64)BIT_ULL(id), id = (fls64(map) - 1))
 
 #define RWNX_MUMIMO_INFO_POS_ID(info) (((info) >> 6) & 0x3)
-#define RWNX_MUMIMO_INFO_GROUP_ID(info) ((info) & 0x3f)
+#define RWNX_MUMIMO_INFO_GROUP_ID(info) ((info)&0x3f)
 
-static inline
-struct rwnx_mu_group *rwnx_mu_group_from_id(struct rwnx_mu_info *mu, int id)
+static inline struct rwnx_mu_group *
+rwnx_mu_group_from_id(struct rwnx_mu_info *mu, int id)
 {
 	if (id > NX_MU_GROUP_MAX)
 		return NULL;
@@ -118,64 +117,62 @@ struct rwnx_mu_group *rwnx_mu_group_from_id(struct rwnx_mu_info *mu, int id)
 	return &mu->groups[id - 1];
 }
 
-
 void rwnx_mu_group_sta_init(struct rwnx_sta *sta,
-							const struct ieee80211_vht_cap *vht_cap);
+			    const struct ieee80211_vht_cap *vht_cap);
 void rwnx_mu_group_sta_del(struct rwnx_hw *rwnx_hw, struct rwnx_sta *sta);
 u64 rwnx_mu_group_sta_get_map(struct rwnx_sta *sta);
 int rwnx_mu_group_sta_get_pos(struct rwnx_hw *rwnx_hw, struct rwnx_sta *sta,
-							  int group_id);
+			      int group_id);
 
 void rwnx_mu_group_init(struct rwnx_hw *rwnx_hw);
 
 void rwnx_mu_set_active_sta(struct rwnx_hw *rwnx_hw, struct rwnx_sta *sta,
-							int traffic);
+			    int traffic);
 void rwnx_mu_set_active_group(struct rwnx_hw *rwnx_hw, int group_id);
 void rwnx_mu_group_sta_select(struct rwnx_hw *rwnx_hw);
 
-
 #else /* ! CONFIG_RWNX_MUMIMO_TX */
 
-static inline
-void rwnx_mu_group_sta_init(struct rwnx_sta *sta,
-							const struct ieee80211_vht_cap *vht_cap)
-{}
+static inline void
+rwnx_mu_group_sta_init(struct rwnx_sta *sta,
+		       const struct ieee80211_vht_cap *vht_cap)
+{
+}
 
-static inline
-void rwnx_mu_group_sta_del(struct rwnx_hw *rwnx_hw, struct rwnx_sta *sta)
-{}
+static inline void rwnx_mu_group_sta_del(struct rwnx_hw *rwnx_hw,
+					 struct rwnx_sta *sta)
+{
+}
 
-static inline
-u64 rwnx_mu_group_sta_get_map(struct rwnx_sta *sta)
+static inline u64 rwnx_mu_group_sta_get_map(struct rwnx_sta *sta)
 {
 	return 0;
 }
 
-static inline
-int rwnx_mu_group_sta_get_pos(struct rwnx_hw *rwnx_hw, struct rwnx_sta *sta,
-							  int group_id)
+static inline int rwnx_mu_group_sta_get_pos(struct rwnx_hw *rwnx_hw,
+					    struct rwnx_sta *sta, int group_id)
 {
 	return 0;
 }
 
-static inline
-void rwnx_mu_group_init(struct rwnx_hw *rwnx_hw)
-{}
+static inline void rwnx_mu_group_init(struct rwnx_hw *rwnx_hw)
+{
+}
 
-static inline
-void rwnx_mu_set_active_sta(struct rwnx_hw *rwnx_hw, struct rwnx_sta *sta,
-							int traffic)
-{}
+static inline void rwnx_mu_set_active_sta(struct rwnx_hw *rwnx_hw,
+					  struct rwnx_sta *sta, int traffic)
+{
+}
 
-static inline
-void rwnx_mu_set_active_group(struct rwnx_hw *rwnx_hw, int group_id)
-{}
+static inline void rwnx_mu_set_active_group(struct rwnx_hw *rwnx_hw,
+					    int group_id)
+{
+}
 
-static inline
-void rwnx_mu_group_sta_select(struct rwnx_hw *rwnx_hw)
-{}
+static inline void rwnx_mu_group_sta_select(struct rwnx_hw *rwnx_hw)
+{
+}
 
 #endif /* CONFIG_RWNX_MUMIMO_TX */
 
 #endif /* _RWNX_MU_GROUP_H_ */
-

@@ -13,14 +13,15 @@
 #include <linux/skbuff.h>
 #include "aicwf_debug.h"
 
-
 #include "lmac_msg.h"
 #if 0
 #ifdef CONFIG_RWNX_DBG
 /*  #define RWNX_DBG(format, arg...) pr_warn(format, ## arg) */
 #define RWNX_DBG printk
 #else
-#define RWNX_DBG(a...) do {} while (0)
+#define RWNX_DBG(a...)                                                         \
+	do {                                                                   \
+	} while (0)
 #endif
 
 #define RWNX_FN_ENTRY_STR ">>> %s()\n", __func__
@@ -87,17 +88,17 @@ static const u32 rwnx_rxbuff_pattern = 0xCAFEFADE;
 /*
  * Maximum Length of Radiotap header vendor specific data(in bytes)
  */
-#define RADIOTAP_HDR_VEND_MAX_LEN   16
+#define RADIOTAP_HDR_VEND_MAX_LEN 16
 
 /*
  * Maximum Radiotap Header Length without vendor specific data (in bytes)
  */
-#define RADIOTAP_HDR_MAX_LEN        80
+#define RADIOTAP_HDR_MAX_LEN 80
 
 /*
  * Unsupported HT Frame data length (in bytes)
  */
-#define UNSUP_RX_VEC_DATA_LEN       2
+#define UNSUP_RX_VEC_DATA_LEN 2
 
 /**
  * struct rwnx_ipc_skb_elem - IPC buffer for SKB element

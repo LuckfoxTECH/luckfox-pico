@@ -40,7 +40,6 @@ SDK_CONFIG_DIR=${SDK_ROOT_DIR}/config
 DTS_CONFIG=${SDK_CONFIG_DIR}/dts_config
 KERNEL_DEFCONFIG=${SDK_CONFIG_DIR}/kernel_defconfig
 BUILDROOT_DEFCONFIG=${SDK_CONFIG_DIR}/buildroot_defconfig
-UBUNTU_DIR=${SDK_SYSDRV_DIR}/tools/board/ubuntu
 KERNEL_PATH=${SDK_SYSDRV_DIR}/source/kernel
 UBOOT_PATH=${SDK_SYSDRV_DIR}/source/uboot/u-boot
 #for custom rootfs
@@ -159,9 +158,11 @@ function choose_target_board() {
 		"RV1106_Luckfox_Pico_Ultra"
 		"RV1106_Luckfox_Pico_Ultra_W"
 		"RV1106_Luckfox_Pico_Pi"
-		"RV1106_Luckfox_Pico_Pi_W")
+		"RV1106_Luckfox_Pico_Pi_W"
+		"RV1106_Luckfox_Pico_86Panel"
+		"RV1106_Luckfox_Pico_86Panel_W")
 	local LF_BOOT_MEDIA=("SD_CARD" "SPI_NAND" "EMMC")
-	local LF_SYSTEM=("Buildroot" "Ubuntu" "Custom")
+	local LF_SYSTEM=("Buildroot" "Custom")
 	local cnt=0 space8="        "
 
 	# Get Hardware Version
@@ -192,6 +193,10 @@ function choose_target_board() {
 	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Pi"
 	LUNCH_NUM=$((LUNCH_NUM + 1))
 	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Pi_W"
+	LUNCH_NUM=$((LUNCH_NUM + 1))
+	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_86Panel"
+	LUNCH_NUM=$((LUNCH_NUM + 1))
+	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_86Panel_W"
 	LUNCH_NUM=$((LUNCH_NUM + 1))
 	echo "${space8}${space8}[${LUNCH_NUM}] custom"
 
@@ -277,7 +282,7 @@ function choose_target_board() {
 
 	range_sd_card=(0 1)
 	range_sd_card_spi_nand=(2 3 4 5 6)
-	range_emmc=(7 8 9 10)
+	range_emmc=(7 8 9 10 11 12)
 
 	if __IS_IN_ARRAY "$HW_INDEX" "${range_sd_card[@]}"; then
 		echo "${space8}${space8}[0] SD_CARD"
@@ -319,12 +324,11 @@ function choose_target_board() {
 
 	if (("$BM_INDEX" == 1)); then
 		echo "${space8}${space8}[0] Buildroot "
-		read -p "Which would you like? [0~1][default:0]: " SYS_INDEX
+		read -p "Which would you like? [0][default:0]: " SYS_INDEX
 		MAX_SYS_INDEX=0
 	elif (("$BM_INDEX" == 0)); then
 		echo "${space8}${space8}[0] Buildroot "
-		echo "${space8}${space8}[1] Ubuntu "
-		read -p "Which would you like? [0~1][default:0]: " SYS_INDEX
+		read -p "Which would you like? [0][default:0]: " SYS_INDEX
 		MAX_SYS_INDEX=1
 	fi
 
@@ -353,7 +357,7 @@ function choose_target_board() {
 function build_select_board() {
 	RK_TARGET_BOARD_ARRAY=($(
 		cd ${TARGET_PRODUCT_DIR}/
-		ls BoardConfig*.mk BoardConfig_*/BoardConfig*.mk | sort
+		ls BoardConfig_*/BoardConfig*.mk | sort 
 	))
 
 	RK_TARGET_BOARD_ARRAY_LEN=${#RK_TARGET_BOARD_ARRAY[@]}
@@ -592,7 +596,7 @@ function build_check_power_domain() {
 
 function build_tool() {
 	test -d ${SDK_SYSDRV_DIR} && make pctools -C ${SDK_SYSDRV_DIR}
-	if [ $LF_ENABLE_SPI_NAND_FAST_BOOT = "y" ]; then
+	if [ $LF_ENABLE_SPI_NAND_FAST_BOOT == "y" ]; then
 		cp -fa $PROJECT_TOP_DIR/sfc_scripts/mk-fitimage.sh $RK_PROJECT_PATH_PC_TOOLS
 		cp -fa $PROJECT_TOP_DIR/sfc_scripts/compress_tool $RK_PROJECT_PATH_PC_TOOLS
 		cp -fa $PROJECT_TOP_DIR/sfc_scripts/mk-tftp_sd_update.sh $RK_PROJECT_PATH_PC_TOOLS
@@ -1506,12 +1510,6 @@ function __PACKAGE_ROOTFS() {
 		exit 0
 	fi
 
-	if [ "$RK_BOOT_MEDIUM" == "emmc" ] && [ "$LF_TARGET_ROOTFS" == "ubuntu" ]; then
-		if [ -f $WIFI_CONF ]; then
-			cp $WIFI_CONF $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc
-		fi
-	fi
-
 	if [ "$LF_TARGET_ROOTFS" == "buildroot" ] || [ "$LF_TARGET_ROOTFS" == "busybox" ]; then
 		build_get_sdk_version
 		cat >$RK_PROJECT_PACKAGE_ROOTFS_DIR/bin/sdkinfo <<EOF
@@ -2159,9 +2157,6 @@ __GET_BOOTARGS_FROM_BOARD_CFG() {
 
 __LINK_DEFCONFIG_FROM_BOARD_CFG() {
 	mkdir -p ${SDK_CONFIG_DIR}
-	if [[ "$LF_TARGET_ROOTFS" == "ubuntu" ]]; then
-		sudo chmod a+rw $SDK_CONFIG_DIR
-	fi
 
 	if [ -n "$RK_KERNEL_DTS" ]; then
 		rm -f $DTS_CONFIG
@@ -2229,7 +2224,7 @@ function build_mkimg() {
 	fs_type="\$${fs_type}"
 	fs_type=$(eval "echo ${fs_type}")
 
-	if [ "$LF_TARGET_ROOTFS" == "buildroot" ] || [ "$LF_TARGT_ROOTFS" == "busybox" ]; then
+	if [ "$LF_TARGET_ROOTFS" == "buildroot" ] || [ "$LF_TARGET_ROOTFS" == "busybox" ]; then
 		__RELEASE_FILESYSTEM_FILES $src
 	fi
 
@@ -2658,9 +2653,6 @@ function build_save() {
 		build_info >>$STUB_PATH/build_info.txt
 		echo "save to $STUB_PATH"
 
-		if [[ "$LF_TARGET_ROOTFS" == "ubuntu" ]]; then
-			sudo chmod a+rw $STUB_PARENT_PATH
-		fi
 		;;
 	esac
 
@@ -2752,29 +2744,6 @@ __LINK_DEFCONFIG_FROM_BOARD_CFG
 export RK_PROJECT_BOARD_DIR=$(dirname $(realpath $BOARD_CONFIG))
 export RK_PROJECT_TOOLCHAIN_CROSS=$RK_TOOLCHAIN_CROSS
 export PATH="${SDK_ROOT_DIR}/tools/linux/toolchain/${RK_PROJECT_TOOLCHAIN_CROSS}/bin":$PATH
-
-if [[ "$LF_TARGET_ROOTFS" = "ubuntu" ]]; then
-	if [ "$(id -u)" != "0" ]; then
-		msg_error "Error! Please use sudo ./build.sh to build Ubuntu Image!"
-		exit 1
-	fi
-	if [[ "$LF_SUBMODULES_BY" = "github" ]]; then
-		cp ${SDK_ROOT_DIR}/.gitmodules.github ${SDK_ROOT_DIR}/.gitmodules
-	else
-		if [[ "$LF_SUBMODULES_BY" = "gitee" ]]; then
-			cp ${SDK_ROOT_DIR}/.gitmodules.gitee ${SDK_ROOT_DIR}/.gitmodules
-		else
-			exit 0
-		fi
-	fi
-
-	if [ -d "$UBUNTU_DIR" ] && [ -f ${UBUNTU_DIR}/luckfox-ubuntu-22.04.3.tar.gz.md5 ]; then
-		msg_info "${UBUNTU_DIR} is not empty, skipping submodule update!"
-	else
-		msg_info "${UBUNTU_DIR} is empty or does not exist, updateing submodule!"
-		git submodule update --init --recursive
-	fi
-fi
 
 if echo $@ | grep -wqE "help|-h"; then
 	if [ -n "$2" -a "$(type -t usage$2)" == function ]; then

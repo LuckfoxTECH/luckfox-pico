@@ -50,47 +50,45 @@ int rwnx_testmode_reg(struct ieee80211_hw *hw, struct nlattr **tb)
 	mem_addr = nla_get_u32(tb[RWNX_TM_ATTR_REG_OFFSET]);
 
 	switch (nla_get_u32(tb[RWNX_TM_ATTR_COMMAND])) {
-	case RWNX_TM_CMD_APP2DEV_REG_READ:
-		{
-			struct dbg_mem_read_cfm mem_read_cfm;
+	case RWNX_TM_CMD_APP2DEV_REG_READ: {
+		struct dbg_mem_read_cfm mem_read_cfm;
 
-			/*** Send the command to the LMAC ***/
-			status = rwnx_send_dbg_mem_read_req(rwnx_hw, mem_addr, &mem_read_cfm);
+		/*** Send the command to the LMAC ***/
+		status = rwnx_send_dbg_mem_read_req(rwnx_hw, mem_addr,
+						    &mem_read_cfm);
+		if (status)
+			return status;
+
+		/* Allocate the answer message */
+		skb = cfg80211_testmode_alloc_reply_skb(hw->wiphy, 20);
+		if (!skb) {
+			printk("Error allocating memory\n");
+			return -ENOMEM;
+		}
+
+		val32 = mem_read_cfm.memdata;
+		if (nla_put_u32(skb, RWNX_TM_ATTR_REG_VALUE32, val32))
+			goto nla_put_failure;
+
+		/* Send the answer to upper layer */
+		status = cfg80211_testmode_reply(skb);
+		if (status < 0)
+			printk("Error sending msg : %d\n", status);
+	} break;
+
+	case RWNX_TM_CMD_APP2DEV_REG_WRITE: {
+		if (!tb[RWNX_TM_ATTR_REG_VALUE32]) {
+			printk("Error finding value to write\n");
+			return -ENOMSG;
+		} else {
+			val32 = nla_get_u32(tb[RWNX_TM_ATTR_REG_VALUE32]);
+			/* Send the command to the LMAC */
+			status = rwnx_send_dbg_mem_write_req(rwnx_hw, mem_addr,
+							     val32);
 			if (status)
 				return status;
-
-			/* Allocate the answer message */
-			skb = cfg80211_testmode_alloc_reply_skb(hw->wiphy, 20);
-			if (!skb) {
-				printk("Error allocating memory\n");
-				return -ENOMEM;
-			}
-
-			val32 = mem_read_cfm.memdata;
-			if (nla_put_u32(skb, RWNX_TM_ATTR_REG_VALUE32, val32))
-				goto nla_put_failure;
-
-			/* Send the answer to upper layer */
-			status = cfg80211_testmode_reply(skb);
-			if (status < 0)
-				printk("Error sending msg : %d\n", status);
 		}
-		break;
-
-	case RWNX_TM_CMD_APP2DEV_REG_WRITE:
-		{
-			if (!tb[RWNX_TM_ATTR_REG_VALUE32]) {
-				printk("Error finding value to write\n");
-				return -ENOMSG;
-			} else {
-				val32 = nla_get_u32(tb[RWNX_TM_ATTR_REG_VALUE32]);
-				/* Send the command to the LMAC */
-				status = rwnx_send_dbg_mem_write_req(rwnx_hw, mem_addr, val32);
-				if (status)
-					return status;
-			}
-		}
-		break;
+	} break;
 
 	default:
 		printk("Unknown testmode register command ID\n");
@@ -126,22 +124,18 @@ int rwnx_testmode_dbg_filter(struct ieee80211_hw *hw, struct nlattr **tb)
 	RWNX_DBG("testmode debug filter, setting: 0x%x\n", filter);
 
 	switch (nla_get_u32(tb[RWNX_TM_ATTR_COMMAND])) {
-	case RWNX_TM_CMD_APP2DEV_SET_DBGMODFILTER:
-		{
-			/* Send the command to the LMAC */
-			status = rwnx_send_dbg_set_mod_filter_req(rwnx_hw, filter);
-			if (status)
-				return status;
-		}
-		break;
-	case RWNX_TM_CMD_APP2DEV_SET_DBGSEVFILTER:
-		{
-			/* Send the command to the LMAC */
-			status = rwnx_send_dbg_set_sev_filter_req(rwnx_hw, filter);
-			if (status)
-				return status;
-		}
-		break;
+	case RWNX_TM_CMD_APP2DEV_SET_DBGMODFILTER: {
+		/* Send the command to the LMAC */
+		status = rwnx_send_dbg_set_mod_filter_req(rwnx_hw, filter);
+		if (status)
+			return status;
+	} break;
+	case RWNX_TM_CMD_APP2DEV_SET_DBGSEVFILTER: {
+		/* Send the command to the LMAC */
+		status = rwnx_send_dbg_set_sev_filter_req(rwnx_hw, filter);
+		if (status)
+			return status;
+	} break;
 
 	default:
 		printk("Unknown testmode register command ID\n");
@@ -180,42 +174,38 @@ int rwnx_testmode_reg_dbg(struct ieee80211_hw *hw, struct nlattr **tb)
 	offset = mem_addr & 0x00FFFFFF;
 
 	switch (nla_get_u32(tb[RWNX_TM_ATTR_COMMAND])) {
-	case RWNX_TM_CMD_APP2DEV_REG_READ_DBG:
-		{
-			/*** Send the command to the LMAC ***/
-			reg_value = RWNX_REG_READ(rwnx_plat, RWNX_ADDR_SYSTEM, offset);
+	case RWNX_TM_CMD_APP2DEV_REG_READ_DBG: {
+		/*** Send the command to the LMAC ***/
+		reg_value = RWNX_REG_READ(rwnx_plat, RWNX_ADDR_SYSTEM, offset);
 
-			/* Allocate the answer message */
-			skb = cfg80211_testmode_alloc_reply_skb(hw->wiphy, 20);
-			if (!skb) {
-				printk("Error allocating memory\n");
-				return -ENOMEM;
-			}
-
-			if (nla_put_u32(skb, RWNX_TM_ATTR_REG_VALUE32, reg_value))
-				goto nla_put_failure;
-
-			/* Send the answer to upper layer */
-			status = cfg80211_testmode_reply(skb);
-			if (status < 0)
-				printk("Error sending msg : %d\n", status);
+		/* Allocate the answer message */
+		skb = cfg80211_testmode_alloc_reply_skb(hw->wiphy, 20);
+		if (!skb) {
+			printk("Error allocating memory\n");
+			return -ENOMEM;
 		}
-		break;
 
-	case RWNX_TM_CMD_APP2DEV_REG_WRITE_DBG:
-		{
-			if (!tb[RWNX_TM_ATTR_REG_VALUE32]) {
-				printk("Error finding value to write\n");
-				return -ENOMSG;
-			} else {
-				reg_value = nla_get_u32(tb[RWNX_TM_ATTR_REG_VALUE32]);
+		if (nla_put_u32(skb, RWNX_TM_ATTR_REG_VALUE32, reg_value))
+			goto nla_put_failure;
 
-				/* Send the command to the LMAC */
-				RWNX_REG_WRITE(reg_value, rwnx_plat, RWNX_ADDR_SYSTEM,
-							   offset);
-			}
+		/* Send the answer to upper layer */
+		status = cfg80211_testmode_reply(skb);
+		if (status < 0)
+			printk("Error sending msg : %d\n", status);
+	} break;
+
+	case RWNX_TM_CMD_APP2DEV_REG_WRITE_DBG: {
+		if (!tb[RWNX_TM_ATTR_REG_VALUE32]) {
+			printk("Error finding value to write\n");
+			return -ENOMSG;
+		} else {
+			reg_value = nla_get_u32(tb[RWNX_TM_ATTR_REG_VALUE32]);
+
+			/* Send the command to the LMAC */
+			RWNX_REG_WRITE(reg_value, rwnx_plat, RWNX_ADDR_SYSTEM,
+				       offset);
 		}
-		break;
+	} break;
 
 	default:
 		printk("Unknown testmode register command ID\n");

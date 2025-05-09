@@ -18,23 +18,26 @@ extern u8 chip_sub_id;
 extern u8 chip_mcu_id;
 #define FW_PATH_MAX_LEN 200
 
-void aicwf_patch_config_8800dc(struct          aic_sdio_dev *rwnx_hw);
+void aicwf_patch_config_8800dc(struct aic_sdio_dev *rwnx_hw);
 void system_config_8800dc(struct aic_sdio_dev *rwnx_hw);
 int aicwf_misc_ram_init_8800dc(struct aic_sdio_dev *sdiodev);
 
 #ifdef CONFIG_DPD
-int aicwf_dpd_calib_8800dc(struct aic_sdio_dev *sdiodev, rf_misc_ram_lite_t *dpd_res);
-int aicwf_dpd_result_apply_8800dc(struct aic_sdio_dev *sdiodev, rf_misc_ram_lite_t *dpd_res);
+int aicwf_dpd_calib_8800dc(struct aic_sdio_dev *sdiodev,
+			   rf_misc_ram_lite_t *dpd_res);
+int aicwf_dpd_result_apply_8800dc(struct aic_sdio_dev *sdiodev,
+				  rf_misc_ram_lite_t *dpd_res);
 #ifndef CONFIG_FORCE_DPD_CALIB
-int aicwf_dpd_result_load_8800dc(struct aic_sdio_dev *sdiodev, rf_misc_ram_lite_t *dpd_res);
+int aicwf_dpd_result_load_8800dc(struct aic_sdio_dev *sdiodev,
+				 rf_misc_ram_lite_t *dpd_res);
 int aicwf_dpd_result_write_8800dc(void *buf, int buf_len);
-#endif/* !CONFIG_FORCE_DPD_CALIB */
+#endif /* !CONFIG_FORCE_DPD_CALIB */
 #endif
 #ifdef CONFIG_LOFT_CALIB
-int aicwf_loft_calib_8800dc(struct aic_sdio_dev *sdiodev);
+int aicwf_loft_calib_8800dc(struct aic_sdio_dev *sdiodev,
+			    rf_misc_ram_lite_t *loft_res);
+int aicwf_loft_result_apply_8800dc(struct aic_sdio_dev *sdiodev,
+				   rf_misc_ram_lite_t *loft_res);
 #endif
 
 #endif
-
-
-

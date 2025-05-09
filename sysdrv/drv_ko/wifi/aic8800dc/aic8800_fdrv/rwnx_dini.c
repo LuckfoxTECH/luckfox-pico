@@ -14,42 +14,40 @@
 #include "reg_access.h"
 
 /* Config FPGA is accessed via bar0 */
-#define CFPGA_DMA0_CTRL_REG             0x02C
-#define CFPGA_DMA1_CTRL_REG             0x04C
-#define CFPGA_DMA2_CTRL_REG             0x06C
-#define CFPGA_UINTR_SRC_REG             0x0E8
-#define CFPGA_UINTR_MASK_REG            0x0EC
-#define CFPGA_BAR4_HIADDR_REG           0x100
-#define CFPGA_BAR4_LOADDR_REG           0x104
-#define CFPGA_BAR4_LOADDR_MASK_REG      0x110
-#define CFPGA_BAR_TOUT                  0x120
+#define CFPGA_DMA0_CTRL_REG 0x02C
+#define CFPGA_DMA1_CTRL_REG 0x04C
+#define CFPGA_DMA2_CTRL_REG 0x06C
+#define CFPGA_UINTR_SRC_REG 0x0E8
+#define CFPGA_UINTR_MASK_REG 0x0EC
+#define CFPGA_BAR4_HIADDR_REG 0x100
+#define CFPGA_BAR4_LOADDR_REG 0x104
+#define CFPGA_BAR4_LOADDR_MASK_REG 0x110
+#define CFPGA_BAR_TOUT 0x120
 
-#define CFPGA_DMA_CTRL_ENABLE           0x00001400
-#define CFPGA_DMA_CTRL_DISABLE          0x00001000
-#define CFPGA_DMA_CTRL_CLEAR            0x00001800
+#define CFPGA_DMA_CTRL_ENABLE 0x00001400
+#define CFPGA_DMA_CTRL_DISABLE 0x00001000
+#define CFPGA_DMA_CTRL_CLEAR 0x00001800
 #define CFPGA_DMA_CTRL_REREAD_TIME_MASK (BIT(10) - 1)
 
-#define CFPGA_BAR4_LOADDR_MASK_MAX      0xFF000000
+#define CFPGA_BAR4_LOADDR_MASK_MAX 0xFF000000
 
-#define CFPGA_PCIEX_IT                  0x00000001
-#define CFPGA_ALL_ITS                   0x0000000F
+#define CFPGA_PCIEX_IT 0x00000001
+#define CFPGA_ALL_ITS 0x0000000F
 
 /* Programmable BAR4 Window start address */
-#define CPU_RAM_WINDOW_HIGH      0x00000000
-#define CPU_RAM_WINDOW_LOW       0x00000000
-#define AHB_BRIDGE_WINDOW_HIGH   0x00000000
-#define AHB_BRIDGE_WINDOW_LOW    0x60000000
+#define CPU_RAM_WINDOW_HIGH 0x00000000
+#define CPU_RAM_WINDOW_LOW 0x00000000
+#define AHB_BRIDGE_WINDOW_HIGH 0x00000000
+#define AHB_BRIDGE_WINDOW_LOW 0x60000000
 
 struct rwnx_dini {
 	u8 *pci_bar0_vaddr;
 	u8 *pci_bar4_vaddr;
 };
 
-static const u32 mv_cfg_fpga_dma_ctrl_regs[] = {
-	CFPGA_DMA0_CTRL_REG,
-	CFPGA_DMA1_CTRL_REG,
-	CFPGA_DMA2_CTRL_REG
-};
+static const u32 mv_cfg_fpga_dma_ctrl_regs[] = { CFPGA_DMA0_CTRL_REG,
+						 CFPGA_DMA1_CTRL_REG,
+						 CFPGA_DMA2_CTRL_REG };
 
 /* This also clears running transactions */
 static void dini_dma_on(struct rwnx_dini *rwnx_dini)
@@ -62,7 +60,7 @@ static void dini_dma_on(struct rwnx_dini *rwnx_dini)
 		reg = rwnx_dini->pci_bar0_vaddr + mv_cfg_fpga_dma_ctrl_regs[i];
 		reread_time = readl(reg) & CFPGA_DMA_CTRL_REREAD_TIME_MASK;
 
-		writel(CFPGA_DMA_CTRL_CLEAR  | reread_time, reg);
+		writel(CFPGA_DMA_CTRL_CLEAR | reread_time, reg);
 		writel(CFPGA_DMA_CTRL_ENABLE | reread_time, reg);
 	}
 }
@@ -79,10 +77,9 @@ static void dini_dma_off(struct rwnx_dini *rwnx_dini)
 		reread_time = readl(reg) & CFPGA_DMA_CTRL_REREAD_TIME_MASK;
 
 		writel(CFPGA_DMA_CTRL_DISABLE | reread_time, reg);
-		writel(CFPGA_DMA_CTRL_CLEAR   | reread_time, reg);
+		writel(CFPGA_DMA_CTRL_CLEAR | reread_time, reg);
 	}
 }
-
 
 /* Configure address range for BAR4.
  * By default BAR4_LOADDR_MASK value is 0xFF000000, then there is no need to
@@ -93,9 +90,8 @@ static void dini_set_bar4_win(u32 low, u32 high, struct rwnx_dini *rwnx_dini)
 	writel(low, rwnx_dini->pci_bar0_vaddr + CFPGA_BAR4_LOADDR_REG);
 	writel(high, rwnx_dini->pci_bar0_vaddr + CFPGA_BAR4_HIADDR_REG);
 	writel(CFPGA_BAR4_LOADDR_MASK_MAX,
-		   rwnx_dini->pci_bar0_vaddr + CFPGA_BAR4_LOADDR_MASK_REG);
+	       rwnx_dini->pci_bar0_vaddr + CFPGA_BAR4_LOADDR_MASK_REG);
 }
-
 
 /**
  * Enable User Interrupts of CFPGA that trigger PCIe IRQs on PCIE_10
@@ -110,7 +106,8 @@ int rwnx_cfpga_irq_enable(struct rwnx_hw *rwnx_hw)
 	int ret;
 
 	/* sched_setscheduler on ONESHOT threaded irq handler for BCNs ? */
-	ret = request_irq(rwnx_hw->plat->pci_dev->irq, rwnx_irq_hdlr, 0, "rwnx", rwnx_hw);
+	ret = request_irq(rwnx_hw->plat->pci_dev->irq, rwnx_irq_hdlr, 0, "rwnx",
+			  rwnx_hw);
 	if (ret)
 		return ret;
 
@@ -178,7 +175,7 @@ static void rwnx_dini_platform_deinit(struct rwnx_plat *rwnx_plat)
 }
 
 static u8 *rwnx_dini_get_address(struct rwnx_plat *rwnx_plat, int addr_name,
-								 unsigned int offset)
+				 unsigned int offset)
 {
 	struct rwnx_dini *rwnx_dini = (struct rwnx_dini *)rwnx_plat->priv;
 
@@ -186,9 +183,11 @@ static u8 *rwnx_dini_get_address(struct rwnx_plat *rwnx_plat, int addr_name,
 		return NULL;
 
 	if (addr_name == RWNX_ADDR_CPU)
-		dini_set_bar4_win(CPU_RAM_WINDOW_LOW, CPU_RAM_WINDOW_HIGH, rwnx_dini);
+		dini_set_bar4_win(CPU_RAM_WINDOW_LOW, CPU_RAM_WINDOW_HIGH,
+				  rwnx_dini);
 	else
-		dini_set_bar4_win(AHB_BRIDGE_WINDOW_LOW, AHB_BRIDGE_WINDOW_HIGH, rwnx_dini);
+		dini_set_bar4_win(AHB_BRIDGE_WINDOW_LOW, AHB_BRIDGE_WINDOW_HIGH,
+				  rwnx_dini);
 
 	return rwnx_dini->pci_bar4_vaddr + offset;
 }
@@ -207,7 +206,8 @@ static const u32 rwnx_dini_config_reg[] = {
 	RF_v6_PHYDIAG_CONF1_ADDR,
 };
 
-static int rwnx_dini_get_config_reg(struct rwnx_plat *rwnx_plat, const u32 **list)
+static int rwnx_dini_get_config_reg(struct rwnx_plat *rwnx_plat,
+				    const u32 **list)
 {
 	if (!list)
 		return 0;
@@ -226,14 +226,16 @@ static int rwnx_dini_get_config_reg(struct rwnx_plat *rwnx_plat, const u32 **lis
  *
  * Allocate and initialize a rwnx_plat structure for the dini platform.
  */
-int rwnx_dini_platform_init(struct pci_dev *pci_dev, struct rwnx_plat **rwnx_plat)
+int rwnx_dini_platform_init(struct pci_dev *pci_dev,
+			    struct rwnx_plat **rwnx_plat)
 {
 	struct rwnx_dini *rwnx_dini;
 	u16 pci_cmd;
 	int ret = 0;
 
-	*rwnx_plat = kzalloc(sizeof(struct rwnx_plat) + sizeof(struct rwnx_dini),
-						GFP_KERNEL);
+	*rwnx_plat =
+		kzalloc(sizeof(struct rwnx_plat) + sizeof(struct rwnx_dini),
+			GFP_KERNEL);
 	if (!*rwnx_plat)
 		return -ENOMEM;
 
@@ -289,7 +291,7 @@ out_bar4:
 	iounmap(rwnx_dini->pci_bar0_vaddr);
 out_bar0:
 	pci_release_regions(pci_dev);
-//out_request:
+	//out_request:
 	pci_disable_device(pci_dev);
 out_enable:
 	kfree(*rwnx_plat);

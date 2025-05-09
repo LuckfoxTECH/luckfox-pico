@@ -9,81 +9,71 @@
 #include "rwnx_version_gen.h"
 #include "aicwf_txq_prealloc.h"
 
+#define DRV_DESCRIPTION "AIC BSP"
+#define DRV_COPYRIGHT "Copyright(c) 2015-2020 AICSemi"
+#define DRV_AUTHOR "AICSemi"
+#define DRV_VERS_MOD "1.0"
 
-#define DRV_DESCRIPTION       "AIC BSP"
-#define DRV_COPYRIGHT         "Copyright(c) 2015-2020 AICSemi"
-#define DRV_AUTHOR            "AICSemi"
-#define DRV_VERS_MOD          "1.0"
+int aicwf_dbg_level_bsp = LOGERROR | LOGINFO | LOGDEBUG | LOGTRACE;
 
-int aicwf_dbg_level_bsp = LOGERROR|LOGINFO|LOGDEBUG|LOGTRACE;
+struct semaphore aicbsp_probe_semaphore;
 
 static struct platform_device *aicbsp_pdev;
 
 const struct aicbsp_firmware *aicbsp_firmware_list = fw_u02;
 
 const struct aicbsp_firmware fw_u02[] = {
-	[AICBSP_CPMODE_WORK] = {
-		.desc          = "normal work mode(sdio u02)",
-		.bt_adid       = "fw_adid.bin",
-		.bt_patch      = "fw_patch.bin",
-		.bt_table      = "fw_patch_table.bin",
-		#ifdef CONFIG_SDIO_BT
-		.wl_fw         = "fmacfwbt.bin"
-		#else
-		.wl_fw         = "fmacfw.bin"
-		#endif
+	[AICBSP_CPMODE_WORK] = { .desc = "normal work mode(sdio u02)",
+				 .bt_adid = "fw_adid.bin",
+				 .bt_patch = "fw_patch.bin",
+				 .bt_table = "fw_patch_table.bin",
+#ifdef CONFIG_SDIO_BT
+				 .wl_fw = "fmacfwbt.bin"
+#else
+				 .wl_fw = "fmacfw.bin"
+#endif
 	},
-	[AICBSP_CPMODE_TEST] = {
-		.desc          = "rf test mode(sdio u02)",
-		.bt_adid       = "fw_adid.bin",
-		.bt_patch      = "fw_patch.bin",
-		.bt_table      = "fw_patch_table.bin",
-		.wl_fw         = "fmacfw_rf.bin"
-	},
+	[AICBSP_CPMODE_TEST] = { .desc = "rf test mode(sdio u02)",
+				 .bt_adid = "fw_adid.bin",
+				 .bt_patch = "fw_patch.bin",
+				 .bt_table = "fw_patch_table.bin",
+				 .wl_fw = "fmacfw_rf.bin" },
 };
 
 const struct aicbsp_firmware fw_u03[] = {
-	[AICBSP_CPMODE_WORK] = {
-		.desc          = "normal work mode(sdio u03/u04)",
-		.bt_adid       = "fw_adid_u03.bin",
-		.bt_patch      = "fw_patch_u03.bin",
-		.bt_table      = "fw_patch_table_u03.bin",
-		#ifdef CONFIG_MCU_MESSAGE
-		.wl_fw         = "fmacfw_8800m_custmsg.bin"
-		#elif defined(CONFIG_SDIO_BT)
-		.wl_fw         = "fmacfwbt.bin"
-		#else
-		.wl_fw         = "fmacfw.bin"
-		#endif
+	[AICBSP_CPMODE_WORK] = { .desc = "normal work mode(sdio u03/u04)",
+				 .bt_adid = "fw_adid_u03.bin",
+				 .bt_patch = "fw_patch_u03.bin",
+				 .bt_table = "fw_patch_table_u03.bin",
+#ifdef CONFIG_MCU_MESSAGE
+				 .wl_fw = "fmacfw_8800m_custmsg.bin"
+#elif defined(CONFIG_SDIO_BT)
+				 .wl_fw = "fmacfwbt.bin"
+#else
+				 .wl_fw = "fmacfw.bin"
+#endif
 	},
 
-	[AICBSP_CPMODE_TEST] = {
-		.desc          = "rf test mode(sdio u03/u04)",
-		.bt_adid       = "fw_adid_u03.bin",
-		.bt_patch      = "fw_patch_u03.bin",
-		.bt_table      = "fw_patch_table_u03.bin",
-		.wl_fw         = "fmacfw_rf.bin"
-	},
+	[AICBSP_CPMODE_TEST] = { .desc = "rf test mode(sdio u03/u04)",
+				 .bt_adid = "fw_adid_u03.bin",
+				 .bt_patch = "fw_patch_u03.bin",
+				 .bt_table = "fw_patch_table_u03.bin",
+				 .wl_fw = "fmacfw_rf.bin" },
 };
 
 const struct aicbsp_firmware fw_8800dc_u01[] = {
-	[AICBSP_CPMODE_WORK] = {
-		.desc          = "normal work mode(sdio u01)",
-		.bt_adid       = "fw_adid_8800dc.bin",
-		.bt_patch      = "fw_patch_8800dc.bin",
-		.bt_table      = "fw_patch_table_8800dc.bin",
-		.wl_fw         = "fmacfw_8800dc.bin"
-	},
+	[AICBSP_CPMODE_WORK] = { .desc = "normal work mode(sdio u01)",
+				 .bt_adid = "fw_adid_8800dc.bin",
+				 .bt_patch = "fw_patch_8800dc.bin",
+				 .bt_table = "fw_patch_table_8800dc.bin",
+				 .wl_fw = "fmacfw_8800dc.bin" },
 
-	[AICBSP_CPMODE_TEST] = {
-		.desc          = "rf test mode(sdio u01)",
-		.bt_adid       = "fw_adid_8800dc.bin",
-		.bt_patch      = "fw_patch_8800dc.bin",
-		.bt_table      = "fw_patch_table_8800dc.bin",
-		.wl_fw         = "fmacfw_rf_8800dc.bin"
-	},
+	[AICBSP_CPMODE_TEST] = { .desc = "rf test mode(sdio u01)",
+				 .bt_adid = "fw_adid_8800dc.bin",
+				 .bt_patch = "fw_patch_8800dc.bin",
+				 .bt_table = "fw_patch_table_8800dc.bin",
+				 .wl_fw = "fmacfw_rf_8800dc.bin" },
 };
-
 
 const struct aicbsp_firmware fw_8800dc_u02[] = {
 	[AICBSP_CPMODE_WORK] = {
@@ -91,6 +81,7 @@ const struct aicbsp_firmware fw_8800dc_u02[] = {
 		.bt_adid       = "fw_adid_8800dc_u02.bin",
 		.bt_patch      = "fw_patch_8800dc_u02.bin",
 		.bt_table      = "fw_patch_table_8800dc_u02.bin",
+		.bt_ext_patch  = "fw_patch_8800dc_u02_ext",
 		.wl_fw         = "fmacfw_patch_8800dc_u02.bin"
 	},
 
@@ -99,6 +90,7 @@ const struct aicbsp_firmware fw_8800dc_u02[] = {
 		.bt_adid       = "fw_adid_8800dc_u02.bin",
 		.bt_patch      = "fw_patch_8800dc_u02.bin",
 		.bt_table      = "fw_patch_table_8800dc_u02.bin",
+		.bt_ext_patch  = "fw_patch_8800dc_u02_ext",
 		.wl_fw         = "lmacfw_rf_8800dc.bin" //u01,u02 lmacfw load same bin
 	},
 };
@@ -109,6 +101,7 @@ const struct aicbsp_firmware fw_8800dc_h_u02[] = {
 		.bt_adid       = "fw_adid_8800dc_u02h.bin",
 		.bt_patch      = "fw_patch_8800dc_u02h.bin",
 		.bt_table      = "fw_patch_table_8800dc_u02h.bin",
+		.bt_ext_patch  = "fw_patch_8800dc_u02h_ext",
 		.wl_fw         = "fmacfw_patch_8800dc_h_u02.bin"
 	},
 
@@ -117,82 +110,98 @@ const struct aicbsp_firmware fw_8800dc_h_u02[] = {
 		.bt_adid       = "fw_adid_8800dc_u02h.bin",
 		.bt_patch      = "fw_patch_8800dc_u02h.bin",
 		.bt_table      = "fw_patch_table_8800dc_u02h.bin",
+		.bt_ext_patch  = "fw_patch_8800dc_u02h_ext",
 		.wl_fw         = "lmacfw_rf_8800dc.bin" //u01,u02 lmacfw load same bin
 	},
 };
 
-
 const struct aicbsp_firmware fw_8800d80_u01[] = {
-	[AICBSP_CPMODE_WORK] = {
-		.desc          = "normal work mode(8800d80 sdio u01)",
-		.bt_adid       = "fw_adid_8800d80.bin",
-		.bt_patch      = "fw_patch_8800d80.bin",
-		.bt_table      = "fw_patch_table_8800d80.bin",
-		.wl_fw         = "fmacfw_8800d80.bin"
-	},
+	[AICBSP_CPMODE_WORK] = { .desc = "normal work mode(8800d80 sdio u01)",
+				 .bt_adid = "fw_adid_8800d80.bin",
+				 .bt_patch = "fw_patch_8800d80.bin",
+				 .bt_table = "fw_patch_table_8800d80.bin",
+				 .wl_fw = "fmacfw_8800d80.bin" },
 
-	[AICBSP_CPMODE_TEST] = {
-		.desc          = "rf test mode(8800d80 sdio u01)",
-		.bt_adid       = "fw_adid_8800d80.bin",
-		.bt_patch      = "fw_patch_8800d80.bin",
-		.bt_table      = "fw_patch_table_8800d80.bin",
-		.wl_fw         = "lmacfw_rf_8800d80.bin"
-	},
+	[AICBSP_CPMODE_TEST] = { .desc = "rf test mode(8800d80 sdio u01)",
+				 .bt_adid = "fw_adid_8800d80.bin",
+				 .bt_patch = "fw_patch_8800d80.bin",
+				 .bt_table = "fw_patch_table_8800d80.bin",
+				 .wl_fw = "lmacfw_rf_8800d80.bin" },
 };
 
 const struct aicbsp_firmware fw_8800d80_u02[] = {
-	[AICBSP_CPMODE_WORK] = {
-		.desc          = "normal work mode(8800d80 sdio u02)",
-		.bt_adid       = "fw_adid_8800d80_u02.bin",
-		.bt_patch      = "fw_patch_8800d80_u02.bin",
-		.bt_table      = "fw_patch_table_8800d80_u02.bin",
-	#ifdef CONFIG_SDIO_BT
-		.wl_fw         = "fmacfwbt_8800d80_u02.bin"
-	#else
-		.wl_fw         = "fmacfw_8800d80_u02.bin"
-	#endif
-	},
+	[AICBSP_CPMODE_WORK] = { .desc = "normal work mode(8800d80 sdio u02)",
+				 .bt_adid = "fw_adid_8800d80_u02.bin",
+				 .bt_patch = "fw_patch_8800d80_u02.bin",
+				 .bt_table = "fw_patch_table_8800d80_u02.bin",
+#if defined CONFIG_SDIO_BT
+				 .wl_fw = "fmacfwbt_8800d80_u02.bin",
+#elif defined CONFIG_FOR_IPCAM
+				 .wl_fw = "fmacfw_8800d80_u02_ipc.bin",
+#else
+				 .wl_fw = "fmacfw_8800d80_u02.bin",
+#endif
+				 .bt_ext_patch = "fw_patch_8800d80_u02_ext" },
 
-	[AICBSP_CPMODE_TEST] = {
-		.desc          = "rf test mode(8800d80 sdio u02)",
-		.bt_adid       = "fw_adid_8800d80_u02.bin",
-		.bt_patch      = "fw_patch_8800d80_u02.bin",
-		.bt_table      = "fw_patch_table_8800d80_u02.bin",
-		.wl_fw         = "lmacfw_rf_8800d80_u02.bin"
-	},
+	[AICBSP_CPMODE_TEST] = { .desc = "rf test mode(8800d80 sdio u02)",
+				 .bt_adid = "fw_adid_8800d80_u02.bin",
+				 .bt_patch = "fw_patch_8800d80_u02.bin",
+				 .bt_table = "fw_patch_table_8800d80_u02.bin",
+				 .wl_fw = "lmacfw_rf_8800d80_u02.bin",
+				 .bt_ext_patch = "fw_patch_8800d80_u02_ext" },
 };
 
 const struct aicbsp_firmware fw_8800d80_h_u02[] = {
-	[AICBSP_CPMODE_WORK] = {
-		.desc          = "normal work mode(8800d80 sdio h_u02)",
-		.bt_adid       = "fw_adid_8800d80_u02.bin",
-		.bt_patch      = "fw_patch_8800d80_u02.bin",
-		.bt_table      = "fw_patch_table_8800d80_u02.bin",
-	#ifdef CONFIG_SDIO_BT
-		.wl_fw         = "fmacfwbt_8800d80_h_u02.bin"
-	#else
-		.wl_fw         = "fmacfw_8800d80_h_u02.bin"
-	#endif
-	},
+	[AICBSP_CPMODE_WORK] = { .desc = "normal work mode(8800d80 sdio h_u02)",
+				 .bt_adid = "fw_adid_8800d80_u02.bin",
+				 .bt_patch = "fw_patch_8800d80_u02.bin",
+				 .bt_table = "fw_patch_table_8800d80_u02.bin",
+#if defined CONFIG_SDIO_BT
+				 .wl_fw = "fmacfwbt_8800d80_h_u02.bin",
+#elif defined CONFIG_FOR_IPCAM
+				 .wl_fw = "fmacfw_8800d80_h_u02_ipc.bin",
+#else
+				 .wl_fw = "fmacfw_8800d80_h_u02.bin",
+#endif
+				 .bt_ext_patch = "fw_patch_8800d80_u02_ext" },
 
-	[AICBSP_CPMODE_TEST] = {
-		.desc          = "rf test mode(8800d80 sdio u02)",
-		.bt_adid       = "fw_adid_8800d80_u02.bin",
-		.bt_patch      = "fw_patch_8800d80_u02.bin",
-		.bt_table      = "fw_patch_table_8800d80_u02.bin",
-		.wl_fw         = "lmacfw_rf_8800d80_u02.bin"
-	},
+	[AICBSP_CPMODE_TEST] = { .desc = "rf test mode(8800d80 sdio u02)",
+				 .bt_adid = "fw_adid_8800d80_u02.bin",
+				 .bt_patch = "fw_patch_8800d80_u02.bin",
+				 .bt_table = "fw_patch_table_8800d80_u02.bin",
+				 .wl_fw = "lmacfw_rf_8800d80_u02.bin",
+				 .bt_ext_patch = "fw_patch_8800d80_u02_ext" },
+};
+
+const struct aicbsp_firmware fw_8800d80x2[] = {
+	[AICBSP_CPMODE_WORK] = { .desc = "normal work mode(8800d80x2 sdio)",
+				 .bt_adid = "fw_adid_8800d80x2_u05.bin",
+				 .bt_patch = "fw_patch_8800d80x2_u05.bin",
+				 .bt_table = "fw_patch_table_8800d80x2_u05.bin",
+#ifdef CONFIG_SDIO_BT
+				 .wl_fw = "fmacfwbt_8800d80_h_u02.bin",
+#else
+				 .wl_fw = "fmacfw_8800d80x2.bin",
+#endif
+				 .bt_ext_patch = "fw_patch_8800d80x2_u05_ext" },
+
+	[AICBSP_CPMODE_TEST] = { .desc = "rf test mode(8800d80x2 sdio)",
+				 .bt_adid = "fw_adid_8800d80x2_u05.bin",
+				 .bt_patch = "fw_patch_8800d80x2_u05.bin",
+				 .bt_table = "fw_patch_table_8800d80x2_u05.bin",
+				 .wl_fw = "lmacfw_rf_8800d80x2.bin",
+				 .bt_ext_patch = "fw_patch_8800d80x2_u05_ext" },
 };
 
 struct aicbsp_info_t aicbsp_info = {
 	.hwinfo_r = AICBSP_HWINFO_DEFAULT,
-	.hwinfo   = AICBSP_HWINFO_DEFAULT,
-	.cpmode   = AICBSP_CPMODE_DEFAULT,
+	.hwinfo = AICBSP_HWINFO_DEFAULT,
+	.cpmode = AICBSP_CPMODE_DEFAULT,
 	.fwlog_en = AICBSP_FWLOG_EN_DEFAULT,
 #ifdef CONFIG_IRQ_FALL
-	.irqf     = 1,
+	.irqf = 1,
 #else
-	.irqf     = 0,
+	.irqf = 0,
 #endif
 };
 
@@ -207,8 +216,8 @@ static struct platform_driver aicbsp_driver = {
 	//.remove = aicbsp_remove,
 };
 
-static ssize_t cpmode_show(struct device *dev,
-	struct device_attribute *attr, char *buf)
+static ssize_t cpmode_show(struct device *dev, struct device_attribute *attr,
+			   char *buf)
 {
 	ssize_t count = 0;
 	uint8_t i = 0;
@@ -217,19 +226,25 @@ static ssize_t cpmode_show(struct device *dev,
 
 	for (i = 0; i < AICBSP_CPMODE_MAX; i++) {
 		if (aicbsp_firmware_list[i].desc)
-			count += sprintf(&buf[count], " %2d: %s\n", i, aicbsp_firmware_list[i].desc);
+			count += sprintf(&buf[count], " %2d: %s\n", i,
+					 aicbsp_firmware_list[i].desc);
 	}
 
-	count += sprintf(&buf[count], "Current: %d, firmware info:\n", aicbsp_info.cpmode);
-	count += sprintf(&buf[count], "  BT ADID : %s\n", aicbsp_firmware_list[aicbsp_info.cpmode].bt_adid);
-	count += sprintf(&buf[count], "  BT PATCH: %s\n", aicbsp_firmware_list[aicbsp_info.cpmode].bt_patch);
-	count += sprintf(&buf[count], "  BT TABLE: %s\n", aicbsp_firmware_list[aicbsp_info.cpmode].bt_table);
-	count += sprintf(&buf[count], "  WIFI FW : %s\n", aicbsp_firmware_list[aicbsp_info.cpmode].wl_fw);
+	count += sprintf(&buf[count], "Current: %d, firmware info:\n",
+			 aicbsp_info.cpmode);
+	count += sprintf(&buf[count], "  BT ADID : %s\n",
+			 aicbsp_firmware_list[aicbsp_info.cpmode].bt_adid);
+	count += sprintf(&buf[count], "  BT PATCH: %s\n",
+			 aicbsp_firmware_list[aicbsp_info.cpmode].bt_patch);
+	count += sprintf(&buf[count], "  BT TABLE: %s\n",
+			 aicbsp_firmware_list[aicbsp_info.cpmode].bt_table);
+	count += sprintf(&buf[count], "  WIFI FW : %s\n",
+			 aicbsp_firmware_list[aicbsp_info.cpmode].wl_fw);
 	return count;
 }
 
-static ssize_t cpmode_store(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t cpmode_store(struct device *dev, struct device_attribute *attr,
+			    const char *buf, size_t count)
 {
 	unsigned long val;
 	int err = kstrtoul(buf, 0, &val);
@@ -242,13 +257,14 @@ static ssize_t cpmode_store(struct device *dev,
 	}
 
 	aicbsp_info.cpmode = val;
-	printk("%s, set mode to: %lu[%s] done\n", __func__, val, aicbsp_firmware_list[val].desc);
+	printk("%s, set mode to: %lu[%s] done\n", __func__, val,
+	       aicbsp_firmware_list[val].desc);
 
 	return count;
 }
 
-static ssize_t hwinfo_show(struct device *dev,
-	struct device_attribute *attr, char *buf)
+static ssize_t hwinfo_show(struct device *dev, struct device_attribute *attr,
+			   char *buf)
 {
 	ssize_t count = 0;
 
@@ -260,20 +276,23 @@ static ssize_t hwinfo_show(struct device *dev,
 
 	count += sprintf(&buf[count], "hwinfo read: ");
 	if (aicbsp_info.hwinfo_r < 0)
-		count += sprintf(&buf[count], "%d(not avalible), ", aicbsp_info.hwinfo_r);
+		count += sprintf(&buf[count], "%d(not avalible), ",
+				 aicbsp_info.hwinfo_r);
 	else
 		count += sprintf(&buf[count], "0x%02X, ", aicbsp_info.hwinfo_r);
 
 	if (aicbsp_info.hwinfo < 0)
-		count += sprintf(&buf[count], "set: %d(not avalible)\n", aicbsp_info.hwinfo);
+		count += sprintf(&buf[count], "set: %d(not avalible)\n",
+				 aicbsp_info.hwinfo);
 	else
-		count += sprintf(&buf[count], "set: 0x%02X\n", aicbsp_info.hwinfo);
+		count += sprintf(&buf[count], "set: 0x%02X\n",
+				 aicbsp_info.hwinfo);
 
 	return count;
 }
 
-static ssize_t hwinfo_store(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t hwinfo_store(struct device *dev, struct device_attribute *attr,
+			    const char *buf, size_t count)
 {
 	long val;
 	int err = kstrtol(buf, 0, &val);
@@ -292,19 +311,19 @@ static ssize_t hwinfo_store(struct device *dev,
 	return count;
 }
 
-static ssize_t fwdebug_show(struct device *dev,
-	struct device_attribute *attr, char *buf)
+static ssize_t fwdebug_show(struct device *dev, struct device_attribute *attr,
+			    char *buf)
 {
 	ssize_t count = 0;
 
 	count += sprintf(&buf[count], "fw log status: %s\n",
-			aicbsp_info.fwlog_en ? "on" : "off");
+			 aicbsp_info.fwlog_en ? "on" : "off");
 
 	return count;
 }
 
-static ssize_t fwdebug_store(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t fwdebug_store(struct device *dev, struct device_attribute *attr,
+			     const char *buf, size_t count)
 {
 	long val;
 	int err = kstrtol(buf, 0, &val);
@@ -323,14 +342,11 @@ static ssize_t fwdebug_store(struct device *dev,
 	return count;
 }
 
-static DEVICE_ATTR(cpmode, S_IRUGO | S_IWUSR,
-		cpmode_show, cpmode_store);
+static DEVICE_ATTR(cpmode, S_IRUGO | S_IWUSR, cpmode_show, cpmode_store);
 
-static DEVICE_ATTR(hwinfo, S_IRUGO | S_IWUSR,
-		hwinfo_show, hwinfo_store);
+static DEVICE_ATTR(hwinfo, S_IRUGO | S_IWUSR, hwinfo_show, hwinfo_store);
 
-static DEVICE_ATTR(fwdebug, S_IRUGO | S_IWUSR,
-		fwdebug_show, fwdebug_store);
+static DEVICE_ATTR(fwdebug, S_IRUGO | S_IWUSR, fwdebug_show, fwdebug_store);
 
 static struct attribute *aicbsp_attributes[] = {
 	&dev_attr_cpmode.attr,
@@ -340,7 +356,7 @@ static struct attribute *aicbsp_attributes[] = {
 };
 
 static struct attribute_group aicbsp_attribute_group = {
-	.name  = "aicbsp_info",
+	.name = "aicbsp_info",
 	.attrs = aicbsp_attributes,
 };
 
@@ -348,7 +364,6 @@ int testmode = AICBSP_CPMODE_DEFAULT;
 int adap_test = 0;
 module_param(testmode, int, 0660);
 module_param(adap_test, int, 0660);
-
 
 static int __init aicbsp_init(void)
 {
@@ -359,6 +374,9 @@ static int __init aicbsp_init(void)
 	aicbsp_info.cpmode = testmode;
 
 	aicbsp_resv_mem_init();
+
+	sema_init(&aicbsp_probe_semaphore, 0);
+
 	ret = platform_driver_register(&aicbsp_driver);
 	if (ret) {
 		pr_err("register platform driver failed: %d\n", ret);
@@ -372,7 +390,8 @@ static int __init aicbsp_init(void)
 		return ret;
 	}
 
-	ret = sysfs_create_group(&(aicbsp_pdev->dev.kobj), &aicbsp_attribute_group);
+	ret = sysfs_create_group(&(aicbsp_pdev->dev.kobj),
+				 &aicbsp_attribute_group);
 	if (ret) {
 		pr_err("register sysfs create group failed!\n");
 		return ret;
@@ -391,9 +410,9 @@ extern struct aic_sdio_dev *aicbsp_sdiodev;
 static void __exit aicbsp_exit(void)
 {
 #if defined CONFIG_PLATFORM_ROCKCHIP || defined CONFIG_PLATFORM_ROCKCHIP2
-    if(aicbsp_sdiodev){
-    	aicbsp_sdio_exit();
-    }
+	if (aicbsp_sdiodev) {
+		aicbsp_sdio_exit();
+	}
 #endif
 	sysfs_remove_group(&(aicbsp_pdev->dev.kobj), &aicbsp_attribute_group);
 	platform_device_del(aicbsp_pdev);
@@ -401,7 +420,7 @@ static void __exit aicbsp_exit(void)
 	mutex_destroy(&aicbsp_power_lock);
 	aicbsp_resv_mem_deinit();
 #ifdef CONFIG_PREALLOC_TXQ
-    aicwf_prealloc_txq_free();
+	aicwf_prealloc_txq_free();
 #endif
 	printk("%s\n", __func__);
 }

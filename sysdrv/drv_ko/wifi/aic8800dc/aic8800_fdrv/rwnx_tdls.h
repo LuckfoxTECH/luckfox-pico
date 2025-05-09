@@ -45,10 +45,12 @@ struct ieee_types_aid {
 	u16 aid;
 } __packed;
 
-int rwnx_tdls_send_mgmt_packet_data(struct rwnx_hw *rwnx_hw, struct rwnx_vif *rwnx_vif,
-						 const u8 *peer, u8 action_code, u8 dialog_token,
-						 u16 status_code, u32 peer_capability, bool initiator,
-						 const u8 *extra_ies, size_t extra_ies_len, u8 oper_class,
-						 struct cfg80211_chan_def *chandef);
+int rwnx_tdls_send_mgmt_packet_data(struct rwnx_hw *rwnx_hw,
+				    struct rwnx_vif *rwnx_vif, const u8 *peer,
+				    u8 action_code, u8 dialog_token,
+				    u16 status_code, u32 peer_capability,
+				    bool initiator, const u8 *extra_ies,
+				    size_t extra_ies_len, u8 oper_class,
+				    struct cfg80211_chan_def *chandef);
 
 #endif /* RWNX_TDLS_H_ */

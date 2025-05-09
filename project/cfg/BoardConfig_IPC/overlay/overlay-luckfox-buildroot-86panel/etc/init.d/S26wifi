@@ -1,0 +1,13 @@
+#!/bin/sh
+
+case $1 in
+start)
+	if [ "$(cat /proc/device-tree/model)" == "Luckfox Pico 86Panel W" ] ||
+		[ -f "/oem/usr/ko/insmod_wifi.sh" ]; then
+		sh /oem/usr/ko/insmod_wifi.sh &
+	fi
+	;;
+*)
+	exit 1
+	;;
+esac

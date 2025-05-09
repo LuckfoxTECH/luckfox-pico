@@ -18,7 +18,7 @@
 void aicwf_usb_tx_flowctrl(struct rwnx_hw *rwnx_hw, bool state)
 {
 	struct rwnx_vif *rwnx_vif;
-	list_for_each_entry(rwnx_vif, &rwnx_hw->vifs, list) {
+	list_for_each_entry (rwnx_vif, &rwnx_hw->vifs, list) {
 		if (!rwnx_vif->up)
 			continue;
 		if (!rwnx_vif->ndev)
@@ -31,7 +31,9 @@ void aicwf_usb_tx_flowctrl(struct rwnx_hw *rwnx_hw, bool state)
 }
 
 static struct aicwf_usb_buf *aicwf_usb_tx_dequeue(struct aic_usb_dev *usb_dev,
-	struct list_head *q, int *counter, spinlock_t *qlock)
+						  struct list_head *q,
+						  int *counter,
+						  spinlock_t *qlock)
 {
 	unsigned long flags;
 	struct aicwf_usb_buf *usb_buf;
@@ -49,9 +51,9 @@ static struct aicwf_usb_buf *aicwf_usb_tx_dequeue(struct aic_usb_dev *usb_dev,
 	return usb_buf;
 }
 
-static void aicwf_usb_tx_queue(struct aic_usb_dev *usb_dev,
-	struct list_head *q, struct aicwf_usb_buf *usb_buf, int *counter,
-	spinlock_t *qlock)
+static void aicwf_usb_tx_queue(struct aic_usb_dev *usb_dev, struct list_head *q,
+			       struct aicwf_usb_buf *usb_buf, int *counter,
+			       spinlock_t *qlock)
 {
 	unsigned long flags;
 
@@ -70,14 +72,16 @@ static struct aicwf_usb_buf *aicwf_usb_rx_buf_get(struct aic_usb_dev *usb_dev)
 	if (list_empty(&usb_dev->rx_free_list)) {
 		usb_buf = NULL;
 	} else {
-		usb_buf = list_first_entry(&usb_dev->rx_free_list, struct aicwf_usb_buf, list);
+		usb_buf = list_first_entry(&usb_dev->rx_free_list,
+					   struct aicwf_usb_buf, list);
 		list_del_init(&usb_buf->list);
 	}
 	spin_unlock_irqrestore(&usb_dev->rx_free_lock, flags);
 	return usb_buf;
 }
 
-static void aicwf_usb_rx_buf_put(struct aic_usb_dev *usb_dev, struct aicwf_usb_buf *usb_buf)
+static void aicwf_usb_rx_buf_put(struct aic_usb_dev *usb_dev,
+				 struct aicwf_usb_buf *usb_buf)
 {
 	unsigned long flags;
 
@@ -89,7 +93,7 @@ static void aicwf_usb_rx_buf_put(struct aic_usb_dev *usb_dev, struct aicwf_usb_b
 static void aicwf_usb_tx_complete(struct urb *urb)
 {
 	unsigned long flags;
-	struct aicwf_usb_buf *usb_buf = (struct aicwf_usb_buf *) urb->context;
+	struct aicwf_usb_buf *usb_buf = (struct aicwf_usb_buf *)urb->context;
 	struct aic_usb_dev *usb_dev = usb_buf->usbdev;
 	struct sk_buff *skb;
 	u8 *buf;
@@ -108,7 +112,7 @@ static void aicwf_usb_tx_complete(struct urb *urb)
 	usb_buf->skb = NULL;
 
 	aicwf_usb_tx_queue(usb_dev, &usb_dev->tx_free_list, usb_buf,
-					&usb_dev->tx_free_count, &usb_dev->tx_free_lock);
+			   &usb_dev->tx_free_count, &usb_dev->tx_free_lock);
 
 	spin_lock_irqsave(&usb_dev->tx_flow_lock, flags);
 	if (usb_dev->tx_free_count > AICWF_USB_TX_HIGH_WATER) {
@@ -118,11 +122,11 @@ static void aicwf_usb_tx_complete(struct urb *urb)
 		}
 	}
 	spin_unlock_irqrestore(&usb_dev->tx_flow_lock, flags);
-	}
+}
 
 static void aicwf_usb_rx_complete(struct urb *urb)
 {
-	struct aicwf_usb_buf *usb_buf = (struct aicwf_usb_buf *) urb->context;
+	struct aicwf_usb_buf *usb_buf = (struct aicwf_usb_buf *)urb->context;
 	struct aic_usb_dev *usb_dev = usb_buf->usbdev;
 	struct aicwf_rx_priv *rx_priv = usb_dev->rx_priv;
 	struct sk_buff *skb = NULL;
@@ -169,7 +173,7 @@ static void aicwf_usb_rx_complete(struct urb *urb)
 }
 
 static int aicwf_usb_submit_rx_urb(struct aic_usb_dev *usb_dev,
-				struct aicwf_usb_buf *usb_buf)
+				   struct aicwf_usb_buf *usb_buf)
 {
 	struct sk_buff *skb;
 	int ret;
@@ -191,10 +195,9 @@ static int aicwf_usb_submit_rx_urb(struct aic_usb_dev *usb_dev,
 
 	usb_buf->skb = skb;
 
-	usb_fill_bulk_urb(usb_buf->urb,
-		usb_dev->udev,
-		usb_dev->bulk_in_pipe,
-		skb->data, skb_tailroom(skb), aicwf_usb_rx_complete, usb_buf);
+	usb_fill_bulk_urb(usb_buf->urb, usb_dev->udev, usb_dev->bulk_in_pipe,
+			  skb->data, skb_tailroom(skb), aicwf_usb_rx_complete,
+			  usb_buf);
 
 	usb_buf->usbdev = usb_dev;
 
@@ -241,13 +244,15 @@ static void aicwf_usb_tx_prepare(struct aic_usb_dev *usb_dev)
 
 	while (!list_empty(&usb_dev->tx_post_list)) {
 		usb_buf = aicwf_usb_tx_dequeue(usb_dev, &usb_dev->tx_post_list,
-			&usb_dev->tx_post_count, &usb_dev->tx_post_lock);
+					       &usb_dev->tx_post_count,
+					       &usb_dev->tx_post_lock);
 		if (usb_buf->skb) {
 			dev_kfree_skb(usb_buf->skb);
 			usb_buf->skb = NULL;
 		}
 		aicwf_usb_tx_queue(usb_dev, &usb_dev->tx_free_list, usb_buf,
-				&usb_dev->tx_free_count, &usb_dev->tx_free_lock);
+				   &usb_dev->tx_free_count,
+				   &usb_dev->tx_free_lock);
 	}
 }
 static void aicwf_usb_tx_process(struct aic_usb_dev *usb_dev)
@@ -263,7 +268,8 @@ static void aicwf_usb_tx_process(struct aic_usb_dev *usb_dev)
 		}
 
 		usb_buf = aicwf_usb_tx_dequeue(usb_dev, &usb_dev->tx_post_list,
-						&usb_dev->tx_post_count, &usb_dev->tx_post_lock);
+					       &usb_dev->tx_post_count,
+					       &usb_dev->tx_post_lock);
 		if (!usb_buf) {
 			usb_err("can not get usb_buf from tx_post_list!\n");
 			return;
@@ -277,11 +283,12 @@ static void aicwf_usb_tx_process(struct aic_usb_dev *usb_dev)
 		}
 
 		continue;
-fail:
+	fail:
 		dev_kfree_skb(usb_buf->skb);
 		usb_buf->skb = NULL;
 		aicwf_usb_tx_queue(usb_dev, &usb_dev->tx_free_list, usb_buf,
-					&usb_dev->tx_free_count, &usb_dev->tx_free_lock);
+				   &usb_dev->tx_free_count,
+				   &usb_dev->tx_free_lock);
 	}
 }
 
@@ -328,7 +335,7 @@ int usb_busrx_thread(void *data)
 
 static void aicwf_usb_send_msg_complete(struct urb *urb)
 {
-	struct aic_usb_dev *usb_dev = (struct aic_usb_dev *) urb->context;
+	struct aic_usb_dev *usb_dev = (struct aic_usb_dev *)urb->context;
 
 	usb_dev->msg_finished = true;
 	if (waitqueue_active(&usb_dev->msg_wait))
@@ -354,10 +361,9 @@ static int aicwf_usb_bus_txmsg(struct device *dev, u8 *buf, u32 len)
 
 	usb_dev->msg_finished = false;
 
-	usb_fill_bulk_urb(usb_dev->msg_out_urb,
-		usb_dev->udev,
-		usb_dev->bulk_out_pipe,
-		buf, len, (usb_complete_t) aicwf_usb_send_msg_complete, usb_dev);
+	usb_fill_bulk_urb(usb_dev->msg_out_urb, usb_dev->udev,
+			  usb_dev->bulk_out_pipe, buf, len,
+			  (usb_complete_t)aicwf_usb_send_msg_complete, usb_dev);
 	usb_dev->msg_out_urb->transfer_flags |= URB_ZERO_PACKET;
 
 	ret = usb_submit_urb(usb_dev->msg_out_urb, GFP_ATOMIC);
@@ -366,8 +372,8 @@ static int aicwf_usb_bus_txmsg(struct device *dev, u8 *buf, u32 len)
 		goto exit;
 	}
 
-	ret = wait_event_timeout(usb_dev->msg_wait,
-		usb_dev->msg_finished, msecs_to_jiffies(CMD_TX_TIMEOUT));
+	ret = wait_event_timeout(usb_dev->msg_wait, usb_dev->msg_finished,
+				 msecs_to_jiffies(CMD_TX_TIMEOUT));
 	if (!ret) {
 		if (usb_dev->msg_out_urb)
 			usb_kill_urb(usb_dev->msg_out_urb);
@@ -386,15 +392,14 @@ exit:
 	return ret;
 }
 
-
 static void aicwf_usb_free_urb(struct list_head *q, spinlock_t *qlock)
 {
 	struct aicwf_usb_buf *usb_buf, *tmp;
 	unsigned long flags;
 
 	spin_lock_irqsave(qlock, flags);
-	list_for_each_entry_safe(usb_buf, tmp, q, list) {
-	spin_unlock_irqrestore(qlock, flags);
+	list_for_each_entry_safe (usb_buf, tmp, q, list) {
+		spin_unlock_irqrestore(qlock, flags);
 		if (!usb_buf->urb) {
 			usb_err("bad usb_buf\n");
 			spin_lock_irqsave(qlock, flags);
@@ -452,7 +457,6 @@ err:
 	return -ENOMEM;
 }
 
-
 static void aicwf_usb_state_change(struct aic_usb_dev *usb_dev, int state)
 {
 	int old_state;
@@ -484,7 +488,7 @@ static int aicwf_usb_bus_txdata(struct device *dev, struct sk_buff *skb)
 	struct rwnx_txhdr *txhdr = (struct rwnx_txhdr *)skb->data;
 	struct rwnx_hw *rwnx_hw = usb_dev->rwnx_hw;
 	u8 usb_header[4];
-	u8 adj_buf[4] = {0};
+	u8 adj_buf[4] = { 0 };
 	u16 index = 0;
 	bool need_cfm = false;
 
@@ -496,9 +500,11 @@ static int aicwf_usb_bus_txdata(struct device *dev, struct sk_buff *skb)
 	}
 
 	usb_buf = aicwf_usb_tx_dequeue(usb_dev, &usb_dev->tx_free_list,
-						&usb_dev->tx_free_count, &usb_dev->tx_free_lock);
+				       &usb_dev->tx_free_count,
+				       &usb_dev->tx_free_lock);
 	if (!usb_buf) {
-		usb_err("free:%d, post:%d\n", usb_dev->tx_free_count, usb_dev->tx_post_count);
+		usb_err("free:%d, post:%d\n", usb_dev->tx_free_count,
+			usb_dev->tx_post_count);
 		kmem_cache_free(rwnx_hw->sw_txhdr_cache, txhdr->sw_hdr);
 		dev_kfree_skb_any(skb);
 		ret = -ENOMEM;
@@ -509,18 +515,20 @@ static int aicwf_usb_bus_txdata(struct device *dev, struct sk_buff *skb)
 		need_cfm = true;
 		buf = kmalloc(skb->len, GFP_KERNEL);
 		index += sizeof(usb_header);
-		memcpy(&buf[index], (u8 *)(long)&txhdr->sw_hdr->desc, sizeof(struct txdesc_api));
+		memcpy(&buf[index], (u8 *)(long)&txhdr->sw_hdr->desc,
+		       sizeof(struct txdesc_api));
 		index += sizeof(struct txdesc_api);
-		memcpy(&buf[index], &skb->data[txhdr->sw_hdr->headroom], skb->len - txhdr->sw_hdr->headroom);
+		memcpy(&buf[index], &skb->data[txhdr->sw_hdr->headroom],
+		       skb->len - txhdr->sw_hdr->headroom);
 		index += skb->len - txhdr->sw_hdr->headroom;
 		buf_len = index;
 		if (buf_len & (TX_ALIGNMENT - 1)) {
-			adjust_len = roundup(buf_len, TX_ALIGNMENT)-buf_len;
+			adjust_len = roundup(buf_len, TX_ALIGNMENT) - buf_len;
 			memcpy(&buf[buf_len], adj_buf, adjust_len);
 			buf_len += adjust_len;
 		}
-		usb_header[0] = ((buf_len) & 0xff);
-		usb_header[1] = (((buf_len) >> 8)&0x0f);
+		usb_header[0] = ((buf_len)&0xff);
+		usb_header[1] = (((buf_len) >> 8) & 0x0f);
 		usb_header[2] = 0x01; //data
 		usb_header[3] = 0; //reserved
 		memcpy(&buf[0], usb_header, sizeof(usb_header));
@@ -528,12 +536,13 @@ static int aicwf_usb_bus_txdata(struct device *dev, struct sk_buff *skb)
 	} else {
 		skb_pull(skb, txhdr->sw_hdr->headroom);
 		skb_push(skb, sizeof(struct txdesc_api));
-		memcpy(&skb->data[0], (u8 *)(long)&txhdr->sw_hdr->desc, sizeof(struct txdesc_api));
+		memcpy(&skb->data[0], (u8 *)(long)&txhdr->sw_hdr->desc,
+		       sizeof(struct txdesc_api));
 		kmem_cache_free(rwnx_hw->sw_txhdr_cache, txhdr->sw_hdr);
 
 		skb_push(skb, sizeof(usb_header));
 		usb_header[0] = ((skb->len) & 0xff);
-		usb_header[1] = (((skb->len) >> 8)&0x0f);
+		usb_header[1] = (((skb->len) >> 8) & 0x0f);
 		usb_header[2] = 0x01; //data
 		usb_header[3] = 0; //reserved
 		memcpy(&skb->data[0], usb_header, sizeof(usb_header));
@@ -549,15 +558,15 @@ static int aicwf_usb_bus_txdata(struct device *dev, struct sk_buff *skb)
 	else
 		usb_buf->cfm = false;
 	usb_fill_bulk_urb(usb_buf->urb, usb_dev->udev, usb_dev->bulk_out_pipe,
-				buf, buf_len, aicwf_usb_tx_complete, usb_buf);
+			  buf, buf_len, aicwf_usb_tx_complete, usb_buf);
 	usb_buf->urb->transfer_flags |= URB_ZERO_PACKET;
 
 	aicwf_usb_tx_queue(usb_dev, &usb_dev->tx_post_list, usb_buf,
-					&usb_dev->tx_post_count, &usb_dev->tx_post_lock);
+			   &usb_dev->tx_post_count, &usb_dev->tx_post_lock);
 	complete(&bus_if->bustx_trgg);
 	ret = 0;
 
-	flow_ctrl:
+flow_ctrl:
 	spin_lock_irqsave(&usb_dev->tx_flow_lock, flags);
 	if (usb_dev->tx_free_count < AICWF_USB_TX_LOW_WATER) {
 		usb_dev->tbusy = true;
@@ -591,7 +600,7 @@ static void aicwf_usb_cancel_all_urbs(struct aic_usb_dev *usb_dev)
 		usb_kill_urb(usb_dev->msg_out_urb);
 
 	spin_lock_irqsave(&usb_dev->tx_post_lock, flags);
-	list_for_each_entry_safe(usb_buf, tmp, &usb_dev->tx_post_list, list) {
+	list_for_each_entry_safe (usb_buf, tmp, &usb_dev->tx_post_list, list) {
 		spin_unlock_irqrestore(&usb_dev->tx_post_lock, flags);
 		if (!usb_buf->urb) {
 			usb_err("bad usb_buf\n");
@@ -632,7 +641,8 @@ static void aicwf_usb_deinit(struct aic_usb_dev *usbdev)
 
 static void aicwf_usb_rx_urb_work(struct work_struct *work)
 {
-	struct aic_usb_dev *usb_dev = container_of(work, struct aic_usb_dev, rx_urb_work);
+	struct aic_usb_dev *usb_dev =
+		container_of(work, struct aic_usb_dev, rx_urb_work);
 
 	aicwf_usb_rx_submit_all_urb(usb_dev);
 }
@@ -659,15 +669,14 @@ static int aicwf_usb_init(struct aic_usb_dev *usb_dev)
 	usb_dev->tx_free_count = 0;
 	usb_dev->tx_post_count = 0;
 
-	ret =  aicwf_usb_alloc_rx_urb(usb_dev);
+	ret = aicwf_usb_alloc_rx_urb(usb_dev);
 	if (ret) {
 		goto error;
 	}
-	ret =  aicwf_usb_alloc_tx_urb(usb_dev);
+	ret = aicwf_usb_alloc_tx_urb(usb_dev);
 	if (ret) {
 		goto error;
 	}
-
 
 	usb_dev->msg_out_urb = usb_alloc_urb(0, GFP_ATOMIC);
 	if (!usb_dev->msg_out_urb) {
@@ -679,14 +688,14 @@ static int aicwf_usb_init(struct aic_usb_dev *usb_dev)
 	INIT_WORK(&usb_dev->rx_urb_work, aicwf_usb_rx_urb_work);
 
 	return ret;
-	error:
+error:
 	usb_err("failed!\n");
 	aicwf_usb_deinit(usb_dev);
 	return ret;
 }
 
-
-static int aicwf_parse_usb(struct aic_usb_dev *usb_dev, struct usb_interface *interface)
+static int aicwf_parse_usb(struct aic_usb_dev *usb_dev,
+			   struct usb_interface *interface)
 {
 	struct usb_interface_descriptor *interface_desc;
 	struct usb_host_interface *host_interface;
@@ -706,7 +715,7 @@ static int aicwf_parse_usb(struct aic_usb_dev *usb_dev, struct usb_interface *in
 	/* Check device configuration */
 	if (usb->descriptor.bNumConfigurations != 1) {
 		usb_err("Number of configurations: %d not supported\n",
-						usb->descriptor.bNumConfigurations);
+			usb->descriptor.bNumConfigurations);
 		ret = -ENODEV;
 		goto exit;
 	}
@@ -715,7 +724,7 @@ static int aicwf_parse_usb(struct aic_usb_dev *usb_dev, struct usb_interface *in
 #ifndef CONFIG_USB_BT
 	if (usb->descriptor.bDeviceClass != 0x00) {
 		usb_err("DeviceClass %d not supported\n",
-		usb->descriptor.bDeviceClass);
+			usb->descriptor.bDeviceClass);
 		ret = -ENODEV;
 		goto exit;
 	}
@@ -727,18 +736,20 @@ static int aicwf_parse_usb(struct aic_usb_dev *usb_dev, struct usb_interface *in
 #else
 	if (usb->actconfig->desc.bNumInterfaces != 1) {
 #endif
-	usb_err("Number of interfaces: %d not supported\n",
-		usb->actconfig->desc.bNumInterfaces);
-	ret = -ENODEV;
-	goto exit;
+		usb_err("Number of interfaces: %d not supported\n",
+			usb->actconfig->desc.bNumInterfaces);
+		ret = -ENODEV;
+		goto exit;
 	}
 
 	if ((interface_desc->bInterfaceClass != USB_CLASS_VENDOR_SPEC) ||
-		(interface_desc->bInterfaceSubClass != 0xff) ||
-		(interface_desc->bInterfaceProtocol != 0xff)) {
+	    (interface_desc->bInterfaceSubClass != 0xff) ||
+	    (interface_desc->bInterfaceProtocol != 0xff)) {
 		usb_err("non WLAN interface %d: 0x%x:0x%x:0x%x\n",
-			interface_desc->bInterfaceNumber, interface_desc->bInterfaceClass,
-			interface_desc->bInterfaceSubClass, interface_desc->bInterfaceProtocol);
+			interface_desc->bInterfaceNumber,
+			interface_desc->bInterfaceClass,
+			interface_desc->bInterfaceSubClass,
+			interface_desc->bInterfaceProtocol);
 		ret = -ENODEV;
 		goto exit;
 	}
@@ -748,16 +759,18 @@ static int aicwf_parse_usb(struct aic_usb_dev *usb_dev, struct usb_interface *in
 		endpoint_num = usb_endpoint_num(endpoint);
 
 		if (usb_endpoint_dir_in(endpoint) &&
-			usb_endpoint_xfer_bulk(endpoint)) {
+		    usb_endpoint_xfer_bulk(endpoint)) {
 			if (!usb_dev->bulk_in_pipe) {
-				usb_dev->bulk_in_pipe = usb_rcvbulkpipe(usb, endpoint_num);
+				usb_dev->bulk_in_pipe =
+					usb_rcvbulkpipe(usb, endpoint_num);
 			}
 		}
 
 		if (usb_endpoint_dir_out(endpoint) &&
-			usb_endpoint_xfer_bulk(endpoint)) {
+		    usb_endpoint_xfer_bulk(endpoint)) {
 			if (!usb_dev->bulk_out_pipe) {
-				usb_dev->bulk_out_pipe = usb_sndbulkpipe(usb, endpoint_num);
+				usb_dev->bulk_out_pipe =
+					usb_sndbulkpipe(usb, endpoint_num);
 			}
 		}
 	}
@@ -778,11 +791,9 @@ static int aicwf_parse_usb(struct aic_usb_dev *usb_dev, struct usb_interface *in
 	else
 		printk("Aic full speed USB device detected\n");
 
-	exit:
+exit:
 	return ret;
 }
-
-
 
 static struct aicwf_bus_ops aicwf_usb_bus_ops = {
 	.start = aicwf_usb_bus_start,
@@ -791,11 +802,12 @@ static struct aicwf_bus_ops aicwf_usb_bus_ops = {
 	.txmsg = aicwf_usb_bus_txmsg,
 };
 
-static int aicwf_usb_probe(struct usb_interface *intf, const struct usb_device_id *id)
+static int aicwf_usb_probe(struct usb_interface *intf,
+			   const struct usb_device_id *id)
 {
 	int ret = 0;
 	struct usb_device *usb = interface_to_usbdev(intf);
-	struct aicwf_bus *bus_if ;
+	struct aicwf_bus *bus_if;
 	struct device *dev = NULL;
 	struct aicwf_rx_priv *rx_priv = NULL;
 	struct aic_usb_dev *usb_dev = NULL;
@@ -874,7 +886,7 @@ out_free:
 static void aicwf_usb_disconnect(struct usb_interface *intf)
 {
 	struct aic_usb_dev *usb_dev =
-			(struct aic_usb_dev *) usb_get_intfdata(intf);
+		(struct aic_usb_dev *)usb_get_intfdata(intf);
 
 	if (!usb_dev)
 		return;
@@ -892,7 +904,7 @@ static void aicwf_usb_disconnect(struct usb_interface *intf)
 static int aicwf_usb_suspend(struct usb_interface *intf, pm_message_t state)
 {
 	struct aic_usb_dev *usb_dev =
-		(struct aic_usb_dev *) usb_get_intfdata(intf);
+		(struct aic_usb_dev *)usb_get_intfdata(intf);
 
 	aicwf_usb_state_change(usb_dev, USB_SLEEP_ST);
 	aicwf_bus_stop(usb_dev->bus_if);
@@ -902,7 +914,7 @@ static int aicwf_usb_suspend(struct usb_interface *intf, pm_message_t state)
 static int aicwf_usb_resume(struct usb_interface *intf)
 {
 	struct aic_usb_dev *usb_dev =
-		(struct aic_usb_dev *) usb_get_intfdata(intf);
+		(struct aic_usb_dev *)usb_get_intfdata(intf);
 
 	if (usb_dev->state == USB_UP_ST)
 		return 0;
@@ -918,9 +930,10 @@ static int aicwf_usb_reset_resume(struct usb_interface *intf)
 
 static struct usb_device_id aicwf_usb_id_table[] = {
 #ifndef CONFIG_USB_BT
-	{USB_DEVICE(USB_VENDOR_ID_AIC, USB_PRODUCT_ID_AIC)},
+	{ USB_DEVICE(USB_VENDOR_ID_AIC, USB_PRODUCT_ID_AIC) },
 #else
-	{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_AIC, USB_PRODUCT_ID_AIC, 0xff, 0xff, 0xff)},
+	{ USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_AIC, USB_PRODUCT_ID_AIC,
+					0xff, 0xff, 0xff) },
 #endif
 	{}
 };
