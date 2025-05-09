@@ -1,0 +1,178 @@
+#include "saix_tripwire.h"
+#include "iniparser.h"
+#include "saix_common_defines.h"
+#include "saix_utils.h"
+#include "video.h"
+
+#ifdef LOG_TAG
+#undef LOG_TAG
+#endif
+#define LOG_TAG "saix_tripwire.c"
+
+static void (*g_event_callback)(const RockIvaBaEventResult *event, void *usrdata) = NULL;
+static void *g_usrdata = NULL;
+extern RockIvaBaTaskParams *g_task_params;
+
+void saix_tripwire_draw_osd(int rule_id) {
+    extern TripwireOverlay tripwire_overlays[ROCKIVA_BA_MAX_RULE_NUM];
+    if (rule_id >= 0 && rule_id < ROCKIVA_BA_MAX_RULE_NUM) {
+        tripwire_overlays[rule_id].rule_id = rule_id;
+        tripwire_overlays[rule_id].trigger_time = rkipc_get_curren_time_ms();
+        tripwire_overlays[rule_id].active = true;
+        LOG_DEBUG("Activated tripwire overlay for rule_id=%d\n", rule_id);
+    }
+}
+
+void saix_tripwire_clear_osd(int rule_id) {
+    extern TripwireOverlay tripwire_overlays[ROCKIVA_BA_MAX_RULE_NUM];
+    if (rule_id >= 0 && rule_id < ROCKIVA_BA_MAX_RULE_NUM) {
+        tripwire_overlays[rule_id].active = false;
+        LOG_DEBUG("Cleared tripwire overlay for rule_id=%d\n", rule_id);
+    }
+}
+
+void saix_tripwire_register_event_callback(void (*callback)(const RockIvaBaEventResult *event, void *usrdata), void *usrdata) {
+    g_event_callback = callback;
+    g_usrdata = usrdata;
+    LOG_DEBUG("Registered tripwire event callback\n");
+}
+
+static void saix_tripwire_event_callback(const RockIvaBaEventResult *event, void *usrdata) {
+    const char *timestamp = saix_get_current_timestamp();
+    char camera_id[64] = {0};
+    char client_id[64] = {0};
+    fetch_camera_and_client_id(camera_id, sizeof(camera_id), client_id, sizeof(client_id));
+
+    const char *event_type = NULL;
+    char message[128] = {0};
+
+    if (event->eventType == ROCKIVA_BA_EVENT_TYPE_TRIPWIRE) {
+        event_type = "TripwireCrossed";
+        snprintf(message, sizeof(message), "Direction: %d, ObjectType: %d",
+                 event->tripWireEvent.direction, event->tripWireEvent.objectType);
+        LOG_INFO("[TRIPWIRE EVENT] Time: %s | Camera: %s | Client: %s | Rule ID: %d | Type: %s | Msg: %s\n",
+                 timestamp, camera_id, client_id, event->ruleID, event_type, message);
+        saix_tripwire_draw_osd(event->ruleID);
+    } else if (event->eventType == ROCKIVA_BA_EVENT_TYPE_AREA_INTRUSION) {
+        event_type = "RegionIntrusion";
+        snprintf(message, sizeof(message), "ObjectType: %d", event->areaInEvent.objectType);
+        LOG_INFO("[TRIPWIRE EVENT] Time: %s | Camera: %s | Client: %s | Rule ID: %d | Type: %s | Msg: %s\n",
+                 timestamp, camera_id, client_id, event->ruleID, event_type, message);
+        saix_tripwire_draw_osd(event->ruleID);
+    }
+
+    if (g_event_callback) {
+        g_event_callback(event, g_usrdata);
+    }
+}
+
+int configure_rules_from_ini(RockIvaBaTaskParams *params) {
+    dictionary *ini;
+    char section[64];
+    char key[64];
+    int rule_num = 0;
+
+    ini = iniparser_load(SWATAH_CONFIG_INI_PATH);
+    if (ini == NULL) {
+        LOG_ERROR("cannot parse file: %s\n", SWATAH_CONFIG_INI_PATH);
+        return -1;
+    }
+
+    // Configure tripwire rules
+    rule_num = iniparser_getint(ini, "tripwire:rule_num", 0);
+    LOG_INFO("tripwire rule_num is %d\n", rule_num);
+    if (rule_num > ROCKIVA_BA_MAX_RULE_NUM) {
+        LOG_ERROR("rule_num %d exceeds maximum %d\n", rule_num, ROCKIVA_BA_MAX_RULE_NUM);
+        iniparser_freedict(ini);
+        return -1;
+    }
+
+    for (int i = 0; i < rule_num; i++) {
+        snprintf(section, sizeof(section), "tripwire:rule%d", i);
+        params->baRules.tripWireRule[i].ruleID = i;
+        params->baRules.tripWireRule[i].ruleEnable = iniparser_getint(ini, section, 0);
+        snprintf(key, sizeof(key), "%s:direction", section);
+        params->baRules.tripWireRule[i].direction = iniparser_getint(ini, key, 0);
+        snprintf(key, sizeof(key), "%s:line_head_x", section);
+        params->baRules.tripWireRule[i].line.head.x = iniparser_getint(ini, key, 0);
+        snprintf(key, sizeof(key), "%s:line_head_y", section);
+        params->baRules.tripWireRule[i].line.head.y = iniparser_getint(ini, key, 0);
+        snprintf(key, sizeof(key), "%s:line_tail_x", section);
+        params->baRules.tripWireRule[i].line.tail.x = iniparser_getint(ini, key, 0);
+        snprintf(key, sizeof(key), "%s:line_tail_y", section);
+        params->baRules.tripWireRule[i].line.tail.y = iniparser_getint(ini, key, 0);
+        LOG_INFO("rule%d: enable=%d, direction=%d, head=(%d,%d), tail=(%d,%d)\n",
+                 i, params->baRules.tripWireRule[i].ruleEnable,
+                 params->baRules.tripWireRule[i].direction,
+                 params->baRules.tripWireRule[i].line.head.x,
+                 params->baRules.tripWireRule[i].line.head.y,
+                 params->baRules.tripWireRule[i].line.tail.x,
+                 params->baRules.tripWireRule[i].line.tail.y);
+    }
+    params->baRules.tripWireRuleNum = rule_num;
+
+    // Configure area intrusion rules
+    rule_num = iniparser_getint(ini, "area:rule_num", 0);
+    LOG_INFO("area rule_num is %d\n", rule_num);
+    if (rule_num > ROCKIVA_BA_MAX_RULE_NUM) {
+        LOG_ERROR("rule_num %d exceeds maximum %d\n", rule_num, ROCKIVA_BA_MAX_RULE_NUM);
+        iniparser_freedict(ini);
+        return -1;
+    }
+
+    for (int i = 0; i < rule_num; i++) {
+        snprintf(section, sizeof(section), "area:rule%d", i);
+        params->baRules.areaInRule[i].ruleID = i;
+        params->baRules.areaInRule[i].ruleEnable = iniparser_getint(ini, section, 0);
+        snprintf(key, sizeof(key), "%s:point_num", section);
+        params->baRules.areaInRule[i].area.pointNum = iniparser_getint(ini, key, 0);
+        for (int j = 0; j < params->baRules.areaInRule[i].area.pointNum; j++) {
+            snprintf(key, sizeof(key), "%s:point%d_x", section, j);
+            params->baRules.areaInRule[i].area.points[j].x = iniparser_getint(ini, key, 0);
+            snprintf(key, sizeof(key), "%s:point%d_y", section, j);
+            params->baRules.areaInRule[i].area.points[j].y = iniparser_getint(ini, key, 0);
+            LOG_INFO("rule%d: point%d=(%d,%d)\n", i, j,
+                     params->baRules.areaInRule[i].area.points[j].x,
+                     params->baRules.areaInRule[i].area.points[j].y);
+        }
+        LOG_INFO("rule%d: enable=%d, point_num=%d\n", i,
+                 params->baRules.areaInRule[i].ruleEnable,
+                 params->baRules.areaInRule[i].area.pointNum);
+    }
+    params->baRules.areaInRuleNum = rule_num;
+
+    iniparser_freedict(ini);
+    return 0;
+}
+
+int saix_tripwire_init() {
+    LOG_DEBUG("start\n");
+    if (g_task_params == NULL) {
+        g_task_params = (RockIvaBaTaskParams *)calloc(1, sizeof(RockIvaBaTaskParams));
+        if (!g_task_params) {
+            LOG_ERROR("Failed to allocate g_task_params\n");
+            return -1;
+        }
+    }
+    if (configure_rules_from_ini(g_task_params)) {
+        LOG_ERROR("configure_rules_from_ini failed\n");
+        free(g_task_params);
+        g_task_params = NULL;
+        return -1;
+    }
+    saix_tripwire_register_event_callback(saix_tripwire_event_callback, NULL);
+    LOG_DEBUG("end\n");
+    return 0;
+}
+
+int saix_tripwire_deinit() {
+    LOG_DEBUG("start\n");
+    if (g_task_params) {
+        free(g_task_params);
+        g_task_params = NULL;
+    }
+    g_event_callback = NULL;
+    g_usrdata = NULL;
+    LOG_DEBUG("end\n");
+    return 0;
+}
