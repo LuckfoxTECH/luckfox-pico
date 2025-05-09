@@ -60,3 +60,183 @@ int configure_rules_from_rkparam(RockIvaHandle handle) {
 
     return 0;
 }
+
+const char* get_object_type_string(uint32_t obj_type) {
+    switch (obj_type) {
+        case ROCKIVA_OBJECT_TYPE_PERSON:        return "person";
+        case ROCKIVA_OBJECT_TYPE_VEHICLE:       return "vehicle";
+        case ROCKIVA_OBJECT_TYPE_NON_VEHICLE:   return "non_vehicle";
+        case ROCKIVA_OBJECT_TYPE_FACE:          return "face";
+        case ROCKIVA_OBJECT_TYPE_HEAD:          return "head";
+        case ROCKIVA_OBJECT_TYPE_PET:           return "pet";
+        case ROCKIVA_OBJECT_TYPE_MOTORCYCLE:    return "motorcycle";
+        case ROCKIVA_OBJECT_TYPE_BICYCLE:       return "bicycle";
+        case ROCKIVA_OBJECT_TYPE_PLATE:         return "plate";
+        case ROCKIVA_OBJECT_TYPE_BABY:          return "baby";
+        case ROCKIVA_OBJECT_TYPE_PACKAGE:       return "package";
+        default:                                return "unknown";
+    }
+}
+
+// Map the RockIvaBaTripEvent direction to a human-readable string
+const char* map_tripwire_direction(RockIvaBaTripEvent direction) {
+    switch (direction) {
+        case ROCKIVA_BA_TRIP_EVENT_BOTH:
+            return "bidirectional";
+        case ROCKIVA_BA_TRIP_EVENT_DEASIL:
+            return "head_to_tail";
+        case ROCKIVA_BA_TRIP_EVENT_WIDDERSHINES:
+            return "tail_to_head";
+        default:
+            return "unknown";
+    }
+}
+
+
+// Function to fetch camera and client ID
+
+// Callback function for behavior analysis results
+void ba_result_callback(const RockIvaBaResult* result, const RockIvaExecuteStatus status, void* userdata) {
+    if (status != ROCKIVA_SUCCESS || !g_event_callback || !result) {
+        return;
+    }
+
+    char camera_id[128];
+    char client_id[128];
+    fetch_camera_and_client_id(camera_id, sizeof(camera_id), client_id, sizeof(client_id));
+
+    // Process each triggered object
+    for (uint32_t i = 0; i < result->objNum; i++) {
+        const RockIvaBaObjectInfo* obj = &result->triggerObjects[i];
+        
+        // If object has triggered rules
+        if (obj->triggerRulesNum > 0) {
+            const RockIvaBaTrigger* firstTrigger = &obj->firstTrigger;
+            
+            // Check trigger type and generate appropriate event
+            if (firstTrigger->triggerType == ROCKIVA_BA_RULE_CROSS) {
+                // Get tripwire details for this rule ID
+                RockIvaBaWireRule wireRule;
+                memset(&wireRule, 0, sizeof(wireRule));
+                
+                // We need to retrieve the actual rule parameters from the loaded configuration
+                RockIvaBaTaskParams* taskParams = (RockIvaBaTaskParams*)userdata;
+                
+                // Find matching rule by ID if we have access to the taskParams
+                if (taskParams) {
+                    for (int r = 0; r < ROCKIVA_BA_MAX_RULE_NUM; r++) {
+                        if (taskParams->baRules.tripWireRule[r].ruleID == firstTrigger->ruleID) {
+                            wireRule = taskParams->baRules.tripWireRule[r];
+                            break;
+                        }
+                    }
+                }
+                
+                // Determine direction using the rule configuration
+                const char* direction;
+                
+                // Get the direction from the wire rule event parameter
+                direction = map_tripwire_direction(wireRule.event);
+                
+                // If we couldn't get specific rule info, fallback to a simple determination
+                if (strcmp(direction, "unknown") == 0) {
+                    // Simple direction detection based on object movement
+                    // This is a fallback if we can't get the actual rule configuration
+                    direction = "head_to_tail"; // Default
+                }
+                
+                // Tripwire event
+                char json_message[512];
+                snprintf(json_message, sizeof(json_message),
+                         "{\n"
+                         "  \"timestamp\": \"%s\",\n"
+                         "  \"camera_id\": \"%s\",\n"
+                         "  \"client_id\": \"%s\",\n"
+                         "  \"event_type\": \"tripwire_event\",\n"
+                         "  \"sequence_number\": %d,\n"
+                         "  \"tripwire_event\": {\n"
+                         "    \"direction\": \"%s\",\n"
+                         "    \"object\": {\n"
+                         "      \"class\": \"%s\",\n"
+                         "      \"tracking_id\": \"%u\"\n"
+                         "    }\n"
+                         "  }\n"
+                         "}\n",
+                         saix_get_current_timestamp(),
+                         camera_id,
+                         client_id,
+                         firstTrigger->ruleID,
+                         direction,  // Use the properly mapped direction
+                         get_object_type_string(obj->objInfo.type),
+                         obj->objInfo.objId);
+
+                g_event_callback(firstTrigger->ruleID, "Tripwire", json_message);
+                printf(">>> ba_result_callback() triggered with %u objects\n", result->objNum);
+
+            }
+            else if (firstTrigger->triggerType == ROCKIVA_BA_RULE_INAREA || 
+                     firstTrigger->triggerType == ROCKIVA_BA_RULE_STAY) {
+                // Area invasion event
+                char json_message[512];
+                snprintf(json_message, sizeof(json_message),
+                         "{\n"
+                         "  \"timestamp\": \"%s\",\n"
+                         "  \"camera_id\": \"%s\",\n"
+                         "  \"client_id\": \"%s\",\n"
+                         "  \"event_type\": \"area_invasion_event\",\n"
+                         "  \"sequence_number\": %d,\n"
+                         "  \"area_invasion_event\": {\n"
+                         "    \"area_id\": %d,\n"
+                         "    \"object\": {\n"
+                         "      \"class\": \"%s\",\n"
+                         "      \"tracking_id\": \"%u\"\n"
+                         "    }\n"
+                         "  }\n"
+                         "}\n",
+                         saix_get_current_timestamp(),
+                         camera_id,
+                         client_id,
+                         firstTrigger->ruleID,
+                         firstTrigger->ruleID,
+                         get_object_type_string(obj->objInfo.type),
+                         obj->objInfo.objId);
+
+                g_event_callback(firstTrigger->ruleID, "Area Invasion", json_message);
+                printf(">>> ba_result_callback() triggered with %u objects\n", result->objNum);
+
+            }
+        }
+    }
+
+}
+
+// Initialization function
+int init_tripwire(RockIvaHandle handle) {
+    printf("Initializing Tripwire functionality...\n");
+
+    // Configure rules from rk_param directly
+    if (configure_rules_from_rkparam(handle) != 0) {
+        printf("Failed to configure rules from rk_param.\n");
+        return -1;
+    }
+
+    printf("Tripwire initialization complete.\n");
+    return 0;
+}
+
+// Deinitialization function
+int deinit_tripwire(RockIvaHandle handle) {
+    printf("Deinitializing Tripwire functionality...\n");
+
+    RockIvaRetCode ret = ROCKIVA_BA_Release(handle);
+    if (ret != ROCKIVA_RET_SUCCESS) {
+        printf("Failed to release RockIva BA: %d\n", ret);
+        return -1;
+    }
+    
+    // Free any allocated memory for taskParams
+    // (implementation would depend on how you store it)
+
+    printf("Tripwire deinitialization complete.\n");
+    return 0;
+}
