@@ -53,7 +53,73 @@ typedef enum rkCOLOR_INDEX_E {
 } COLOR_INDEX_E;
 
 
+typedef struct {
+    RockIvaHandle handle;
+    int running;
+    pthread_t thread_id;
+    pthread_mutex_t lock;
+} SaixTripwireContext;
 
+static SaixTripwireContext g_tripwire_ctx;
+
+// Tripwire thread function
+void* tripwire_thread_func(void* arg) {
+    SaixTripwireContext* ctx = (SaixTripwireContext*)arg;
+    
+    printf("[Tripwire] Thread started\n");
+    
+    // Initialize tripwire in this thread
+    if (init_tripwire() != 0) {
+        printf("[Tripwire] Failed to initialize tripwire\n");
+        return NULL;
+    }
+    
+    // Main thread loop
+    while (ctx->running) {
+        // Sleep to reduce CPU usage - adjust based on your needs
+        usleep(10000);  // 10ms
+    }
+    
+    // Cleanup before thread exit
+    deinit_tripwire();
+    printf("[Tripwire] Thread exiting\n");
+    return NULL;
+}
+
+// Function to start the tripwire thread
+int start_tripwire_thread() {
+    // Initialize context
+    memset(&g_tripwire_ctx, 0, sizeof(g_tripwire_ctx));
+    pthread_mutex_init(&g_tripwire_ctx.lock, NULL);
+    g_tripwire_ctx.running = 1;
+    
+    // Create thread
+    int ret = pthread_create(&g_tripwire_ctx.thread_id, NULL, tripwire_thread_func, &g_tripwire_ctx);
+    if (ret != 0) {
+        printf("[Tripwire] Failed to create thread: %d\n", ret);
+        return -1;
+    }
+    
+    printf("[Tripwire] Thread created successfully\n");
+    return 0;
+}
+
+// Function to stop the tripwire thread
+int stop_tripwire_thread() {
+    if (g_tripwire_ctx.running) {
+        // Signal thread to stop
+        g_tripwire_ctx.running = 0;
+        
+        // Wait for thread to exit
+        pthread_join(g_tripwire_ctx.thread_id, NULL);
+        
+        // Clean up mutex
+        pthread_mutex_destroy(&g_tripwire_ctx.lock);
+        
+        printf("[Tripwire] Thread stopped\n");
+    }
+    return 0;
+}
 
 int saix_vi_dev_init() {
 	LOG_DEBUG("%s\n", __func__);
@@ -1723,6 +1789,7 @@ int rk_video_init() {
 	// rk_region_clip_set_all();
 	if (enable_npu || enable_ivs) {
 		ret |= saix_setup_ivs_pipe();
+		 ret |= start_tripwire_thread();
 		saix_register_event_callback(ba_result_callback);
 	}
 	// The osd dma buffer must be placed in the last application,
@@ -1739,6 +1806,7 @@ int rk_video_deinit() {
 	g_video_run_ = 0;
 	int ret = 0;
 	if (enable_npu || enable_ivs)
+	    ret |= stop_tripwire_thread();
 		ret |= saix_teardown_ivs_pipe();
 	// rk_region_clip_set_callback_register(NULL);
 	rk_roi_set_callback_register(NULL);
