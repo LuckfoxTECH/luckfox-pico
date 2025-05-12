@@ -13,38 +13,7 @@
 #include "video.h"
 #include "rockiva_ba_api.h"
 
-// Add these if they're not already defined elsewhere
-#ifndef ROCKIVA_OBJECT_TYPE_PERSON
-#define ROCKIVA_OBJECT_TYPE_PERSON      1
-#define ROCKIVA_OBJECT_TYPE_VEHICLE     2
-#define ROCKIVA_OBJECT_TYPE_NON_VEHICLE 3
-#define ROCKIVA_OBJECT_TYPE_FACE        4
-#define ROCKIVA_OBJECT_TYPE_HEAD        5
-#define ROCKIVA_OBJECT_TYPE_PET         6
-#define ROCKIVA_OBJECT_TYPE_MOTORCYCLE  7
-#define ROCKIVA_OBJECT_TYPE_BICYCLE     8
-#define ROCKIVA_OBJECT_TYPE_PLATE       9
-#define ROCKIVA_OBJECT_TYPE_BABY        10
-#define ROCKIVA_OBJECT_TYPE_PACKAGE     11
-#endif
 
-
-const char* get_object_type_string(uint32_t obj_type) {
-    switch (obj_type) {
-        case ROCKIVA_OBJECT_TYPE_PERSON:        return "person";
-        case ROCKIVA_OBJECT_TYPE_VEHICLE:       return "vehicle";
-        case ROCKIVA_OBJECT_TYPE_NON_VEHICLE:   return "non_vehicle";
-        case ROCKIVA_OBJECT_TYPE_FACE:          return "face";
-        case ROCKIVA_OBJECT_TYPE_HEAD:          return "head";
-        case ROCKIVA_OBJECT_TYPE_PET:           return "pet";
-        case ROCKIVA_OBJECT_TYPE_MOTORCYCLE:    return "motorcycle";
-        case ROCKIVA_OBJECT_TYPE_BICYCLE:       return "bicycle";
-        case ROCKIVA_OBJECT_TYPE_PLATE:         return "plate";
-        case ROCKIVA_OBJECT_TYPE_BABY:          return "baby";
-        case ROCKIVA_OBJECT_TYPE_PACKAGE:       return "package";
-        default:                                return "unknown";
-    }
-}
 
 // Event callback typedef
 typedef void (*SaixEventCallback)(int rule_id, const char* event_type, const char* json_payload);
