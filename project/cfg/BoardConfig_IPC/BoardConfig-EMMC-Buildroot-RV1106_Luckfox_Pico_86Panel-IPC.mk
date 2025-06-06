@@ -24,7 +24,7 @@ export RK_KERNEL_DTS=rv1106g-luckfox-pico-86panel.dts
 export RK_BOOT_MEDIUM=emmc
 
 # Uboot defconfig fragment
-export RK_UBOOT_DEFCONFIG_FRAGMENT=rk-emmc.config
+export RK_UBOOT_DEFCONFIG_FRAGMENT="rk-emmc.config rv1106-luckfox-rgb-reset.config"
 
 # specify post.sh for delete/overlay files
 # export RK_PRE_BUILD_OEM_SCRIPT=rv1103-spi_nor-post.sh

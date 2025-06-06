@@ -1,0 +1,17 @@
+#!/bin/sh
+
+start(){
+	if [ -f "/oem/usr/ko/pwm_bl.ko" ]; then
+		sleep 1
+		insmod /oem/usr/ko/pwm_bl.ko
+	fi
+}
+
+case $1 in
+start)
+	start &
+	;;
+*)
+	exit 1
+	;;
+esac
