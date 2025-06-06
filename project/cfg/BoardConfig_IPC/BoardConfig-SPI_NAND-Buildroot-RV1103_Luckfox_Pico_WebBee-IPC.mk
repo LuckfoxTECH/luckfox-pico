@@ -103,6 +103,13 @@ export RK_BUILD_APP_TO_OEM_PARTITION=y
 # enable rockchip test
 export RK_ENABLE_ROCKCHIP_TEST=y
 
+# enable rockchip wifi
+export RK_ENABLE_WIFI=y
+
+# config wifi ssid and passwd
+export LF_WIFI_SSID="Your wifi ssid"
+export LF_WIFI_PSK="Your wifi password"
+
 #################################################
 # 	PRE and POST
 #################################################
@@ -114,4 +121,4 @@ export RK_PRE_BUILD_OEM_SCRIPT=luckfox-buildroot-nocsi-oem-pre.sh
 export RK_PRE_BUILD_USERDATA_SCRIPT=luckfox-userdata-pre.sh
 
 # declare overlay directory
-export RK_POST_OVERLAY="overlay-luckfox-buildroot-init overlay-luckfox-buildroot-shadow overlay-luckfox-buildroot-webbee"
+export RK_POST_OVERLAY="overlay-luckfox-buildroot-init overlay-luckfox-buildroot-shadow overlay-luckfox-buildroot-webbee overlay-luckfox-wifibt-firmware"
