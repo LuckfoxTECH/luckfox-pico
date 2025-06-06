@@ -55,10 +55,6 @@
 
 	panel: panel {
 		compatible = "simple-panel";
-		backlight = <&backlight>;
-
-		reset-gpios = <&gpio0 RK_PA1 GPIO_ACTIVE_LOW>;
-		reset-delay-ms = <200>;
 		status = "okay";
 
 		bus-format = <MEDIA_BUS_FMT_RGB666_1X18>;
@@ -445,17 +441,18 @@
 };
 
 &i2c3 {
-    clock-frequency = <100000>;
-    GT911:touchscreen {
-      compatible = "goodix,gt911";
-      reg = <0x14>;
+	status = "okay";
+	clock-frequency = <100000>;
+	GT911:touchscreen {
+		compatible = "goodix,gt911";
+		reg = <0x14>;
 
-      interrupt-parent = <&gpio0>;
-      interrupts = <RK_PA3 IRQ_TYPE_EDGE_FALLING>;
+		interrupt-parent = <&gpio0>;
+		interrupts = <RK_PA3 IRQ_TYPE_EDGE_FALLING>;
 
-      reset-gpios = <&gpio0 RK_PA4 GPIO_ACTIVE_LOW>;
-      pinctrl-names = "default";
-    };
+		reset-gpios = <&gpio0 RK_PA4 GPIO_ACTIVE_LOW>;
+		pinctrl-names = "default";
+	};
 };
 
 /**************************** PINCTRL ******************************/
