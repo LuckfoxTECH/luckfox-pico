@@ -144,8 +144,8 @@ function luckfox_pico_ultra_pin_diagram_file() {
          -             -             -      3V3 |       | 5V
  PWM7_M0 - I2C2_M0_SCL - UART3_M0_TX - GPIO1_A0 |       | 5V
  PWM4_M0 - I2C2_M0_SDA - UART3_M0_RX - GPIO1_A1 |       | GND
- PWM3_M1 -             - UART4_M0_RX - GPIO1_B0 |       | GPIO1_B2 - UART2_M1_TX
-         -             -             -      GND |       | GPIO1_B3 - UART2_M1_RX
+ PWM3_M1 -             - UART4_M0_RX - GPIO1_B0 |       | GPIO1_B2 - FIQtty_TX
+         -             -             -      GND |       | GPIO1_B3 - FIQtty_RX
  PWM7_M1 -             - UART4_M0_TX - GPIO1_B1 |       | GPIO1_C6 -             -            - PWM10_M1
  PWM3_M2 -             - UART3_M1_TX - GPIO1_D0 |       | GND
  PWM10_M2-             - UART3_M1_RX - GPIO1_D1 |       | GPIO2_A7 - UART0_M1_CTS- I2C3_M0_SDA- PWM4_M1
