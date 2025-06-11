@@ -3,7 +3,7 @@
 #################################################
 # 	Board Config
 #################################################
-export LF_ORIGIN_BOARD_CONFIG=BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Mini_B-IPC.mk
+export LF_ORIGIN_BOARD_CONFIG=BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Mini-IPC.mk
 # Target CHIP
 export RK_CHIP=rv1106
 
@@ -103,6 +103,13 @@ export RK_BUILD_APP_TO_OEM_PARTITION=y
 # enable rockchip test
 export RK_ENABLE_ROCKCHIP_TEST=y
 
+# enable rockchip wifi
+export RK_ENABLE_WIFI=y
+
+# config wifi ssid and passwd
+export LF_WIFI_SSID="Your wifi ssid"
+export LF_WIFI_PSK="Your wifi password"
+
 #################################################
 # 	PRE and POST
 #################################################
@@ -114,4 +121,5 @@ export RK_PRE_BUILD_OEM_SCRIPT=luckfox-buildroot-oem-pre.sh
 export RK_PRE_BUILD_USERDATA_SCRIPT=luckfox-userdata-pre.sh
 
 # declare overlay directory
-export RK_POST_OVERLAY="overlay-luckfox-config overlay-luckfox-buildroot-init overlay-luckfox-buildroot-shadow"
+export RK_POST_OVERLAY="overlay-luckfox-config overlay-luckfox-buildroot-init overlay-luckfox-buildroot-shadow overlay-luckfox-buildroot-webbee overlay-luckfox-wifibt-firmware"
+

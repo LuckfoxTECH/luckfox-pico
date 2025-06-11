@@ -149,12 +149,10 @@ function __IS_IN_ARRAY() {
 
 function choose_target_board() {
 	local LF_HARDWARE=("RV1103_Luckfox_Pico"
-		"RV1103_Luckfox_Pico_Mini_A"
-		"RV1103_Luckfox_Pico_Mini_B"
+		"RV1103_Luckfox_Pico_Mini"
 		"RV1103_Luckfox_Pico_Plus"
 		"RV1103_Luckfox_Pico_WebBee"
-		"RV1106_Luckfox_Pico_Pro"
-		"RV1106_Luckfox_Pico_Max"
+		"RV1106_Luckfox_Pico_Pro_Max"
 		"RV1106_Luckfox_Pico_Ultra"
 		"RV1106_Luckfox_Pico_Ultra_W"
 		"RV1106_Luckfox_Pico_Pi"
@@ -174,17 +172,13 @@ function choose_target_board() {
 
 	echo "${space8}${space8}[${LUNCH_NUM}] RV1103_Luckfox_Pico"
 	LUNCH_NUM=$((LUNCH_NUM + 1))
-	echo "${space8}${space8}[${LUNCH_NUM}] RV1103_Luckfox_Pico_Mini_A"
-	LUNCH_NUM=$((LUNCH_NUM + 1))
-	echo "${space8}${space8}[${LUNCH_NUM}] RV1103_Luckfox_Pico_Mini_B"
+	echo "${space8}${space8}[${LUNCH_NUM}] RV1103_Luckfox_Pico_Mini"
 	LUNCH_NUM=$((LUNCH_NUM + 1))
 	echo "${space8}${space8}[${LUNCH_NUM}] RV1103_Luckfox_Pico_Plus"
 	LUNCH_NUM=$((LUNCH_NUM + 1))
 	echo "${space8}${space8}[${LUNCH_NUM}] RV1103_Luckfox_Pico_WebBee"
 	LUNCH_NUM=$((LUNCH_NUM + 1))
-	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Pro"
-	LUNCH_NUM=$((LUNCH_NUM + 1))
-	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Max"
+	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Pro_Max"
 	LUNCH_NUM=$((LUNCH_NUM + 1))
 	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Ultra"
 	LUNCH_NUM=$((LUNCH_NUM + 1))
@@ -280,9 +274,9 @@ function choose_target_board() {
 	#	MAX_BM_INDEX=0
 	#fi
 
-	range_sd_card=(0 1)
-	range_sd_card_spi_nand=(2 3 4 5 6)
-	range_emmc=(7 8 9 10 11 12)
+	range_sd_card=(0)
+	range_sd_card_spi_nand=(1 2 3 4)
+	range_emmc=(5 6 7 8 9 10)
 
 	if __IS_IN_ARRAY "$HW_INDEX" "${range_sd_card[@]}"; then
 		echo "${space8}${space8}[0] SD_CARD"

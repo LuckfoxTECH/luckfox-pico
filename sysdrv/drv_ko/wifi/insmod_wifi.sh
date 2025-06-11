@@ -44,6 +44,15 @@ if [ $? -eq 0 ]; then
 	insmod bcmdhd.ko
 fi
 
+#rtl8723bs
+cat /sys/bus/sdio/devices/*/uevent | grep "024C:B723"
+if [ $? -eq 0 ]; then
+	insmod libarc4.ko
+	insmod cfg80211.ko
+	insmod mac80211.ko
+	insmod r8723bs.ko
+fi
+
 #rtl8723ds
 cat /sys/bus/sdio/devices/*/uevent | grep "024C:D723"
 if [ $? -eq 0 ]; then

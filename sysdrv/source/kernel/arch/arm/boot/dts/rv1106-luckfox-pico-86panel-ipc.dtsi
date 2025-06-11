@@ -55,10 +55,6 @@
 
 	panel: panel {
 		compatible = "simple-panel";
-		backlight = <&backlight>;
-
-		reset-gpios = <&gpio0 RK_PA1 GPIO_ACTIVE_LOW>;
-		reset-delay-ms = <200>;
 		status = "okay";
 
 		bus-format = <MEDIA_BUS_FMT_RGB666_1X18>;
@@ -282,7 +278,7 @@
 	status = "okay";
 	pinctrl-0 = <&i2c3m2_xfer &tp_rst &tp_irq>;
 	clock-frequency = <100000>;
-	GT911:touchscreen {
+	GT911: touchscreen {
 		compatible = "goodix,gt911";
 		reg = <0x14>;
 
@@ -297,11 +293,11 @@
 /**************************** PINCTRL ******************************/
 &pinctrl {
 	touchscreen {
-		tp_rst:tp-rst {
+		tp_rst: tp-rst {
 			rockchip,pins = <3 RK_PD0 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 
-		tp_irq:tp-irq {
+		tp_irq: tp-irq {
 			rockchip,pins = <0 RK_PA0 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};

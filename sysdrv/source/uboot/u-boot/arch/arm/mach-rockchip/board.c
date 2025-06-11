@@ -94,6 +94,16 @@ __weak int rk_board_init(void)
 	return 0;
 }
 
+#ifdef CONFIG_LUCKFOX_EXECUTE_CMD
+static int luckfox_execute_cmd(void)
+{
+	/* Luckfox Pico RGB MCU reset gpio */
+	run_command("gpio set 1 1",0);
+
+	return 0;
+}
+#endif
+
 #ifdef CONFIG_ROCKCHIP_SET_ETHADDR
 /*
  * define serialno max length, the max length is 512 Bytes
@@ -453,6 +463,9 @@ static void scan_run_cmd(void)
 
 int board_late_init(void)
 {
+#ifdef CONFIG_LUCKFOX_EXECUTE_CMD
+	luckfox_execute_cmd();
+#endif
 #ifdef CONFIG_ROCKCHIP_SET_ETHADDR
 	rockchip_set_ethaddr();
 #endif

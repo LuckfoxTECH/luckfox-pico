@@ -96,7 +96,7 @@
 };
 
 &pinctrl{
-	sdmmc0{
+	sdmmc0 {
 		sdmmc0_det: sdmmc0-det {
 			rockchip,pins =
 				/* sdmmc0_det */

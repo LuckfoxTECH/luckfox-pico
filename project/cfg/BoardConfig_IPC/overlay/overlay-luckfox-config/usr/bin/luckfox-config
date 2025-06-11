@@ -144,8 +144,8 @@ function luckfox_pico_ultra_pin_diagram_file() {
          -             -             -      3V3 |       | 5V
  PWM7_M0 - I2C2_M0_SCL - UART3_M0_TX - GPIO1_A0 |       | 5V
  PWM4_M0 - I2C2_M0_SDA - UART3_M0_RX - GPIO1_A1 |       | GND
- PWM3_M1 -             - UART4_M0_RX - GPIO1_B0 |       | GPIO1_B2 - UART2_M1_TX
-         -             -             -      GND |       | GPIO1_B3 - UART2_M1_RX
+ PWM3_M1 -             - UART4_M0_RX - GPIO1_B0 |       | GPIO1_B2 - FIQtty_TX
+         -             -             -      GND |       | GPIO1_B3 - FIQtty_RX
  PWM7_M1 -             - UART4_M0_TX - GPIO1_B1 |       | GPIO1_C6 -             -            - PWM10_M1
  PWM3_M2 -             - UART3_M1_TX - GPIO1_D0 |       | GND
  PWM10_M2-             - UART3_M1_RX - GPIO1_D1 |       | GPIO2_A7 - UART0_M1_CTS- I2C3_M0_SDA- PWM4_M1
@@ -242,7 +242,7 @@ function luckfox_config_init() {
 	if [ ! -f $LUCKFOX_PIN_DIAGRAM_FILE ]; then
 		if [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Plus" ]; then
 			luckfox_pico_plus_pin_diagram_file
-		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ]; then
+		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro Max" ]; then
 			luckfox_pico_pro_max_pin_diagram_file
 		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico" ]; then
 			luckfox_pico_pin_diagram_file
@@ -365,7 +365,7 @@ function luckfox_load_cfg() {
 			luckfox_set_pin_mark "GPIO1_C3" "$value"
 			luckfox_set_pin_mark "GPIO0_A4" "$value"
 			luckfox_fbtft_app 1 "sitronix,st7789v"
-		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ]; then
+		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro Max" ]; then
 			luckfox_set_pin_mark "GPIO2_B1" "$value"
 			luckfox_set_pin_mark "GPIO1_C0" "$value"
 			luckfox_set_pin_mark "GPIO1_C1" "$value"
@@ -378,7 +378,7 @@ function luckfox_load_cfg() {
 		fi
 	elif [ "$value" == 0 ]; then
 		if [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Plus" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico" ] ||
-			[ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ]; then
+			[ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro Max" ]; then
 			echo "Reset fbtft pins"
 			#luckfox_fbtft_app 0
 		fi
@@ -1108,7 +1108,7 @@ function luckfox_compatible_Pico_LCD() {
 			luckfox_gpio_app 3 a 5 up
 			luckfox_gpio_app 3 a 2 up
 
-		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ]; then
+		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro Max" ]; then
 			luckfox_uart_app 0 1 1
 			luckfox_i2c_app 0 4 0
 
@@ -1213,7 +1213,7 @@ function luckfox_compatible_Pico_ResTouch_LCD() {
 			luckfox_uart_app 0 5 0
 			luckfox_i2c_app 0 0 2
 			luckfox_result_handle $LF_OK
-		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ]; then
+		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro Max" ]; then
 			luckfox_uart_app 0 1 1
 			luckfox_i2c_app 0 4 0
 			luckfox_i2c_app 0 3 0
@@ -1280,7 +1280,7 @@ function luckfox_compatible_Pico_OLED() {
 			luckfox_uart_app 0 5 0
 			luckfox_gpio_app 1 d 1 up
 			luckfox_gpio_app 3 a 7 up
-		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ]; then
+		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro Max" ]; then
 			luckfox_uart_app 0 1 1
 			luckfox_gpio_app 1 d 1 up
 			luckfox_gpio_app 2 a 5 up
@@ -1350,7 +1350,7 @@ function luckfox_compatible_app() {
 		compatible_group=(Pico_ePaper Pico_UPS_B OLED_Module DHT11)
 	elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Plus" ] && [ "$LUCKFOX_CHIP_MEDIA_CLASS" == "spi_nand" ]; then
 		compatible_group=(Pico_LCD Pico_ePaper Pico_UPS_B Pico_ResTouch_LCD OLED_Module Pico_OLED DHT11)
-	elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ]; then
+	elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro Max" ]; then
 		compatible_group=(Pico_LCD Pico_ePaper Pico_UPS_B Pico_ResTouch_LCD OLED_Module Pico_OLED DHT11)
 	fi
 
@@ -1789,7 +1789,7 @@ function luckfox_check_spi() {
 
 	# Set GPIO
 	if [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Plus" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico" ] ||
-		[ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ]; then
+		[ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro Max" ]; then
 		fbtft_status=$(luckfox_get_pin_cfg "FBTFT_ENABLE")
 		spi0m0_status=$(luckfox_get_pin_cfg "SPI0_M0_STATUS")
 		if [ "$spi_mode" == 0 ] && [ "$spi_main" == 0 ]; then
@@ -2414,7 +2414,7 @@ function luckfox_fbtft_app() {
 	if [ "$action" == 1 ]; then
 		if [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Plus" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico" ]; then
 			luckfox_check_pin_diagram "GPIO1_A2" "GPIO1_C0" "GPIO1_C1" "GPIO1_C2" "GPIO1_C3" "GPIO0_A4"
-		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ]; then
+		elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro Max" ]; then
 			luckfox_check_pin_diagram "GPIO2_B1" "GPIO1_C0" "GPIO1_C1" "GPIO1_C2" "GPIO1_C3" "GPIO2_B0"
 		else
 			luckfox_result_handle "$LF_ERR" "This Luckfox-Pico Model does not support FBTFT setting!"
@@ -2504,7 +2504,7 @@ function luckfox_fbtft_app() {
 		luckfox_set_pin_mark "GPIO1_C2" "$action"
 		luckfox_set_pin_mark "GPIO1_C3" "$action"
 		luckfox_set_pin_mark "GPIO0_A4" "$action"
-	elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ]; then
+	elif [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Max" ] || [ "$LUCKFOX_CHIP_MODEL" == "Luckfox Pico Pro Max" ]; then
 		luckfox_set_pin_mark "GPIO2_B1" "$action"
 		luckfox_set_pin_mark "GPIO1_C0" "$action"
 		luckfox_set_pin_mark "GPIO1_C1" "$action"

@@ -1054,6 +1054,10 @@ config ROCKCHIP_SET_SN
 	bool "Rockchip set serial number"
 	default y
 
+config LUCKFOX_EXECUTE_CMD
+	bool "luckfox execute cmd"
+	default n
+
 config ROCKCHIP_SET_ETHADDR
 	bool "Rockchip set eth address"
 	default y
