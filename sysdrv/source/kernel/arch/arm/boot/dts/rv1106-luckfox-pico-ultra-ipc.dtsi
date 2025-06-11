@@ -555,11 +555,11 @@
 	};
 
 	touchscreen {
-		tp_rst:tp-rst {
+		tp_rst: tp-rst {
 			rockchip,pins = <0 RK_PA4 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 
-		tp_irq:tp-irq {
+		tp_irq: tp-irq {
 			rockchip,pins = <0 RK_PA3 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};

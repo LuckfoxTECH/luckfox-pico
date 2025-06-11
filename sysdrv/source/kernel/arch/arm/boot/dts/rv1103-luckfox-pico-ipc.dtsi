@@ -403,7 +403,7 @@
 	};
 
 	gpio1-pc7 {
-		gpio1_pc7:gpio1-pc7 {
+		gpio1_pc7: gpio1-pc7 {
 			rockchip,pins = <1 RK_PC7 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};

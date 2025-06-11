@@ -13,7 +13,7 @@
 	model = "Luckfox Pico";
 	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1103";
 
-	gpio4pa4:gpio4pa4 {
+	gpio4pa4: gpio4pa4 {
 		compatible = "regulator-fixed";
 		pinctrl-names = "default";
 		pinctrl-0 = <&gpio4_pa4>;
@@ -21,7 +21,7 @@
 		regulator-always-on;
 	};
 
-	gpio4pa3:gpio4pa3 {
+	gpio4pa3: gpio4pa3 {
 		compatible = "regulator-fixed";
 		pinctrl-names = "default";
 		pinctrl-0 = <&gpio4_pa3>;
@@ -29,7 +29,7 @@
 		regulator-always-on;
 	};
 
-	gpio4pa2:gpio4pa2 {
+	gpio4pa2: gpio4pa2 {
 		compatible = "regulator-fixed";
 		pinctrl-names = "default";
 		pinctrl-0 = <&gpio4_pa2>;
@@ -37,7 +37,7 @@
 		regulator-always-on;
 	};
 
-	gpio4pa6:gpio4pa6 {
+	gpio4pa6: gpio4pa6 {
 		compatible = "regulator-fixed";
 		pinctrl-names = "default";
 		pinctrl-0 = <&gpio4_pa6>;
@@ -45,7 +45,7 @@
 		regulator-always-on;
 	};
 
-	gpio4pb0:gpio4pb0 {
+	gpio4pb0: gpio4pb0 {
 		compatible = "regulator-fixed";
 		pinctrl-names = "default";
 		pinctrl-0 = <&gpio4_pb0>;
@@ -53,7 +53,7 @@
 		regulator-always-on;
 	};
 
-	gpio4pb1:gpio4pb1 {
+	gpio4pb1: gpio4pb1 {
 		compatible = "regulator-fixed";
 		pinctrl-names = "default";
 		pinctrl-0 = <&gpio4_pb1>;
@@ -65,27 +65,27 @@
 /**********GPIO***********/
 &pinctrl{
 	gpio {
-		gpio4_pa4:gpio4-pa4 {
+		gpio4_pa4: gpio4-pa4 {
 			rockchip,pins = <4 RK_PA4 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
-		gpio4_pa3:gpio4-pa3 {
+		gpio4_pa3: gpio4-pa3 {
 			rockchip,pins = <4 RK_PA3 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
-		gpio4_pa2:gpio4-pa2 {
+		gpio4_pa2: gpio4-pa2 {
 			rockchip,pins = <4 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
-		gpio4_pa6:gpio4-pa6 {
+		gpio4_pa6: gpio4-pa6 {
 			rockchip,pins = <4 RK_PA6 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
-		gpio4_pb0:gpio4-pb0 {
+		gpio4_pb0: gpio4-pb0 {
 			rockchip,pins = <4 RK_PB0 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
-		gpio4_pb1:gpio4-pb1 {
+		gpio4_pb1: gpio4-pb1 {
 			rockchip,pins = <4 RK_PB1 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
@@ -123,9 +123,9 @@
 	spidev@0 {
 		spi-max-frequency = <50000000>;
 	};
-  fbtft@0 {
-    spi-max-frequency = <50000000>;
-  };
+	fbtft@0 {
+		spi-max-frequency = <50000000>;
+	};
 };
 
 /**********I2C**********/
