@@ -121,7 +121,7 @@ kernelconfig       -config kernel and save defconfig"
 
   Which would you like? [0~1][default:0]:
   ```
-+ If you need to use the old configuration method or a custom board support file, select the "[7]custom" option when configuring the Luckfox-pico hardware model.
++ If you need to use the old configuration method or a custom board support file, select the "[11]custom" option when configuring the Luckfox-pico hardware model.
   ```shell 
   You're building on Linux
     Lunch menu...pick the Luckfox Pico hardware version:
