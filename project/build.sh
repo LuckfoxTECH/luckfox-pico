@@ -471,7 +471,7 @@ function usage() {
 	echo "clean rootfs       -clean rootfs"
 	echo "clean sysdrv       -clean uboot/kernel/rootfs"
 	echo "clean media        -clean rockchip media libraries"
-	echo "clean app          -clean app"
+	echo "clean app          -clean app"/
 	echo "clean recovery     -clean recovery"
 	echo ""
 	echo "firmware           -pack all the image we need to boot up system"
