@@ -1,0 +1,5 @@
+cmake .. \
+  -DCMAKE_TOOLCHAIN_FILE=../luckfox-armv7.cmake \
+  -DCMAKE_INSTALL_PREFIX=$HOME/armv7/libdatachannel \
+  -DBUILD_SHARED_LIBS=ON \
+  -DOPENSSL_ROOT_DIR=$HOME/armv7/openssl
