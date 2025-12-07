@@ -1,5 +1,6 @@
-// peer_client_rt.cpp
-// Based on your peer_client_fixed.cpp but with RT-friendly thread design
+// peer_client_rt_with_keyboard_ack.cpp
+// Thêm ACK-manager (retry, timeout) vào peer_client_rt_with_keyboard
+
 #include <iostream>
 #include <memory>
 #include <thread>
@@ -14,6 +15,8 @@
 #include <cassert>
 #include <pthread.h>
 #include <sched.h>
+#include <sstream>
+#include <csignal>
 
 #include "udp_signaling.hpp"
 #include "rtc/rtc.hpp"
@@ -152,7 +155,6 @@ static rtc::binary vec_u8_to_rtcbin(const std::vector<uint8_t>& v) {
 
 // ------------------ RT Utilities: simple SPSC ring and pools ------------------
 // Simple single-producer single-consumer ring for pointers to slots.
-// Not generalized lockfree queue with ABA protections — simple and works for typical SPSC usage.
 template<typename T, size_t N>
 class SPSC_Ring {
 public:
@@ -192,7 +194,6 @@ struct Slot {
     uint8_t data[512];
 };
 
-// Pools and rings
 static const size_t RING_SIZE = 256; // must be power of two
 using SlotRing = SPSC_Ring<Slot, RING_SIZE>;
 static Slot rxPoolStorage[RING_SIZE];
@@ -201,11 +202,9 @@ static std::atomic<size_t> rxPoolFreeIndex{0};
 static std::atomic<size_t> txPoolFreeIndex{0};
 
 static SlotRing rxRing; // WebRTC callback -> rx_handler
-static SlotRing txRing; // control loop -> tx_dispatcher
+static SlotRing txRing; // control loop / command thread -> tx_dispatcher
 
-// Try to allocate a slot from simple pool (wrap-around). Not thread-safe multi-producer; we use it from single producer contexts.
 Slot* alloc_rx_slot() {
-    // simple lock-free-ish circular allocation: may overwrite if more producers — but here single producer expected.
     size_t idx = rxPoolFreeIndex.fetch_add(1);
     return &rxPoolStorage[idx % RING_SIZE];
 }
@@ -253,7 +252,8 @@ void log_enqueue(const std::string &s) {
 void logger_thread_fn() {
     while (!stopping.load()) {
         std::unique_lock<std::mutex> lk(logMutex);
-        logCv.wait_for(lk, std::chrono::milliseconds(200), []{return !logQueue.empty() || stopping.load();});
+        logCv.wait_for(lk, std::chrono::milliseconds(200),
+                       []{return !logQueue.empty() || stopping.load();});
         while (!logQueue.empty()) {
             std::string s = logQueue.front();
             logQueue.pop();
@@ -270,32 +270,109 @@ void logger_thread_fn() {
     }
 }
 
+// ------------------ ACK Manager ------------------
+struct AckManager {
+    std::mutex mtx;
+    std::condition_variable cv;
+
+    std::atomic<uint8_t> waiting_msg_id{0};
+    std::atomic<bool> waiting{false};
+    std::atomic<int> ack_code{-1};
+
+    void notify_ack(uint8_t msg_id, int code) {
+        std::lock_guard<std::mutex> lk(mtx);
+        if (waiting && msg_id == waiting_msg_id.load()) {
+            ack_code.store(code);
+            waiting.store(false);
+            cv.notify_all();
+        }
+    }
+
+    bool wait_ack(uint8_t msg_id, int timeout_ms, int& out_code) {
+        std::unique_lock<std::mutex> lk(mtx);
+        waiting_msg_id.store(msg_id);
+        waiting.store(true);
+        ack_code.store(-1);
+
+        auto status = cv.wait_for(lk, std::chrono::milliseconds(timeout_ms),
+            [&]{ return waiting.load() == false; });
+
+        if (!status) return false;  // timeout
+        out_code = ack_code.load();
+        return true;
+    }
+};
+
+AckManager g_ack;
+
+// Send command + wait for ACK with retry logic
+bool send_cmd_with_ack(uint8_t cmd, const uint8_t* payload, uint8_t len) {
+    const int MAX_RETRY = 3;
+    const int TIMEOUT_MS = 300; // ms
+
+    uint8_t msg_id = uint8_t(std::chrono::steady_clock::now()
+                      .time_since_epoch().count() & 0xFF);
+
+    auto frame = build_frame(msg_id, cmd, payload, len);
+
+    for (int attempt = 1; attempt <= MAX_RETRY; attempt++) {
+        Slot* s = alloc_tx_slot();
+        s->len = frame.size();
+        memcpy(s->data, frame.data(), s->len);
+        txRing.push(s);
+
+        log_enqueue("[ACK] Wait ACK msg_id=" + std::to_string(msg_id) +
+                    " attempt " + std::to_string(attempt));
+
+        int ack_code = -1;
+        bool ok = g_ack.wait_ack(msg_id, TIMEOUT_MS, ack_code);
+
+        if (!ok) {
+            log_enqueue("[ACK] TIMEOUT");
+            continue; // retry
+        }
+
+        if (ack_code == ACK_OK) {
+            log_enqueue("[ACK] SUCCESS");
+            return true;
+        }
+
+        log_enqueue("[ACK] FAIL ack_code=" + std::to_string(ack_code));
+        return false;
+    }
+
+    log_enqueue("[ACK] RETRY FAIL after " + std::to_string(MAX_RETRY) + " attempts");
+    return false;
+}
+
 // ------------------ Global references (for threads) ------------------
 std::shared_ptr<rtc::DataChannel> g_dc;
 std::shared_ptr<rtc::PeerConnection> g_pc;
 
 // ------------------ Threads ------------------
 
-// RX handler: parse frames popped from rxRing and push to processing (here we will print ACKs)
+// RX handler: parse frames popped from rxRing and push to processing (here we will handle ACKs)
 void rx_handler_thread_fn() {
-    // This thread should be RT priority in deployment
     while (!stopping.load()) {
         Slot* s = nullptr;
         if (rxRing.pop(s)) {
-            // parse
             Frame_t rx{};
             bool ok = parse_frame(s->data, s->len, rx);
             if (!ok) {
                 log_enqueue("[RX] Invalid frame");
             } else {
-                // Example: If this is an ACK, log minimal info (use log thread)
+                // If this is an ACK, notify AckManager
+                // We assume that remote uses same framing: msg_id = the one we sent, payload[0] = ack code
+                // And cmd field maybe indicates ACK (or reuse cmd). For simplicity: treat any return as ACK
+                int ack_code = (rx.length > 0) ? rx.payload[0] : -1;
+                g_ack.notify_ack(rx.msg_id, ack_code);
+
                 char buf[128];
-                snprintf(buf, sizeof(buf), "[RX] Got cmd=0x%02X msg_id=%u ack_code=%u", rx.cmd, rx.msg_id, rx.payload[0]);
+                snprintf(buf, sizeof(buf),
+                    "[RX] Got ACK msg_id=%u ack_code=%d", (unsigned)rx.msg_id, ack_code);
                 log_enqueue(buf);
-                // If needed, push to other RT queues (not implemented here)
             }
         } else {
-            // nothing — small sleep to avoid busyspin; in real RT, prefer blocking wait
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
@@ -303,29 +380,19 @@ void rx_handler_thread_fn() {
 
 // Control loop: periodic, build status frames and/or commands and push to txRing
 void control_loop_thread_fn(int period_ms = 10) {
-    // RT priority recommended
     auto next = std::chrono::steady_clock::now();
     uint8_t seq = 1;
     while (!stopping.load()) {
         next += std::chrono::milliseconds(period_ms);
 
-        // Example: build a periodic telemetry/status frame (here we simulate)
-        uint8_t payload[2];
-        payload[0] = 0x55; // example data
-        payload[1] = seq++;
+        // Example: periodic status polling (no ACK expected)
+        // uint8_t payload[1] = { 0 };
+        // auto frame_vec = build_frame(seq, CMD_GET_STATUS, payload, 1);
+        // Slot* s = alloc_tx_slot();
+        // s->len = frame_vec.size();
+        // memcpy(s->data, frame_vec.data(), s->len);
+        // txRing.push(s);
 
-        auto frame_vec = build_frame(seq, CMD_GET_STATUS, payload, 2);
-
-        Slot* s = alloc_tx_slot();
-        s->len = frame_vec.size();
-        memcpy(s->data, frame_vec.data(), s->len);
-
-        // push to txRing; if full, drop (or implement backpressure)
-        if (!txRing.push(s)) {
-            log_enqueue("[TX] txRing full, dropping frame");
-        }
-
-        // wait until next period
         std::this_thread::sleep_until(next);
     }
 }
@@ -339,8 +406,6 @@ void tx_dispatcher_thread_fn() {
                 try {
                     rtc::binary bin = vec_u8_to_rtcbin(std::vector<uint8_t>(s->data, s->data + s->len));
                     g_dc->send(bin);
-                    // minimal logging
-                    // avoid expensive formatting on RT path
                 } catch (const std::exception &e) {
                     std::string msg = std::string("[TX] send exception: ") + e.what();
                     log_enqueue(msg);
@@ -351,18 +416,81 @@ void tx_dispatcher_thread_fn() {
                 log_enqueue("[TX] no DataChannel available");
             }
         } else {
-            // nothing to send
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
 }
 
-// ------------------ MAIN ------------------
+// Keyboard Input Thread (non-RT)
+void keyboard_input_thread_fn() {
+    while (!stopping.load()) {
+        std::cout << "[INPUT] Enter command (e.g. 0x10 80) or 'exit': ";
+        std::string line;
+        if (!std::getline(std::cin, line)) {
+            if (std::cin.eof()) {
+                stopping.store(true);
+                break;
+            }
+            continue;
+        }
+
+        if (line.empty()) continue;
+
+        std::istringstream ss(line);
+        std::string cmd_str;
+        ss >> cmd_str;
+        if (!ss) continue;
+
+        if (cmd_str == "quit" || cmd_str == "exit") {
+            log_enqueue("[INPUT] Quit requested");
+            stopping.store(true);
+            break;
+        }
+
+        std::vector<int> values;
+        while (ss) {
+            int v;
+            if (!(ss >> v)) break;
+            values.push_back(v);
+        }
+
+        uint8_t cmd = 0;
+        try {
+            cmd = static_cast<uint8_t>(std::stoi(cmd_str, nullptr, 0));
+        } catch (...) {
+            log_enqueue("[INPUT] invalid command format");
+            continue;
+        }
+
+        size_t payload_len = std::min<size_t>(values.size(), 255);
+        std::vector<uint8_t> payload(payload_len);
+        for (size_t i = 0; i < payload_len; ++i) payload[i] = static_cast<uint8_t>(values[i]);
+
+        // gửi command + chờ ACK
+        bool ok = send_cmd_with_ack(cmd,
+                                    payload_len ? payload.data() : nullptr,
+                                    static_cast<uint8_t>(payload_len));
+        if (!ok) {
+            log_enqueue("[INPUT] command failed or no ACK");
+        }
+    }
+}
+
+// Signal handling
+void signal_handler(int signum) {
+    (void)signum;
+    stopping.store(true);
+    logCv.notify_all();
+}
+
 int main(int argc, char** argv) {
     if (argc < 3) {
         std::cout << "Usage: peer_client <server_ip> <server_port>\n";
         return 1;
     }
+
+    std::signal(SIGINT, signal_handler);
+    std::signal(SIGTERM, signal_handler);
 
     std::string server_ip = argv[1];
     int server_port = std::stoi(argv[2]);
@@ -379,10 +507,8 @@ int main(int argc, char** argv) {
     auto pc = std::make_shared<rtc::PeerConnection>(config);
     g_pc = pc;
 
-    // start logger thread
     std::thread logger_t(logger_thread_fn);
 
-    // --- Signaling callbacks ---
     pc->onLocalDescription([&signaling](rtc::Description desc) {
         std::string msg = "SDP|" + base64_encode(std::string(desc));
         signaling.send(msg);
@@ -411,79 +537,72 @@ int main(int argc, char** argv) {
         }
     });
 
-    // --- Create DataChannel ---
     rtc::DataChannelInit opts;
-    // Example: set unordered/unreliable for telemetry to reduce latency
-    // opts.ordered = false; opts.maxRetransmits = 0;
     auto dc = pc->createDataChannel("ctrl", opts);
     g_dc = dc;
 
-    // WebRTC callback: fast copy into rxRing
     dc->onMessage([&](rtc::message_variant msg){
         if (std::holds_alternative<rtc::binary>(msg)) {
             auto bin = std::get<rtc::binary>(msg);
-            // allocate slot and copy quickly
             Slot* s = alloc_rx_slot();
             size_t len = bin.size();
             if (len > sizeof(s->data)) {
-                // too big, drop
                 log_enqueue("[RX] incoming too large, drop");
                 return;
             }
             s->len = len;
-            // rtc::binary::data() returns pointer-like; reinterpret
             const uint8_t* p = reinterpret_cast<const uint8_t*>(bin.data());
             memcpy(s->data, p, len);
             if (!rxRing.push(s)) {
                 log_enqueue("[RX] rxRing full, drop");
             }
         } else if (std::holds_alternative<std::string>(msg)) {
-            // small text messages -> log via logger thread
             log_enqueue(std::string("[DC TEXT] ") + std::get<std::string>(msg));
         }
     });
 
     dc->onOpen([&](){
         log_enqueue("[Client] DC OPEN");
-        // prepare a test frame but push into txRing so send happens in tx dispatcher
-        uint8_t speed_payload[1] = { 80 }; // set speed = 80%
-        auto frame = build_frame(1, CMD_SET_DIRECTION, speed_payload, 1);
-        Slot* s = alloc_tx_slot();
-        s->len = frame.size();
-        memcpy(s->data, frame.data(), s->len);
-        if (!txRing.push(s)) {
-            log_enqueue("[TX] failed to push test frame");
-        } else {
-            log_enqueue("[Client] queued test frame to txRing");
-        }
+        // ví dụ gửi CMD_SET_DIRECTION và chờ ACK
+        uint8_t payload[1] = { 80 };
+        send_cmd_with_ack(CMD_SET_DIRECTION, payload, 1);
     });
 
-    // Start RT threads
     std::thread rx_handler_t(rx_handler_thread_fn);
-    std::thread control_loop_t([](){ control_loop_thread_fn(10); }); // 10 ms period
+    std::thread control_loop_t([](){ control_loop_thread_fn(10); });
     std::thread tx_dispatcher_t(tx_dispatcher_thread_fn);
+    std::thread keyboard_t(keyboard_input_thread_fn);
 
-    // Optionally set RT priorities (requires privileges)
-    set_thread_realtime(control_loop_t, 80, 1);   // high priority
+    set_thread_realtime(control_loop_t, 80, 1);
     set_thread_realtime(tx_dispatcher_t, 70, 1);
     set_thread_realtime(rx_handler_t, 60, 1);
-    // logger stays normal
 
     pc->setLocalDescription();
 
-    // Main thread waits for user interrupt (Ctrl+C) to stop
-    std::cout << "[Client] Running. Press Ctrl+C to exit.\n";
-    while (true) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+    log_enqueue("[Client] Running. Press Ctrl+C or type 'exit' to stop.");
+
+    while (!stopping.load()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 
-    // graceful stop (unreachable in current loop; add signal handler if needed)
+    log_enqueue("[Main] Stopping...");
     stopping.store(true);
     logCv.notify_all();
-    logger_t.join();
-    rx_handler_t.join();
-    control_loop_t.join();
-    tx_dispatcher_t.join();
 
+    if (keyboard_t.joinable()) keyboard_t.join();
+    if (rx_handler_t.joinable()) rx_handler_t.join();
+    if (control_loop_t.joinable()) control_loop_t.join();
+    if (tx_dispatcher_t.joinable()) tx_dispatcher_t.join();
+    if (logger_t.joinable()) {
+        logCv.notify_all();
+        logger_t.join();
+    }
+
+    try {
+        if (g_dc) g_dc.reset();
+        if (g_pc) g_pc.reset();
+    } catch (...) {}
+
+    std::cout << "[Main] Exited.\n";
     return 0;
 }
