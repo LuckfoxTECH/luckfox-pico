@@ -381,7 +381,8 @@
 
 // PWM
 &pwm0 {
-	pinctrl-0 = <&pwm0m1_pins>;
+    pinctrl-0 = <&pwm0m1_pins>;
+    status = "okay";
 };
 &pwm1 {
 	pinctrl-0 = <&pwm1m0_pins &pwm1m1_pins &pwm1m2_pins>;
