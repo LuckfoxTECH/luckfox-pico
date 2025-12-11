@@ -1,8 +1,4 @@
-/* pwm_servo.c - Platform PWM servo driver (mg90s / pdi-1109mg)
- *
- * Bind with DT node compatible = "pwm-servo" or "mg90s-servo".
- *
- * Exposes sysfs attribute "angle" on the platform device.
+/* pwm_servo.c - Platform PWM servo driver (custom 400Hz servo)
  */
 
 #include <linux/module.h>
@@ -17,176 +13,177 @@
 #include <linux/err.h>
 
 #define DRIVER_NAME "pwm_servo"
-#define DEFAULT_MAX_DEG 120U
-#define DEFAULT_MIN_US 1000U
-#define DEFAULT_MAX_US 2000U
+
+/* Servo thực tế: góc 0–120 độ */
+#define SERVO_MAX_DEG   120U
+
+/* Thông số đo thực tế (duty %) */
+#define DUTY_RIGHT_PCT  47.02f    /* 0 deg */
+#define DUTY_MID_PCT    58.54f    /* 60 deg (không dùng trực tiếp) */
+#define DUTY_LEFT_PCT   70.76f    /* 120 deg */
+
+/* Period thực (≈ 397.66 Hz) */
+#define SERVO_PERIOD_NS 2515000U  /* 2.515 ms */
 
 struct pwm_servo_data {
-	struct device *dev;
-	struct pwm_device *pwm;
-	struct mutex lock;
-	unsigned int cur_angle;
-	unsigned int max_deg;
-	unsigned int min_pulse_us;
-	unsigned int max_pulse_us;
-	unsigned int period_ns;
+    struct device *dev;
+    struct pwm_device *pwm;
+    struct mutex lock;
+    unsigned int cur_angle;
+    unsigned int period_ns;
 };
 
+/* Map góc -> duty ns */
 static inline u32 pwm_servo_deg_to_pulse_ns(struct pwm_servo_data *s, unsigned int deg)
 {
-	u32 us;
-	if (deg > s->max_deg)
-		deg = s->max_deg;
+    u32 duty_min = 4702;   /* 47.02% x100 */
+    u32 duty_max = 7076;   /* 70.76% x100 */
+    u32 duty_x100;
+    u32 period = s->period_ns;
+    u32 pulse_ns;
 
-	us = s->min_pulse_us +
-	     (u32)(s->max_pulse_us - s->min_pulse_us) * (u32)deg / (u32)s->max_deg;
+    if (deg > SERVO_MAX_DEG)
+        deg = SERVO_MAX_DEG;
 
-	return us * 1000U;
+    /* Linear interpolation (32-bit only) */
+    duty_x100 = duty_min +
+                ((duty_max - duty_min) * deg) / SERVO_MAX_DEG;
+
+    /*
+     * pulse = period * duty_x100 / 10000
+     *
+     * → Thay bằng:
+     *     t = period / 10000
+     *     pulse = t * duty_x100
+     *
+     * → Không tạo phép chia 64bit
+     */
+
+    pulse_ns = (period / 10000U) * duty_x100;
+
+    return pulse_ns;
 }
+
+
 
 static ssize_t angle_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	struct pwm_servo_data *s = dev_get_drvdata(dev);
-	if (!s) return -ENODEV;
-	return scnprintf(buf, PAGE_SIZE, "%u\n", s->cur_angle);
+    struct pwm_servo_data *s = dev_get_drvdata(dev);
+    if (!s) return -ENODEV;
+    return scnprintf(buf, PAGE_SIZE, "%u\n", s->cur_angle);
 }
 
 static ssize_t angle_store(struct device *dev, struct device_attribute *attr,
-			   const char *buf, size_t count)
+                           const char *buf, size_t count)
 {
-	struct pwm_servo_data *s = dev_get_drvdata(dev);
-	int ret;
-	unsigned int deg;
-	u32 pulse_ns;
+    struct pwm_servo_data *s = dev_get_drvdata(dev);
+    unsigned int deg;
+    int ret;
+    u32 pulse_ns;
 
-	if (!s) return -ENODEV;
+    ret = kstrtouint(buf, 10, &deg);
+    if (ret) return ret;
 
-	ret = kstrtouint(buf, 10, &deg);
-	if (ret) return ret;
+    if (deg > SERVO_MAX_DEG)
+        deg = SERVO_MAX_DEG;
 
-	if (deg > s->max_deg) deg = s->max_deg;
+    mutex_lock(&s->lock);
 
-	mutex_lock(&s->lock);
+    pulse_ns = pwm_servo_deg_to_pulse_ns(s, deg);
 
-	pulse_ns = pwm_servo_deg_to_pulse_ns(s, deg);
+    ret = pwm_config(s->pwm, pulse_ns, s->period_ns);
+    if (ret) {
+        dev_err(dev, "pwm_config failed: %d\n", ret);
+        mutex_unlock(&s->lock);
+        return ret;
+    }
 
-	ret = pwm_config(s->pwm, pulse_ns, s->period_ns);
-	if (ret) {
-		dev_err(dev, "pwm_config failed: %d\n", ret);
-		mutex_unlock(&s->lock);
-		return ret;
-	}
+    ret = pwm_enable(s->pwm);
+    if (ret) {
+        dev_err(dev, "pwm_enable failed: %d\n", ret);
+        mutex_unlock(&s->lock);
+        return ret;
+    }
 
-	ret = pwm_enable(s->pwm);
-	if (ret) {
-		dev_err(dev, "pwm_enable failed: %d\n", ret);
-		mutex_unlock(&s->lock);
-		return ret;
-	}
+    s->cur_angle = deg;
+    dev_info(dev, "angle=%u → duty=%u ns\n", deg, pulse_ns);
 
-	s->cur_angle = deg;
-	dev_info(dev, "angle=%u -> pulse=%u ns\n", deg, pulse_ns);
-
-	mutex_unlock(&s->lock);
-	return count;
+    mutex_unlock(&s->lock);
+    return count;
 }
 
 static DEVICE_ATTR_RW(angle);
 
 static int pwm_servo_probe(struct platform_device *pdev)
 {
-	struct pwm_servo_data *s;
-	int ret;
-	unsigned int period_ns = 0;
+    struct pwm_servo_data *s;
+    int ret;
 
-	s = devm_kzalloc(&pdev->dev, sizeof(*s), GFP_KERNEL);
-	if (!s) return -ENOMEM;
+    s = devm_kzalloc(&pdev->dev, sizeof(*s), GFP_KERNEL);
+    if (!s) return -ENOMEM;
 
-	s->dev = &pdev->dev;
-	mutex_init(&s->lock);
-	s->cur_angle = 0;
-	s->max_deg = DEFAULT_MAX_DEG;
-	s->min_pulse_us = DEFAULT_MIN_US;
-	s->max_pulse_us = DEFAULT_MAX_US;
+    mutex_init(&s->lock);
 
-	/* get pwm from DT (pwm-names / pwms) */
-	s->pwm = devm_pwm_get(&pdev->dev, "mg90s");
-	if (IS_ERR(s->pwm)) {
-		dev_warn(&pdev->dev, "devm_pwm_get(dev,\"mg90s\") failed: %ld, trying generic\n",
-			 PTR_ERR(s->pwm));
-		s->pwm = devm_pwm_get(&pdev->dev, NULL);
-		if (IS_ERR(s->pwm)) {
-			dev_err(&pdev->dev, "failed to obtain PWM: %ld\n", PTR_ERR(s->pwm));
-			return PTR_ERR(s->pwm);
-		}
-	}
+    s->pwm = devm_pwm_get(&pdev->dev, NULL);
+    if (IS_ERR(s->pwm)) {
+        dev_err(&pdev->dev, "PWM get failed\n");
+        return PTR_ERR(s->pwm);
+    }
 
-	period_ns = pwm_get_period(s->pwm);
-	if (period_ns == 0)
-		period_ns = 20U * 1000U * 1000U;
-	s->period_ns = period_ns;
+    /* Gán chu kỳ thực đo */
+    s->period_ns = SERVO_PERIOD_NS;
 
-	ret = device_create_file(&pdev->dev, &dev_attr_angle);
-	if (ret) {
-		dev_err(&pdev->dev, "device_create_file failed: %d\n", ret);
-		return ret;
-	}
+    ret = device_create_file(&pdev->dev, &dev_attr_angle);
+    if (ret) return ret;
 
-	ret = pwm_config(s->pwm, pwm_servo_deg_to_pulse_ns(s, 0), s->period_ns);
-	if (ret) {
-		dev_err(&pdev->dev, "initial pwm_config failed: %d\n", ret);
-		device_remove_file(&pdev->dev, &dev_attr_angle);
-		return ret;
-	}
+    /* servo ở 0 độ mặc định */
+    ret = pwm_config(s->pwm, pwm_servo_deg_to_pulse_ns(s, 0), s->period_ns);
+    if (!ret)
+        ret = pwm_enable(s->pwm);
 
-	ret = pwm_enable(s->pwm);
-	if (ret) {
-		dev_err(&pdev->dev, "initial pwm_enable failed: %d\n", ret);
-		device_remove_file(&pdev->dev, &dev_attr_angle);
-		return ret;
-	}
+    if (ret) {
+        device_remove_file(&pdev->dev, &dev_attr_angle);
+        return ret;
+    }
 
-	platform_set_drvdata(pdev, s);
-	dev_info(&pdev->dev, "pwm_servo probed: period=%u ns, max_deg=%u\n",
-		 s->period_ns, s->max_deg);
+    platform_set_drvdata(pdev, s);
 
-	return 0;
+    dev_info(&pdev->dev,
+             "PWM servo loaded: period=%u ns (≈%u Hz)\n",
+             s->period_ns,
+             (unsigned int)(1000000000ULL / s->period_ns));
+
+    return 0;
 }
 
 static int pwm_servo_remove(struct platform_device *pdev)
 {
-	struct pwm_servo_data *s = platform_get_drvdata(pdev);
+    struct pwm_servo_data *s = platform_get_drvdata(pdev);
+    if (!s) return 0;
 
-	if (!s) return 0;
+    pwm_disable(s->pwm);
+    device_remove_file(&pdev->dev, &dev_attr_angle);
 
-	device_remove_file(&pdev->dev, &dev_attr_angle);
-
-	if (s->pwm)
-		pwm_disable(s->pwm);
-
-	platform_set_drvdata(pdev, NULL);
-	dev_info(&pdev->dev, "pwm_servo removed\n");
-	return 0;
+    return 0;
 }
 
 static const struct of_device_id pwm_servo_of_match[] = {
-	{ .compatible = "pwm-servo" },
-	{ .compatible = "mg90s-servo" },
-	{ /* sentinel */ }
+    { .compatible = "mg90s-servo" },
+    { .compatible = "pwm-servo" },
+    { }
 };
 MODULE_DEVICE_TABLE(of, pwm_servo_of_match);
 
 static struct platform_driver pwm_servo_driver = {
-	.probe = pwm_servo_probe,
-	.remove = pwm_servo_remove,
-	.driver = {
-		.name = DRIVER_NAME,
-		.of_match_table = pwm_servo_of_match,
-	},
+    .probe = pwm_servo_probe,
+    .remove = pwm_servo_remove,
+    .driver = {
+        .name = DRIVER_NAME,
+        .of_match_table = pwm_servo_of_match,
+    },
 };
 
 module_platform_driver(pwm_servo_driver);
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("ChatGPT");
-MODULE_DESCRIPTION("Platform PWM servo driver (sysfs angle)");
+MODULE_DESCRIPTION("Custom PWM servo driver (400Hz duty mapping)");
