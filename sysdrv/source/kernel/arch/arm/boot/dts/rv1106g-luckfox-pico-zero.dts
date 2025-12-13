@@ -34,10 +34,11 @@
 		status = "okay";
 	};
 
-	mg90s_servo: mg90s-servo {
-		compatible = "pwm-servo";
-		pwms = <&pwm0 0 20000000 0>;   /* pwm0 channel 0, 20ms, polarity normal */
-		pwm-names = "mg90s";           /* <-- MATCH with driver */
+	luckfox_ctrl: luckfox-ctrl {
+		compatible = "luckfox,ctrl";
+		pwms = <&pwm0 0 20000000 0>;
+		pwm-names = "mg90s";
+		test-gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>; 
 		status = "okay";
 	};
 };

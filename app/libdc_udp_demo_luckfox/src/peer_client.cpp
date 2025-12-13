@@ -1,16 +1,21 @@
 #include <iostream>
 #include <memory>
 #include <thread>
-#include <atomic>
 #include <vector>
 #include <cstring>
 #include <algorithm>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+
 #include "udp_signaling.hpp"
 #include "rtc/rtc.hpp"
 
-//--------------------------------------------------
-// ENUM COMMAND
-//--------------------------------------------------
+/* ================= IOCTL ================= */
+#define SERVO_SET_ANGLE   _IOW('p', 1, int)
+#define GPIO_SET_LEVEL    _IOW('p', 2, int)
+
+/* ================= COMMAND ENUM ================= */
 typedef enum {
     CMD_NONE            = 0x00,
     CMD_PING            = 0x01,
@@ -24,11 +29,9 @@ typedef enum {
 
     CMD_START_MOTOR     = 0x20,
     CMD_STOP_MOTOR      = 0x21,
-
-    CMD_MAX
 } Command_t;
 
-// ACK
+/* ================= ACK ENUM ================= */
 typedef enum {
     ACK_OK              = 0x00,
     ACK_INVALID_CMD     = 0x01,
@@ -38,9 +41,7 @@ typedef enum {
     ACK_FAIL            = 0x05
 } AckCode_t;
 
-//--------------------------------------------------
-// Frame Struct
-//--------------------------------------------------
+/* ================= FRAME ================= */
 typedef struct {
     uint8_t sof;
     uint8_t msg_id;
@@ -50,9 +51,7 @@ typedef struct {
     uint8_t checksum;
 } Frame_t;
 
-//--------------------------------------------------
-// Checksum
-//--------------------------------------------------
+/* ================= CHECKSUM ================= */
 uint8_t calc_checksum(const Frame_t& f) {
     uint8_t sum = f.sof ^ f.msg_id ^ f.cmd ^ f.length;
     for (int i = 0; i < f.length; i++)
@@ -60,23 +59,22 @@ uint8_t calc_checksum(const Frame_t& f) {
     return sum;
 }
 
-//--------------------------------------------------
-// Build ACK frame
-//--------------------------------------------------
-std::vector<uint8_t> build_frame(uint8_t msg_id, uint8_t cmd, const uint8_t* payload, uint8_t len) {
+/* ================= BUILD FRAME ================= */
+std::vector<uint8_t> build_frame(uint8_t msg_id, uint8_t cmd,
+                                 const uint8_t* payload, uint8_t len) {
     Frame_t f{};
     f.sof = 0xAA;
     f.msg_id = msg_id;
     f.cmd = cmd;
     f.length = len;
 
-    if (len > 0 && payload != nullptr)
+    if (len && payload)
         memcpy(f.payload, payload, len);
 
     f.checksum = calc_checksum(f);
 
     std::vector<uint8_t> out;
-    out.reserve(4 + len + 1);
+    out.reserve(5 + len);
     out.push_back(f.sof);
     out.push_back(f.msg_id);
     out.push_back(f.cmd);
@@ -88,19 +86,17 @@ std::vector<uint8_t> build_frame(uint8_t msg_id, uint8_t cmd, const uint8_t* pay
     return out;
 }
 
-//--------------------------------------------------
-// Parse frame
-//--------------------------------------------------
+/* ================= PARSE FRAME ================= */
 bool parse_frame(const uint8_t* buf, size_t size, Frame_t& out) {
     if (size < 5) return false;
     if (buf[0] != 0xAA) return false;
 
-    out.sof    = buf[0];
+    out.sof = buf[0];
     out.msg_id = buf[1];
-    out.cmd    = buf[2];
+    out.cmd = buf[2];
     out.length = buf[3];
 
-    if (4 + out.length + 1 != size)
+    if (size != (size_t)(5 + out.length - 0))
         return false;
 
     memcpy(out.payload, &buf[4], out.length);
@@ -109,13 +105,11 @@ bool parse_frame(const uint8_t* buf, size_t size, Frame_t& out) {
     return out.checksum == calc_checksum(out);
 }
 
-//--------------------------------------------------
-// Base64
-//--------------------------------------------------
+/* ================= BASE64 ================= */
 static const std::string b64_table =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-static std::string base64_encode(const std::string &in) {
+std::string base64_encode(const std::string &in) {
     std::string out;
     int val = 0, valb = -6;
     for (unsigned char c : in) {
@@ -133,20 +127,17 @@ static std::string base64_encode(const std::string &in) {
     return out;
 }
 
-static std::string base64_decode(const std::string &in) {
+std::string base64_decode(const std::string &in) {
     std::vector<int> T(256, -1);
     for (int i = 0; i < 64; i++)
         T[(unsigned char)b64_table[i]] = i;
-    
+
     std::string out;
     int val = 0, valb = -8;
-
     for (unsigned char c : in) {
-        if (T[c] == -1)
-            break;
+        if (T[c] == -1) break;
         val = (val << 6) + T[c];
         valb += 6;
-
         if (valb >= 0) {
             out.push_back(char((val >> valb) & 0xFF));
             valb -= 8;
@@ -155,22 +146,25 @@ static std::string base64_decode(const std::string &in) {
     return out;
 }
 
-//--------------------------------------------------
-// Helper: convert vector<uint8_t> -> rtc::binary (vector<std::byte>)
-//--------------------------------------------------
+/* ================= HELPER ================= */
 static rtc::binary vec_u8_to_rtcbin(const std::vector<uint8_t>& v) {
     rtc::binary out(v.size());
-    for (size_t i = 0; i < v.size(); ++i) out[i] = std::byte(v[i]);
+    for (size_t i = 0; i < v.size(); i++)
+        out[i] = std::byte(v[i]);
     return out;
 }
 
-//--------------------------------------------------
-// MAIN SERVER
-//--------------------------------------------------
+/* ================= MAIN ================= */
 int main() {
     const int SERVER_PORT = 6000;
 
-    std::cout << "[Server] UDP Signaling on port " << SERVER_PORT << std::endl;
+    int ctrl_fd = open("/dev/luckfox_ctrl", O_RDWR);
+    if (ctrl_fd < 0) {
+        perror("open /dev/luckfox_ctrl");
+        return -1;
+    }
+
+    std::cout << "[Server] UDP signaling on port " << SERVER_PORT << "\n";
 
     UdpSignaling signaling("", SERVER_PORT);
     signaling.start();
@@ -180,97 +174,91 @@ int main() {
 
     auto pc = std::make_shared<rtc::PeerConnection>(config);
 
-    // Send local SDP
-    pc->onLocalDescription([&signaling](rtc::Description desc) {
-        std::string msg = "SDP|" + base64_encode(std::string(desc));
-        signaling.send(msg);
-        std::cout << "[Server] Sent SDP\n";
+    pc->onLocalDescription([&](rtc::Description desc) {
+        signaling.send("SDP|" + base64_encode(std::string(desc)));
     });
 
-    // Send ICE
-    pc->onLocalCandidate([&signaling](rtc::Candidate cand) {
-        std::string msg = "ICE|" + base64_encode(cand.candidate())
-                        + "|" + base64_encode(cand.mid());
-        signaling.send(msg);
-        std::cout << "[Server] Sent ICE\n";
+    pc->onLocalCandidate([&](rtc::Candidate cand) {
+        signaling.send("ICE|" + base64_encode(cand.candidate()) +
+                       "|" + base64_encode(cand.mid()));
     });
 
-    std::shared_ptr<rtc::DataChannel> dc_remote;
-
-    //--------------------------------------------------
-    // DataChannel RECEIVED from client
-    //--------------------------------------------------
     pc->onDataChannel([&](std::shared_ptr<rtc::DataChannel> dc) {
-        std::cout << "[Server] DataChannel opened: " << dc->label() << "\n";
-        dc_remote = dc;
+        std::cout << "[Server] DataChannel opened\n";
 
-        // When client sends a frame
-        dc->onMessage([dc](rtc::message_variant msg) {
-            if (!std::holds_alternative<rtc::binary>(msg)) {
-                std::cout << "[Server] Non-binary message ignored\n";
+        dc->onMessage([dc, ctrl_fd](rtc::message_variant msg) {
+
+            if (!std::holds_alternative<rtc::binary>(msg))
                 return;
-            }
 
             auto bin = std::get<rtc::binary>(msg);
-
             Frame_t f{};
-            bool ok = parse_frame(
-                reinterpret_cast<const uint8_t*>(bin.data()),
-                bin.size(),
-                f
-            );
 
-            if (!ok) {
-                std::cout << "[Server] Invalid frame CRC\n";
-                return;
+            uint8_t ack = ACK_OK;
+
+            if (!parse_frame(reinterpret_cast<const uint8_t*>(bin.data()),
+                             bin.size(), f)) {
+                ack = ACK_CRC_ERROR;
+            } else {
+                switch (f.cmd) {
+
+                case CMD_SET_STEERING: {
+                    if (f.length < 1) {
+                        ack = ACK_INVALID_PAYLOAD;
+                        break;
+                    }
+                    int angle = std::clamp((int)f.payload[0], 0, 120);
+                    if (ioctl(ctrl_fd, SERVO_SET_ANGLE, &angle) < 0) {
+                        perror("SERVO_SET_ANGLE");
+                        ack = ACK_FAIL;
+                    }
+                    break;
+                }
+
+                case CMD_START_MOTOR: {
+                    int v = 1;
+                    if (ioctl(ctrl_fd, GPIO_SET_LEVEL, &v) < 0)
+                        ack = ACK_FAIL;
+                    break;
+                }
+
+                case CMD_STOP_MOTOR: {
+                    int v = 0;
+                    if (ioctl(ctrl_fd, GPIO_SET_LEVEL, &v) < 0)
+                        ack = ACK_FAIL;
+                    break;
+                }
+
+                default:
+                    ack = ACK_INVALID_CMD;
+                    break;
+                }
             }
 
-            std::cout << "[Server] Received CMD=" << (int)f.cmd
-                      << " msg_id=" << (int)f.msg_id
-                      << " len=" << (int)f.length << "\n";
-
-            //--------------------------------------------------
-            // Build ACK and send back
-            //--------------------------------------------------
-            uint8_t ack_payload[1] = { ACK_OK };
-            auto ack = build_frame(f.msg_id, f.cmd, ack_payload, 1);
-
-            // convert to rtc::binary and send
-            rtc::binary bin_ack = vec_u8_to_rtcbin(ack);
-            try {
-                dc->send(bin_ack);
-                std::cout << "[Server] Sent ACK for cmd=" << (int)f.cmd << "\n";
-            } catch (const std::exception &e) {
-                std::cout << "[Server] ACK send exception: " << e.what() << "\n";
-            } catch (...) {
-                std::cout << "[Server] ACK send unknown exception\n";
-            }
+            auto ack_frame = build_frame(f.msg_id, f.cmd, &ack, 1);
+            dc->send(vec_u8_to_rtcbin(ack_frame));
         });
     });
 
-    //--------------------------------------------------
-    // Signaling via UDP
-    //--------------------------------------------------
-    signaling.onMessage([&](const std::string &msg, const std::string &ip, int port) {
+    signaling.onMessage([&](const std::string &msg,
+                            const std::string &ip, int port) {
         signaling.setRemote(ip, port);
 
         if (msg.rfind("SDP|", 0) == 0) {
-            std::string sdp = base64_decode(msg.substr(4));
-            pc->setRemoteDescription(rtc::Description(sdp));
-            pc->setLocalDescription();     // generate answer
+            pc->setRemoteDescription(
+                rtc::Description(base64_decode(msg.substr(4))));
+            pc->setLocalDescription();
         }
         else if (msg.rfind("ICE|", 0) == 0) {
             size_t p = msg.find('|', 4);
-            if (p != std::string::npos) {
-                std::string c = base64_decode(msg.substr(4, p-4));
-                std::string mid = base64_decode(msg.substr(p+1));
-                pc->addRemoteCandidate(rtc::Candidate(c, mid));
-            }
+            pc->addRemoteCandidate(
+                rtc::Candidate(
+                    base64_decode(msg.substr(4, p - 4)),
+                    base64_decode(msg.substr(p + 1))));
         }
     });
 
-    std::cout << "[Server] Ready. Waiting for WebRTC client...\n";
-
+    std::cout << "[Server] Ready\n";
     while (1) std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
