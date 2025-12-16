@@ -17,6 +17,12 @@
 #include <sched.h>
 #include <sstream>
 #include <csignal>
+#include <linux/joystick.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 
 #include "udp_signaling.hpp"
 #include "rtc/rtc.hpp"
@@ -58,6 +64,22 @@ typedef struct {
     uint8_t payload[256];
     uint8_t checksum;
 } Frame_t;
+
+static inline uint8_t axis_to_angle(int16_t axis)
+{
+    // clamp
+    if (axis >  32767) axis =  32767;
+    if (axis < -32767) axis = -32767;
+
+    // map [-32767, 32767] -> [0, 120]
+    int angle = (axis + 32767) * 120 / 65534;
+
+    if (angle < 0)   angle = 0;
+    if (angle > 120) angle = 120;
+
+    return static_cast<uint8_t>(angle);
+}
+
 
 // ---------- Checksum ----------
 uint8_t calc_checksum(const Frame_t& f) {
@@ -378,6 +400,71 @@ void rx_handler_thread_fn() {
     }
 }
 
+void steering_joystick_thread_fn()
+{
+    const char* jsdev = "/dev/input/js2";
+    int fd = open(jsdev, O_RDONLY | O_NONBLOCK);
+    if (fd < 0) {
+        log_enqueue("[JOY] Cannot open /dev/input/js2");
+        return;
+    }
+
+    log_enqueue("[JOY] Steering joystick opened (/dev/input/js2)");
+
+    struct js_event e;
+    int16_t last_axis = 0;
+    uint8_t last_angle = 255; // invalid
+
+    const int DEADZONE = 800;     // chống rung
+    const int SEND_DELTA = 1;     // chỉ gửi nếu đổi >= 1 độ
+
+    while (!stopping.load()) {
+        ssize_t n = read(fd, &e, sizeof(e));
+        if (n != sizeof(e)) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            continue;
+        }
+
+        e.type &= ~JS_EVENT_INIT;
+
+        if (e.type == JS_EVENT_AXIS && e.number == 0) {
+            int16_t axis = e.value;
+
+            if (std::abs(axis) < DEADZONE)
+                axis = 0;
+
+            if (axis == last_axis)
+                continue;
+
+            last_axis = axis;
+
+            uint8_t angle = axis_to_angle(axis);
+
+            if (last_angle != 255 &&
+                std::abs(int(angle) - int(last_angle)) < SEND_DELTA)
+                continue;
+
+            last_angle = angle;
+
+            uint8_t payload[1] = { angle };
+
+            bool ok = send_cmd_with_ack(CMD_SET_STEERING, payload, 1);
+            if (!ok) {
+                log_enqueue("[JOY] Steering ACK failed");
+            } else {
+                char buf[64];
+                snprintf(buf, sizeof(buf),
+                         "[JOY] axis=%d -> angle=%u",
+                         axis, angle);
+                log_enqueue(buf);
+            }
+        }
+    }
+
+    close(fd);
+    log_enqueue("[JOY] Joystick thread exit");
+}
+
 // Control loop: periodic, build status frames and/or commands and push to txRing
 void control_loop_thread_fn(int period_ms = 10) {
     auto next = std::chrono::steady_clock::now();
@@ -572,6 +659,8 @@ int main(int argc, char** argv) {
     std::thread control_loop_t([](){ control_loop_thread_fn(10); });
     std::thread tx_dispatcher_t(tx_dispatcher_thread_fn);
     std::thread keyboard_t(keyboard_input_thread_fn);
+    std::thread joystick_t(steering_joystick_thread_fn);
+
 
     set_thread_realtime(control_loop_t, 80, 1);
     set_thread_realtime(tx_dispatcher_t, 70, 1);
@@ -597,6 +686,9 @@ int main(int argc, char** argv) {
         logCv.notify_all();
         logger_t.join();
     }
+    if (joystick_t.joinable())
+    joystick_t.join();
+
 
     try {
         if (g_dc) g_dc.reset();
