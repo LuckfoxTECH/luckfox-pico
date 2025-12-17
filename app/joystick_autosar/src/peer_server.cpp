@@ -26,6 +26,17 @@ static inline u32 now_ms()
         steady_clock::now().time_since_epoch()).count();
 }
 
+/**
+ * @brief Vehicle movement direction.
+ */
+
+enum class Direction : uint8_t
+{
+    STOP  = 0U,  /**< Vehicle is stationary */
+    FWD   = 1U,  /**<    FWD   = 1U,  /**< Forward direction */
+    REV   = 2U   /**< Reverse direction */
+};
+
 /* ============================================================
  * CONTROL STATE (AUTOSAR FULL STATE)
  * ============================================================ */
@@ -33,8 +44,8 @@ struct ControlState
 {
     std::atomic<s16> steering{0};    // [-32767..32767]
     std::atomic<u8>  throttle{0};    // [0..100]
-    std::atomic<bool> brake{true};
-    std::atomic<u8>  direction{0};   // 0=FWD, 1=REV
+    std::atomic<u8>  brake{0};
+    std::atomic<Direction> direction{Direction::STOP};
     std::atomic<u32> seq{0};
 };
 
@@ -62,7 +73,6 @@ enum class EventType : u8
     DIRECTION,
     EMERGENCY
 };
-
 
 /**
  * @brief Enumeration of emergency reasons for vehicle safety system.
@@ -163,14 +173,78 @@ struct EmergencyPDU
 /* ============================================================
  * SAFETY HELPERS
  * ============================================================ */
-static inline void trigger_emergency(EmergencyReason  reason)
+
+static std::atomic<EmergencyReason> g_emergency_reason{EmergencyReason::NONE};
+
+// Optional: request flag + ack flag for controlled clear (depends on your protocol)
+static std::atomic<bool> g_emergency_clear_requested{false};
+static std::atomic<bool> g_emergency_clear_acked{false};
+
+
+
+/**
+ * @brief Trigger emergency state with a specific reason (type-safe).
+ *        Sets brake = true and throttle = 0 to ensure fail-safe behavior.
+ */
+static inline void trigger_emergency(EmergencyReason reason)
 {
     bool expected = false;
-    if (g_safety.emergency.compare_exchange_strong(expected, true))
+    if (g_safety.emergency.compare_exchange_strong(expected, true,
+        std::memory_order_release, std::memory_order_relaxed))
     {
-        g_state.brake.store(true);
+        g_emergency_reason.store(reason, std::memory_order_release);
+        g_emergency_clear_requested.store(false, std::memory_order_relaxed);
+        g_emergency_clear_acked.store(false, std::memory_order_relaxed);
+
+        g_state.brake.store(0, std::memory_order_release);
+        g_state.throttle.store(0,   std::memory_order_release);
+
         std::cerr << "[EMERGENCY] reason=" << static_cast<int>(reason) << "\n";
+       }
+}
+
+
+
+
+// ============================================================
+// CONFIGURATION CONSTANTS
+// ============================================================
+static constexpr uint32_t kMinStableMsAfterInput = 200U;
+
+/**
+ * @brief Attempt to clear emergency state if safety conditions are satisfied.
+ * @return true if emergency was cleared; false otherwise.
+ */
+static inline bool clear_emergency_if_safe()
+{
+    // Fast path: check if we are in emergency
+    if (!g_safety.emergency.load(std::memory_order_acquire)) {
+        return true; // Already clear
     }
+
+    const uint32_t now  = now_ms();
+    const uint32_t last = g_safety.last_input_ms.load(std::memory_order_acquire);
+
+    // Safety preconditions: throttle == 0, brake == true, inputs stable
+    const bool throttle_zero = (g_state.throttle.load(std::memory_order_acquire) == 0U);
+    const bool brake_on      =  (g_state.brake.load(std::memory_order_acquire) == 0U);
+    const bool input_stable  = (now > last) && ((now - last) >= kMinStableMsAfterInput);
+
+    if (!(throttle_zero && brake_on )) {
+        // Log why we cannot clear yet (optional)
+        std::cerr << "[CLEAR_EMERGENCY] Preconditions not met: "
+                  << "thr0=" << throttle_zero
+                  << " brake=" << brake_on;
+                  //<< " stable=" << input_stable << "\n";
+        return false;
+    }
+
+    // All conditions met: clear emergency and reset reason
+    g_emergency_reason.store(EmergencyReason::NONE, std::memory_order_release);
+    g_safety.emergency.store(false, std::memory_order_release);
+
+    std::cerr << "[CLEAR_EMERGENCY] Cleared successfully\n";
+       return true;
 }
 
 /* ============================================================
@@ -185,7 +259,7 @@ void watchdog_thread()
         u32 now  = now_ms();
         u32 last = g_safety.last_input_ms.load();
 
-        if (!g_safety.emergency.load() && (now - last) > 300)
+        if (!g_safety.emergency.load() && (now - last) > 30000)
         {
             std::cerr << "[WD] Input timeout\n";
             trigger_emergency(EmergencyReason::WATCHDOG);
@@ -223,11 +297,18 @@ void joystick_thread()
                 g_state.steering.store(e.value);
                 g_event_ring.push({EventType::STEERING, e.value, 0, now_ms()});
             }
-            else if (e.number == 1) // throttle
+
+            else if (e.number == 2) // brake
+            {
+                u8 br = (e.value + 32767) * 100 / 65534;
+                g_state.brake.store(br);
+                g_event_ring.push({EventType::BRAKE, 0, br, now_ms()});
+            }
+
+            else if (e.number == 5) // throttle
             {
                 u8 th = (e.value + 32767) * 100 / 65534;
                 g_state.throttle.store(th);
-                g_state.brake.store(false);
                 g_event_ring.push({EventType::THROTTLE, 0, th, now_ms()});
             }
         }
@@ -235,8 +316,21 @@ void joystick_thread()
         {
             if (e.number == 0 && e.value == 1)
             {
-                trigger_emergency(EmergencyReason::WATCHDOG);
+                trigger_emergency(EmergencyReason::BUTTON);
                 g_event_ring.push({EventType::EMERGENCY, 0, 1, now_ms()});
+            }
+
+            if (e.number == 5) /**< Forward direction */
+            {
+
+                g_state.direction.store(Direction::FWD, std::memory_order_release);
+                g_event_ring.push({EventType::DIRECTION, 0, static_cast<u8>(Direction::FWD), now_ms()});
+            }
+
+            else if (e.number == 4) /**< Reverse direction */
+            {
+                g_state.direction.store(Direction::REV, std::memory_order_release);
+                g_event_ring.push({EventType::DIRECTION, 0, static_cast<u8>(Direction::REV), now_ms()});
             }
         }
     }
@@ -257,16 +351,24 @@ void event_handler_thread()
         }
 
         /* ---------- EMERGENCY ---------- */
-        if (g_safety.emergency.load())
+        if (g_safety.emergency.load(std::memory_order_acquire))
         {
             EmergencyPDU em{};
-            em.pdu_type  = 0x03;
-            em.reason    = EmergencyReason::BUTTON;
-            em.timestamp= now_ms();
+            em.pdu_type  = 0x03U;
 
-            std::cout << "[SEND] EMERGENCY PDU\n";
+            EmergencyReason reason = g_emergency_reason.load(std::memory_order_acquire);
+            em.reason    = reason;           
+            em.timestamp = now_ms();
+
+            std::cout << "[SEND] EMERGENCY PDU reason="
+                    << static_cast<int>(reason) << " ts=" << em.timestamp << "\n";
+
+            // Try clear automatically if safe (optional)
+            bool cleared = clear_emergency_if_safe();
+
             continue;
         }
+
 
         /* ---------- FULL STATE SNAPSHOT ---------- */
         FullStatePDU fs{};
@@ -274,7 +376,8 @@ void event_handler_thread()
         fs.steering  = g_state.steering.load();
         fs.throttle  = g_state.throttle.load();
         fs.brake     = g_state.brake.load();
-        fs.direction = g_state.direction.load();
+        Direction dir = g_state.direction.load(std::memory_order_acquire);
+        fs.direction  = static_cast<u8>(dir);
         fs.seq       = g_state.seq.fetch_add(1);
 
         std::cout << "[SEND] FULL "
@@ -282,6 +385,7 @@ void event_handler_thread()
                   << " steer=" << fs.steering
                   << " thr=" << (int)fs.throttle
                   << " brake=" << (int)fs.brake
+                  << " direction=" << (int)fs.direction
                   << "\n";
 
         /*
