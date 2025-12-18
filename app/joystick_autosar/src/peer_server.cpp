@@ -7,6 +7,10 @@
 #include <linux/joystick.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <vector>
+#include <string>
+#include "udp_signaling.hpp"
+#include "rtc/rtc.hpp"
 
 /* ============================================================
  * BASIC TYPES
@@ -15,6 +19,168 @@ using u8  = uint8_t;
 using u16 = uint16_t;
 using u32 = uint32_t;
 using s16 = int16_t;
+
+/**
+ * @brief Enumeration of emergency reasons for vehicle safety system.
+ * 
+ * This enum defines all possible causes of emergency state in the system.
+ * Each value corresponds to a specific failure or trigger condition.
+ */
+enum class EmergencyReason : uint8_t
+{
+    NONE           = 0U,  		/**< No emergency condition */
+    BUTTON         = 1U,  		/**< Emergency Stop button pressed by driver */
+    WATCHDOG       = 2U,  		/**< Input signal timeout detected by watchdog */
+    SENSOR_FAIL    = 3U,  		/**< Critical sensor failure (e.g., speed, steering angle) */
+    COMM_ERROR     = 4U, 		/**< Communication error (CAN, Ethernet, FlexRay) */
+    BRAKE_FAIL     = 5U,  		/**< Brake system failure */
+    STEERING_FAIL  = 6U,  		/**< Steering system failure */
+    POWER_FAIL     = 7U,  		/**< Power supply or ECU failure */
+    SOFTWARE_FAULT = 8U   		/**< Software fault or CPU overload */
+};
+
+/* ============================================================
+ * AUTOSAR PDUs
+ * ============================================================ */
+#pragma pack(push,1)
+struct Frame 
+{
+    u8 sof;
+    u8 msg_id;
+    u8 cmd;
+    u8 length;
+    u8 payload[32];
+    u8 checksum;
+};
+
+struct FullStatePDU
+{
+    u8  pdu_type;     // 0x01
+    s16 steering;
+    u8  throttle;
+    u8  brake;
+    u8  direction;
+    u32 seq;
+};
+
+struct AckPDU
+{
+    u8  pdu_type;     // 0x02
+    u32 seq;
+    u8  result;       // 0=OK
+};
+
+struct EmergencyPDU
+{
+    u8  pdu_type;     // 0x03
+    EmergencyReason  reason;       // 1=Button, 2=Watchdog
+    u32 timestamp;
+};
+
+#pragma pack(pop)
+
+static inline uint8_t axis_to_angle(int16_t axis)
+{
+    // clamp
+    if (axis >  32767) axis =  32767;
+    if (axis < -32767) axis = -32767;
+
+    // map [-32767, 32767] -> [0, 120]
+    int angle = (axis + 32767) * 120 / 65534;
+
+    if (angle < 0)   angle = 0;
+    if (angle > 120) angle = 120;
+
+    return static_cast<uint8_t>(angle);
+}
+uint8_t calc_checksum(const Frame& f);
+// ---------- Build Frame ----------
+std::vector<uint8_t> build_frame(uint8_t msg_id, uint8_t cmd, const uint8_t* payload, uint8_t len) {
+    Frame f{};
+    f.sof = 0xAA;
+    f.msg_id = msg_id;
+    f.cmd = cmd;
+    f.length = len;
+
+    if (len > 0 && payload != nullptr) {
+        memcpy(f.payload, payload, len);
+    }
+
+    f.checksum = calc_checksum(f);
+
+    std::vector<uint8_t> out;
+    out.reserve(4 + len + 1);
+    out.push_back(f.sof);
+    out.push_back(f.msg_id);
+    out.push_back(f.cmd);
+    out.push_back(f.length);
+    for (int i = 0; i < len; i++) out.push_back(f.payload[i]);
+    out.push_back(f.checksum);
+    return out;
+}
+
+// ---------- Parse Frame ----------
+bool parse_frame(const uint8_t* buf, size_t size, Frame& out) {
+    if (size < 5) return false;
+    if (buf[0] != 0xAA) return false;
+
+    out.sof = buf[0];
+    out.msg_id = buf[1];
+    out.cmd = buf[2];
+    out.length = buf[3];
+
+    if (4 + out.length + 1 != size) return false;
+
+    memcpy(out.payload, &buf[4], out.length);
+    out.checksum = buf[4 + out.length];
+
+    return out.checksum == calc_checksum(out);
+}
+
+// ---------- Base64 ----------
+static const std::string b64_table =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+std::string base64_encode(const std::string &in) {
+    std::string out;
+    int val = 0, valb = -6;
+    for (unsigned char c : in) {
+        val = (val<<8) + c;
+        valb += 8;
+        while (valb >= 0) {
+            out.push_back(b64_table[(val>>valb)&0x3F]);
+            valb -= 6;
+        }
+    }
+    if (valb>-6) out.push_back(b64_table[((val<<8)>>(valb+8))&0x3F]);
+    while (out.size()%4) out.push_back('=');
+    return out;
+}
+
+std::string base64_decode(const std::string &in) {
+    std::vector<int> T(256,-1);
+    for (int i=0;i<64;i++) T[(unsigned char)b64_table[i]] = i;
+    std::string out;
+    int val=0, valb=-8;
+    for (unsigned char c : in) {
+        if (T[c] == -1) break;
+        val = (val<<6) + T[c];
+        valb += 6;
+        if (valb >= 0) {
+            out.push_back(char((val>>valb)&0xFF));
+            valb -= 8;
+        }
+    }
+    return out;
+}
+
+// ---------- Helper: convert vector<uint8_t> -> rtc::binary (vector<std::byte>) ----------
+static rtc::binary vec_u8_to_rtcbin(const std::vector<uint8_t>& v) {
+    rtc::binary out(v.size());
+    for (size_t i = 0; i < v.size(); ++i) out[i] = std::byte(v[i]);
+    return out;
+}
+
 
 /* ============================================================
  * TIME
@@ -74,25 +240,6 @@ enum class EventType : u8
     EMERGENCY
 };
 
-/**
- * @brief Enumeration of emergency reasons for vehicle safety system.
- * 
- * This enum defines all possible causes of emergency state in the system.
- * Each value corresponds to a specific failure or trigger condition.
- */
-enum class EmergencyReason : uint8_t
-{
-    NONE           = 0U,  		/**< No emergency condition */
-    BUTTON         = 1U,  		/**< Emergency Stop button pressed by driver */
-    WATCHDOG       = 2U,  		/**< Input signal timeout detected by watchdog */
-    SENSOR_FAIL    = 3U,  		/**< Critical sensor failure (e.g., speed, steering angle) */
-    COMM_ERROR     = 4U, 		/**< Communication error (CAN, Ethernet, FlexRay) */
-    BRAKE_FAIL     = 5U,  		/**< Brake system failure */
-    STEERING_FAIL  = 6U,  		/**< Steering system failure */
-    POWER_FAIL     = 7U,  		/**< Power supply or ECU failure */
-    SOFTWARE_FAULT = 8U   		/**< Software fault or CPU overload */
-};
-
 struct EventPDU
 {
     EventType type;
@@ -140,36 +287,69 @@ private:
 static RingBuffer<EventPDU, 128> g_event_ring;
 
 /* ============================================================
- * AUTOSAR PDUs
+ * COM – SERIALIZE + FRAME
  * ============================================================ */
-#pragma pack(push,1)
+ 
+ // ---------- Checksum ----------
+uint8_t calc_checksum(const Frame& f) {
+    uint8_t sum = f.sof ^ f.msg_id ^ f.cmd ^ f.length;
+    for (int i = 0; i < f.length; i++) sum ^= f.payload[i];
+    return sum;
+}
 
-struct FullStatePDU
+static std::vector<uint8_t> serialize_fullstate(const FullStatePDU& fs)
 {
-    u8  pdu_type;     // 0x01
-    s16 steering;
-    u8  throttle;
-    u8  brake;
-    u8  direction;
-    u32 seq;
+    std::vector<uint8_t> out(sizeof(FullStatePDU));
+    std::memcpy(out.data(), &fs, sizeof(FullStatePDU));
+    return out;
+}
+
+namespace Com
+{
+    static std::vector<u8> build_fullstate_frame(const FullStatePDU& fs)
+    {
+        auto payload = serialize_fullstate(fs);
+
+        Frame f{};
+        f.sof    = 0xAA;
+        f.msg_id = fs.seq & 0xFF;
+        f.cmd    = 0x01;
+        f.length = payload.size();
+        std::memcpy(f.payload, payload.data(), f.length);
+        f.checksum = calc_checksum(f);
+
+        std::vector<u8> out;
+        out.reserve(5 + f.length);
+        out.push_back(f.sof);
+        out.push_back(f.msg_id);
+        out.push_back(f.cmd);
+        out.push_back(f.length);
+        for (u8 i = 0; i < f.length; i++) out.push_back(f.payload[i]);
+        out.push_back(f.checksum);
+        return out;
+    }
+}
+
+/* ============================================================
+ * TRANSPORT ADAPTER
+ * ============================================================ */
+class ITransport
+{
+public:
+    virtual ~ITransport() = default;
+    virtual void send_binary(const std::vector<u8>& data) = 0;
 };
 
-struct AckPDU
+class DummyTransport : public ITransport
 {
-    u8  pdu_type;     // 0x02
-    u32 seq;
-    u8  result;       // 0=OK
+public:
+    void send_binary(const std::vector<u8>& data) override
+    {
+        std::cout << "[TX] size=" << data.size()
+                  << " seq=" << int(data[1]) << "\n";
+    }
 };
-
-struct EmergencyPDU
-{
-    u8  pdu_type;     // 0x03
-    EmergencyReason  reason;       // 1=Button, 2=Watchdog
-    u32 timestamp;
-};
-
-#pragma pack(pop)
-
+ 
 /* ============================================================
  * SAFETY HELPERS
  * ============================================================ */
@@ -202,9 +382,6 @@ static inline void trigger_emergency(EmergencyReason reason)
         std::cerr << "[EMERGENCY] reason=" << static_cast<int>(reason) << "\n";
        }
 }
-
-
-
 
 // ============================================================
 // CONFIGURATION CONSTANTS
@@ -254,18 +431,17 @@ void watchdog_thread()
 {
     while (true)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
-        u32 now  = now_ms();
+        u32 now = now_ms();
         u32 last = g_safety.last_input_ms.load();
-
-        if (!g_safety.emergency.load() && (now - last) > 30000)
+        if (!g_safety.emergency.load() && (now - last) > 3000)
         {
-            std::cerr << "[WD] Input timeout\n";
-            trigger_emergency(EmergencyReason::WATCHDOG);
+            g_safety.emergency.store(true);
+            g_emergency_reason.store(EmergencyReason::WATCHDOG);
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
+
 
 /* ============================================================
  * JOYSTICK INPUT THREAD
@@ -339,19 +515,11 @@ void joystick_thread()
 /* ============================================================
  * EVENT HANDLER + FRAME BUILDER
  * ============================================================ */
-void event_handler_thread()
+void event_handler_thread(ITransport& transport)
 {
-    EventPDU ev{};
-
     while (true)
     {
-        if (!g_event_ring.pop(ev)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            continue;
-        }
-
-        /* ---------- EMERGENCY ---------- */
-        if (g_safety.emergency.load(std::memory_order_acquire))
+        if (g_safety.emergency.load())
         {
             EmergencyPDU em{};
             em.pdu_type  = 0x03U;
@@ -362,40 +530,24 @@ void event_handler_thread()
 
             std::cout << "[SEND] EMERGENCY PDU reason="
                     << static_cast<int>(reason) << " ts=" << em.timestamp << "\n";
-
-            // Try clear automatically if safe (optional)
-            bool cleared = clear_emergency_if_safe();
-
             continue;
         }
 
-
-        /* ---------- FULL STATE SNAPSHOT ---------- */
         FullStatePDU fs{};
         fs.pdu_type  = 0x01;
         fs.steering  = g_state.steering.load();
         fs.throttle  = g_state.throttle.load();
         fs.brake     = g_state.brake.load();
-        Direction dir = g_state.direction.load(std::memory_order_acquire);
-        fs.direction  = static_cast<u8>(dir);
+        fs.direction = static_cast<u8>(g_state.direction.load());
         fs.seq       = g_state.seq.fetch_add(1);
 
-        std::cout << "[SEND] FULL "
-                  << "seq=" << fs.seq
-                  << " steer=" << fs.steering
-                  << " thr=" << (int)fs.throttle
-                  << " brake=" << (int)fs.brake
-                  << " direction=" << (int)fs.direction
-                  << "\n";
+        auto frame = Com::build_fullstate_frame(fs);
+        transport.send_binary(frame);
 
-        /*
-         * TODO:
-         *  - send via WebRTC DataChannel
-         *  - wait ACK
-         *  - retry / timeout
-         */
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
 }
+
 
 /* ============================================================
  * MAIN
@@ -405,9 +557,11 @@ int main()
     std::cout << "=== AUTOSAR PEER CLIENT CORE ===\n";
 
     g_safety.last_input_ms.store(now_ms());
+    
+    DummyTransport transport;
 
     std::thread t_js(joystick_thread);
-    std::thread t_ev(event_handler_thread);
+	std::thread t_ev(event_handler_thread, std::ref(transport));
     std::thread t_wd(watchdog_thread);
 
     t_js.join();
