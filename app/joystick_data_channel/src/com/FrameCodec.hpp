@@ -42,12 +42,12 @@ public:
     build_fullstate_frame(const ControlSnapshot& snap)
     {
         FullStatePdu pdu{};
-        pdu.type      = PduType::FULL_STATE;
+        //pdu.type      = PduType::FULL_STATE;
         pdu.steering  = snap.steering;
         pdu.throttle  = snap.throttle;
         pdu.brake     = snap.brake;
         pdu.direction = static_cast<u8>(snap.direction);
-        pdu.seq       = snap.seq;
+        //pdu.seq       = snap.seq;
 
         return build_frame_from_pdu(
             &pdu,
@@ -64,7 +64,7 @@ public:
     build_emergency_frame(EmergencyReason reason, u32 timestamp)
     {
         EmergencyPdu pdu{};
-        pdu.type      = PduType::EMERGENCY;
+        //pdu.type      = PduType::EMERGENCY;
         pdu.reason    = reason;
         pdu.timestamp = timestamp;
 

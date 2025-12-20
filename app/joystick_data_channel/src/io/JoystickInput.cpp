@@ -40,6 +40,17 @@ void JoystickInput::stop()
         thread_.join();
 }
 
+bool JoystickInput::debounce_button(uint8_t button, uint32_t now)
+{
+    uint32_t &last = last_button_ts_[button];
+
+    if ((now - last) < DEBOUNCE_MS)
+        return false;
+
+    last = now;
+    return true;
+}
+
 // ============================================================
 // IO TASK (AUTOSAR IO Runnable)
 // ============================================================
@@ -101,6 +112,9 @@ void JoystickInput::run()
         // ================= BUTTON =================
         else if (e.type == JS_EVENT_BUTTON)
         {
+            if (!debounce_button(e.number, ts))
+                continue;
+
             if (e.number == 0 && e.value == 1)
             {
                 g_eventRing.push({
@@ -110,7 +124,7 @@ void JoystickInput::run()
                     ts
                 });
             }
-            else if (e.number == 5 && e.value == 1)
+            else if ((e.number == 5))
             {
                 g_eventRing.push({
                     EventType::DIRECTION,
@@ -119,7 +133,7 @@ void JoystickInput::run()
                     ts
                 });
             }
-            else if (e.number == 4 && e.value == 1)
+            else if (e.number == 4)
             {
                 g_eventRing.push({
                     EventType::DIRECTION,

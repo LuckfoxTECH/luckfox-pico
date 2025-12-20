@@ -26,12 +26,12 @@ enum class PduType : u8
  * ================================ */
 struct FullStatePdu
 {
-    PduType type;
+    //PduType type;
     s16     steering;
     u8      throttle;
     u8      brake;
     u8      direction;
-    u32     seq;
+    //u32     seq;
 };
 
 /* ================================
@@ -39,8 +39,8 @@ struct FullStatePdu
  * ================================ */
 struct AckPdu
 {
-    PduType type;
-    u32     seq;
+    //PduType type;
+    //u32     seq;
     u8      result;
 };
 
@@ -49,7 +49,7 @@ struct AckPdu
  * ================================ */
 struct EmergencyPdu
 {
-    PduType         type;
+    //PduType         type;
     EmergencyReason reason;   
     u32             timestamp;
 };
