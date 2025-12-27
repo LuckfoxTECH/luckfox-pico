@@ -71,8 +71,8 @@ int main(int argc, char* argv[])
     // --------------------------------------------------------
     // 1️⃣ POSIX SIGNALS
     // --------------------------------------------------------
-    // std::signal(SIGINT,  signal_handler);
-    // std::signal(SIGTERM, signal_handler);
+    std::signal(SIGINT,  signal_handler);
+    std::signal(SIGTERM, signal_handler);
 
     // --------------------------------------------------------
     // 2️⃣ RTE / EVENT SYSTEM INIT
@@ -88,22 +88,22 @@ int main(int argc, char* argv[])
     // --------------------------------------------------------
     // 4️⃣ TRANSPORT INIT
     // --------------------------------------------------------
-    //std::unique_ptr<ITransport> transport;
+    std::unique_ptr<ITransport> transport;
 
-// #if 1
-//     // ===== REAL WebRTC =====
-//     transport = std::make_unique<WebRTCTransport>();
-// #else
-//     // ===== LOOPBACK TEST =====
-//     transport = std::make_unique<LoopbackTransport>();
-// #endif
+#if 1
+    // ===== REAL WebRTC =====
+    transport = std::make_unique<WebRTCTransport>();
+#else
+    // ===== LOOPBACK TEST =====
+    transport = std::make_unique<LoopbackTransport>();
+#endif
 
-    // // EventHandler consumes RX frames from transport
-    // transport->set_rx_callback([](const std::vector<u8>& data) {
-    //     EventHandler::on_transport_rx(data);
-    // });
+    // EventHandler consumes RX frames from transport
+    transport->set_rx_callback([](const std::vector<u8>& data) {
+        EventHandler::on_transport_rx(data);
+    });
 
-    // transport->start();
+    transport->start();
 
     // --------------------------------------------------------
     // 5️⃣ RUNNABLE THREADS (AUTOSAR style)
