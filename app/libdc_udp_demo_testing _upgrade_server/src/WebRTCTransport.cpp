@@ -31,6 +31,7 @@ WebRTCTransport::WebRTCTransport()
 
         std::string sdp = std::string(d);
 
+        /* ===== SEND ANSWER ===== */
         if (onLocalSdpCb_) {
             onLocalSdpCb_(sdp);
         } else {
@@ -38,7 +39,9 @@ WebRTCTransport::WebRTCTransport()
             cachedAnswer_ = sdp;
             std::cout << "[Transport] ANSWER cached (no callback yet)\n";
         }
+
     });
+
 
     /* =====================================================
      *  LOCAL ICE
@@ -71,6 +74,9 @@ WebRTCTransport::WebRTCTransport()
                 if (onDcMessageCb_)
                     onDcMessageCb_(*s);
             }
+            else if (auto* b = std::get_if<rtc::binary>(&msg)) {
+                // optional: onDcBinaryCb_…
+            }
         });
     });
 }
@@ -101,6 +107,9 @@ void WebRTCTransport::onDcOpen(
     std::function<void()> cb)
 {
     onDcOpenCb_ = std::move(cb);
+    if (dc_ && dc_->isOpen()) { 
+        onDcOpenCb_(); 
+    } 
 }
 
 void WebRTCTransport::onDcMessage(
@@ -157,12 +166,20 @@ void WebRTCTransport::createAnswer()
 
 void WebRTCTransport::setRemoteAnswer(const std::string& sdp)
 {
-    std::cout << "[Transport] Set remote ANSWER\n";
-
+    if (pc_->signalingState() !=
+        rtc::PeerConnection::SignalingState::HaveLocalOffer) {
+        std::cout << "[Transport] Ignored remote ANSWER (bad state)\n";
+        return;
+    }
+    else {
+        std::cout << "[Transport] Set remote ANSWER\n";
+    }
+    
     pc_->setRemoteDescription(
         rtc::Description(sdp,
             rtc::Description::Type::Answer));
 }
+
 
 /* ================================
  *  ICE
@@ -174,10 +191,16 @@ void WebRTCTransport::addRemoteIce(
 {
     rtc::Candidate c(cand, mid);
 
-    if (haveRemoteOffer_) {
-        pc_->addRemoteCandidate(c);
-    } else {
-        iceBuffer_.push_back(c);
+    try {
+        if (haveRemoteOffer_) {
+            pc_->addRemoteCandidate(c);
+            std::cout << "[Transport] addRemoteCandidate mid=" << mid << "\n";
+        } else {
+            iceBuffer_.push_back(c);
+            std::cout << "[Transport] buffer ICE mid=" << mid << "\n";
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "[Transport][ERROR] addRemoteCandidate failed: " << e.what() << "\n";
     }
 }
 
@@ -187,7 +210,33 @@ void WebRTCTransport::addRemoteIce(
 
 void WebRTCTransport::sendMessage(const std::string& msg)
 {
-    if (dcOpen_ && dc_) {
+    if (!dc_) { 
+        std::cout << "[Transport][WARN] DC null\n"; return; 
+    }
+    if (!dc_->isOpen()) { 
+        std::cout << "[Transport][WARN] DC not open\n"; return; 
+    }
+    try {
         dc_->send(msg);
+    } catch (const std::exception& e) {
+        std::cerr << "[Transport][ERROR] sendMessage: " << e.what() << "\n";
     }
 }
+
+
+void WebRTCTransport::close() {
+    try {
+        if (dc_) dc_->close();
+        if (pc_) pc_->close();
+    } catch (...) {}
+    {
+        dcOpen_ = false;
+        haveRemoteOffer_ = false;
+        localAnswerSent_ = false;
+        cachedAnswer_.reset();
+        iceBuffer_.clear();
+    }
+    std::cout << "[Transport] Closed\n";
+}
+
+

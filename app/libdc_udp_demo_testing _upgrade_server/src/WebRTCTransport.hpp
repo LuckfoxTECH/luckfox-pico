@@ -25,7 +25,23 @@ public:
 
     void sendMessage(const std::string& msg);
 
+    void close();
+
 private:
+
+    /* ================================
+     *  Signaling State (STRONG)
+     * ================================ */
+    enum class TransportState {
+        Idle,               // initial
+        HaveRemoteOffer,    // setRemoteOffer done
+        AnswerSent,         // onLocalDescription(ANSWER)
+        Connected,          // ICE + DTLS up (optional)
+        Closed
+    };
+
+    TransportState state_ = TransportState::Idle;
+    
     /* WebRTC core */
     std::shared_ptr<rtc::PeerConnection> pc_;
     std::shared_ptr<rtc::DataChannel> dc_;
