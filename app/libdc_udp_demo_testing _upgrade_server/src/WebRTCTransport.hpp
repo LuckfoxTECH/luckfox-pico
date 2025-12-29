@@ -1,12 +1,13 @@
 #pragma once
+
 #include <rtc/rtc.hpp>
-#include <string>
 #include <functional>
 #include <memory>
 #include <vector>
+#include <optional>
+#include <string>
 
-class WebRTCTransport
-{
+class WebRTCTransport {
 public:
     WebRTCTransport();
 
@@ -15,37 +16,34 @@ public:
     void onDcOpen(std::function<void()> cb);
     void onDcMessage(std::function<void(const std::string&)> cb);
 
-    void createOffer();
-    void createAnswer();
     void setRemoteOffer(const std::string& sdp);
+    void createAnswer();
     void setRemoteAnswer(const std::string& sdp);
-    void addRemoteIce(const std::string& cand, const std::string& mid);
+
+    void addRemoteIce(const std::string& cand,
+                      const std::string& mid);
 
     void sendMessage(const std::string& msg);
 
 private:
+    /* WebRTC core */
     std::shared_ptr<rtc::PeerConnection> pc_;
     std::shared_ptr<rtc::DataChannel> dc_;
 
-    // ===== state =====
-    bool dcOpen_ = false;
-
-    // SDP state
-    bool haveRemoteOffer_ = false;   // set sau setRemoteOffer()
-    bool answerCreated_   = false;   // set sau createAnswer()
-
-    bool localAnswerSent_ = false;
-
-
-    // ===== ICE buffer =====
-    std::vector<rtc::Candidate> iceBuffer_;
-
-    // ===== callbacks =====
+    /* Callbacks */
     std::function<void(std::string)> onLocalSdpCb_;
     std::function<void(std::string,std::string)> onLocalIceCb_;
     std::function<void()> onDcOpenCb_;
     std::function<void(const std::string&)> onDcMessageCb_;
+
+    /* State */
+    bool dcOpen_{false};
+    bool haveRemoteOffer_{false};
+    bool localAnswerSent_{false};
+
+    /* ICE buffer */
+    std::vector<rtc::Candidate> iceBuffer_;
+
+    /*FIX: cache SDP if callback registered late */
+    std::optional<std::string> cachedAnswer_;
 };
-
-
-

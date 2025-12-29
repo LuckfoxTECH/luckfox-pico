@@ -39,7 +39,7 @@ PeerServer::PeerServer(SignalingManager& sig,
         sig_.sendSdp(sdp);
         sdpDone_ = true;
 
-        // std::cout << "[Server] Sent ANSWER\n";
+        std::cout << "[Server] Sent ANSWER\n";
     });
 
     /* ===== LOCAL ICE ===== */
