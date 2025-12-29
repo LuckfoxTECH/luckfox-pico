@@ -3,7 +3,6 @@
 #include "WebRTCTransport.hpp"
 #include <vector>
 #include <string>
-#include <utility>
 
 class PeerServer
 {
@@ -15,9 +14,7 @@ private:
     SignalingManager& sig_;
     WebRTCTransport& rtc_;
 
-    bool remoteSet_  = false;
-    bool answerSent_ = false;
-
-    std::string pendingAnswer_; // buffer ANSWER nếu onLocalSdp trigger sớm
+    bool gotOffer_ = false;
+    bool sdpDone_ = false;
     std::vector<std::pair<std::string,std::string>> iceBuffer_;
 };

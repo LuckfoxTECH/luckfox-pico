@@ -1,80 +1,72 @@
 #include "PeerServer.hpp"
 #include <iostream>
+#include <thread>
+#include <chrono>
 
-PeerServer::PeerServer(SignalingManager& sig, WebRTCTransport& rtc)
-    : sig_(sig), rtc_(rtc)
+PeerServer::PeerServer(SignalingManager& sig,
+                       WebRTCTransport& rtc)
+    : sig_(sig),
+      rtc_(rtc),
+      gotOffer_(false),
+      sdpDone_(false)
 {
-    /* ---------- DataChannel ---------- */
-    rtc_.onDcOpen([]
-    {
+    /* ===== DATA CHANNEL ===== */
+    rtc_.onDcOpen([this]{
         std::cout << "[Server] DC OPEN\n";
+
+        std::thread([this]{
+            int i = 0;
+            while (true) {
+                rtc_.sendMessage(
+                    "Hello client #" + std::to_string(i++));
+                std::this_thread::sleep_for(
+                    std::chrono::seconds(1));
+            }
+        }).detach();
     });
 
-    /* ---------- Local SDP ---------- */
-    rtc_.onLocalSdp([this](std::string sdp)
-    {
-        if(!remoteSet_) {
-            // chưa nhận OFFER → buffer ANSWER
-            pendingAnswer_ = sdp;
+    rtc_.onDcMessage([](const std::string& msg){
+        std::cout << "[Server] DC received: " << msg << "\n";
+    });
+
+    /* ===== LOCAL SDP (ANSWER) ===== */
+    rtc_.onLocalSdp([this](std::string sdp){
+        if (sdpDone_) {
+            std::cout << "[Server] Ignore duplicate ANSWER\n";
             return;
         }
-        if(answerSent_) return;
-        answerSent_ = true;
+
         sig_.sendSdp(sdp);
-        std::cout << "[Server] Sent ANSWER\n";
+        sdpDone_ = true;
+
+        // std::cout << "[Server] Sent ANSWER\n";
     });
 
-    /* ---------- Local ICE ---------- */
-    rtc_.onLocalIce([this](std::string cand, std::string mid)
-    {
+    /* ===== LOCAL ICE ===== */
+    rtc_.onLocalIce([this](std::string cand, std::string mid){
         sig_.sendIce(cand, mid);
+        std::cout << "[Server] Sent ICE: " << cand << "\n";
     });
 
-    /* ---------- Receive signaling ---------- */
-    sig_.onReceive([this](const SignalingMsg& m)
-    {
-        if(m.type == SigType::SDP)
-        {
-            if(remoteSet_) {
+    /* ===== SIGNALING RECEIVE ===== */
+    sig_.onReceive([this](const SignalingMsg& m){
+        if (m.type == SigType::SDP) {
+
+            if (gotOffer_) {
                 std::cout << "[Server] Ignore duplicate OFFER\n";
                 return;
             }
 
-            rtc_.setRemoteOffer(m.payload1);
-            remoteSet_ = true;
-
             std::cout << "[Server] Got OFFER\n";
+            gotOffer_ = true;
 
-            // flush buffered ICE
-            for(auto& c : iceBuffer_)
-                rtc_.addRemoteIce(c.first, c.second);
-            iceBuffer_.clear();
+            rtc_.setRemoteOffer(m.payload1);
+            rtc_.createAnswer(); 
 
-            // gửi ANSWER đã buffer hoặc tạo mới
-            if(!pendingAnswer_.empty())
-            {
-                sig_.sendSdp(pendingAnswer_);
-                answerSent_ = true;
-                pendingAnswer_.clear();
-                std::cout << "[Server] Sent ANSWER\n";
-            }
-            else
-            {
-                rtc_.createAnswer();
-            }
-        }
-        else if(m.type == SigType::ICE)
-        {
-            if(!remoteSet_)
-            {
-                iceBuffer_.emplace_back(m.payload1, m.payload2);
-            }
-            else
-            {
-                rtc_.addRemoteIce(m.payload1, m.payload2);
-                std::cout << "[Server] Got remote ICE: " << m.payload1 << "\n";
+        } else if (m.type == SigType::ICE) {
 
-            }
+            rtc_.addRemoteIce(m.payload1, m.payload2);
+            std::cout << "[Server] Got remote ICE\n";
         }
     });
 }

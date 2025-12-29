@@ -24,4 +24,6 @@ public:
 private:
     SignalingManager& sig_;
     WebRTCTransport& rtc_;
+
+    bool offerSent_ = false; 
 };
