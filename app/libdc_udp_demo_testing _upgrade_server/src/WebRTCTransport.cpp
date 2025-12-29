@@ -79,6 +79,23 @@ WebRTCTransport::WebRTCTransport()
             }
         });
     });
+
+    pc_->onIceStateChange(
+        [](rtc::PeerConnection::IceState s) {
+            std::cout << "[ICE] state="
+                    << static_cast<int>(s) << "\n";
+
+            if (s == rtc::PeerConnection::IceState::Failed) {
+                std::cout << "[ICE] FAILED → should restart ICE\n";
+            }
+        });
+
+    pc_->onSignalingStateChange(
+        [](rtc::PeerConnection::SignalingState s) {
+            std::cout << "[SIG] state="
+                    << static_cast<int>(s) << "\n";
+        });
+
 }
 
 /* ================================
