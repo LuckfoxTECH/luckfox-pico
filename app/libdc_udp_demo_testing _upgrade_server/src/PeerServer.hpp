@@ -1,22 +1,16 @@
 #pragma once
-
 #include "SignalingManager.hpp"
 #include "WebRTCTransport.hpp"
-
 #include <atomic>
 
-class PeerServer
-{
+class PeerServer {
 public:
     PeerServer(SignalingManager& sig,
                WebRTCTransport& rtc);
-
     void start();
 
 private:
     SignalingManager& sig_;
     WebRTCTransport& rtc_;
-
-    /* sender thread control */
     std::atomic<bool> running_{false};
 };
