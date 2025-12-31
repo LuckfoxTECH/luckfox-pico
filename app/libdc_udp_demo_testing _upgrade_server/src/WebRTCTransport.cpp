@@ -1,113 +1,112 @@
 #include "WebRTCTransport.hpp"
 #include <iostream>
-#include <utility>
 
-/* ================================
- *  Constructor
- * ================================ */
+using namespace std::chrono;
+
 WebRTCTransport::WebRTCTransport()
     : dcOpen_(false),
-      haveRemoteOffer_(false),
-      localAnswerSent_(false)
+      haveRemoteOffer_(false)
+{
+    createPeerConnection();
+}
+
+/* ================================
+ *  PEER CONNECTION
+ * ================================ */
+
+void WebRTCTransport::createPeerConnection()
 {
     rtc::Configuration cfg;
     cfg.iceServers.emplace_back("stun:stun.l.google.com:19302");
 
     pc_ = std::make_shared<rtc::PeerConnection>(cfg);
 
-    /* =====================================================
-     *  LOCAL SDP – REGISTER ONCE (CRITICAL FIX)
-     * ===================================================== */
+    /* ===== LOCAL SDP ===== */
     pc_->onLocalDescription([this](rtc::Description d) {
         if (d.type() != rtc::Description::Type::Answer)
             return;
 
-        if (localAnswerSent_) {
-            std::cout << "[Transport] Duplicate local ANSWER ignored\n";
-            return;
-        }
-
-        localAnswerSent_ = true;
-
         std::string sdp = std::string(d);
 
-        /* ===== SEND ANSWER ===== */
-        if (onLocalSdpCb_) {
+        if (onLocalSdpCb_)
             onLocalSdpCb_(sdp);
-        } else {
-            /* ultra-safe: cache if callback registered late */
+        else
             cachedAnswer_ = sdp;
-            std::cout << "[Transport] ANSWER cached (no callback yet)\n";
-        }
-
     });
 
-
-    /* =====================================================
-     *  LOCAL ICE
-     * ===================================================== */
+    /* ===== LOCAL ICE ===== */
     pc_->onLocalCandidate([this](rtc::Candidate c) {
-        if (onLocalIceCb_) {
+        if (onLocalIceCb_)
             onLocalIceCb_(c.candidate(), c.mid());
-        }
     });
 
-    /* =====================================================
-     *  DATA CHANNEL
-     * ===================================================== */
+    /* ===== DATA CHANNEL ===== */
     pc_->onDataChannel([this](std::shared_ptr<rtc::DataChannel> dc) {
         dc_ = dc;
 
         dc_->onOpen([this] {
             dcOpen_ = true;
-            if (onDcOpenCb_)
-                onDcOpenCb_();
+            lastPing_ = lastPong_ = steady_clock::now();
+            if (onDcOpenCb_) onDcOpenCb_();
         });
 
         dc_->onClosed([this] {
-            dcOpen_ = false;
-            std::cout << "[Transport] DataChannel closed\n";
+            std::cout << "[DC] closed → reset session\n";
+            close();
         });
 
         dc_->onMessage([this](rtc::message_variant msg) {
-            if (const auto* s = std::get_if<std::string>(&msg)) {
+            if (auto* s = std::get_if<std::string>(&msg)) {
+
+                if (*s == "__ping__") {
+                    dc_->send("__pong__");
+                    return;
+                }
+                if (*s == "__pong__") {
+                    lastPong_ = steady_clock::now();
+                    return;
+                }
                 if (onDcMessageCb_)
                     onDcMessageCb_(*s);
             }
-            else if (auto* b = std::get_if<rtc::binary>(&msg)) {
-                // optional: onDcBinaryCb_…
-            }
         });
+        
     });
 
-    pc_->onIceStateChange(
-        [](rtc::PeerConnection::IceState s) {
-            std::cout << "[ICE] state="
-                    << static_cast<int>(s) << "\n";
+    /* ===== ICE STATE ===== */
+    pc_->onIceStateChange([this](rtc::PeerConnection::IceState s) {
+        std::cout << "[ICE] state=" << static_cast<int>(s) << "\n";
 
-            if (s == rtc::PeerConnection::IceState::Failed) {
-                std::cout << "[ICE] FAILED → should restart ICE\n";
-            }
-        });
+        if (s == rtc::PeerConnection::IceState::Failed) {
+            std::cout << "[ICE] FAILED → reset session\n";
+            close();
+        }
+    });
+}
 
-    pc_->onSignalingStateChange(
-        [](rtc::PeerConnection::SignalingState s) {
-            std::cout << "[SIG] state="
-                    << static_cast<int>(s) << "\n";
-        });
+void WebRTCTransport::destroyPeerConnection()
+{
+    try {
+        if (dc_) dc_->close();
+        if (pc_) pc_->close();
+    } catch (...) {}
 
+    pc_.reset();
+    dc_.reset();
+
+    dcOpen_ = false;
+    haveRemoteOffer_ = false;
+    iceBuffer_.clear();
+    cachedAnswer_.reset();
 }
 
 /* ================================
- *  CALLBACK REGISTRATION
+ *  CALLBACK REG
  * ================================ */
 
-void WebRTCTransport::onLocalSdp(
-    std::function<void(std::string)> cb)
+void WebRTCTransport::onLocalSdp(std::function<void(std::string)> cb)
 {
     onLocalSdpCb_ = std::move(cb);
-
-    /* flush cached ANSWER if any */
     if (cachedAnswer_) {
         onLocalSdpCb_(*cachedAnswer_);
         cachedAnswer_.reset();
@@ -120,13 +119,9 @@ void WebRTCTransport::onLocalIce(
     onLocalIceCb_ = std::move(cb);
 }
 
-void WebRTCTransport::onDcOpen(
-    std::function<void()> cb)
+void WebRTCTransport::onDcOpen(std::function<void()> cb)
 {
     onDcOpenCb_ = std::move(cb);
-    if (dc_ && dc_->isOpen()) { 
-        onDcOpenCb_(); 
-    } 
 }
 
 void WebRTCTransport::onDcMessage(
@@ -136,67 +131,40 @@ void WebRTCTransport::onDcMessage(
 }
 
 /* ================================
- *  SDP
+ *  SIGNALING
  * ================================ */
 
 void WebRTCTransport::setRemoteOffer(const std::string& sdp)
 {
-    if (haveRemoteOffer_) {
-        std::cout << "[Transport] Duplicate OFFER ignored\n";
-        return;
-    }
+    std::cout << "[SDP] New OFFER → reset session\n";
 
-    std::cout << "[Transport] Set remote OFFER\n";
+    destroyPeerConnection();
+    createPeerConnection();
 
     pc_->setRemoteDescription(
-        rtc::Description(sdp,
-            rtc::Description::Type::Offer));
+        rtc::Description(sdp, rtc::Description::Type::Offer));
 
     haveRemoteOffer_ = true;
 
-    /* ===== Flush ICE buffer ===== */
-    if (!iceBuffer_.empty()) {
-        std::cout << "[Transport] Flush ICE buffer: "
-                << iceBuffer_.size()
-                << " candidate(s)\n";
+    for (auto& c : iceBuffer_)
+        pc_->addRemoteCandidate(c);
+    iceBuffer_.clear();
 
-        for (auto& c : iceBuffer_) {
-            pc_->addRemoteCandidate(c);
-        }
-        iceBuffer_.clear();
-    }
+    createAnswer();
 }
 
 void WebRTCTransport::createAnswer()
 {
-    auto state = pc_->signalingState();
+    if (!pc_) return;
 
-    if (state != rtc::PeerConnection::SignalingState::HaveRemoteOffer) {
-        std::cout << "[Transport] Cannot create ANSWER, state = "
-                  << static_cast<int>(state) << "\n";
+    if (pc_->signalingState() !=
+        rtc::PeerConnection::SignalingState::HaveRemoteOffer) {
         return;
     }
 
-    std::cout << "[Transport] Create ANSWER\n";
+    std::cout << "[SDP] Create ANSWER\n";
     pc_->setLocalDescription(rtc::Description::Type::Answer);
 }
-
-void WebRTCTransport::setRemoteAnswer(const std::string& sdp)
-{
-    if (pc_->signalingState() !=
-        rtc::PeerConnection::SignalingState::HaveLocalOffer) {
-        std::cout << "[Transport] Ignored remote ANSWER (bad state)\n";
-        return;
-    }
-    else {
-        std::cout << "[Transport] Set remote ANSWER\n";
-    }
-    
-    pc_->setRemoteDescription(
-        rtc::Description(sdp,
-            rtc::Description::Type::Answer));
-}
-
 
 /* ================================
  *  ICE
@@ -208,16 +176,34 @@ void WebRTCTransport::addRemoteIce(
 {
     rtc::Candidate c(cand, mid);
 
+    if (!pc_ || !haveRemoteOffer_) {
+        iceBuffer_.push_back(c);
+        return;
+    }
+
     try {
-        if (haveRemoteOffer_) {
-            pc_->addRemoteCandidate(c);
-            std::cout << "[Transport] addRemoteCandidate mid=" << mid << "\n";
-        } else {
-            iceBuffer_.push_back(c);
-            std::cout << "[Transport] buffer ICE mid=" << mid << "\n";
-        }
-    } catch (const std::exception& e) {
-        std::cerr << "[Transport][ERROR] addRemoteCandidate failed: " << e.what() << "\n";
+        pc_->addRemoteCandidate(c);
+    } catch (...) {}
+}
+
+/* ================================
+ *  KEEPALIVE
+ * ================================ */
+
+void WebRTCTransport::tick()
+{
+    if (!dcOpen_) return;
+
+    auto now = steady_clock::now();
+
+    if (now - lastPing_ > seconds(3)) {
+        dc_->send("__ping__");
+        lastPing_ = now;
+    }
+
+    if (now - lastPong_ > seconds(10)) {
+        std::cout << "[CONN] timeout → reset session\n";
+        close();
     }
 }
 
@@ -227,33 +213,18 @@ void WebRTCTransport::addRemoteIce(
 
 void WebRTCTransport::sendMessage(const std::string& msg)
 {
-    if (!dc_) { 
-        std::cout << "[Transport][WARN] DC null\n"; return; 
-    }
-    if (!dc_->isOpen()) { 
-        std::cout << "[Transport][WARN] DC not open\n"; return; 
-    }
-    try {
-        dc_->send(msg);
-    } catch (const std::exception& e) {
-        std::cerr << "[Transport][ERROR] sendMessage: " << e.what() << "\n";
-    }
+    if (!dc_ || !dc_->isOpen())
+        return;
+    dc_->send(msg);
 }
 
+/* ================================
+ *  CLOSE
+ * ================================ */
 
-void WebRTCTransport::close() {
-    try {
-        if (dc_) dc_->close();
-        if (pc_) pc_->close();
-    } catch (...) {}
-    {
-        dcOpen_ = false;
-        haveRemoteOffer_ = false;
-        localAnswerSent_ = false;
-        cachedAnswer_.reset();
-        iceBuffer_.clear();
-    }
-    std::cout << "[Transport] Closed\n";
+void WebRTCTransport::close()
+{
+    destroyPeerConnection();
+    createPeerConnection();
+    std::cout << "[Transport] Session reset\n";
 }
-
-

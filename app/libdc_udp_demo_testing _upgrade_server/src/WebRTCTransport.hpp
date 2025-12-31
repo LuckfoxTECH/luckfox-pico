@@ -1,65 +1,51 @@
 #pragma once
-
 #include <rtc/rtc.hpp>
 #include <functional>
-#include <memory>
-#include <vector>
 #include <optional>
-#include <string>
+#include <vector>
+#include <chrono>
 
 class WebRTCTransport {
 public:
     WebRTCTransport();
 
+    /* callbacks */
     void onLocalSdp(std::function<void(std::string)> cb);
-    void onLocalIce(std::function<void(std::string,std::string)> cb);
+    void onLocalIce(std::function<void(std::string, std::string)> cb);
     void onDcOpen(std::function<void()> cb);
     void onDcMessage(std::function<void(const std::string&)> cb);
+    
 
+    /* signaling */
     void setRemoteOffer(const std::string& sdp);
-    void createAnswer();
-    void setRemoteAnswer(const std::string& sdp);
+    void addRemoteIce(const std::string& cand, const std::string& mid);
 
-    void addRemoteIce(const std::string& cand,
-                      const std::string& mid);
-
+    /* runtime */
+    void tick();
     void sendMessage(const std::string& msg);
-
     void close();
 
 private:
+    void createPeerConnection();
+    void destroyPeerConnection();
+    void createAnswer();
 
-    /* ================================
-     *  Signaling State (STRONG)
-     * ================================ */
-    enum class TransportState {
-        Idle,               // initial
-        HaveRemoteOffer,    // setRemoteOffer done
-        AnswerSent,         // onLocalDescription(ANSWER)
-        Connected,          // ICE + DTLS up (optional)
-        Closed
-    };
-
-    TransportState state_ = TransportState::Idle;
-    
-    /* WebRTC core */
+private:
     std::shared_ptr<rtc::PeerConnection> pc_;
     std::shared_ptr<rtc::DataChannel> dc_;
 
-    /* Callbacks */
+    std::vector<rtc::Candidate> iceBuffer_;
+
+    bool dcOpen_;
+    bool haveRemoteOffer_;
+
+    std::optional<std::string> cachedAnswer_;
+
     std::function<void(std::string)> onLocalSdpCb_;
-    std::function<void(std::string,std::string)> onLocalIceCb_;
+    std::function<void(std::string, std::string)> onLocalIceCb_;
     std::function<void()> onDcOpenCb_;
     std::function<void(const std::string&)> onDcMessageCb_;
 
-    /* State */
-    bool dcOpen_{false};
-    bool haveRemoteOffer_{false};
-    bool localAnswerSent_{false};
-
-    /* ICE buffer */
-    std::vector<rtc::Candidate> iceBuffer_;
-
-    /*FIX: cache SDP if callback registered late */
-    std::optional<std::string> cachedAnswer_;
+    std::chrono::steady_clock::time_point lastPing_;
+    std::chrono::steady_clock::time_point lastPong_;
 };

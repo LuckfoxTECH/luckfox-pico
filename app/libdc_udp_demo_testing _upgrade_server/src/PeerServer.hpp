@@ -1,20 +1,22 @@
 #pragma once
+
 #include "SignalingManager.hpp"
 #include "WebRTCTransport.hpp"
-#include <vector>
-#include <string>
+
+#include <atomic>
 
 class PeerServer
 {
 public:
-    PeerServer(SignalingManager& sig, WebRTCTransport& rtc);
+    PeerServer(SignalingManager& sig,
+               WebRTCTransport& rtc);
+
     void start();
 
 private:
     SignalingManager& sig_;
     WebRTCTransport& rtc_;
 
-    bool gotOffer_ = false;
-    bool sdpDone_ = false;
-    std::vector<std::pair<std::string,std::string>> iceBuffer_;
+    /* sender thread control */
+    std::atomic<bool> running_{false};
 };
