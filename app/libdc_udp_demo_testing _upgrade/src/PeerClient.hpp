@@ -2,19 +2,21 @@
 
 #include "SignalingManager.hpp"
 #include "WebRTCTransport.hpp"
+#include <atomic>
 
 /*
  * PeerClient
  * ----------
- * Lớp glue:
- *   - Nối SignalingManager (UDP + FSM)
+ * Glue layer:
+ *   - Kết nối SignalingManager (UDP / WS / TCP)
  *   - Với WebRTCTransport (libdatachannel)
  *
- * main.cpp chỉ cần gọi:
- *   PeerClient client(...);
+ * main.cpp chỉ cần:
+ *   PeerClient client(sig, rtc);
  *   client.start();
  */
-class PeerClient {
+class PeerClient
+{
 public:
     PeerClient(SignalingManager& sig,
                WebRTCTransport& rtc);
@@ -22,8 +24,10 @@ public:
     void start();
 
 private:
+    /* ===== External components ===== */
     SignalingManager& sig_;
     WebRTCTransport& rtc_;
 
-    bool offerSent_ = false; 
+    /* ===== Runtime state ===== */
+    std::atomic<bool> running_{false};
 };
