@@ -15,6 +15,10 @@ public:
     void onDcOpen(std::function<void()> cb);
     void onDcClosed(std::function<void()> cb);
     void onDcMessage(std::function<void(const std::string&)> cb);
+    
+    // binary message (frame)
+    void onDcBinary(
+        std::function<void(const std::vector<uint8_t>&)> cb);
 
     /* signaling */
     void setRemoteOffer(const std::string& sdp);
@@ -23,7 +27,11 @@ public:
 
     /* runtime */
     void tick();
+    // text (legacy / debug)
     void sendMessage(const std::string& msg);
+
+    // binary frame (CONTROL / SENSOR / STATE)
+    void sendBinary(const std::vector<uint8_t>& data);
     void close();              // FULL RESET
 
 private:
@@ -52,4 +60,6 @@ private:
     std::function<void()> onDcOpenCb_;
     std::function<void()> onDcClosedCb_;
     std::function<void(const std::string&)> onDcMessageCb_;
+    std::function<void(const std::vector<uint8_t>&)>
+        onDcBinaryCb_;
 };

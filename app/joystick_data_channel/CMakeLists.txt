@@ -78,6 +78,7 @@ target_include_directories(io PUBLIC src/io)
 add_library(signaling STATIC
     src/signaling/udp_signaling.cpp
     src/signaling/SignalingManager.cpp
+    src/signaling/PeerClient.cpp
 )
 
 target_include_directories(signaling PUBLIC src/signaling)
@@ -91,7 +92,6 @@ target_link_libraries(signaling
 # TRANSPORT LAYER
 # ============================================================
 add_library(transport STATIC
-    src/transport/LoopbackTransport.cpp
     src/transport/WebRTCTransport.cpp
 )
 

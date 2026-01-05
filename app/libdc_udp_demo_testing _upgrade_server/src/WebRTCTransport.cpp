@@ -3,11 +3,18 @@
 
 using namespace std::chrono;
 
-WebRTCTransport::WebRTCTransport() {
+
+/* ============================================================
+ * Constructor
+ * ============================================================ */
+WebRTCTransport::WebRTCTransport()
+{
     createPeerConnection();
 }
 
-/* ================= PEER CONNECTION ================= */
+/* ============================================================
+ * PeerConnection lifecycle
+ * ============================================================ */
 
 void WebRTCTransport::createPeerConnection()
 {
@@ -49,13 +56,48 @@ void WebRTCTransport::createPeerConnection()
         });
 
         dc_->onMessage([this](rtc::message_variant msg){
-            if (auto* s = std::get_if<std::string>(&msg)) {
-                if (*s == "__ping__") {
+
+            /* ================= TEXT ================= */
+            if (auto* text = std::get_if<std::string>(&msg)) {
+
+                // std::cout << "[DC] TEXT received: "
+                //         << *text << "\n";
+
+                if (*text == "__ping__") {
                     dc_->send("__pong__");
-                } else if (*s == "__pong__") {
+                }
+                else if (*text == "__pong__") {
                     lastPong_ = steady_clock::now();
-                } else if (onDcMessageCb_) {
-                    onDcMessageCb_(*s);
+                }
+                else if (onDcMessageCb_) {
+                    onDcMessageCb_(*text);
+                }
+            }
+
+            /* ================= BINARY ================= */
+            else if (auto* bin = std::get_if<rtc::binary>(&msg)) {
+
+                // std::cout << "[DC] BINARY received: "
+                //         << bin->size() << " bytes\n";
+
+                // size_t dump = std::min(bin->size(), size_t(16));
+                // std::cout << "[DC] BINARY head: ";
+                // for (size_t i = 0; i < dump; ++i) {
+                //     printf("%02X ",
+                //         std::to_integer<uint8_t>((*bin)[i]));
+                // }
+                // printf("\n");
+
+                if (onDcBinaryCb_) {
+                    std::vector<uint8_t> data;
+                    data.reserve(bin->size());
+
+                    for (std::byte b : *bin)
+                        data.push_back(
+                            std::to_integer<uint8_t>(b)
+                        );
+
+                    onDcBinaryCb_(data);
                 }
             }
         });
@@ -118,6 +160,12 @@ void WebRTCTransport::onDcMessage(
     std::function<void(const std::string&)> cb)
 {
     onDcMessageCb_ = std::move(cb);
+}
+
+void WebRTCTransport::onDcBinary(
+    std::function<void(const std::vector<uint8_t>&)> cb)
+{
+    onDcBinaryCb_ = std::move(cb);
 }
 
 /* ================= SIGNALING ================= */
@@ -201,6 +249,22 @@ void WebRTCTransport::sendMessage(const std::string& msg)
     if (dc_ && dc_->isOpen())
         dc_->send(msg);
 }
+
+void WebRTCTransport::sendBinary(
+    const std::vector<uint8_t>& data)
+{
+    if (!dc_ || !dc_->isOpen())
+        return;
+
+    rtc::binary bin;
+    bin.reserve(data.size());
+
+    for (uint8_t b : data)
+        bin.push_back(std::byte(b));
+
+    dc_->send(bin);
+}
+
 
 /* ================= FULL RESET ================= */
 

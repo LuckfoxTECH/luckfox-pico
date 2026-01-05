@@ -1,158 +1,126 @@
 #include "udp_signaling.hpp"
-#include <cstring>
-#include <iostream>
+
 #include <arpa/inet.h>
-#include <sys/socket.h>
+#include <cstring>
+#include <thread>
 #include <unistd.h>
 
-// ============================================================
-// Base64 (PRIVATE – transport detail)
-// ============================================================
-
-static const std::string b64 =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-std::string UdpSignaling::base64_encode(const std::string& in)
+UdpSignaling::UdpSignaling() noexcept
+    : sock_(-1),
+      running_(false),
+      hasRemote_(false)
 {
-    std::string out;
-    int val = 0, valb = -6;
-    for (uint8_t c : in) {
-        val = (val << 8) + c;
-        valb += 8;
-        while (valb >= 0) {
-            out.push_back(b64[(val >> valb) & 0x3F]);
-            valb -= 6;
-        }
-    }
-    if (valb > -6)
-        out.push_back(b64[((val << 8) >> (valb + 8)) & 0x3F]);
-    while (out.size() % 4) out.push_back('=');
-    return out;
+    std::memset(&localAddr_, 0, sizeof(localAddr_));
+    std::memset(&remoteAddr_, 0, sizeof(remoteAddr_));
 }
 
-std::string UdpSignaling::base64_decode(const std::string& in)
-{
-    std::vector<int> T(256, -1);
-    for (int i = 0; i < 64; i++) T[b64[i]] = i;
-
-    std::string out;
-    int val = 0, valb = -8;
-    for (uint8_t c : in) {
-        if (T[c] == -1) break;
-        val = (val << 6) + T[c];
-        valb += 6;
-        if (valb >= 0) {
-            out.push_back(char((val >> valb) & 0xFF));
-            valb -= 8;
-        }
-    }
-    return out;
-}
-
-// ============================================================
-
-UdpSignaling::UdpSignaling(const std::string& local_ip, int local_port,
-                           const std::string& remote_ip, int remote_port)
-{
-    sockfd_ = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sockfd_ < 0) throw std::runtime_error("socket failed");
-
-    local_addr_.sin_family = AF_INET;
-    local_addr_.sin_port   = htons(local_port);
-    local_addr_.sin_addr.s_addr =
-        local_ip.empty() ? INADDR_ANY : inet_addr(local_ip.c_str());
-
-    bind(sockfd_, (sockaddr*)&local_addr_, sizeof(local_addr_));
-
-    if (!remote_ip.empty()) {
-        remote_addr_.sin_family = AF_INET;
-        remote_addr_.sin_port   = htons(remote_port);
-        inet_pton(AF_INET, remote_ip.c_str(), &remote_addr_.sin_addr);
-        remote_set_ = true;
-    }
-}
-
-UdpSignaling::~UdpSignaling()
+UdpSignaling::~UdpSignaling() noexcept
 {
     stop();
-    if (sockfd_ >= 0) close(sockfd_);
 }
 
-void UdpSignaling::start()
+UdpSignaling::Result
+UdpSignaling::init(const char* localIp,
+                   std::uint16_t localPort,
+                   const char* remoteIp,
+                   std::uint16_t remotePort) noexcept
+{
+    sock_ = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock_ < 0)
+        return Result::Error;
+
+    localAddr_.sin_family = AF_INET;
+    localAddr_.sin_port   = htons(localPort);
+    localAddr_.sin_addr.s_addr =
+        localIp ? inet_addr(localIp) : INADDR_ANY;
+
+    if (bind(sock_,
+             (sockaddr*)&localAddr_,
+             sizeof(localAddr_)) < 0)
+        return Result::Error;
+
+    if (remoteIp)
+    {
+        remoteAddr_.sin_family = AF_INET;
+        remoteAddr_.sin_port   = htons(remotePort);
+        remoteAddr_.sin_addr.s_addr = inet_addr(remoteIp);
+        hasRemote_ = true;
+    }
+
+    return Result::Ok;
+}
+
+UdpSignaling::Result
+UdpSignaling::start() noexcept
 {
     running_ = true;
-    recv_thread_ = std::thread(&UdpSignaling::receiveLoop, this);
+    std::thread(&UdpSignaling::recvLoop, this).detach();
+    return Result::Ok;
 }
 
-void UdpSignaling::stop()
+UdpSignaling::Result
+UdpSignaling::stop() noexcept
 {
     running_ = false;
-    if (recv_thread_.joinable())
-        recv_thread_.join();
+
+    if (sock_ >= 0)
+    {
+        close(sock_);
+        sock_ = -1;
+    }
+    return Result::Ok;
 }
 
-// ============================================================
-// TX
-// ============================================================
-
-void UdpSignaling::sendSdp(const std::string& sdp)
+void
+UdpSignaling::setReceiveCallback(RxCallback cb) noexcept
 {
-    std::string msg = "SDP|" + base64_encode(sdp);
-    std::lock_guard<std::mutex> lk(send_mutex_);
-    sendto(sockfd_, msg.data(), msg.size(), 0,
-           (sockaddr*)&remote_addr_, sizeof(remote_addr_));
+    rxCb_ = cb;
 }
 
-void UdpSignaling::sendIce(const std::string& cand,
-                           const std::string& mid)
+UdpSignaling::Result
+UdpSignaling::send(const std::uint8_t* data,
+                   std::size_t len) noexcept
 {
-    std::string msg =
-        "ICE|" + base64_encode(cand) + "|" +
-        base64_encode(mid);
-    std::lock_guard<std::mutex> lk(send_mutex_);
-    sendto(sockfd_, msg.data(), msg.size(), 0,
-           (sockaddr*)&remote_addr_, sizeof(remote_addr_));
+    if (!hasRemote_)
+        return Result::Error;
+
+    sendto(sock_,
+           data,
+           len,
+           0,
+           (sockaddr*)&remoteAddr_,
+           sizeof(remoteAddr_));
+    return Result::Ok;
 }
 
-// ============================================================
-// RX
-// ============================================================
-
-void UdpSignaling::onMessage(RxCallback cb)
+void
+UdpSignaling::recvLoop() noexcept
 {
-    rx_cb_ = cb;
-}
+    std::uint8_t buf[2048];
 
-void UdpSignaling::receiveLoop()
-{
-    char buf[65536];
+    while (running_)
+    {
+        sockaddr_in from{};
+        socklen_t fromLen = sizeof(from);
 
-    while (running_) {
-        sockaddr_in src{};
-        socklen_t sl = sizeof(src);
-        ssize_t n = recvfrom(sockfd_, buf, sizeof(buf)-1, 0,
-                             (sockaddr*)&src, &sl);
-        if (n <= 0) continue;
-        buf[n] = 0;
+        ssize_t n = recvfrom(sock_,
+                             buf,
+                             sizeof(buf),
+                             0,
+                             (sockaddr*)&from,
+                             &fromLen);
+        if (n <= 0)
+            continue;
 
-        if (!remote_set_) {
-            remote_addr_ = src;
-            remote_set_ = true;
-        }
+        remoteAddr_ = from;
+        hasRemote_  = true;
 
-        std::string msg(buf, n);
-
-        // SDP|xxxx  or ICE|cand|mid
-        if (!rx_cb_) continue;
-
-        if (msg.rfind("SDP|", 0) == 0) {
-            rx_cb_("SDP", base64_decode(msg.substr(4)), "");
-        }
-        else if (msg.rfind("ICE|", 0) == 0) {
-            auto p = msg.find('|', 4);
-            rx_cb_("ICE",
-                   base64_decode(msg.substr(4, p-4)),
-                   base64_decode(msg.substr(p+1)));
+        if (rxCb_)
+        {
+            rxCb_(buf,
+                  static_cast<std::size_t>(n),
+                  ntohl(from.sin_addr.s_addr),
+                  ntohs(from.sin_port));
         }
     }
 }

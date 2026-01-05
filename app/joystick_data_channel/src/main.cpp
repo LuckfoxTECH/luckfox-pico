@@ -24,7 +24,11 @@
 // ============================================================
 #include "transport/ITransport.hpp"
 #include "transport/WebRTCTransport.hpp"
-// #include "transport/LoopbackTransport.hpp"
+
+// signaling
+#include "signaling/udp_signaling.hpp"
+#include "signaling/SignalingManager.hpp"
+#include "PeerClient.hpp"
 
 // ============================================================
 // IO
@@ -46,19 +50,6 @@ static void signal_handler(int)
     g_running.store(false);
 }
 
-using u8 = uint8_t;
-
-static void print_frame(const std::vector<u8>& frame)
-{
-    printf("[FRAME] len=%zu : ", frame.size());
-
-    for (u8 b : frame)
-    {
-        printf("%02X ", b);
-    }
-
-    printf("\n");
-}
 // ============================================================
 // MAIN
 // ============================================================
@@ -86,69 +77,88 @@ int main(int argc, char* argv[])
     SafetyManager::init();
 
     // --------------------------------------------------------
-    // 4️⃣ TRANSPORT INIT
+    // 4️⃣ TRANSPORT + SIGNALING INIT
     // --------------------------------------------------------
-    std::unique_ptr<ITransport> transport;
+    if (argc < 2) {
+        std::cout << "Usage: peer_client <peer_ip>\n";
+        return 0;
+    }
 
-#if 1
-    // ===== REAL WebRTC =====
-    transport = std::make_unique<WebRTCTransport>();
-#else
-    // ===== LOOPBACK TEST =====
-    transport = std::make_unique<LoopbackTransport>();
-#endif
+    // --- signaling ---
+    UdpSignaling udp;
+    udp.init(nullptr, 0, argv[1], 6000);
+    udp.start();
 
-    // EventHandler consumes RX frames from transport
-    transport->set_rx_callback([](const std::vector<u8>& data) {
-        EventHandler::on_transport_rx(data);
-    });
+    SignalingManager sig(udp, "sess1");
 
-    transport->start();
+    // --- transport ---
+    auto transport = std::make_shared<WebRTCTransport>();
+
+    // --- peer client (offerer) ---
+    PeerClient client(sig, *transport);
+    client.start();
 
     // --------------------------------------------------------
-    // 5️⃣ RUNNABLE THREADS (AUTOSAR style)
+    // 5️⃣ RUNNABLE THREADS (AUTOSAR-style)
     // --------------------------------------------------------
 
+    // ----- Joystick -----
     JoystickInput::init();
-
     JoystickInput joystick;
     joystick.start();
 
+    // ----- Transport tick (keepalive / timeout) -----
+    std::thread t_transport_tick([&] {
+        while (g_running.load()) {
+            transport->tick();
+            std::this_thread::sleep_for(
+                std::chrono::milliseconds(50));
+        }
+    });
+
+    // ----- Watchdog -----
     std::thread t_watchdog([] {
         std::cout << "[RUN] Watchdog\n";
         watchdog::run(g_running);
     });
 
+    // ----- Event handler -----
     std::thread t_event_handler([] {
         std::cout << "[RUN] EventHandler\n";
         EventHandler::run(g_running);
     });
 
-    std::thread t_com_tx([] {
-        std::cout << "[RUN] Watchdog\n";
-        while (g_running.load())
-        {
-            ControlSnapshot snap = ControlState::snapshot();
+    // ----- COM TX (20 ms) -----
+    std::thread t_com_tx([transport] {
+        std::cout << "[RUN] COM TX\n";
+
+        while (g_running.load()) {
+
+            ControlSnapshot snap =
+                ControlState::snapshot();
 
             auto frame =
                 FrameCodec::build_fullstate_frame(snap);
-            print_frame(frame);
-            // transport->send(frame);
+
+            if (transport->isReady()) {
+                for (unsigned char b : frame) {
+                    printf("%02X ", b);
+                }
+                printf("\n");
+                transport->sendBinary(frame);
+            }
 
             std::this_thread::sleep_for(
-                std::chrono::milliseconds(20)
-            );
+                std::chrono::milliseconds(20));
         }
     });
 
     // --------------------------------------------------------
     // 6️⃣ MAIN IDLE LOOP
     // --------------------------------------------------------
-    while (g_running.load())
-    {
+    while (g_running.load()) {
         std::this_thread::sleep_for(
-            std::chrono::milliseconds(200)
-        );
+            std::chrono::milliseconds(200));
     }
 
     // --------------------------------------------------------
@@ -156,10 +166,9 @@ int main(int argc, char* argv[])
     // --------------------------------------------------------
     std::cout << "[MAIN] Shutting down...\n";
 
-    //transport->stop();
     joystick.stop();
 
-    // t_joystick.join();
+    t_transport_tick.join();
     t_watchdog.join();
     t_event_handler.join();
     t_com_tx.join();
@@ -167,5 +176,6 @@ int main(int argc, char* argv[])
     std::cout << "=====================================\n";
     std::cout << " ECU STOPPED CLEANLY\n";
     std::cout << "=====================================\n";
+
     return 0;
 }

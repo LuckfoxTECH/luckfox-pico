@@ -32,6 +32,20 @@ PeerServer::PeerServer(SignalingManager& sig,
         std::cout << "[Server] DC msg: " << msg << "\n";
     });
 
+    rtc_.onDcBinary([this](const std::vector<uint8_t>& data){
+        std::cout << "[Server] BINARY size = "
+                << data.size() << " bytes\n";
+
+        std::cout << "[Server] HEX: ";
+        size_t dump = std::min(data.size(), size_t(32)); 
+        for (size_t i = 0; i < dump; ++i) {
+            printf("%02X ", data[i]);
+        }
+        if (data.size() > dump)
+            std::cout << "...";
+        std::cout << "\n";
+    });
+
     rtc_.onLocalSdp([this](std::string sdp){
         sig_.sendSdp(sdp);
     });

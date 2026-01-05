@@ -1,47 +1,50 @@
 #pragma once
-#include <string>
+
+#include <cstdint>
+#include <cstddef>
 #include <functional>
-#include <thread>
-#include <atomic>
-#include <mutex>
 #include <netinet/in.h>
 
-class UdpSignaling {
+class UdpSignaling
+{
 public:
+    enum class Result
+    {
+        Ok,
+        Error
+    };
+
     using RxCallback =
-        std::function<void(const std::string& type,
-                           const std::string& p1,
-                           const std::string& p2)>;
+        std::function<void(const std::uint8_t*,
+                           std::size_t,
+                           std::uint32_t,
+                           std::uint16_t)>;
 
-    UdpSignaling(const std::string& local_ip, int local_port,
-                 const std::string& remote_ip = "", int remote_port = 0);
-    ~UdpSignaling();
+    UdpSignaling() noexcept;
+    ~UdpSignaling() noexcept;
 
-    void start();
-    void stop();
+    Result init(const char* localIp,
+                std::uint16_t localPort,
+                const char* remoteIp,
+                std::uint16_t remotePort) noexcept;
 
-    // === TX API (HIGH LEVEL) ===
-    void sendSdp(const std::string& sdp);
-    void sendIce(const std::string& cand, const std::string& mid);
+    Result start() noexcept;
+    Result stop() noexcept;
 
-    // === RX callback (parsed) ===
-    void onMessage(RxCallback cb);
+    Result send(const std::uint8_t* data,
+                std::size_t len) noexcept;
+
+    void setReceiveCallback(RxCallback cb) noexcept;
 
 private:
-    void receiveLoop();
+    int sock_;
+    bool running_;
 
-    // helpers
-    static std::string base64_encode(const std::string& in);
-    static std::string base64_decode(const std::string& in);
+    sockaddr_in localAddr_;
+    sockaddr_in remoteAddr_;
+    bool hasRemote_;
 
-    int sockfd_{-1};
-    sockaddr_in local_addr_{};
-    sockaddr_in remote_addr_{};
-    bool remote_set_{false};
+    RxCallback rxCb_;
 
-    std::atomic<bool> running_{false};
-    std::thread recv_thread_;
-    std::mutex send_mutex_;
-
-    RxCallback rx_cb_;
+    void recvLoop() noexcept;
 };
