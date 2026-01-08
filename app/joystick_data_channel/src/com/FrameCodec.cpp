@@ -94,19 +94,25 @@ bool parse_frame(
 std::vector<u8>
 FrameCodec::build_fullstate_frame(const ControlSnapshot& snap)
 {
+    static u8 rolling_msg_id = 0;
+
     FullStatePdu pdu{};
-    pdu.steering  = snap.steering;
-    pdu.throttle  = snap.throttle;
-    pdu.brake     = snap.brake;
+    pdu.steering  = static_cast<s16>(snap.steering);
+    pdu.throttle  = static_cast<u8>(snap.throttle);
+    pdu.brake     = static_cast<u8>(snap.brake);
     pdu.direction = static_cast<u8>(snap.direction);
+
+    pdu.seq   = static_cast<u16>(snap.seq);
+    pdu.ts_ms = snap.ts_ms;
 
     return build_frame_from_pdu(
         &pdu,
         sizeof(pdu),
         static_cast<u8>(PduType::FULL_STATE),
-        static_cast<u8>(snap.seq & 0xFF)
+        rolling_msg_id++
     );
 }
+
 
 bool FrameCodec::decode_frame(
     const u8* buf,

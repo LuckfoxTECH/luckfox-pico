@@ -33,10 +33,13 @@ enum class PduType : u8
  * ================================ */
 struct FullStatePdu
 {
-    s16 steering;    // steering angle
-    u8  throttle;    // throttle %
-    u8  brake;       // brake %
-    u8  direction;   // enum Direction
+    s16 steering;     // -1000 .. +1000
+    u8  throttle;     // 0 .. 100
+    u8  brake;        // 0 .. 100
+    u8  direction;    // enum Direction
+
+    u16 seq;          // FULL 16-bit sequence
+    u32 ts_ms;        // sender timestamp (ms)
 };
 
 /* ================================

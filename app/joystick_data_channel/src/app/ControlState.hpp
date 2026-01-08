@@ -10,6 +10,8 @@
 using u8  = uint8_t;
 using u32 = uint32_t;
 using s16 = int16_t;
+using u16 = uint16_t;
+
 
 // ============================================================
 // DIRECTION
@@ -26,11 +28,12 @@ enum class Direction : u8
 // ============================================================
 struct ControlSnapshot
 {
-    u32       seq;
+    u16       seq;
     s16       steering;
     u8        throttle;
     u8        brake;
     Direction direction;
+    u32 ts_ms;
 };
 
 // ============================================================
@@ -65,7 +68,8 @@ private:
     std::atomic<u8>        throttle_{0};
     std::atomic<u8>        brake_{0};
     std::atomic<Direction> direction_{Direction::STOP};
-    std::atomic<u32>       seq_{0};
+    std::atomic<u16>       seq_{0};
+
 };
 
 // ============================================================

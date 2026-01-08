@@ -1,5 +1,6 @@
 // app/ControlState.cpp
 #include "ControlState.hpp"
+#include <chrono>
 
 // ============================================================
 // GLOBAL INSTANCE
@@ -57,6 +58,15 @@ ControlSnapshot ControlState::snapshot()
     s.throttle  = g_state.throttle_.load(std::memory_order_acquire);
     s.brake     = g_state.brake_.load(std::memory_order_acquire);
     s.direction = g_state.direction_.load(std::memory_order_acquire);
+
+    // Timestamp (ms) — used for latency / stale-frame detection
+    s.ts_ms = static_cast<u32>(
+        std::chrono::duration_cast<
+            std::chrono::milliseconds
+        >(
+            std::chrono::steady_clock::now().time_since_epoch()
+        ).count()
+    );
 
     return s;
 }

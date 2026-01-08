@@ -133,28 +133,39 @@ int main(int argc, char* argv[])
 
     // ----- COM TX (20 ms) -----
     std::thread t_com_tx([transport] {
-        std::cout << "[RUN] COM TX\n";
+        ControlSnapshot last{};
+        bool first = true;
 
         while (g_running.load()) {
 
-            ControlSnapshot snap =
+            ControlSnapshot cur =
                 ControlState::snapshot();
 
-            auto frame =
-                FrameCodec::build_fullstate_frame(snap);
-
-            if (transport->isReady()) {
-                // for (unsigned char b : frame) {
-                //     printf("%02X ", b);
-                // }
-                // printf("\n");
-                transport->sendBinary(frame);
+            if (!first &&
+                cur.steering  == last.steering &&
+                cur.throttle  == last.throttle &&
+                cur.brake     == last.brake &&
+                cur.direction == last.direction)
+            {
+                std::this_thread::sleep_for(
+                    std::chrono::milliseconds(20));
+                continue;
             }
 
+            auto frame =
+                FrameCodec::build_fullstate_frame(cur);
+
+            if (transport->isReady())
+                transport->sendBinary(frame);
+
+            last = cur;
+            first = false;
+
             std::this_thread::sleep_for(
-                std::chrono::milliseconds(20));
+                std::chrono::milliseconds(20)); // 50Hz
         }
     });
+
 
     // --------------------------------------------------------
     // 6️⃣ MAIN IDLE LOOP
