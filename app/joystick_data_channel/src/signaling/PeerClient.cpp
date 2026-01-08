@@ -1,4 +1,6 @@
 #include "PeerClient.hpp"
+#include "com/FrameCodec.hpp"
+#include "com/RxDispatcher.hpp"
 #include <iostream>
 
 PeerClient::PeerClient(SignalingManager& sig,
@@ -19,6 +21,29 @@ PeerClient::PeerClient(SignalingManager& sig,
 
     rtc_.onDcMessage([](const std::string& msg) {
         std::cout << "[Client] DC msg: " << msg << "\n";
+    });
+
+    rtc_.onDcBinary([this](const std::vector<uint8_t>& data) {
+
+        // -------- Basic guard --------
+        // std::cout << "[RX RAW] (" << data.size() << " bytes): ";
+        // for (auto b : data)
+        //     printf("%02X ", b);
+        // printf("\n");
+
+        if (data.size() < 5) {
+            std::cout << "[COM] RX frame too short\n";
+            return;
+        }
+
+        Frame frame{};
+        if (!FrameCodec::decode_frame(data.data(), data.size(), frame)) {
+            std::cout << "[COM] RX invalid frame (checksum / format)\n";
+            return;
+        }
+
+        // -------- Dispatch to COM RX --------
+        RxDispatcher::dispatch(frame);
     });
 
     /* ========================================================

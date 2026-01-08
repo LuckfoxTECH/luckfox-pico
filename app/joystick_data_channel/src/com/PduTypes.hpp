@@ -2,55 +2,67 @@
 #pragma once
 
 #include <cstdint>
-#include "app/SafetyManager.hpp"  
-
+#include "app/SafetyManager.hpp"
 using u8  = uint8_t;
 using u16 = uint16_t;
 using u32 = uint32_t;
 using s16 = int16_t;
 
 /* ================================
- * AUTOSAR PDU TYPE ID
+ * AUTOSAR-LIKE PDU TYPE ID
  * ================================ */
 enum class PduType : u8
 {
-    FULL_STATE = 0x01,
-    ACK        = 0x02,
-    EMERGENCY  = 0x03
+    // -------- TX : Client -> Server --------
+    FULL_STATE     = 0x01,   // joystick / control command
+
+    // -------- RX : Server -> Client --------
+    VEHICLE_STATE  = 0x10,   // speed, rpm, faults
+    ACK            = 0x11,   // ack
+    HEARTBEAT      = 0x12,   // heartbeat 
+
+
+    // -------- BOTH DIR --------
+    EMERGENCY      = 0xF0    // emergency notify
 };
 
 #pragma pack(push,1)
 
 /* ================================
- * FULL STATE PDU
+ * FULL STATE PDU (TX)
  * ================================ */
 struct FullStatePdu
 {
-    //PduType type;
-    s16     steering;
-    u8      throttle;
-    u8      brake;
-    u8      direction;
-    //u32     seq;
+    s16 steering;    // steering angle
+    u8  throttle;    // throttle %
+    u8  brake;       // brake %
+    u8  direction;   // enum Direction
 };
 
 /* ================================
- * ACK PDU
+ * VEHICLE STATE PDU (RX)
+ * ================================ */
+struct VehicleStatePdu
+{
+    u16 speed;        // km/h * 10
+    u16 rpm;          // engine rpm
+    u32 fault_flags;  // bitmask
+};
+
+/* ================================
+ * ACK / HEARTBEAT PDU (RX)
  * ================================ */
 struct AckPdu
 {
-    //PduType type;
-    //u32     seq;
-    u8      result;
+    u8 result;        // 0 = OK, !=0 = error
 };
 
 /* ================================
- * EMERGENCY PDU
+ * EMERGENCY PDU (TX & RX)
  * ================================ */
 struct EmergencyPdu
 {
-    //PduType         type;
-    EmergencyReason reason;   
+    EmergencyReason reason;   // enum
     u32             timestamp;
 };
 

@@ -21,7 +21,8 @@ enum class EventType : u8
     THROTTLE,
     BRAKE,
     DIRECTION,
-    EMERGENCY
+    EMERGENCY,
+    COM_RX
 };
 
 // ============================================================

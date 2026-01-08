@@ -16,6 +16,8 @@
 #include "app/ControlState.hpp"
 #include "app/SafetyManager.hpp"
 #include "app/EventHandler.hpp"
+#include "app/VehicleState.hpp"
+
 
 #include "com/FrameCodec.hpp"
 
@@ -75,6 +77,7 @@ int main(int argc, char* argv[])
     // --------------------------------------------------------
     ControlState::init();
     SafetyManager::init();
+    VehicleState::init();
 
     // --------------------------------------------------------
     // 4️⃣ TRANSPORT + SIGNALING INIT
@@ -141,10 +144,10 @@ int main(int argc, char* argv[])
                 FrameCodec::build_fullstate_frame(snap);
 
             if (transport->isReady()) {
-                for (unsigned char b : frame) {
-                    printf("%02X ", b);
-                }
-                printf("\n");
+                // for (unsigned char b : frame) {
+                //     printf("%02X ", b);
+                // }
+                // printf("\n");
                 transport->sendBinary(frame);
             }
 

@@ -11,6 +11,9 @@
 #include <chrono>
 #include <thread>
 #include <cstdio>
+#include <poll.h>
+#include <errno.h>
+#include <algorithm>
 
 // ============================================================
 // INIT
@@ -56,94 +59,112 @@ bool JoystickInput::debounce_button(uint8_t button, uint32_t now)
 // ============================================================
 void JoystickInput::run()
 {
-    int fd = open("/dev/input/js2", O_RDONLY | O_NONBLOCK);
+    constexpr const char* JS_DEV = "/dev/input/js2";
+    constexpr int POLL_TIMEOUT_MS = 10;
+
+    int fd = open(JS_DEV, O_RDONLY | O_NONBLOCK);
     if (fd < 0)
     {
         perror("Joystick open failed");
         return;
     }
 
-    js_event e{};
+    struct FdGuard {
+        int fd;
+        ~FdGuard() { if (fd >= 0) close(fd); }
+    } guard{fd};
+
+    pollfd pfd{};
+    pfd.fd     = fd;
+    pfd.events = POLLIN;
+
+    js_event js{};
 
     while (running_.load(std::memory_order_acquire))
     {
-        if (read(fd, &e, sizeof(e)) != sizeof(e))
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        int pret = poll(&pfd, 1, POLL_TIMEOUT_MS);
+        if (pret <= 0)
             continue;
-        }
 
-        e.type &= ~JS_EVENT_INIT;
+        if (!(pfd.revents & POLLIN))
+            continue;
+
+        ssize_t n = read(fd, &js, sizeof(js));
+        if (n != sizeof(js))
+            continue;
+
+        js.type &= ~JS_EVENT_INIT;
+
         const u32 ts = now_ms();
 
+        Event evt{};
+        evt.timestamp = ts;
+        evt.s16_value = 0;
+        evt.u8_value  = 0;
+
         // ================= AXIS =================
-        if (e.type == JS_EVENT_AXIS)
+        if (js.type == JS_EVENT_AXIS)
         {
-            if (e.number == 0) // steering
+            const int value =
+                std::clamp<int>(js.value, -32768, 32767);
+
+            switch (js.number)
             {
-                g_eventRing.push({
-                    EventType::STEERING,
-                    static_cast<s16>(e.value),
-                    0,
-                    ts
-                });
+                case 0: // Steering
+                    evt.type      = EventType::STEERING;
+                    evt.s16_value = static_cast<s16>(value);
+                    break;
+
+                case 2: // Brake
+                    evt.type     = EventType::BRAKE;
+                    evt.u8_value =
+                        static_cast<u8>((value + 32768) * 100 / 65535);
+                    break;
+
+                case 5: // Throttle
+                    evt.type     = EventType::THROTTLE;
+                    evt.u8_value =
+                        static_cast<u8>((value + 32768) * 100 / 65535);
+                    break;
+
+                default:
+                    continue;
             }
-            else if (e.number == 2) // brake
-            {
-                u8 br = (e.value + 32767) * 100 / 65534;
-                g_eventRing.push({
-                    EventType::BRAKE,
-                    0,
-                    br,
-                    ts
-                });
-            }
-            else if (e.number == 5) // throttle
-            {
-                u8 th = (e.value + 32767) * 100 / 65534;
-                g_eventRing.push({
-                    EventType::THROTTLE,
-                    0,
-                    th,
-                    ts
-                });
-            }
+
+            g_eventRing.push(evt);
         }
+
         // ================= BUTTON =================
-        else if (e.type == JS_EVENT_BUTTON)
+        else if (js.type == JS_EVENT_BUTTON)
         {
-            if (!debounce_button(e.number, ts))
+            if (js.value != 1)
                 continue;
 
-            if (e.number == 0 && e.value == 1)
+            if (!debounce_button(js.number, ts))
+                continue;
+
+            switch (js.number)
             {
-                g_eventRing.push({
-                    EventType::EMERGENCY,
-                    0,
-                    1,
-                    ts
-                });
+                case 0: // Emergency
+                    evt.type     = EventType::EMERGENCY;
+                    evt.u8_value = 1;
+                    break;
+
+                case 5: // Forward
+                    evt.type     = EventType::DIRECTION;
+                    evt.u8_value = static_cast<u8>(Direction::FWD);
+                    break;
+
+                case 4: // Reverse
+                    evt.type     = EventType::DIRECTION;
+                    evt.u8_value = static_cast<u8>(Direction::REV);
+                    break;
+
+                default:
+                    continue;
             }
-            else if ((e.number == 5))
-            {
-                g_eventRing.push({
-                    EventType::DIRECTION,
-                    0,
-                    static_cast<u8>(Direction::FWD),
-                    ts
-                });
-            }
-            else if (e.number == 4)
-            {
-                g_eventRing.push({
-                    EventType::DIRECTION,
-                    0,
-                    static_cast<u8>(Direction::REV),
-                    ts
-                });
-            }
+
+            g_eventRing.push(evt);
         }
     }
-
-    close(fd);
 }

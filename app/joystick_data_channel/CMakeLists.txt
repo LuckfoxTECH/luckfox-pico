@@ -45,6 +45,7 @@ include_directories(
 # ============================================================
 add_library(app STATIC
     src/app/ControlState.cpp
+    src/app/VehicleState.cpp
     src/app/SafetyManager.cpp
     src/app/EventHandler.cpp
     src/app/Time.cpp
@@ -58,6 +59,7 @@ target_include_directories(app PUBLIC src/app)
 # ============================================================
 add_library(com STATIC
     src/com/FrameCodec.cpp
+    src/com/RxDispatcher.cpp
 )
 
 target_include_directories(com PUBLIC src/com)
@@ -85,6 +87,8 @@ target_include_directories(signaling PUBLIC src/signaling)
 
 target_link_libraries(signaling
     PRIVATE
+        com
+        app
         Threads::Threads
 )
 

@@ -1,21 +1,26 @@
+// com/FrameCodec.hpp
 #pragma once
 
 #include <vector>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 
 #include "Frame.hpp"
 #include "PduTypes.hpp"
-#include "app/ControlState.hpp"
 
 // ============================================================
 // BASIC TYPES
 // ============================================================
 using u8 = uint8_t;
 
+// Forward declaration (no app dependency)
+struct ControlSnapshot;
+
 // ============================================================
-// LOW-LEVEL FRAME API (implemented in FrameCodec.cpp)
+// LOW-LEVEL FRAME API
 // ============================================================
+
 std::vector<u8> build_frame_from_pdu(
     const void* pdu,
     u8          pdu_size,
@@ -35,44 +40,28 @@ bool parse_frame(
 class FrameCodec
 {
 public:
-    // --------------------------------------------------------
-    // FullState → Frame
-    // --------------------------------------------------------
+    // -----------------------------
+    // TX
+    // -----------------------------
     static std::vector<u8>
-    build_fullstate_frame(const ControlSnapshot& snap)
+    build_fullstate_frame(const ControlSnapshot& snap);
+
+    // -----------------------------
+    // RX
+    // -----------------------------
+    static bool decode_frame(
+        const u8* buf,
+        size_t    len,
+        Frame&    out
+    );
+
+    template<typename T>
+    static bool decode_pdu(const Frame& frame, T& out)
     {
-        FullStatePdu pdu{};
-        //pdu.type      = PduType::FULL_STATE;
-        pdu.steering  = snap.steering;
-        pdu.throttle  = snap.throttle;
-        pdu.brake     = snap.brake;
-        pdu.direction = static_cast<u8>(snap.direction);
-        //pdu.seq       = snap.seq;
+        if (frame.length != sizeof(T))
+            return false;
 
-        return build_frame_from_pdu(
-            &pdu,
-            sizeof(pdu),
-            static_cast<u8>(PduType::FULL_STATE),
-            static_cast<u8>(snap.seq & 0xFF)
-        );
-    }
-
-    // --------------------------------------------------------
-    // Emergency → Frame
-    // --------------------------------------------------------
-    static std::vector<u8>
-    build_emergency_frame(EmergencyReason reason, u32 timestamp)
-    {
-        EmergencyPdu pdu{};
-        //pdu.type      = PduType::EMERGENCY;
-        pdu.reason    = reason;
-        pdu.timestamp = timestamp;
-
-        return build_frame_from_pdu(
-            &pdu,
-            sizeof(pdu),
-            static_cast<u8>(PduType::EMERGENCY),
-            0xFF
-        );
+        std::memcpy(&out, frame.payload, sizeof(T));
+        return true;
     }
 };
