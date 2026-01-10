@@ -21,6 +21,10 @@ void WebRTCTransport::createPeerConnection()
     rtc::Configuration cfg;
     cfg.iceServers.emplace_back("stun:stun.l.google.com:19302");
 
+        // ---- Prefer UDP ----
+    cfg.iceTransportPolicy = rtc::TransportPolicy::All;
+    cfg.enableIceTcp = false;
+
     pc_ = std::make_shared<rtc::PeerConnection>(cfg);
 
     /* ================= Local SDP ================= */
@@ -42,8 +46,20 @@ void WebRTCTransport::createPeerConnection()
     });
 
     /* ================= DataChannel ================= */
+    rtc::DataChannelInit dc_cfg{};
+    dc_cfg.protocol = "control";
+    dc_cfg.negotiated = false;
 
-    dc_ = pc_->createDataChannel("dc");
+    // ---- Reliability config ----
+    rtc::Reliability r;
+    r.unordered = true;              
+    r.maxRetransmits = 0;           
+
+    dc_cfg.reliability = r;
+
+    // ---- Create channel ----
+    dc_ = pc_->createDataChannel("dc", dc_cfg);
+
 
     dc_->onOpen([this] {
         dcOpen_.store(true);
@@ -181,15 +197,19 @@ void WebRTCTransport::createOffer()
             rtc::Description::Type::Offer);
 }
 
-void WebRTCTransport::setRemoteAnswer(
-    const std::string& sdp)
+void WebRTCTransport::setRemoteAnswer(const std::string& sdp)
 {
     if (!pc_) return;
 
+    if (pc_->signalingState() !=
+        rtc::PeerConnection::SignalingState::HaveLocalOffer)
+    {
+        std::cout << "[SDP] Ignore ANSWER (state != HaveLocalOffer)\n";
+        return;
+    }
+
     pc_->setRemoteDescription(
-        rtc::Description(
-            sdp,
-            rtc::Description::Type::Answer));
+        rtc::Description(sdp, rtc::Description::Type::Answer));
 
     haveRemoteAnswer_ = true;
 
@@ -277,5 +297,17 @@ void WebRTCTransport::close()
     destroyPeerConnection();
     createPeerConnection();
 
+    createOffer();  
+
     std::cout << "[Transport] session reset\n";
 }
+
+bool WebRTCTransport::haveLocalOffer() const
+{
+    if (!pc_)
+        return false;
+
+    return pc_->signalingState() ==
+           rtc::PeerConnection::SignalingState::HaveLocalOffer;
+}
+

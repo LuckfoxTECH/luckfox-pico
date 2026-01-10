@@ -66,6 +66,12 @@ PeerClient::PeerClient(SignalingManager& sig,
     sig_.onReceive([this](const SignalingMsg& m) {
 
         if (m.type == SigType::SDP) {
+
+            if (!rtc_.haveLocalOffer()) {
+                std::cout << "[SDP] drop ANSWER (no local offer)\n";
+                return;
+            }
+
             std::cout << "[Client] Got ANSWER\n";
             rtc_.setRemoteAnswer(m.payload1);
         }
@@ -73,6 +79,7 @@ PeerClient::PeerClient(SignalingManager& sig,
             rtc_.addRemoteIce(m.payload1, m.payload2);
         }
     });
+
 }
 
 void PeerClient::start()

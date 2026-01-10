@@ -132,39 +132,42 @@ int main(int argc, char* argv[])
     });
 
     // ----- COM TX (20 ms) -----
-    std::thread t_com_tx([transport] {
-        ControlSnapshot last{};
-        bool first = true;
+    constexpr auto TX_PERIOD = std::chrono::milliseconds(20); // 50 Hz
+    constexpr auto MAX_SILENT = std::chrono::milliseconds(200);
 
-        while (g_running.load()) {
+    std::thread t_com_tx(
+        [transport, TX_PERIOD, MAX_SILENT] {
+            ControlSnapshot last{};
+            auto last_sent = std::chrono::steady_clock::now();
 
-            ControlSnapshot cur =
-                ControlState::snapshot();
+            while (g_running.load()) {
+                auto now = std::chrono::steady_clock::now();
+                ControlSnapshot cur = ControlState::snapshot();
 
-            if (!first &&
-                cur.steering  == last.steering &&
-                cur.throttle  == last.throttle &&
-                cur.brake     == last.brake &&
-                cur.direction == last.direction)
-            {
-                std::this_thread::sleep_for(
-                    std::chrono::milliseconds(20));
-                continue;
+                bool changed =
+                    cur.steering  != last.steering  ||
+                    cur.throttle  != last.throttle  ||
+                    cur.brake     != last.brake     ||
+                    cur.direction != last.direction;
+
+                bool timeout =
+                    (now - last_sent) >= MAX_SILENT;
+
+                if (transport->isReady() && (changed || timeout)) {
+                    auto frame =
+                        FrameCodec::build_fullstate_frame(cur);
+                    if (!frame.empty())
+                        transport->sendBinary(frame);
+
+                    last = cur;
+                    last_sent = now;
+                }
+
+                std::this_thread::sleep_for(TX_PERIOD);
             }
-
-            auto frame =
-                FrameCodec::build_fullstate_frame(cur);
-
-            if (transport->isReady())
-                transport->sendBinary(frame);
-
-            last = cur;
-            first = false;
-
-            std::this_thread::sleep_for(
-                std::chrono::milliseconds(20)); // 50Hz
         }
-    });
+    );
+
 
 
     // --------------------------------------------------------

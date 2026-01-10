@@ -46,6 +46,7 @@ public:
 
     void createOffer();
     void setRemoteAnswer(const std::string& sdp);
+    bool haveLocalOffer() const;
 
     /* ========================================================
      * ICE
