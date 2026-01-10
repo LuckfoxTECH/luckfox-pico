@@ -1,13 +1,17 @@
 cmake_minimum_required(VERSION 3.10)
-project(libdc_udp_demo LANGUAGES CXX)
+project(autosar_webrtc_server LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# --------------------------------------------------
-# Dependencies
-# --------------------------------------------------
+# =========================
+# Threads
+# =========================
 find_package(Threads REQUIRED)
+
+# =========================
+# libdatachannel (WebRTC)
+# =========================
 find_package(PkgConfig QUIET)
 
 set(LIBDATACHANNEL_LIBS "")
@@ -52,98 +56,115 @@ else()
     endif()
 endif()
 
-# --------------------------------------------------
-# Libraries
-# --------------------------------------------------
+# ============================================================
+# APP LAYER
+# ============================================================
+add_library(app STATIC
+    src/app/ControlState.cpp
+    src/app/EventRing.cpp
+    src/app/Time.cpp
+)
 
-# --- UDP signaling layer ---------------------------
-add_library(signaling
-    src/udp_signaling.cpp
+target_include_directories(app
+    PUBLIC
+        src/app
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+# ============================================================
+# COM LAYER
+# ============================================================
+add_library(com STATIC
+    src/com/FrameCodec.cpp
+    src/com/RxDispatcher.cpp
+)
+
+target_include_directories(com
+    PUBLIC
+        src/com
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_link_libraries(com
+    PUBLIC
+        app
+)
+
+# ============================================================
+# SIGNALING LAYER
+# ============================================================
+add_library(signaling STATIC
+    src/signaling/udp_signaling.cpp
+    src/signaling/SignalingManager.cpp
+    src/signaling/PeerServer.cpp
 )
 
 target_include_directories(signaling
     PUBLIC
+        src/signaling
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${LIBDATACHANNEL_INCLUDE_DIRS}
+)
+
+target_link_directories(signaling
+    PUBLIC
+        ${LIBDATACHANNEL_LIBRARY_DIRS}
 )
 
 target_link_libraries(signaling
-    PUBLIC
+    PRIVATE
+        com
+        app
         Threads::Threads
 )
 
-# --- Signaling FSM layer ---------------------------
-add_library(signaling_fsm
-    src/SignalingManager.cpp
+# ============================================================
+# TRANSPORT LAYER (WebRTC)
+# ============================================================
+add_library(transport STATIC
+    src/transport/WebRTCTransport.cpp
 )
 
-target_include_directories(signaling_fsm
+target_include_directories(transport
     PUBLIC
+        src/transport
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${LIBDATACHANNEL_INCLUDE_DIRS}
 )
 
-target_link_directories(signaling_fsm
+target_link_directories(transport
     PUBLIC
         ${LIBDATACHANNEL_LIBRARY_DIRS}
 )
 
-target_link_libraries(signaling_fsm
-    PUBLIC
-        signaling
-)
-
-# --- WebRTC transport layer ------------------------
-add_library(webrtc_transport
-    src/WebRTCTransport.cpp
-)
-
-target_include_directories(webrtc_transport
-    PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${LIBDATACHANNEL_INCLUDE_DIRS}
-)
-
-target_link_directories(webrtc_transport
-    PUBLIC
-        ${LIBDATACHANNEL_LIBRARY_DIRS}
-)
-
-target_link_libraries(webrtc_transport
-    PUBLIC
+target_link_libraries(transport
+    PRIVATE
         ${LIBDATACHANNEL_LIBS}
         Threads::Threads
 )
 
-# --- PeerServer (glue layer) -----------------------
-add_library(peer
-    src/PeerServer.cpp
-)
-
-target_include_directories(peer
-    PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
-
-target_link_libraries(peer
-    PUBLIC
-        signaling_fsm
-        webrtc_transport
-)
-
-# --------------------------------------------------
-# Executable
-# --------------------------------------------------
-
+# ============================================================
+# MAIN EXECUTABLE
+# ============================================================
 add_executable(peer_server
     src/main.cpp
 )
 
-target_link_libraries(peer_server
+target_include_directories(peer_server
     PRIVATE
-        peer
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-# --------------------------------------------------
-# Install (optional)
-# --------------------------------------------------
+target_link_libraries(peer_server
+    PRIVATE
+        app
+        com
+        signaling
+        transport
+        Threads::Threads
+)
+
+# ============================================================
+# INSTALL (optional)
+# ============================================================
 install(TARGETS peer_server DESTINATION bin)

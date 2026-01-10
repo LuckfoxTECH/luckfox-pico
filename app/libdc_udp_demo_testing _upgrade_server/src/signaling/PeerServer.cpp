@@ -1,7 +1,9 @@
 #include "PeerServer.hpp"
-#include <iostream>
 #include <thread>
 #include <chrono>
+#include "com/FrameCodec.hpp"
+#include "com/RxDispatcher.hpp"
+#include <iostream>
 
 PeerServer::PeerServer(SignalingManager& sig,
                        WebRTCTransport& rtc)
@@ -67,18 +69,27 @@ PeerServer::PeerServer(SignalingManager& sig,
         std::cout << "[Server] DC msg: " << msg << "\n";
     });
 
-    rtc_.onDcBinary([this](const std::vector<uint8_t>& data){
-        std::cout << "[Server] BINARY size = "
-                << data.size() << " bytes\n";
+    rtc_.onDcBinary([this](const std::vector<uint8_t>& data) {
 
-        std::cout << "[Server] HEX: ";
-        size_t dump = std::min(data.size(), size_t(32)); 
-        for (size_t i = 0; i < dump; ++i) {
-            printf("%02X ", data[i]);
+        // -------- Basic guard --------
+        // std::cout << "[RX RAW] (" << data.size() << " bytes): ";
+        // for (auto b : data)
+        //     printf("%02X ", b);
+        // printf("\n");
+
+        if (data.size() < 5) {
+            std::cout << "[COM] RX frame too short\n";
+            return;
         }
-        if (data.size() > dump)
-            std::cout << "...";
-        std::cout << "\n";
+
+        Frame frame{};
+        if (!FrameCodec::decode_frame(data.data(), data.size(), frame)) {
+            std::cout << "[COM] RX invalid frame (checksum / format)\n";
+            return;
+        }
+
+        // -------- Dispatch to COM RX --------
+        RxDispatcher::dispatch(frame);
     });
 
     rtc_.onLocalSdp([this](std::string sdp){
