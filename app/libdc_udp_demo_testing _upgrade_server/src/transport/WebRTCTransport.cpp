@@ -1,12 +1,13 @@
 #include "WebRTCTransport.hpp"
 #include <iostream>
+#include <mutex>
 
 using namespace std::chrono;
-
 
 /* ============================================================
  * Constructor
  * ============================================================ */
+
 WebRTCTransport::WebRTCTransport()
 {
     createPeerConnection();
@@ -19,258 +20,378 @@ WebRTCTransport::WebRTCTransport()
 void WebRTCTransport::createPeerConnection()
 {
     rtc::Configuration cfg;
-
     cfg.iceServers.emplace_back("stun:stun.l.google.com:19302");
 
-    pc_ = std::make_shared<rtc::PeerConnection>(cfg);
+    auto pc = std::make_shared<rtc::PeerConnection>(cfg);
 
-    pc_->onLocalDescription([this](rtc::Description d){
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        pc_ = pc;
+    }
+
+    /* ---------- Local SDP ---------- */
+    pc->onLocalDescription([this](rtc::Description d) {
         if (d.type() != rtc::Description::Type::Answer)
             return;
 
+        std::function<void(std::string)> cb;
         std::string sdp = std::string(d);
-        if (onLocalSdpCb_)
-            onLocalSdpCb_(sdp);
-        else
-            cachedAnswer_ = sdp;
+
+        {
+            std::lock_guard<std::mutex> lock(mtx_);
+            cb = onLocalSdpCb_;
+            if (!cb)
+                cachedAnswer_ = sdp;
+        }
+
+        if (cb)
+            cb(sdp);
     });
 
-    pc_->onLocalCandidate([this](rtc::Candidate c){
-        if (onLocalIceCb_)
-            onLocalIceCb_(c.candidate(), c.mid());
+    /* ---------- Local ICE ---------- */
+    pc->onLocalCandidate([this](rtc::Candidate c) {
+        std::function<void(std::string, std::string)> cb;
+        {
+            std::lock_guard<std::mutex> lock(mtx_);
+            cb = onLocalIceCb_;
+        }
+        if (cb)
+            cb(c.candidate(), c.mid());
     });
 
-    pc_->onDataChannel([this](std::shared_ptr<rtc::DataChannel> dc){
-        dc_ = dc;
+    /* ---------- DataChannel ---------- */
+    pc->onDataChannel([this](std::shared_ptr<rtc::DataChannel> dc) {
 
-        dc_->onOpen([this]{
-            dcOpen_ = true;
-            iceRestarted_ = false;
-            lastPing_ = lastPong_ = steady_clock::now();
-            if (onDcOpenCb_) onDcOpenCb_();
+        {
+            std::lock_guard<std::mutex> lock(mtx_);
+            if (dc_) {
+                std::cout << "[DC] extra channel ignored\n";
+                return;
+            }
+            dc_ = dc;
+        }
+
+        dc->onOpen([this] {
+            std::function<void()> cb;
+            {
+                std::lock_guard<std::mutex> lock(mtx_);
+                dcOpen_ = true;
+                state_  = SessionState::Connected;
+                lastPing_ = lastPong_ = steady_clock::now();
+                cb = onDcOpenCb_;
+            }
+            if (cb) cb();
         });
 
-        dc_->onClosed([this]{
-            dcOpen_ = false;
-            if (onDcClosedCb_) onDcClosedCb_();
+        dc->onClosed([this] {
+            std::function<void()> cb;
+            {
+                std::lock_guard<std::mutex> lock(mtx_);
+                dcOpen_ = false;
+                dc_.reset();
+                state_ = SessionState::Closed;
+                cb = onDcClosedCb_;
+            }
+            if (cb) cb();
         });
 
-        dc_->onMessage([this](rtc::message_variant msg){
+        dc->onMessage([this](rtc::message_variant msg) {
 
-            /* ================= TEXT ================= */
             if (auto* text = std::get_if<std::string>(&msg)) {
 
-                // std::cout << "[DC] TEXT received: "
-                //         << *text << "\n";
-
                 if (*text == "__ping__") {
-                    dc_->send("__pong__");
+                    std::shared_ptr<rtc::DataChannel> dc;
+                    {
+                        std::lock_guard<std::mutex> lock(mtx_);
+                        dc = dc_;
+                    }
+                    if (dc && dc->isOpen()) {
+                        try { dc->send("__pong__"); } catch (...) {}
+                    }
                 }
                 else if (*text == "__pong__") {
+                    std::lock_guard<std::mutex> lock(mtx_);
                     lastPong_ = steady_clock::now();
                 }
-                else if (onDcMessageCb_) {
-                    onDcMessageCb_(*text);
+                else {
+                    std::function<void(const std::string&)> cb;
+                    {
+                        std::lock_guard<std::mutex> lock(mtx_);
+                        cb = onDcMessageCb_;
+                    }
+                    if (cb) cb(*text);
                 }
             }
-
-            /* ================= BINARY ================= */
             else if (auto* bin = std::get_if<rtc::binary>(&msg)) {
 
-                // std::cout << "[DC] BINARY received: "
-                //         << bin->size() << " bytes\n";
-
-                // size_t dump = std::min(bin->size(), size_t(16));
-                // std::cout << "[DC] BINARY head: ";
-                // for (size_t i = 0; i < dump; ++i) {
-                //     printf("%02X ",
-                //         std::to_integer<uint8_t>((*bin)[i]));
-                // }
-                // printf("\n");
-
-                if (onDcBinaryCb_) {
-                    std::vector<uint8_t> data;
-                    data.reserve(bin->size());
-
-                    for (std::byte b : *bin)
-                        data.push_back(
-                            std::to_integer<uint8_t>(b)
-                        );
-
-                    onDcBinaryCb_(data);
+                std::function<void(const std::vector<uint8_t>&)> cb;
+                {
+                    std::lock_guard<std::mutex> lock(mtx_);
+                    cb = onDcBinaryCb_;
                 }
+
+                if (!cb) return;
+
+                std::vector<uint8_t> data;
+                data.reserve(bin->size());
+                for (std::byte b : *bin)
+                    data.push_back(std::to_integer<uint8_t>(b));
+
+                cb(data);
             }
         });
     });
 
-    pc_->onIceStateChange([this](rtc::PeerConnection::IceState s){
-        std::cout << "[ICE] state=" << static_cast<int>(s) << "\n";
+    /* ---------- ICE State ---------- */
+    pc->onIceStateChange([this](rtc::PeerConnection::IceState s) {
         if (s == rtc::PeerConnection::IceState::Failed ||
             s == rtc::PeerConnection::IceState::Disconnected) {
-            std::cout << "[ICE] FAILED → full reset\n";
-            close();
+            std::lock_guard<std::mutex> lock(mtx_);
+            resetRequested_ = true;
         }
     });
 }
 
 void WebRTCTransport::destroyPeerConnection()
 {
-    try {
-        if (dc_) dc_->close();
-        if (pc_) pc_->close();
-    } catch (...) {}
+    std::shared_ptr<rtc::PeerConnection> pc;
+    std::shared_ptr<rtc::DataChannel> dc;
 
-    pc_.reset();
-    dc_.reset();
-    dcOpen_ = false;
-    haveRemoteOffer_ = false;
-    iceRestarted_ = false;
-    iceBuffer_.clear();
-    cachedAnswer_.reset();
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        pc = pc_;
+        dc = dc_;
+        pc_.reset();
+        dc_.reset();
+        dcOpen_ = false;
+        haveRemoteOffer_ = false;
+        iceBuffer_.clear();
+        cachedAnswer_.reset();
+    }
+
+    try {
+        if (dc) dc->close();
+        if (pc) pc->close();
+    } catch (...) {}
 }
 
-/* ================= CALLBACK REG ================= */
+/* ============================================================
+ * Callback registration
+ * ============================================================ */
 
 void WebRTCTransport::onLocalSdp(std::function<void(std::string)> cb)
 {
-    onLocalSdpCb_ = std::move(cb);
-    if (cachedAnswer_) {
-        onLocalSdpCb_(*cachedAnswer_);
+    std::optional<std::string> cached;
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        onLocalSdpCb_ = cb;
+        cached = cachedAnswer_;
         cachedAnswer_.reset();
     }
+    if (cached && cb)
+        cb(*cached);
 }
 
 void WebRTCTransport::onLocalIce(
-    std::function<void(std::string,std::string)> cb)
+    std::function<void(std::string, std::string)> cb)
 {
+    std::lock_guard<std::mutex> lock(mtx_);
     onLocalIceCb_ = std::move(cb);
 }
 
 void WebRTCTransport::onDcOpen(std::function<void()> cb)
 {
+    std::lock_guard<std::mutex> lock(mtx_);
     onDcOpenCb_ = std::move(cb);
 }
 
 void WebRTCTransport::onDcClosed(std::function<void()> cb)
 {
+    std::lock_guard<std::mutex> lock(mtx_);
     onDcClosedCb_ = std::move(cb);
 }
 
 void WebRTCTransport::onDcMessage(
     std::function<void(const std::string&)> cb)
 {
+    std::lock_guard<std::mutex> lock(mtx_);
     onDcMessageCb_ = std::move(cb);
 }
 
 void WebRTCTransport::onDcBinary(
     std::function<void(const std::vector<uint8_t>&)> cb)
 {
+    std::lock_guard<std::mutex> lock(mtx_);
     onDcBinaryCb_ = std::move(cb);
 }
 
-/* ================= SIGNALING ================= */
+/* ============================================================
+ * Signaling
+ * ============================================================ */
 
 void WebRTCTransport::setRemoteOffer(const std::string& sdp)
 {
-    std::cout << "[SDP] NEW OFFER → full reset\n";
-
     destroyPeerConnection();
     createPeerConnection();
 
-    pc_->setRemoteDescription(
+    std::shared_ptr<rtc::PeerConnection> pc;
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        pc = pc_;
+        haveRemoteOffer_ = true;
+        state_ = SessionState::Connecting;
+    }
+
+    pc->setRemoteDescription(
         rtc::Description(sdp, rtc::Description::Type::Offer));
 
-    haveRemoteOffer_ = true;
+    for (auto& c : iceBuffer_)
+        pc->addRemoteCandidate(c);
+    iceBuffer_.clear();
+
     createAnswer();
 }
 
 void WebRTCTransport::createAnswer()
 {
-    if (!pc_) return;
-    if (pc_->signalingState() ==
-        rtc::PeerConnection::SignalingState::HaveRemoteOffer)
+    std::shared_ptr<rtc::PeerConnection> pc;
     {
-        pc_->setLocalDescription(
+        std::lock_guard<std::mutex> lock(mtx_);
+        pc = pc_;
+    }
+
+    if (pc &&
+        pc->signalingState() ==
+        rtc::PeerConnection::SignalingState::HaveRemoteOffer) {
+        pc->setLocalDescription(
             rtc::Description::Type::Answer);
     }
 }
 
-/* ================= ICE ================= */
+/* ============================================================
+ * ICE
+ * ============================================================ */
 
 void WebRTCTransport::addRemoteIce(
     const std::string& cand,
     const std::string& mid)
 {
     rtc::Candidate c(cand, mid);
-    if (!pc_ || !haveRemoteOffer_) {
-        iceBuffer_.push_back(c);
-        return;
+
+    std::shared_ptr<rtc::PeerConnection> pc;
+    bool ready = false;
+
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        pc = pc_;
+        ready = haveRemoteOffer_;
+        if (!ready) {
+            iceBuffer_.push_back(c);
+            return;
+        }
     }
-    pc_->addRemoteCandidate(c);
+
+    if (pc)
+        pc->addRemoteCandidate(c);
 }
 
-/* ================= KEEPALIVE ================= */
-
-void WebRTCTransport::tryIceRestart()
-{
-    if (iceRestarted_ || !pc_) return;
-    std::cout << "[ICE] restart\n";
-    //pc_->restartIce();
-    iceRestarted_ = true;
-}
+/* ============================================================
+ * Keepalive / watchdog
+ * ============================================================ */
 
 void WebRTCTransport::tick()
 {
-    if (!dcOpen_) return;
-
-    auto now = steady_clock::now();
-
-    if (now - lastPing_ > seconds(3)) {
-        dc_->send("__ping__");
-        lastPing_ = now;
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        if (state_ == SessionState::Idle ||
+            state_ == SessionState::Closed)
+            return;
     }
 
-    auto lost = now - lastPong_;
+    bool doReset = false;
+    std::shared_ptr<rtc::DataChannel> dc;
 
-    if (lost > seconds(5) && lost < seconds(8)) {
-        tryIceRestart();        // network glitch
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+
+        if (resetRequested_) {
+            resetRequested_ = false;
+            doReset = true;
+        }
+
+        if (!dcOpen_ || !dc_)
+            goto out;
+
+        dc = dc_;
+
+        auto now = steady_clock::now();
+
+        if (now - lastPing_ > seconds(3)) {
+            lastPing_ = now;
+            if (dc->isOpen()) {
+                try { dc->send("__ping__"); } catch (...) {}
+            }
+        }
+
+        if (now - lastPong_ >= seconds(20))
+            doReset = true;
     }
 
-    if (lost >= seconds(8)) {
-        std::cout << "[CONN] timeout → full reset\n";
-        close();                // client reset / dead
+out:
+    if (doReset) {
+        std::cout << "[Transport] reset\n";
+        close();
     }
 }
 
-/* ================= DATA ================= */
+/* ============================================================
+ * Data send
+ * ============================================================ */
 
 void WebRTCTransport::sendMessage(const std::string& msg)
 {
-    if (dc_ && dc_->isOpen())
-        dc_->send(msg);
+    std::shared_ptr<rtc::DataChannel> dc;
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        dc = dc_;
+    }
+
+    if (dc && dc->isOpen())
+        dc->send(msg);
 }
 
 void WebRTCTransport::sendBinary(
     const std::vector<uint8_t>& data)
 {
-    if (!dc_ || !dc_->isOpen())
+    std::shared_ptr<rtc::DataChannel> dc;
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        dc = dc_;
+    }
+
+    if (!dc || !dc->isOpen())
         return;
 
     rtc::binary bin;
     bin.reserve(data.size());
-
     for (uint8_t b : data)
         bin.push_back(std::byte(b));
 
-    dc_->send(bin);
+    dc->send(bin);
 }
 
-
-/* ================= FULL RESET ================= */
+/* ============================================================
+ * Full reset (WAIT FOR NEW OFFER)
+ * ============================================================ */
 
 void WebRTCTransport::close()
 {
     destroyPeerConnection();
-    createPeerConnection();
-    std::cout << "[Transport] session reset\n";
+
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        state_ = SessionState::Idle;
+    }
+
+    std::cout << "[Transport] session closed, waiting for new offer\n";
 }

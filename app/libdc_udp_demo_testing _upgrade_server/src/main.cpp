@@ -1,49 +1,46 @@
 #include <thread>
 #include <chrono>
+#include <atomic>
+#include <iostream>
 
 #include "app/ControlState.hpp"
+#include "app/IoctlController.hpp"
 
 #include "signaling/udp_signaling.hpp"
 #include "signaling/SignalingManager.hpp"
 #include "signaling/PeerServer.hpp"
-
 #include "transport/WebRTCTransport.hpp"
+
+std::atomic<bool> app_running{true};
 
 int main()
 {
+    using namespace std::chrono_literals;
 
-    // --------------------------------------------------------
-    // 2 RTE / EVENT SYSTEM INIT
-    // --------------------------------------------------------
-    // EventRing<Event,128>::init(g_eventRing);
+    std::cout << "[MAIN] Starting...\n";
 
-    // --------------------------------------------------------
-    // 3 APPLICATION SWC INIT
-    // --------------------------------------------------------
     ControlState::init();
+
+    IoctlController ioctlCtrl;
+    ioctlCtrl.start();
 
     UdpSignaling udp;
     udp.init(nullptr, 6000, nullptr, 0);
     udp.start();
 
     SignalingManager sig(udp, "sess1");
-
     WebRTCTransport rtc;
     PeerServer server(sig, rtc);
-
     server.start();
 
-    while (true)
-        std::this_thread::sleep_for(
-            std::chrono::seconds(1));
-    
+    while (app_running.load())
+    {
+        std::this_thread::sleep_for(1s);
+    }
 
-    // --------------------------------------------------------
-    // 7️⃣ SHUTDOWN
-    // --------------------------------------------------------
     std::cout << "[MAIN] Shutting down...\n";
+    ioctlCtrl.stop();
 
-
-    // t_transport_tick.join();
-
+    return 0;
 }
+

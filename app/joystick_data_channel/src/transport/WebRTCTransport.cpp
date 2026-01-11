@@ -282,7 +282,7 @@ void WebRTCTransport::tick()
         lastPing_ = now;
     }
 
-    if (now - lastPong_ > seconds(8)) {
+    if (now - lastPong_ > seconds(20)) {
         std::cout << "[CONN] timeout → reset\n";
         close();
     }

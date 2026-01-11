@@ -4,6 +4,12 @@
 #include <csignal>
 #include <chrono>
 #include <memory>
+#include <vector>
+#include <cstring>
+
+#include <pthread.h>
+#include <sched.h>
+#include <sys/mman.h>
 
 // ============================================================
 // COMMON / RTE
@@ -44,6 +50,25 @@
 static std::atomic<bool> g_running{true};
 
 // ============================================================
+// REALTIME HELPERS
+// ============================================================
+static void set_realtime(const char* name, int priority)
+{
+    pthread_setname_np(pthread_self(), name);
+
+    sched_param sch{};
+    sch.sched_priority = priority;
+
+    if (pthread_setschedparam(
+            pthread_self(),
+            SCHED_FIFO,
+            &sch) != 0)
+    {
+        std::perror("pthread_setschedparam");
+    }
+}
+
+// ============================================================
 // SIGNAL HANDLER
 // ============================================================
 static void signal_handler(int)
@@ -61,6 +86,8 @@ int main(int argc, char* argv[])
     std::cout << " AUTOSAR-like WebRTC Control ECU START\n";
     std::cout << "=====================================\n";
 
+    // Lock memory (avoid page fault in RT)
+    mlockall(MCL_CURRENT | MCL_FUTURE);
     // --------------------------------------------------------
     // 1️⃣ POSIX SIGNALS
     // --------------------------------------------------------
@@ -110,24 +137,27 @@ int main(int argc, char* argv[])
     JoystickInput joystick;
     joystick.start();
 
-    // ----- Transport tick (keepalive / timeout) -----
+    //----- Transport tick (keepalive / timeout) -----
     std::thread t_transport_tick([&] {
+        set_realtime("tx_tick", 40);
         while (g_running.load()) {
             transport->tick();
             std::this_thread::sleep_for(
-                std::chrono::milliseconds(50));
+                std::chrono::milliseconds(100));
         }
     });
 
     // ----- Watchdog -----
     std::thread t_watchdog([] {
         std::cout << "[RUN] Watchdog\n";
+        set_realtime("watchdog", 90);
         watchdog::run(g_running);
     });
 
     // ----- Event handler -----
     std::thread t_event_handler([] {
         std::cout << "[RUN] EventHandler\n";
+        set_realtime("event", 80);
         EventHandler::run(g_running);
     });
 
@@ -137,6 +167,7 @@ int main(int argc, char* argv[])
 
     std::thread t_com_tx(
         [transport, TX_PERIOD, MAX_SILENT] {
+            set_realtime("com_tx", 70);
             ControlSnapshot last{};
             auto last_sent = std::chrono::steady_clock::now();
 

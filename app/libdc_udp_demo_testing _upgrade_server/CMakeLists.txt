@@ -62,6 +62,7 @@ endif()
 add_library(app STATIC
     src/app/ControlState.cpp
     src/app/EventRing.cpp
+    src/app/IoctlController.cpp
     src/app/Time.cpp
 )
 

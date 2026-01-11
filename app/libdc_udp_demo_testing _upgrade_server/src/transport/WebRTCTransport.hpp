@@ -4,11 +4,13 @@
 #include <optional>
 #include <vector>
 #include <chrono>
+#include <mutex>
+
 
 class WebRTCTransport {
 public:
     WebRTCTransport();
-
+    
     /* callbacks */
     void onLocalSdp(std::function<void(std::string)> cb);
     void onLocalIce(std::function<void(std::string,std::string)> cb);
@@ -35,12 +37,29 @@ public:
     void close();              // FULL RESET
 
 private:
+
+
+    /* =========================
+     * Session state
+     * ========================= */
+    enum class SessionState {
+        Idle,        
+        Connecting,  
+        Connected,   
+        Closed       
+    };
+
+    SessionState state_ = SessionState::Idle;
     void createPeerConnection();
     void destroyPeerConnection();
     void createAnswer();
     void tryIceRestart();
 
 private:
+    /* ===== Sync ===== */
+    std::mutex mtx_;
+    bool resetRequested_ = false;
+
     std::shared_ptr<rtc::PeerConnection> pc_;
     std::shared_ptr<rtc::DataChannel> dc_;
 
