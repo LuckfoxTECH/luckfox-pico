@@ -700,9 +700,12 @@ drv: prepare
 		O=$(SYSDRV_KERNEL_OBJS_OUTPUT_DIR) \
 		modules_install INSTALL_MOD_STRIP=1 \
 		INSTALL_MOD_PATH=$(KERNEL_DIR_DRV_KO)
-	$(AT)find $(KERNEL_DIR_DRV_KO)/lib/modules/*/kernel \
-		-name "*.ko" -type f -exec cp -fav {} $(SYSDRV_KERNEL_MOD_PATH) \;
+
+	$(AT)find $(KERNEL_DIR_DRV_KO)/lib/modules/ -name "*.ko" -type f -printf '%P\0' | \
+	  xargs -0 -I {} \
+	    sh -c 'ln -s /lib/modules/{} $(SYSDRV_KERNEL_MOD_PATH)/$$(basename {})'
 	@test ! -d drv_ko || ($(MAKE) O=$(SYSDRV_KERNEL_OBJS_OUTPUT_DIR) -C $(SYSDRV_DIR)/drv_ko KERNEL_DRV_KO_INSTALL_PATH=$(SYSDRV_KERNEL_MOD_PATH))
+
 	$(call MAROC_COPY_PKG_TO_SYSDRV_OUTPUT, $(OUTPUT_ROOTFS_SOURCE_DIR), $(SYSDRV_KERNEL_MOD_PATH), SELF)
 
 drv_clean:
