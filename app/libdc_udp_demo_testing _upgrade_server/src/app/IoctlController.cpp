@@ -15,9 +15,11 @@
 #include "app/EventRing.hpp"
 #include "app/ControlState.hpp"
 
-// ================= IOCTL =================
+// ================= IOCTL (MATCH KERNEL) =================
 #define SERVO_SET_ANGLE   _IOW('p', 1, int)
-#define GPIO_SET_LEVEL    _IOW('p', 2, int)
+#define MOTOR_SET_SPEED   _IOW('p', 4, int)   // 0..100
+#define MOTOR_SET_MODE    _IOW('p', 5, int)   // 0 STOP, 1 FWD, 2 REV
+#define MOTOR_SET_BRAKE   _IOW('p', 6, int)   // 0..100
 
 // ================= GLOBALS =================
 extern EventRing<Event, 128> g_eventRing;
@@ -27,9 +29,9 @@ extern ControlState          g_state;
 constexpr int STEERING_MAX = 32638;
 constexpr int SERVO_MAX    = 20;
 
-constexpr int DEADZONE     = 800;   // steering units
-constexpr int EXPO         = 30;    // 0..100
-constexpr int SERVO_RATE   = 2;     // deg per cycle
+constexpr int DEADZONE     = 800;
+constexpr int EXPO         = 30;
+constexpr int SERVO_RATE   = 2;
 
 // =================================================
 // HELPERS
@@ -46,7 +48,6 @@ static int applyExpo(int steering)
     int sign = (steering >= 0) ? 1 : -1;
     int x    = std::abs(steering);
 
-    // normalize 0..1000
     int norm = (x * 1000) / STEERING_MAX;
 
     int linear = norm;
@@ -133,9 +134,7 @@ void IoctlController::run()
         if (ev.type != EventType::COM_RX)
             continue;
 
-        PduType pdu = static_cast<PduType>(ev.u8_value);
-
-        if (pdu == PduType::FULL_STATE) {
+        if (static_cast<PduType>(ev.u8_value) == PduType::FULL_STATE) {
             applyControl();
         }
     }
@@ -153,11 +152,11 @@ void IoctlController::applyControl()
     ControlSnapshot s = g_state.snapshot();
 
     int steering  = s.steering;
-    int throttle  = s.throttle;
-    int brake     = s.brake;
-    int direction = static_cast<int>(s.direction);
+    int throttle  = s.throttle;   // 0..100
+    int brake     = s.brake;      // 0..100
+    int direction = static_cast<int>(s.direction); // 0 STOP, 1 FWD, 2 REV
 
-    // ===== STEERING PIPELINE =====
+    // ================= SERVO =================
     int st = applyDeadZone(steering);
     st     = applyExpo(st);
 
@@ -166,26 +165,37 @@ void IoctlController::applyControl()
 
     int servo_angle = applyRateLimit(servo_target);
 
-    // ===== SERVO =====
     if (ioctl(m_fd, SERVO_SET_ANGLE, &servo_angle) < 0) {
         perror("[IOCTL] SERVO_SET_ANGLE");
     }
 
-    // ===== MOTOR ENABLE =====
-    int motor_en = (throttle > 0 && brake == 0) ? 1 : 0;
-    if (ioctl(m_fd, GPIO_SET_LEVEL, &motor_en) < 0) {
-        perror("[IOCTL] GPIO_SET_LEVEL");
+    // ================= MOTOR MODE =================
+    int motor_mode = direction; // already 0/1/2
+    if (ioctl(m_fd, MOTOR_SET_MODE, &motor_mode) < 0) {
+        perror("[IOCTL] MOTOR_SET_MODE");
     }
 
-    // ===== DEBUG =====
+    // ================= MOTOR SPEED =================
+    int motor_speed = std::clamp(throttle, 0, 100);
+    if (ioctl(m_fd, MOTOR_SET_SPEED, &motor_speed) < 0) {
+        perror("[IOCTL] MOTOR_SET_SPEED");
+    }
+
+    // ================= MOTOR BRAKE =================
+    int motor_brake = std::clamp(brake, 0, 100);
+    if (ioctl(m_fd, MOTOR_SET_BRAKE, &motor_brake) < 0) {
+        perror("[IOCTL] MOTOR_SET_BRAKE");
+    }
+
+    // ================= DEBUG =================
     printf(
-        "[IOCTL] seq=%u steering=%d servo=%d thr=%d brk=%d dir=%d ts=%u\n",
+        "[IOCTL] seq=%u steer=%d servo=%d mode=%d spd=%d brk=%d ts=%u\n",
         s.seq,
         steering,
         servo_angle,
-        throttle,
-        brake,
-        direction,
+        motor_mode,
+        motor_speed,
+        motor_brake,
         s.ts_ms
     );
 }

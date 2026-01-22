@@ -1,0 +1,111 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          tailscale
+# Required-Start:    $network
+# Required-Stop:     $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Tailscale VPN (kernel mode)
+### END INIT INFO
+
+### CONFIG ###
+STATE_FILE="/var/lib/tailscale/tailscaled.state"
+SOCKET_FILE="/var/run/tailscale/tailscaled.sock"
+TUN_DEV="tailscale0"
+MTU="1200"          # optional
+### END CONFIG ###
+
+TAILSCALE_BIN="$(command -v tailscale)"
+TAILSCALED_BIN="$(command -v tailscaled)"
+
+fail() {
+    echo "[tailscale] ERROR: $1"
+    exit 1
+}
+
+start() {
+    echo "[tailscale] starting..."
+
+    # 1. Check binaries
+    [ -x "$TAILSCALE_BIN" ] || fail "tailscale not found"
+    [ -x "$TAILSCALED_BIN" ] || fail "tailscaled not found"
+
+    # 2. Check /dev/net/tun
+    [ -c /dev/net/tun ] || fail "/dev/net/tun not found"
+
+    # 3. Prepare directories
+    mkdir -p /var/lib/tailscale /var/run/tailscale
+
+    # 4. Stop old daemon
+    killall tailscaled 2>/dev/null
+    sleep 1
+
+    # 5. Start tailscaled
+    echo "[tailscale] starting tailscaled..."
+    "$TAILSCALED_BIN" \
+        --tun="$TUN_DEV" \
+        --state="$STATE_FILE" \
+        --socket="$SOCKET_FILE" \
+        &
+
+    # 6. Wait for socket
+    for i in 1 2 3 4 5; do
+        [ -S "$SOCKET_FILE" ] && break
+        sleep 1
+    done
+
+    [ -S "$SOCKET_FILE" ] || fail "tailscaled socket not ready"
+
+    # 7. Bring up VPN (no reset)
+    echo "[tailscale] bringing up VPN..."
+    "$TAILSCALE_BIN" \
+        --socket="$SOCKET_FILE" \
+        up --accept-dns=false || true
+
+    # 8. Wait for interface
+    for i in 1 2 3 4 5; do
+        ip link show "$TUN_DEV" >/dev/null 2>&1 && break
+        sleep 1
+    done
+
+    # 9. Set MTU (optional)
+    if ip link show "$TUN_DEV" >/dev/null 2>&1; then
+        ip link set "$TUN_DEV" mtu "$MTU"
+        echo "[tailscale] $TUN_DEV up (MTU=$MTU)"
+    else
+        echo "[tailscale] WARNING: $TUN_DEV not found"
+    fi
+}
+
+stop() {
+    echo "[tailscale] stopping..."
+    killall tailscaled 2>/dev/null
+}
+
+status() {
+    [ -x "$TAILSCALE_BIN" ] || fail "tailscale not found"
+    "$TAILSCALE_BIN" --socket="$SOCKET_FILE" status
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        sleep 1
+        start
+        ;;
+    status)
+        status
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 1
+        ;;
+esac
+
+exit 0

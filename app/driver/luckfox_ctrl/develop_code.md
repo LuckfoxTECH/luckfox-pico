@@ -1,6 +1,6 @@
 /* luckfox_ctrl.c
  * Servo MG90S
- * DC Motor MX1919
+ * DC Motor MX1919 (PWM MODE A)
  *
  * mode: 0=STOP, 1=FWD, 2=REV
  * speed/brake: 0..100
@@ -14,15 +14,13 @@
 #include <linux/cdev.h>
 #include <linux/of.h>
 #include <linux/pwm.h>
-#include <linux/gpio/consumer.h>
 #include <linux/mutex.h>
 #include <linux/platform_device.h>
 
 #define DEVICE_NAME "luckfox_ctrl"
 
 /* ================= DEBUG ================= */
-#define LUCKFOX_DBG 1   /* set 0 to disable */
-
+#define LUCKFOX_DBG 1
 #if LUCKFOX_DBG
 #define dbg(fmt, ...) pr_info("[luckfox][DBG] " fmt, ##__VA_ARGS__)
 #else
@@ -46,13 +44,15 @@
 #define MOTOR_REV   2
 
 #define MOTOR_PWM_PERIOD_NS 1000000U   /* 1 kHz */
+#define DUTY_DEADZONE 20               /* avoid dead motor */
 
 /* ================= PRIVATE ================= */
 struct luckfox_priv {
     struct pwm_device *servo_pwm;
 
-    struct pwm_device *motor_pwm;
-    struct gpio_desc  *motor_dir;
+    /* MX1919 */
+    struct pwm_device *motor_pwm_ina;
+    struct pwm_device *motor_pwm_inb;
 
     int motor_speed;
     int motor_brake;
@@ -71,8 +71,7 @@ static int servo_angle_to_pulse_ns(int angle, u32 *pulse)
 {
     u32 duty;
 
-    if (angle < 70)  angle = 70;
-    if (angle > 110) angle = 110;
+    angle = clamp(angle, 70, 110);
 
     duty = DUTY_RIGHT_X100 +
         ((DUTY_LEFT_X100 - DUTY_RIGHT_X100) * (angle - 70)) / 40;
@@ -98,79 +97,87 @@ static int servo_write_angle(struct luckfox_priv *p, unsigned int angle)
     st.polarity = PWM_POLARITY_NORMAL;
 
     dbg("servo: angle=%u pulse=%u\n", angle, pulse);
-
     return pwm_apply_state(p->servo_pwm, &st);
 }
 
 /* =========================================================
- * MOTOR
- * ========================================================= */
-/* =========================================================
- * MOTOR (ARM SAFE – NO 64bit DIV)
+ * MOTOR (MX1919 – PWM MODE A)
  * ========================================================= */
 static int motor_apply(struct luckfox_priv *p)
 {
-    struct pwm_state st;
+    struct pwm_state st_ina, st_inb;
     u64 duty;
     u64 percent;
-    int dir;
+    int effective;
 
-    if (!p || IS_ERR(p->motor_pwm) || IS_ERR(p->motor_dir)) {
-        dbg("motor: invalid device\n");
+    if (!p ||
+        IS_ERR(p->motor_pwm_ina) ||
+        IS_ERR(p->motor_pwm_inb))
         return -ENODEV;
-    }
 
-    /* Always init state */
-    pwm_init_state(p->motor_pwm, &st);
+    pwm_init_state(p->motor_pwm_ina, &st_ina);
+    pwm_init_state(p->motor_pwm_inb, &st_inb);
 
-    /* Ensure valid period */
-    if (!st.period)
-        st.period = MOTOR_PWM_PERIOD_NS;
+    st_ina.period = MOTOR_PWM_PERIOD_NS;
+    st_inb.period = MOTOR_PWM_PERIOD_NS;
 
-    dbg("motor_apply: mode=%d speed=%d brake=%d period=%llu\n",
-        p->motor_mode, p->motor_speed,
-        p->motor_brake, st.period);
+    dbg("motor_apply: mode=%d speed=%d brake=%d\n",
+        p->motor_mode, p->motor_speed, p->motor_brake);
 
     /* ================= STOP ================= */
     if (p->motor_mode == MOTOR_STOP) {
-        st.duty_cycle = 0;
-        st.enabled = false;
+        st_ina.enabled = false;
+        st_inb.enabled = false;
+        st_ina.duty_cycle = 0;
+        st_inb.duty_cycle = 0;
 
-        dbg("motor STOP → PWM disabled\n");
-        return pwm_apply_state(p->motor_pwm, &st);
+        pwm_apply_state(p->motor_pwm_ina, &st_ina);
+        pwm_apply_state(p->motor_pwm_inb, &st_inb);
+
+        dbg("motor STOP\n");
+        return 0;
     }
 
-    /* ================= DIRECTION ================= */
-    dir = (p->motor_mode == MOTOR_FWD) ? 1 : 0;
-    gpiod_set_value(p->motor_dir, dir);
+    /* ================= SPEED - BRAKE ================= */
+    effective = p->motor_speed - p->motor_brake;
+    if (effective < DUTY_DEADZONE)
+        effective = 0;
 
-    dbg("motor DIR GPIO = %d (%s)\n",
-        dir, dir ? "FWD" : "REV");
-
-    /* ================= DUTY CALC ================= */
-    duty = st.period;
-
-    if (p->motor_brake > 0) {
-        duty *= p->motor_brake;
-        dbg("motor BRAKE active: %d%%\n", p->motor_brake);
-    } else {
-        duty *= p->motor_speed;
-    }
-
-    /* duty = period * percent / 100 */
+    /* ================= DUTY ================= */
+    duty = st_ina.period;
+    duty *= effective;
     do_div(duty, 100);
 
-    st.duty_cycle = duty;
-    st.enabled = (duty > 0);
+    /* ================= DIRECTION ================= */
+    if (p->motor_mode == MOTOR_FWD) {
+        /* INA = PWM, INB = 0 */
+        st_ina.duty_cycle = duty;
+        st_ina.enabled = (duty > 0);
 
-    /* ================= DEBUG PERCENT ================= */
+        st_inb.duty_cycle = 0;
+        st_inb.enabled = false;
+
+        dbg("motor FWD INA=PWM INB=0\n");
+    }
+    else if (p->motor_mode == MOTOR_REV) {
+        /* INA = 0, INB = PWM */
+        st_inb.duty_cycle = duty;
+        st_inb.enabled = (duty > 0);
+
+        st_ina.duty_cycle = 0;
+        st_ina.enabled = false;
+
+        dbg("motor REV INA=0 INB=PWM\n");
+    }
+
     percent = duty * 100;
-    do_div(percent, st.period);
+    do_div(percent, st_ina.period);
+    dbg("motor duty=%llu (%llu%%)\n", duty, percent);
 
-    dbg("motor PWM: duty=%llu (%llu%%) enabled=%d\n",
-        duty, percent, st.enabled);
+    pwm_apply_state(p->motor_pwm_ina, &st_ina);
+    pwm_apply_state(p->motor_pwm_inb, &st_inb);
 
-    return pwm_apply_state(p->motor_pwm, &st);
+    return 0;
 }
 
 /* =========================================================
@@ -195,29 +202,21 @@ static long luckfox_ioctl(struct file *f,
 
     case SERVO_SET_ANGLE:
         val = clamp(val, -20, 20);
-        dbg("IOCTL: SERVO_SET_ANGLE %d\n", val);
         servo_write_angle(p, 90 + val);
         break;
 
     case MOTOR_SET_SPEED:
-        val = clamp(val, 0, 100);
-        dbg("IOCTL: MOTOR_SET_SPEED %d\n", val);
-        p->motor_speed = val;
+        p->motor_speed = clamp(val, 0, 100);
         motor_apply(p);
         break;
 
     case MOTOR_SET_BRAKE:
-        val = clamp(val, 0, 100);
-        dbg("IOCTL: MOTOR_SET_BRAKE %d\n", val);
-        p->motor_brake = val;
+        p->motor_brake = clamp(val, 0, 100);
         motor_apply(p);
         break;
 
     case MOTOR_SET_MODE:
-        if (val < 0 || val > 2)
-            val = MOTOR_STOP;
-        dbg("IOCTL: MOTOR_SET_MODE %d\n", val);
-        p->motor_mode = val;
+        p->motor_mode = clamp(val, MOTOR_STOP, MOTOR_REV);
         motor_apply(p);
         break;
 
@@ -261,12 +260,9 @@ static int luckfox_ctrl_probe(struct platform_device *pdev)
 
     mutex_init(&p->lock);
 
-    p->servo_pwm = devm_of_pwm_get(dev, dev->of_node, "mg90s");
-    p->motor_pwm = devm_of_pwm_get(dev, dev->of_node, "mx1919_pwm");
-    p->motor_dir = devm_gpiod_get(dev, "mx1919-dir", GPIOD_OUT_LOW);
-
-    dbg("probe: servo_pwm=%p motor_pwm=%p motor_dir=%p\n",
-        p->servo_pwm, p->motor_pwm, p->motor_dir);
+    p->servo_pwm     = devm_of_pwm_get(dev, dev->of_node, "mg90s");
+    p->motor_pwm_ina = devm_of_pwm_get(dev, dev->of_node, "mx1919_ina");
+    p->motor_pwm_inb = devm_of_pwm_get(dev, dev->of_node, "mx1919_inb");
 
     p->motor_mode  = MOTOR_STOP;
     p->motor_speed = 0;
@@ -286,7 +282,7 @@ static int luckfox_ctrl_probe(struct platform_device *pdev)
 
     servo_write_angle(p, 90);
 
-    dev_info(dev, "luckfox_ctrl loaded (DEBUG ENABLED)\n");
+    dev_info(dev, "luckfox_ctrl loaded (MX1919 PWM MODE A)\n");
     return 0;
 }
 
@@ -324,4 +320,5 @@ module_platform_driver(luckfox_ctrl_driver);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Trang");
-MODULE_DESCRIPTION("Luckfox servo + DC motor (DEBUG + ARM SAFE)");
+MODULE_DESCRIPTION("Luckfox servo + DC motor MX1919 (PWM MODE A)");
+

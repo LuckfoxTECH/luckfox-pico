@@ -36,11 +36,23 @@
 
 	luckfox_ctrl: luckfox-ctrl {
 		compatible = "luckfox,ctrl";
-		pwms = <&pwm0 0 20000000 0>;
-		pwm-names = "mg90s";
-		test-gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>; 
+
+		/* Servo MG90S */
+		pwms = <&pwm0 0 2515000 0>,
+			   <&pwm2 0 20000   0>;
+
+		pwm-names = "mg90s", "mx1919_pwm";
+
+		/* Motor direction */
+		mx1919-dir-gpios = <&gpio1 0 GPIO_ACTIVE_HIGH>;
+
+		/* Debug GPIO */
+		test-gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
+
 		status = "okay";
 	};
+
+
 };
 
 /**********CRU**********/
