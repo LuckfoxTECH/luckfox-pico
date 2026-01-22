@@ -1,0 +1,78 @@
+#!/bin/sh
+
+### CONFIG ###
+TAILSCALE_DIR="/root/tailscale_1.90.6_arm"
+STATE_FILE="/var/lib/tailscale/tailscaled.state"
+SOCKET_FILE="/var/run/tailscale/tailscaled.sock"
+TUN_DEV="tailscale0"
+MTU="1200"   # optional, 
+### END CONFIG ###
+
+case "$1" in
+start)
+    echo "[tailscale] starting (kernel mode)..."
+
+    # 1. Ensure /dev/net/tun
+    if [ ! -c /dev/net/tun ]; then
+        echo "[tailscale] ERROR: /dev/net/tun not found"
+        exit 1
+    fi
+
+    # 2. Prepare directories
+    mkdir -p /var/lib/tailscale /var/run/tailscale
+
+    # 3. Kill old daemon if exists
+    killall tailscaled 2>/dev/null
+    sleep 1
+
+    # 4. Start tailscaled (kernel mode)
+    echo "[tailscale] starting tailscaled..."
+    $TAILSCALE_DIR/tailscaled \
+        --tun=$TUN_DEV \
+        --state=$STATE_FILE \
+        --socket=$SOCKET_FILE \
+        &
+
+    # 5. Wait for socket
+    for i in 1 2 3 4 5; do
+        [ -S "$SOCKET_FILE" ] && break
+        sleep 1
+    done
+
+    # 6. Bring up Tailscale
+    echo "[tailscale] bringing up VPN..."
+    $TAILSCALE_DIR/tailscale \
+        --socket=$SOCKET_FILE \
+        up --accept-dns=false
+
+    # 7. Wait for interface
+    for i in 1 2 3 4 5; do
+        ip link show $TUN_DEV >/dev/null 2>&1 && break
+        sleep 1
+    done
+
+    # 8. Set MTU (optional)
+    if ip link show $TUN_DEV >/dev/null 2>&1; then
+        ip link set $TUN_DEV mtu $MTU
+        echo "[tailscale] $TUN_DEV up (MTU=$MTU)"
+    else
+        echo "[tailscale] WARNING: $TUN_DEV not found"
+    fi
+    ;;
+    
+stop)
+    echo "[tailscale] stopping..."
+    killall tailscaled
+    ;;
+    
+status)
+    $TAILSCALE_DIR/tailscale --socket=$SOCKET_FILE status
+    ;;
+    
+*)
+    echo "Usage: $0 {start|stop|status}"
+    exit 1
+    ;;
+esac
+
+exit 0
