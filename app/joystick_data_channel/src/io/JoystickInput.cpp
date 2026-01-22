@@ -8,12 +8,44 @@
 #include <linux/joystick.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <chrono>
-#include <thread>
-#include <cstdio>
 #include <poll.h>
-#include <errno.h>
 #include <algorithm>
+#include <cstdio>
+
+// ============================================================
+// CONFIG
+// ============================================================
+constexpr const char* JS_DEV = "/dev/input/js2";
+constexpr int POLL_TIMEOUT_MS = 5;
+
+// ============================================================
+// LOCAL STATE
+// ============================================================
+static Direction g_direction = Direction::STOP;
+static uint8_t   g_throttle  = 0;
+
+// ============================================================
+// DIRECTION HELPERS
+// ============================================================
+static Direction next_fwd(Direction cur)
+{
+    switch (cur) {
+        case Direction::FWD:  return Direction::FWD;
+        case Direction::STOP: return Direction::FWD;
+        case Direction::REV:  return Direction::STOP;
+    }
+    return Direction::STOP;
+}
+
+static Direction next_rev(Direction cur)
+{
+    switch (cur) {
+        case Direction::REV:  return Direction::REV;
+        case Direction::STOP: return Direction::REV;
+        case Direction::FWD:  return Direction::STOP;
+    }
+    return Direction::STOP;
+}
 
 // ============================================================
 // INIT
@@ -21,9 +53,9 @@
 void JoystickInput::init()
 {
     // Future:
-    // - load calibration
     // - deadzone
-    // - axis mapping
+    // - axis remap
+    // - calibration
 }
 
 // ============================================================
@@ -43,25 +75,11 @@ void JoystickInput::stop()
         thread_.join();
 }
 
-bool JoystickInput::debounce_button(uint8_t button, uint32_t now)
-{
-    uint32_t &last = last_button_ts_[button];
-
-    if ((now - last) < DEBOUNCE_MS)
-        return false;
-
-    last = now;
-    return true;
-}
-
 // ============================================================
 // IO TASK (AUTOSAR IO Runnable)
 // ============================================================
 void JoystickInput::run()
 {
-    constexpr const char* JS_DEV = "/dev/input/js2";
-    constexpr int POLL_TIMEOUT_MS = 10;
-
     int fd = open(JS_DEV, O_RDONLY | O_NONBLOCK);
     if (fd < 0)
     {
@@ -95,7 +113,7 @@ void JoystickInput::run()
 
         js.type &= ~JS_EVENT_INIT;
 
-        const u32 ts = now_ms();
+        const uint32_t ts = now_ms();
 
         Event evt{};
         evt.timestamp = ts;
@@ -113,25 +131,30 @@ void JoystickInput::run()
                 case 0: // Steering
                     evt.type      = EventType::STEERING;
                     evt.s16_value = static_cast<s16>(value);
+                    g_eventRing.push(evt);
                     break;
 
                 case 2: // Brake
                     evt.type     = EventType::BRAKE;
                     evt.u8_value =
                         static_cast<u8>((value + 32768) * 100 / 65535);
+                    g_eventRing.push(evt);
                     break;
 
                 case 5: // Throttle
-                    evt.type     = EventType::THROTTLE;
-                    evt.u8_value =
+                {
+                    g_throttle =
                         static_cast<u8>((value + 32768) * 100 / 65535);
+
+                    evt.type     = EventType::THROTTLE;
+                    evt.u8_value = g_throttle;
+                    g_eventRing.push(evt);
                     break;
+                }
 
                 default:
-                    continue;
+                    break;
             }
-
-            g_eventRing.push(evt);
         }
 
         // ================= BUTTON =================
@@ -140,31 +163,40 @@ void JoystickInput::run()
             if (js.value != 1)
                 continue;
 
-            if (!debounce_button(js.number, ts))
-                continue;
+            bool dir_changed = false;
 
             switch (js.number)
             {
                 case 0: // Emergency
                     evt.type     = EventType::EMERGENCY;
                     evt.u8_value = 1;
+                    g_eventRing.push(evt);
                     break;
 
-                case 5: // Forward
-                    evt.type     = EventType::DIRECTION;
-                    evt.u8_value = static_cast<u8>(Direction::FWD);
+                case 5: // Forward button
+                    if (g_throttle == 0) {
+                        g_direction = next_fwd(g_direction);
+                        dir_changed = true;
+                    }
                     break;
 
-                case 4: // Reverse
-                    evt.type     = EventType::DIRECTION;
-                    evt.u8_value = static_cast<u8>(Direction::REV);
+                case 4: // Reverse button
+                    if (g_throttle == 0) {
+                        g_direction = next_rev(g_direction);
+                        dir_changed = true;
+                    }
                     break;
 
                 default:
-                    continue;
+                    break;
             }
 
-            g_eventRing.push(evt);
+            if (dir_changed)
+            {
+                evt.type     = EventType::DIRECTION;
+                evt.u8_value = static_cast<uint8_t>(g_direction);
+                g_eventRing.push(evt);
+            }
         }
     }
 }

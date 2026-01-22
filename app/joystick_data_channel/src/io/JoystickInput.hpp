@@ -20,13 +20,9 @@ private:
     // Internal task
     // --------------------------------------------------------
     void run();
-    bool debounce_button(uint8_t button, uint32_t now_ms);
-
 
 private:
     std::thread       thread_;
     std::atomic<bool> running_{false};
 
-    static constexpr uint32_t DEBOUNCE_MS = 20000;
-    uint32_t last_button_ts_[16]{};
 };
