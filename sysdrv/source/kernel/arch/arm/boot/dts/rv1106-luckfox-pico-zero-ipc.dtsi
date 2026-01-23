@@ -381,19 +381,22 @@
 
 // PWM
 &pwm0 {
-	pinctrl-0 = <&pwm0m1_pins>;
+    pinctrl-0 = <&pwm0m1_pins>;
+    status = "okay";
 };
 &pwm1 {
 	pinctrl-0 = <&pwm1m0_pins &pwm1m1_pins &pwm1m2_pins>;
 };
 &pwm2 {
-	pinctrl-0 = <&pwm2m0_pins &pwm2m1_pins &pwm2m2_pins>;
+	pinctrl-0 = <&pwm2m1_pins>;
+	status = "okay";
 };
 &pwm3 {
 	pinctrl-0 = <&pwm3m1_pins &pwm3m2_pins>;
 };
 &pwm4 {
-	pinctrl-0 = <&pwm4m0_pins &pwm4m1_pins &pwm4m2_pins>;
+	pinctrl-0 = <&pwm4m1_pins>;
+	status = "okay";
 };
 &pwm5 {
 	pinctrl-0 = <&pwm5m1_pins &pwm5m2_pins>;

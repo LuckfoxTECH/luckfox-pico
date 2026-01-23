@@ -1,0 +1,13 @@
+#!/bin/sh
+
+case $1 in
+        start)
+        wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant.conf
+        udhcpc -i wlan0
+                ;;
+        stop)
+                ;;
+        *)
+                exit 1
+                ;;
+esac

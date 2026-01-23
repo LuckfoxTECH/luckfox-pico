@@ -1,0 +1,89 @@
+#include "PeerClient.hpp"
+#include "com/FrameCodec.hpp"
+#include "com/RxDispatcher.hpp"
+#include <iostream>
+
+PeerClient::PeerClient(SignalingManager& sig,
+                       WebRTCTransport& rtc)
+    : sig_(sig), rtc_(rtc)
+{
+    /* ========================================================
+     * DataChannel lifecycle (log only)
+     * ======================================================== */
+
+    rtc_.onDcOpen([] {
+        std::cout << "[Client] DC OPEN\n";
+    });
+
+    rtc_.onDcClosed([] {
+        std::cout << "[Client] DC CLOSED\n";
+    });
+
+    rtc_.onDcMessage([](const std::string& msg) {
+        std::cout << "[Client] DC msg: " << msg << "\n";
+    });
+
+    rtc_.onDcBinary([this](const std::vector<uint8_t>& data) {
+
+        // -------- Basic guard --------
+        // std::cout << "[RX RAW] (" << data.size() << " bytes): ";
+        // for (auto b : data)
+        //     printf("%02X ", b);
+        // printf("\n");
+
+        if (data.size() < 5) {
+            std::cout << "[COM] RX frame too short\n";
+            return;
+        }
+
+        Frame frame{};
+        if (!FrameCodec::decode_frame(data.data(), data.size(), frame)) {
+            std::cout << "[COM] RX invalid frame (checksum / format)\n";
+            return;
+        }
+
+        // -------- Dispatch to COM RX --------
+        RxDispatcher::dispatch(frame);
+    });
+
+    /* ========================================================
+     * Local signaling (SDP / ICE)
+     * ======================================================== */
+
+    rtc_.onLocalSdp([this](std::string sdp) {
+        std::cout << "[Client] Send OFFER\n";
+        sig_.sendSdp(sdp);
+    });
+
+    rtc_.onLocalIce([this](std::string c, std::string m) {
+        sig_.sendIce(c, m);
+    });
+
+    /* ========================================================
+     * Remote signaling
+     * ======================================================== */
+
+    sig_.onReceive([this](const SignalingMsg& m) {
+
+        if (m.type == SigType::SDP) {
+
+            if (!rtc_.haveLocalOffer()) {
+                std::cout << "[SDP] drop ANSWER (no local offer)\n";
+                return;
+            }
+
+            std::cout << "[Client] Got ANSWER\n";
+            rtc_.setRemoteAnswer(m.payload1);
+        }
+        else if (m.type == SigType::ICE) {
+            rtc_.addRemoteIce(m.payload1, m.payload2);
+        }
+    });
+
+}
+
+void PeerClient::start()
+{
+    sig_.start();
+    rtc_.createOffer();
+}
