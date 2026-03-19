@@ -154,11 +154,8 @@ function choose_target_board() {
 		"RV1103_Luckfox_Pico_WebBee"
 		"RV1106_Luckfox_Pico_Pro_Max"
 		"RV1106_Luckfox_Pico_Ultra"
-		"RV1106_Luckfox_Pico_Ultra_W"
 		"RV1106_Luckfox_Pico_Pi"
-		"RV1106_Luckfox_Pico_Pi_W"
 		"RV1106_Luckfox_Pico_86Panel"
-		"RV1106_Luckfox_Pico_86Panel_W"
 		"RV1106_Luckfox_Pico_Zero")
 	local LF_BOOT_MEDIA=("SD_CARD" "SPI_NAND" "EMMC")
 	local LF_SYSTEM=("Buildroot" "Custom")
@@ -183,15 +180,9 @@ function choose_target_board() {
 	LUNCH_NUM=$((LUNCH_NUM + 1))
 	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Ultra"
 	LUNCH_NUM=$((LUNCH_NUM + 1))
-	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Ultra_W"
-	LUNCH_NUM=$((LUNCH_NUM + 1))
 	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Pi"
 	LUNCH_NUM=$((LUNCH_NUM + 1))
-	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Pi_W"
-	LUNCH_NUM=$((LUNCH_NUM + 1))
 	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_86Panel"
-	LUNCH_NUM=$((LUNCH_NUM + 1))
-	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_86Panel_W"
 	LUNCH_NUM=$((LUNCH_NUM + 1))
 	echo "${space8}${space8}[${LUNCH_NUM}] RV1106_Luckfox_Pico_Zero"
 	LUNCH_NUM=$((LUNCH_NUM + 1))
@@ -279,7 +270,7 @@ function choose_target_board() {
 
 	range_sd_card=(0)
 	range_sd_card_spi_nand=(1 2 3 4)
-	range_emmc=(5 6 7 8 9 10 11)
+	range_emmc=(5 6 7 8)
 
 	if __IS_IN_ARRAY "$HW_INDEX" "${range_sd_card[@]}"; then
 		echo "${space8}${space8}[0] SD_CARD"
@@ -1330,6 +1321,9 @@ EOF
 
 	cat >$tmp_path <<EOF
 #!/bin/sh
+if [ "\$(id -u)" -ne 0 ]; then
+    return 0 2>/dev/null || exit 0
+fi
 if [ "\$(id -u)" = "0" ]; then
 ulimit -c unlimited
 echo "/data/core-%p-%e" > /proc/sys/kernel/core_pattern
@@ -1428,11 +1422,6 @@ function __PACKAGE_RESOURCES() {
 			fi
 		done
 		IFS=
-	else
-		msg_warn "Not found RK_CAMERA_SENSOR_IQFILES on the $(realpath $BOARD_CONFIG), copy all default for emmc, sd-card or nand"
-		if [ "$RK_BOOT_MEDIUM" != "spi_nor" ]; then
-			cp -rfa $RK_PROJECT_PATH_MEDIA/isp_iqfiles/* $_iqfiles_dir
-		fi
 	fi
 
 	if [ -n "$RK_CAMERA_SENSOR_CAC_BIN" ]; then
@@ -2046,6 +2035,28 @@ function get_partition_size() {
 	return
 }
 
+function is_growup_partition() {
+	local target_part_name partitions
+	target_part_name=$1
+	partitions=${GLOBAL_PARTITIONS}
+	if [ -z "$target_part_name" -o -z "$partitions" ]; then
+		return 1
+	fi
+
+	IFS=,
+	local part_size part_name
+	for part in $partitions; do
+		part_size=$(echo $part | cut -d '@' -f1)
+		part_name=$(echo $part | cut -d '(' -f2 | cut -d ')' -f1)
+		if [ "$part_size" = "-" -a "${part_name%_[ab]}" == "${target_part_name%_[ab]}" ]; then
+			IFS=
+			return 0
+		fi
+	done
+	IFS=
+	return 1
+}
+
 function __GET_TARGET_PARTITION_FS_TYPE() {
 	check_config RK_PARTITION_FS_TYPE_CFG || return 0
 	msg_info "Partition Filesystem Type Configure: $RK_PARTITION_FS_TYPE_CFG"
@@ -2194,14 +2205,8 @@ function __PREPARE_BOARD_CFG() {
 }
 
 function build_mkimg() {
-	local src dst fs_type part_size part_name
+	local src dst fs_type part_size part_name src_bytes reserve_bytes meta_bytes overhead_bytes min_bytes
 	part_name=$1
-	part_size=$(get_partition_size $part_name)
-	if [ $((part_size)) -lt 1 ]; then
-		msg_warn "Not found partition named [$part_name]"
-		msg_warn "Please check RK_PARTITION_CMD_IN_ENV in BoardConfig: $BOARD_CONFIG"
-		return
-	fi
 
 	if [ -z "$2" -o ! -d "$2" ]; then
 		msg_error "Not exist source dir: $2"
@@ -2220,6 +2225,31 @@ function build_mkimg() {
 	fs_type=${part_name}$GLOBAL_FS_TYPE_SUFFIX
 	fs_type="\$${fs_type}"
 	fs_type=$(eval "echo ${fs_type}")
+
+	part_size=$(get_partition_size $part_name)
+	if [ $((part_size)) -lt 1 ]; then
+		if is_growup_partition $part_name; then
+			if [ "$fs_type" = "ext4" ]; then
+				src_real=$(realpath -e "$src" 2>/dev/null || readlink -f "$src" 2>/dev/null || echo "$src")
+				src_bytes=$(du -sb "$src_real" 2>/dev/null | awk '{print $1}')
+				[ -n "$src_bytes" ] || src_bytes=0
+				reserve_bytes=$((src_bytes / 20))
+				meta_bytes=$((64 * 1024 * 1024))
+				overhead_bytes=$((128 * 1024 * 1024))
+				min_bytes=$((128 * 1024 * 1024))
+				part_size=$((src_bytes + reserve_bytes + meta_bytes + overhead_bytes))
+				[ $((part_size)) -ge $((min_bytes)) ] || part_size=$min_bytes
+				msg_warn "Partition [$part_name] is growup (-), use $((part_size / 1024 / 1024))MB to generate ${part_name}.img"
+			else
+				msg_warn "Partition [$part_name] is growup (-), skip mkimg for fs_type=$fs_type"
+				return
+			fi
+		else
+			msg_warn "ot found partition named [$part_name]"
+			msg_warn "Please check RK_PARTITION_CMD_IN_ENV in BoardConfig: $BOARD_CONFIG"
+			return
+		fi
+	fi
 
 	if [ "$LF_TARGET_ROOTFS" == "buildroot" ] || [ "$LF_TARGET_ROOTFS" == "busybox" ]; then
 		__RELEASE_FILESYSTEM_FILES $src
@@ -2575,6 +2605,13 @@ function build_firmware() {
 		done
 		find "${RK_PROJECT_OUTPUT_IMAGE}" -type f -name "*.ubi" -exec rm {} +
 	fi
+
+	# sdcard package
+	if [ "${RK_BOOT_MEDIUM}" == "sd_card" ]; then
+		msg_info "MEDIUM SD_CARD Package firmware"
+		$PACK_TOOL_PATH/lf_blkenvpackage --trim -i ${RK_PROJECT_OUTPUT_IMAGE} -o ${RK_PROJECT_OUTPUT_IMAGE}/sd_update.img
+	fi
+
 	finish_build
 }
 
