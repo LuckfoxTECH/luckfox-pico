@@ -3,10 +3,20 @@ WIFISSID=$1
 WIFIPWD=$2
 CONF=/tmp/wpa_supplicant.conf
 
-cp /etc/wpa_supplicant.conf /tmp/
-echo "connect to WiFi ssid: $WIFISSID, Passwd: $WIFIPWD"
-sed -i "s/SSID/$WIFISSID/g" $CONF
-sed -i "s/PASSWORD/$WIFIPWD/g" $CONF
+echo "connect to WiFi ssid: $WIFISSID"
+
+cat > $CONF <<EOF
+ctrl_interface=/var/run/wpa_supplicant
+ap_scan=1
+update_config=1
+
+network={
+    ssid="$WIFISSID"
+    psk="$WIFIPWD"
+    key_mgmt=WPA-PSK
+}
+EOF
+
 killall wpa_supplicant
 killall wpa_supplicant_nl80211
 sleep 1
@@ -38,6 +48,12 @@ fi
 
 #atbm603x
 cat /sys/bus/usb/devices/*/uevent | grep "007A:6011"
+if [ $? -eq 0 ];then
+	wpa_supplicant -B -D nl80211 -i wlan0 -c $CONF
+fi
+
+#aic8800
+cat /sys/bus/sdio/devices/*/uevent | grep "C8A1:C18D"
 if [ $? -eq 0 ];then
 	wpa_supplicant -B -D nl80211 -i wlan0 -c $CONF
 fi
