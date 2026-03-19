@@ -1,8 +1,18 @@
---- a/android/compat/wordexp.h	2024-05-13 13:59:50.667347786 +0800
-+++ b/android/compat/wordexp.h	2024-05-13 14:11:43.377135089 +0800
-@@ -1,31 +1,78 @@
+diff --git a/android/compat/wordexp.h b/android/compat/wordexp.h
+index 08c59ee..b88b502 100644
+--- a/android/compat/wordexp.h
++++ b/android/compat/wordexp.h
+@@ -1,31 +1,88 @@
 -/* SPDX-License-Identifier: LGPL-2.1-or-later */
 -/*
++/***********************************************************
++ * @Author: sprink
++ * @Date: 2025-10-28 07:51:24
++ * @LastEditTime: 2025-10-28 08:06:53
++ * @LastEditors: sprink
++ * @Description: 
++ *
++ ***********************************************************/
 +/*-
 + * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
   *
@@ -34,15 +44,15 @@
   *
 + * $FreeBSD$
   */
-
+ 
  #ifndef _WORDEXP_H_
 -#define _WORDEXP_H_
 +#define	_WORDEXP_H_
-
+ 
 -#define WRDE_NOCMD 0
 +#include <sys/types.h>
 +#include <stdlib.h>
-
+ 
  typedef struct {
 -	size_t we_wordc;
 -	char **we_wordv;
@@ -53,7 +63,7 @@
 +	char		*we_strings;	/* storage for wordv strings */
 +	size_t	we_nbytes;	/* size of we_strings */
  } wordexp_t;
-
+ 
 -static inline int wordexp(const char *c, wordexp_t *w, int _i)
 -{
 -	return -1;
@@ -61,19 +71,21 @@
 +/*
 + * Flags for wordexp().
 + */
+ 
+-static inline void wordfree(wordexp_t *__wordexp)
+-{
+-}
 +#define	WRDE_APPEND	0x1		/* append to previously generated */
 +#define	WRDE_DOOFFS	0x2		/* we_offs member is valid */
 +#define	WRDE_NOCMD	0x4		/* disallow command substitution */
 +#define	WRDE_REUSE	0x8		/* reuse wordexp_t */
 +#define	WRDE_SHOWERR	0x10		/* don't redirect stderr to /dev/null */
 +#define	WRDE_UNDEF	0x20		/* disallow undefined shell vars */
-
--static inline void wordfree(wordexp_t *__wordexp)
--{
--}
++
 +/*
 + * Return values from wordexp().
 + */
++#define WRDE_SUCCESS     0    /* 成功 */
 +#define	WRDE_BADCHAR	1		/* unquoted special character */
 +#define	WRDE_BADVAL	2		/* undefined variable */
 +#define	WRDE_CMDSUB	3		/* command substitution not allowed */
@@ -82,16 +94,16 @@
 +#define	WRDE_NOSYS	5		/* obsolete, reserved */
 +#endif
 +#define	WRDE_SYNTAX	6		/* shell syntax error */
-+
+ 
 +#ifdef	__cplusplus
 +extern "C" {
-+#endif
-
+ #endif
++
 +int	wordexp(const char * __restrict, wordexp_t * __restrict, int);
 +void	wordfree(wordexp_t *);
 +
 +#ifdef	__cplusplus
 +}
- #endif
++#endif
 +
 +#endif /* !_WORDEXP_H_ */
