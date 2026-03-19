@@ -84,7 +84,7 @@ export RK_UBOOT_DEFCONFIG=luckfox_rv1106_uboot_defconfig
 export RK_KERNEL_DEFCONFIG=luckfox_rv1106_linux_defconfig
 
 # Kernel defconfig fragment
-export RK_KERNEL_DEFCONFIG_FRAGMENT="rv1106-gt911-module.config"
+export RK_KERNEL_DEFCONFIG_FRAGMENT="rv1106-bt.config rv1106-gt911-module.config"
 
 # Config sensor IQ files
 # RK_CAMERA_SENSOR_IQFILES format:
@@ -107,12 +107,12 @@ export RK_BUILD_APP_TO_OEM_PARTITION=y
 export RK_ENABLE_ROCKCHIP_TEST=y
 
 # enable rockchip wifi
-#export RK_ENABLE_WIFI=y
-#export RK_ENABLE_WIFI_CHIP=AIC8800DC
+export RK_ENABLE_WIFI=y
+export RK_ENABLE_WIFI_CHIP=AIC8800DC
 
 # config wifi ssid and passwd
-#export LF_WIFI_SSID="Your wifi ssid"
-#export LF_WIFI_PSK="Your wifi password"
+export LF_WIFI_SSID="Your wifi ssid"
+export LF_WIFI_PSK="Your wifi password"
 
 #################################################
 #  PRE and POST
