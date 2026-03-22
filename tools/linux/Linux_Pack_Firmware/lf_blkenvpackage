@@ -1,0 +1,341 @@
+#!/usr/bin/env python3
+
+import atexit
+import os
+import re
+import shutil
+import sys
+from typing import Dict, List
+
+VERSION = "0.0.6"
+
+def usage(prog: str, exit_code: int) -> None:
+    print(
+        f"""USAGE {prog} [options] <output.img|output.img.gz|output.img.xz|output.img.bz2>
+   options:
+      -i, --images-dir <dir>     directory contains .env.txt and *.img (default: .)
+      -e, --env <path>           path to .env.txt (default: <images-dir>/.env.txt or ./.env.txt)
+      -o, --out <path>           output image path (alternative to positional)
+      --dense                    create non-sparse raw .img (fills gaps with zeros)
+      --trim                     shrink output length to last written byte
+      --img <name>=<path>        override a partition image path (repeatable)
+"""
+    )
+    sys.exit(exit_code)
+
+def parse_args(prog: str, argv: List[str]):
+    images_dir = None
+    env_path = None
+    out_img = None
+    img_overrides: Dict[str, str] = {}
+    dense = False
+    trim = False
+    positional: List[str] = []
+
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a in ("-h", "--help"):
+            usage(prog, 0)
+        if a in ("-i", "--images-dir"):
+            if i + 1 >= len(argv):
+                usage(prog, -1)
+            images_dir = argv[i + 1]
+            i += 2
+            continue
+        if a in ("-e", "--env"):
+            if i + 1 >= len(argv):
+                usage(prog, -1)
+            env_path = argv[i + 1]
+            i += 2
+            continue
+        if a in ("-o", "--out"):
+            if i + 1 >= len(argv):
+                usage(prog, -1)
+            out_img = argv[i + 1]
+            i += 2
+            continue
+        if a == "--dense":
+            dense = True
+            i += 1
+            continue
+        if a == "--trim":
+            trim = True
+            i += 1
+            continue
+        if a == "--img":
+            if i + 1 >= len(argv):
+                usage(prog, -1)
+            spec = argv[i + 1]
+            if "=" not in spec:
+                usage(prog, -1)
+            name, p = spec.split("=", 1)
+            name = name.strip()
+            p = p.strip()
+            if not name or not p:
+                usage(prog, -1)
+            img_overrides[name] = p
+            i += 2
+            continue
+
+        positional.append(a)
+        i += 1
+
+    if out_img is not None and positional:
+        usage(prog, -1)
+
+    if out_img is None:
+        if len(positional) == 1:
+            out_img = positional[0]
+        elif (
+            len(positional) == 2
+            and images_dir is None
+            and env_path is None
+            and not img_overrides
+        ):
+            images_dir = positional[0]
+            out_img = positional[1]
+        else:
+            usage(prog, -1)
+
+    if images_dir is None:
+        images_dir = "."
+
+    if env_path is None:
+        candidate = os.path.join(images_dir, ".env.txt")
+        env_path = candidate if os.path.exists(candidate) else ".env.txt"
+
+    return images_dir, env_path, out_img, img_overrides, dense, trim
+
+
+def true_size(s):
+    if s is None:
+        return 0
+    s = s.strip()
+    if not s:
+        return 0
+    if s == "-":
+        return None
+    if s.lower().startswith("0x"):
+        try:
+            return int(s, 16)
+        except ValueError:
+            return 0
+    m = re.fullmatch(r"(\d+)([BKMG])?", s, flags=re.IGNORECASE)
+    if m:
+        n = int(m.group(1))
+        unit = (m.group(2) or "B").upper()
+        u = {"B": 1, "K": 1024, "M": 1024 * 1024, "G": 1024 * 1024 * 1024}
+        return n * u[unit]
+    return 0
+
+
+def format_bytes(n):
+    if n is None:
+        return "-"
+    u = {"B": 1, "K": 1024, "M": 1024 * 1024, "G": 1024 * 1024 * 1024}
+    for k, v in reversed(list(u.items())):
+        if n >= v and n % v == 0:
+            return f"{n // v:,}{k}"
+    return f"{n:,}B"
+
+
+def cleanup():
+    if os.path.exists(".env.txt.orig"):
+        os.rename(".env.txt.orig", ".env.txt")
+    print("done.")
+
+
+def parse_layout_from_env(env_lines):
+    layouts = []
+    for l in env_lines:
+        m = re.search(r"^(blkdevparts|sd_parts)=(\w+):(.*)$", l.strip())
+        if not m:
+            continue
+        layout_type = m.group(1)
+        dev = m.group(2)
+        raw = m.group(3)
+        parts = []
+        for e in raw.split(","):
+            e = e.strip()
+            m2 = re.search(
+                r"^([0-9A-Fa-fxX]+[BKMGbkmg]?)@([0-9A-Fa-fxX]+[BKMGbkmg]?)\(([\w:.-]+)\)$",
+                e,
+            )
+            if m2:
+                part_name = m2.group(3)
+                img_name = part_name.split(":", 1)[0]
+                parts.append(
+                    {
+                        "name": part_name,
+                        "img_name": img_name,
+                        "size": true_size(m2.group(1)),
+                        "off": true_size(m2.group(2)),
+                    }
+                )
+                continue
+
+            m2 = re.search(r"^([0-9A-Fa-fxX]+[BKMGbkmg]?|-)\(([\w:.-]+)\)$", e)
+            if m2:
+                part_name = m2.group(2)
+                img_name = part_name.split(":", 1)[0]
+                parts.append(
+                    {
+                        "name": part_name,
+                        "img_name": img_name,
+                        "size": true_size(m2.group(1)),
+                        "off": None,
+                    }
+                )
+                continue
+
+        if parts:
+            layouts.append((layout_type, dev, parts))
+
+    for layout_type, dev, parts in layouts:
+        if layout_type == "blkdevparts":
+            return dev, parts
+    if layouts:
+        _, dev, parts = layouts[0]
+        return dev, parts
+    return None, []
+
+
+def build_write_plan(parts):
+    cursor = 0
+    plan = []
+    for part in parts:
+        size = part["size"]
+        off = cursor if part["off"] is None else part["off"]
+        plan.append(
+            {
+                "name": part["name"],
+                "img_name": part.get("img_name", part["name"]),
+                "size": size,
+                "off": off,
+            }
+        )
+        if size is not None:
+            cursor = max(cursor, off + size)
+    return plan, cursor
+
+
+def open_output_writer(out_path):
+    out_path_l = out_path.lower()
+    if out_path_l.endswith(".gz"):
+        import gzip
+
+        return gzip.open(out_path, "wb"), False
+    if out_path_l.endswith(".xz"):
+        import lzma
+
+        return lzma.open(out_path, "wb"), False
+    if out_path_l.endswith(".bz2"):
+        import bz2
+
+        return bz2.open(out_path, "wb"), False
+    return open(out_path, "wb"), True
+
+
+def write_zeros(out_fh, n):
+    if n <= 0:
+        return
+    block = b"\x00" * (1024 * 1024)
+    while n > 0:
+        chunk = block if n >= len(block) else block[:n]
+        out_fh.write(chunk)
+        n -= len(chunk)
+
+
+def main() -> int:
+    prog = os.path.basename(sys.argv[0])
+    images_dir, env_path, out_img, img_overrides, dense, trim = parse_args(
+        prog, sys.argv[1:]
+    )
+
+    if out_img.startswith("/dev/"):
+        print(
+            f"ERROR: direct writing to '{out_img}' is disabled; pass an output .img path instead"
+        )
+        return -1
+
+    print(f"== {prog} {VERSION} ==")
+    print(f"writing image {out_img}")
+
+    atexit.register(cleanup)
+
+    out_dir = os.path.dirname(out_img)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
+
+    with open(env_path) as fh:
+        env_lines = fh.readlines()
+
+    _dev, _parts = parse_layout_from_env(env_lines)
+    if not _parts:
+        print("ERROR: no partition layout found in .env.txt")
+        return -1
+
+    plan, total = build_write_plan(_parts)
+    total_aligned = ((total + (1024 * 1024) - 1) // (1024 * 1024)) * (1024 * 1024)
+    max_written = 0
+    has_grow = any(p.get("size") is None for p in plan)
+
+    for p in plan:
+        name = p["img_name"]
+        size = p["size"]
+        off = p["off"]
+        size_str = "-" if size is None else f"{size:,}"
+        print(
+            f"   {_dev}: {name}.img size:{size_str}/{format_bytes(size)} (offset:{off:,}/{format_bytes(off)})",
+            end="",
+        )
+        in_path = img_overrides.get(name, os.path.join(images_dir, f"{name}.img"))
+        if not os.path.exists(in_path):
+            print()
+            print(f"ERROR: '{in_path}' not found")
+            return -1
+        size_ = os.path.getsize(in_path)
+        p["path"] = in_path
+        p["imgsize"] = size_
+        max_written = max(max_written, off + size_)
+        print(f" imgsize:{size_:,} ({format_bytes(size_)})")
+        if size is not None and size_ > size:
+            print(f"ERROR: '{in_path}' is larger than declared size in .env.txt")
+            return -1
+
+    if has_grow or trim:
+        total_aligned = (
+            (max_written + (1024 * 1024) - 1) // (1024 * 1024)
+        ) * (1024 * 1024)
+
+    out_fh, can_seek = open_output_writer(out_img)
+    if dense and out_img.lower().endswith(".img"):
+        can_seek = False
+    with out_fh:
+        if can_seek:
+            out_fh.truncate(total_aligned)
+            for p in plan:
+                out_fh.seek(p["off"])
+                with open(p["path"], "rb") as in_fh:
+                    shutil.copyfileobj(in_fh, out_fh, length=4 * 1024 * 1024)
+        else:
+            plan_sorted = sorted(plan, key=lambda x: x["off"])
+            pos = 0
+            for p in plan_sorted:
+                off = p["off"]
+                if off < pos:
+                    print("ERROR: overlapping partitions in layout")
+                    return -1
+                write_zeros(out_fh, off - pos)
+                with open(p["path"], "rb") as in_fh:
+                    shutil.copyfileobj(in_fh, out_fh, length=4 * 1024 * 1024)
+                pos = off + p["imgsize"]
+            write_zeros(out_fh, total_aligned - pos)
+
+    print(f"image size: {total_aligned:,} ({format_bytes(total_aligned)})")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
