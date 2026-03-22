@@ -1520,6 +1520,11 @@ EOF
 		chmod a+x $RK_PROJECT_FILE_ROOTFS_SCRIPT
 		cp -f $RK_PROJECT_FILE_ROOTFS_SCRIPT $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc/init.d
 	fi
+
+	echo "Copying kernel modules into the right place"
+    __COPY_FILES $SDK_SYSDRV_DIR/source/objs_kernel/drv_ko/lib $RK_PROJECT_PACKAGE_ROOTFS_DIR/lib
+    rm -f $RK_PROJECT_PACKAGE_ROOTFS_DIR/lib/modules/*/build
+    rm -f $RK_PROJECT_PACKAGE_ROOTFS_DIR/lib/modules/*/source
 }
 
 function parse_partition_env() {

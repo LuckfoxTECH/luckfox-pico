@@ -1,0 +1,6 @@
+# Disable Rockchip camera driver autoloading
+
+ACTION=="add", SUBSYSTEM=="platform", ENV{MODALIAS}=="of:Ncsi2-dphy*", ENV{MODALIAS}=""
+ACTION=="add", SUBSYSTEM=="platform", ENV{MODALIAS}=="of:Nmipi*-csi2*", ENV{MODALIAS}=""
+ACTION=="add", SUBSYSTEM=="platform", ENV{MODALIAS}=="of:N*rkcif*", ENV{MODALIAS}=""
+ACTION=="add", SUBSYSTEM=="platform", ENV{MODALIAS}=="of:N*rkisp*", ENV{MODALIAS}=""
