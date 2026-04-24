@@ -808,7 +808,11 @@ function luckfox_get_device_name() {
 	local device_node="$1"
 	local device_node_name
 
-	device_node_name=$(grep "$device_node =" $LUCKFOX_FDT_DUMP_TXT | awk '{print $3}' | sed 's/["";]//g')
+	# head -1 because kernels with CONFIG_DTC_SYMBOLS=y emit each alias
+	# twice (once under /aliases, once under /__symbols__); without this
+	# the device-ref in the generated DTS overlay spans two lines and
+	# dtc fails with "syntax error" / "Unable to parse input tree".
+	device_node_name=$(grep "$device_node =" $LUCKFOX_FDT_DUMP_TXT | head -1 | awk '{print $3}' | sed 's/["";]//g')
 	echo "$device_node_name"
 }
 
