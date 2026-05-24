@@ -121,7 +121,7 @@
 /**********UART**********/
 /* UART3_M1 */
 &uart3 {
-	status = "disabled";
+	status = "okay";
 };
 
 /* UART4_M1 */
