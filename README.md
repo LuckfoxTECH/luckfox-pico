@@ -18,12 +18,44 @@
 ```shell
 sudo apt-get install -y git ssh make gcc gcc-multilib g++-multilib module-assistant expect g++ gawk texinfo libssl-dev bison flex fakeroot cmake unzip gperf autoconf device-tree-compiler libncurses5-dev pkg-config bc python-is-python3 passwd openssl openssh-server openssh-client vim file cpio rsync
 ```
+### Build with Docker (macOS / other hosts)
+The Rockchip toolchain is Linux-only. On **macOS**, use Docker Desktop and `./docker-build.sh` instead of a native host install. The wrapper builds an Ubuntu 22.04 image, runs `./build.sh` inside the container, and on Darwin syncs sources into a **case-sensitive** Docker volume (APFS bind-mounts break the kernel tree where pairs like `ipt_ECN.h` / `ipt_ecn.h` collide).
+
+```shell
+# Once: build the image
+./docker-build.sh --build-image
+
+# Select board (interactive) — creates .BoardConfig.mk on the host / volume
+./docker-build.sh lunch
+
+# Full build (same as ./build.sh with no args)
+./docker-build.sh
+
+# Or pass any build.sh target
+./docker-build.sh uboot
+./docker-build.sh kernel
+./docker-build.sh all
+
+# Interactive shell in the SDK container
+./docker-build.sh --shell
+
+# Re-sync host → volume after large local changes (macOS)
+./docker-build.sh --sync --check
+
+# If the container exited without copying images (crash, kill, session loss),
+# pull build artifacts from the volume onto the host:
+./docker-build.sh --sync-output
+```
+
+On Linux, the default is a bind-mount of the repo at `/sdk`. On macOS, images under `output/` are synced back to the host when the container exits successfully; use `--sync-output` anytime you need to recover them from the volume. Requires Docker with `linux/amd64` support (Apple Silicon uses emulation).
+
+Env overrides: `LUCKFOX_DOCKER_IMAGE` (default `luckfox-pico-sdk:22.04`), `LUCKFOX_DOCKER_VOLUME` (default `luckfox-pico-sdk`), `LUCKFOX_BIND_MOUNT=1` to force bind-mount on Darwin (not recommended).
 ### Get SDK
 ```
 git clone https://github.com/LuckfoxTECH/luckfox-pico.git
 ```
 ### Environment Variables
-* The cross-compilation toolchain needs to be set Environment Variables
+* The cross-compilation toolchain needs to be set Environment Variables (native Linux host; not required when using `./docker-build.sh`)
 ```
 cd {SDK_PATH}/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/
 source env_install_toolchain.sh

@@ -1,0 +1,3 @@
+# Image only installs Ubuntu packages; SDK is bind-mounted at runtime.
+**
+!Dockerfile
