@@ -55,7 +55,7 @@
 
 /**********NPU**********/
 &npu {
-	assigned-clock-rates = <700000000>;
+	assigned-clock-rates = <420000000>;
 };
 
 /**********EMMC**********/
