@@ -1520,6 +1520,16 @@ EOF
 		chmod a+x $RK_PROJECT_FILE_ROOTFS_SCRIPT
 		cp -f $RK_PROJECT_FILE_ROOTFS_SCRIPT $RK_PROJECT_PACKAGE_ROOTFS_DIR/etc/init.d
 	fi
+
+	# A buildroot rootfs without a CA trust store has broken TLS verification
+	# for every user-space client (see https://github.com/LuckfoxTECH/luckfox-pico/issues/373).
+	# buildroot's ca-certificates package installs the bundle at
+	# /etc/ssl/certs/ca-certificates.crt; fail the build instead of shipping
+	# a silently broken image if it made it into the rootfs.
+	if [ "$LF_TARGET_ROOTFS" == "buildroot" ] && [ ! -f "$RK_PROJECT_PACKAGE_ROOTFS_DIR/etc/ssl/certs/ca-certificates.crt" ]; then
+		msg_error "CA trust store (etc/ssl/certs/ca-certificates.crt) is missing from the packaged buildroot rootfs; TLS verification will be broken. Ensure BR2_PACKAGE_CA_CERTIFICATES=y in the buildroot defconfig."
+		exit 0
+	fi
 }
 
 function parse_partition_env() {
