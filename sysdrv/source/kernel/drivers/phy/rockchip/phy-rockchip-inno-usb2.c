@@ -2828,8 +2828,14 @@ static int rv1106_usb2phy_tuning(struct rockchip_usb2phy *rphy)
 	/* Set 45ohm HS ODT value to 5'b10111 to increase driver strength */
 	phy_update_bits(rphy->phy_base + 0x11c, GENMASK(4, 0), 0x17);
 
-	/* Set Tx HS eye height tuning to 3'b011(462 mV)*/
-	phy_update_bits(rphy->phy_base + 0x124, GENMASK(4, 2), (0x03 << 2));
+	/*
+	 * Set Tx HS eye height tuning to 3'b110 (was 3'b011, 462 mV). With 3'b011, a
+	 * high-speed device on the USB-A port of the Luckfox Pico Ultra (W), which goes
+	 * through the board's USB switch, often fails to enumerate ("Cannot enable") and
+	 * then stays stuck until it is unplugged. 3'b101 and higher work; 3'b110 keeps a
+	 * step of margin.
+	 */
+	phy_update_bits(rphy->phy_base + 0x124, GENMASK(4, 2), (0x06 << 2));
 
 	/* Bypass Squelch detector calibration */
 	phy_update_bits(rphy->phy_base + 0x1a4, GENMASK(7, 4), (0x01 << 4));
