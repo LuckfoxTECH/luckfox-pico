@@ -16,10 +16,11 @@ all:
 	@test -f $(PKG_BIN)/usr/sbin/e2fsck || (\
 	rm -rf $(CURRENT_DIR)/$(PKG_NAME); \
 	tar -xf $(PKG_TARBALL); \
+	patch -p1 -d $(CURRENT_DIR)/$(PKG_NAME) < $(CURRENT_DIR)/0001-subst-host-stat-headers.patch || exit 1; \
 	mkdir -p $(CURRENT_DIR)/$(PKG_NAME)/$(PKG_BIN); \
 	mkdir -p $(CURRENT_DIR)/$(PKG_BIN)/usr/; \
 	pushd $(CURRENT_DIR)/$(PKG_NAME)/; \
-		./configure --host=$(SYSDRV_CROSS) --target=$(SYSDRV_CROSS) CFLAGS="$(SYSDRV_CROSS_CFLAGS)" \
+		./configure --host=$(SYSDRV_CROSS) --target=$(SYSDRV_CROSS) MKDIR_P="mkdir -p" CFLAGS="$(SYSDRV_CROSS_CFLAGS)" \
 			LDFLAGS="$(SYSDRV_CROSS_CFLAGS)" --prefix=$(CURRENT_DIR)/$(PKG_BIN) \
 			--disable-nls \
 			--disable-debugfs --disable-imager --disable-defrag --enable-fsck --enable-resizer \

@@ -1,0 +1,16 @@
+Subject: [PATCH] util: include stat headers when building subst without config.h
+
+The cross build compiles subst for the host without HAVE_CONFIG_H. Include
+the headers that declare fstat and fchmod for modern host compilers.
+
+--- a/util/subst.c
++++ b/util/subst.c
+@@ -9,6 +9,8 @@
+ #include "config.h"
+ #else
+ #define HAVE_SYS_TIME_H
++#define HAVE_SYS_TYPES_H
++#define HAVE_SYS_STAT_H
+ #endif
+ #include <stdio.h>
+ #include <errno.h>
