@@ -2,6 +2,9 @@
 set -eE
 
 export LC_ALL=C
+# Vendor projects still request CMake policy versions older than 3.5.
+# CMake 4 supports this compatibility floor; preserve an explicit override.
+export CMAKE_POLICY_VERSION_MINIMUM="${CMAKE_POLICY_VERSION_MINIMUM:-3.5}"
 export LD_LIBRARY_PATH=
 RECORD_IFS="$IFS"
 
